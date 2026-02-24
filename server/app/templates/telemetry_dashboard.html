@@ -1,0 +1,135 @@
+{% extends "admin_base.html" %}
+{% block title %}Telemetria - HealthDesk Admin{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h1>Telemetria</h1>
+</header>
+
+<!-- Stats cards -->
+<div class="grid">
+    <article class="stat-card">
+        <h2>{{ dau }}</h2>
+        <p>DAU (dzisiaj)</p>
+    </article>
+    <article class="stat-card">
+        <h2>{{ wau }}</h2>
+        <p>WAU (7 dni)</p>
+    </article>
+    <article class="stat-card">
+        <h2>{{ mau }}</h2>
+        <p>MAU (30 dni)</p>
+    </article>
+    <article class="stat-card">
+        <h2>{{ events_today }}</h2>
+        <p>Zdarzenia dzisiaj</p>
+    </article>
+</div>
+
+<!-- Chart -->
+<article>
+    <h3>Zdarzenia dziennie (ostatnie 30 dni)</h3>
+    <canvas id="eventsChart" style="max-height: 350px;"></canvas>
+</article>
+
+<!-- Common events table -->
+<div class="grid">
+    <article>
+        <h3>Najczestsze zdarzenia</h3>
+        {% if common_events %}
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Typ zdarzenia</th>
+                        <th>Liczba</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in common_events %}
+                    <tr>
+                        <td>{{ event.event_type }}</td>
+                        <td>{{ event.count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </figure>
+        {% else %}
+        <p>Brak danych</p>
+        {% endif %}
+    </article>
+
+    <article>
+        <h3>Wersje aplikacji</h3>
+        {% if app_versions %}
+        <figure>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Wersja</th>
+                        <th>Uzytkownicy</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for ver in app_versions %}
+                    <tr>
+                        <td>{{ ver.app_version }}</td>
+                        <td>{{ ver.users }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </figure>
+        {% else %}
+        <p>Brak danych</p>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    const ctx = document.getElementById('eventsChart').getContext('2d');
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{
+                label: 'Zdarzenia',
+                data: {{ chart_values | tojson }},
+                borderColor: '#2ecc71',
+                backgroundColor: 'rgba(46, 204, 113, 0.1)',
+                fill: true,
+                tension: 0.3,
+                pointRadius: 3,
+                pointBackgroundColor: '#2ecc71',
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#aaa' }
+                },
+                y: {
+                    beginAtZero: true,
+                    grid: { color: 'rgba(255,255,255,0.05)' },
+                    ticks: { color: '#aaa', precision: 0 }
+                }
+            },
+            plugins: {
+                legend: {
+                    labels: { color: '#ccc' }
+                }
+            }
+        }
+    });
+</script>
+{% endblock %}

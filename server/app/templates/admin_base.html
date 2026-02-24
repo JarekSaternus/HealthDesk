@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HealthDesk Admin{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        :root {
+            --pico-primary: #2ecc71;
+            --pico-primary-hover: #27ae60;
+        }
+        .brand {
+            color: #2ecc71;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .brand:hover {
+            color: #27ae60;
+        }
+        nav ul li a.active {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 1.5rem;
+        }
+        .stat-card h2 {
+            color: #2ecc71;
+            font-size: 2.5rem;
+            margin-bottom: 0.25rem;
+        }
+        .stat-card p {
+            color: var(--pico-muted-color);
+            margin: 0;
+        }
+        table {
+            margin-top: 1rem;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .actions a, .actions button {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.7rem;
+            margin: 0;
+        }
+        .actions button.secondary {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+        .badge-active {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .badge-inactive {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><a href="/admin/ads" class="brand">HealthDesk</a></li>
+        </ul>
+        <ul>
+            <li><a href="/admin/ads" {% if request.url.path.startswith('/admin/ads') %}class="active"{% endif %}>Reklamy</a></li>
+            <li><a href="/admin/telemetry" {% if '/telemetry' in request.url.path %}class="active"{% endif %}>Telemetria</a></li>
+            <li><a href="/admin/logout">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>
