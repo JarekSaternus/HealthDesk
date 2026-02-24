@@ -10,14 +10,20 @@ import os
 import random
 import re
 import threading
+import ssl
 import urllib.request
 import urllib.parse
+
+# SSL context for self-signed VPS certificate
+_ssl_ctx = ssl.create_default_context()
+_ssl_ctx.check_hostname = False
+_ssl_ctx.verify_mode = ssl.CERT_NONE
 
 from config import CONFIG_DIR, get_client_uuid, APP_VERSION
 
 # Remote API to fetch ads from
-ADS_URL = "https://api.healthdesk.site/api/ads"
-ADS_EVENT_URL = "https://api.healthdesk.site/api/ads/event"
+ADS_URL = "https://172.104.234.32/healthdesk/api/ads"
+ADS_EVENT_URL = "https://172.104.234.32/healthdesk/api/ads/event"
 
 # Local cache
 _CACHE_FILE = os.path.join(CONFIG_DIR, "ads_cache.json")
@@ -125,7 +131,7 @@ def _report_event(ad_id: int, event_type: str):
                 },
                 method="POST",
             )
-            urllib.request.urlopen(req, timeout=5)
+            urllib.request.urlopen(req, timeout=5, context=_ssl_ctx)
         except Exception:
             pass
     threading.Thread(target=_send, daemon=True).start()
@@ -144,7 +150,7 @@ def _fetch_remote():
 
     try:
         req = urllib.request.Request(ADS_URL, headers={"User-Agent": f"HealthDesk/{APP_VERSION}"})
-        with urllib.request.urlopen(req, timeout=5) as resp:
+        with urllib.request.urlopen(req, timeout=5, context=_ssl_ctx) as resp:
             data = json.loads(resp.read().decode("utf-8"))
         if isinstance(data, list) and len(data) > 0:
             sanitized = [_sanitize_ad(ad) for ad in data]
