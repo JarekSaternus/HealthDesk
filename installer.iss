@@ -4,7 +4,7 @@
 ; Then: iscc installer.iss
 
 #define MyAppName "HealthDesk"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "HealthDesk"
 #define MyAppExeName "HealthDesk.exe"
 
@@ -17,7 +17,7 @@ DefaultDirName={autopf}\{#MyAppName}
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 OutputDir=Output
-OutputBaseFilename=HealthDesk_Setup
+OutputBaseFilename=HealthDesk_Setup_{#MyAppVersion}
 SetupIconFile=assets\icon.ico
 Compression=lzma2
 SolidCompression=yes
