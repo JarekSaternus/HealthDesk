@@ -64,7 +64,7 @@
         <h1>Twoje oczy, kręgosłup i głowa <span class="accent">Ci podziękują</span></h1>
         <p>Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — wszystko w jednej lekkiej aplikacji, która działa w tle.</p>
         <div class="hero-buttons">
-          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" class="btn btn-primary btn-lg">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" data-download="true" class="btn btn-primary btn-lg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Pobierz za darmo
           </a>
@@ -276,7 +276,7 @@
         <p>Darmowa aplikacja dla systemu Windows. Bez reklam, bez konta, bez ograniczeń.</p>
 
         <div class="download-buttons">
-          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" class="btn btn-primary btn-lg">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" data-download="true" class="btn btn-primary btn-lg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             Pobierz dla Windows
           </a>
@@ -290,7 +290,7 @@
           </span>
           <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
-            Wersja 1.1.0
+            <span data-version>Wersja 1.2.0</span>
           </span>
         </div>
       </div>
@@ -419,6 +419,35 @@
         elements.forEach(function (el) { el.classList.add('visible'); });
       }
     });
+  </script>
+
+  <script>
+    // Fetch latest release from GitHub and update download links + version badge
+    (function() {
+      var API = 'https://api.github.com/repos/JarekSaternus/HealthDesk/releases/latest';
+      var fallback = 'https://github.com/JarekSaternus/HealthDesk/releases/latest';
+      try {
+        fetch(API).then(function(r) { return r.json(); }).then(function(data) {
+          var url = '';
+          (data.assets || []).forEach(function(a) {
+            if (a.name && a.name.toLowerCase().endsWith('.exe')) {
+              url = a.browser_download_url;
+            }
+          });
+          if (url) {
+            document.querySelectorAll('[data-download]').forEach(function(el) {
+              el.href = url;
+            });
+          }
+          var tag = (data.tag_name || '').replace(/^v/i, '');
+          if (tag) {
+            document.querySelectorAll('[data-version]').forEach(function(el) {
+              el.textContent = 'Wersja ' + tag;
+            });
+          }
+        });
+      } catch(e) {}
+    })();
   </script>
 
 </body>
