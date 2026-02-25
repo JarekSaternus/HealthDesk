@@ -191,14 +191,140 @@
     </div>
   </section>
 
-  <!-- ===== App Preview ===== -->
+  <!-- ===== App Preview (HTML mockup) ===== -->
   <section class="app-preview" id="preview">
     <div class="container">
       <h2 class="section-title animate-on-scroll">Zobacz jak wygląda</h2>
       <p class="section-subtitle animate-on-scroll">Ciemny, elegancki interfejs, który nie rozprasza — dostarcza informacje na pierwszy rzut oka.</p>
 
-      <div class="app-screenshot animate-on-scroll">
-        <img src="screenshot.png" alt="HealthDesk — dashboard aplikacji" class="screenshot-img">
+      <div class="mockup-wrapper animate-on-scroll">
+        <!-- Main app window -->
+        <div class="mockup-window">
+          <div class="mockup-titlebar">
+            <div class="mockup-titlebar-left">
+              <img src="logo-color.svg" alt="" class="mockup-icon">
+              <span>HealthDesk</span>
+            </div>
+            <div class="mockup-titlebar-controls">
+              <span class="mockup-ctrl">&#8212;</span>
+              <span class="mockup-ctrl">&#9633;</span>
+              <span class="mockup-ctrl mockup-ctrl-close">&#10005;</span>
+            </div>
+          </div>
+          <div class="mockup-body">
+            <!-- Sidebar -->
+            <div class="mockup-sidebar">
+              <div class="mockup-nav-item mockup-nav-active">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                Home
+              </div>
+              <div class="mockup-nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                Statystyki
+              </div>
+              <div class="mockup-nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/></svg>
+                Audio
+              </div>
+              <div class="mockup-nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Ustawienia
+              </div>
+              <div class="mockup-sidebar-spacer"></div>
+              <div class="mockup-sidebar-bottom">
+                <div class="mockup-nav-btn">+1 woda</div>
+                <div class="mockup-nav-btn mockup-nav-pause">⏸ Pauza</div>
+              </div>
+            </div>
+            <!-- Content -->
+            <div class="mockup-content">
+              <!-- Work time card -->
+              <div class="mockup-card">
+                <div class="mockup-card-row">
+                  <span class="mockup-label">Czas pracy dzisiaj</span>
+                  <span class="mockup-badge">Pomodoro ▾</span>
+                </div>
+                <div class="mockup-big-value" style="color:#2ecc71">4h 23m</div>
+                <div class="mockup-progress-row">
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:58%;background:#2ecc71"></div></div>
+                  <span class="mockup-label-sm">58% dnia (8:00–18:00)</span>
+                </div>
+              </div>
+              <!-- Break timers -->
+              <div class="mockup-grid-2">
+                <div class="mockup-card">
+                  <div class="mockup-card-row">
+                    <span class="mockup-label-xs">Mała</span>
+                    <span class="mockup-label-xs">25 min</span>
+                  </div>
+                  <div class="mockup-timer" style="color:#3498db">14:32</div>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:42%;background:#3498db"></div></div>
+                </div>
+                <div class="mockup-card">
+                  <div class="mockup-card-row">
+                    <span class="mockup-label-xs">Duża</span>
+                    <span class="mockup-label-xs">100 min</span>
+                  </div>
+                  <div class="mockup-timer" style="color:#e67e22">1:02:15</div>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:38%;background:#e67e22"></div></div>
+                </div>
+              </div>
+              <!-- Water -->
+              <div class="mockup-card">
+                <div class="mockup-card-row">
+                  <div class="mockup-card-row" style="gap:0.4rem">
+                    <span class="mockup-label-xs">Woda</span>
+                    <span style="color:#3498db;font-weight:700;font-size:0.8rem">5</span>
+                    <span class="mockup-label-xs">/ 8</span>
+                  </div>
+                  <span class="mockup-water-btn">+1</span>
+                </div>
+                <div class="mockup-dots">
+                  <span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#394561">○</span><span style="color:#394561">○</span><span style="color:#394561">○</span>
+                </div>
+                <div class="mockup-progress"><div class="mockup-progress-fill" style="width:62.5%;background:#3498db"></div></div>
+              </div>
+              <!-- Breaks + Sound -->
+              <div class="mockup-grid-2">
+                <div class="mockup-card">
+                  <span class="mockup-label-xs">Przerwy</span>
+                  <div class="mockup-card-row" style="margin-top:0.35rem">
+                    <div><span style="font-size:1.1rem;font-weight:700;color:#2ecc71">6</span> <span class="mockup-label-xs">wykonane</span></div>
+                    <div><span style="font-size:1.1rem;font-weight:700;color:#e74c3c">1</span> <span class="mockup-label-xs">pominięte</span></div>
+                  </div>
+                </div>
+                <div class="mockup-card">
+                  <span class="mockup-label-xs">Dźwięk</span>
+                  <div style="color:#2ecc71;font-size:0.7rem;margin-top:0.25rem">Brown Noise</div>
+                  <div class="mockup-card-row" style="margin-top:0.3rem;gap:0.3rem">
+                    <span class="mockup-sound-btn">⏹</span>
+                    <div class="mockup-progress" style="flex:1"><div class="mockup-progress-fill" style="width:30%;background:#2ecc71"></div></div>
+                    <span class="mockup-sound-btn">🔍</span>
+                    <span class="mockup-sound-btn">♫</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Break popup (small, overlapping) -->
+        <div class="mockup-popup">
+          <div class="mockup-popup-titlebar">
+            <span>HealthDesk — Przerwa!</span>
+            <span class="mockup-ctrl mockup-ctrl-close" style="font-size:0.55rem">&#10005;</span>
+          </div>
+          <div class="mockup-popup-body">
+            <div class="mockup-popup-icon">⏰</div>
+            <div class="mockup-popup-title">Mała przerwa</div>
+            <div class="mockup-popup-desc">Odwróć wzrok od ekranu i patrz<br>na obiekt oddalony o ~6 metrów.</div>
+            <div class="mockup-popup-timer">0:18</div>
+            <div class="mockup-popup-buttons">
+              <span class="mockup-popup-btn mockup-popup-btn-accept">Robię przerwę!</span>
+              <span class="mockup-popup-btn mockup-popup-btn-skip">Pomiń</span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
