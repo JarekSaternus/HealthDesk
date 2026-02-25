@@ -214,6 +214,7 @@ pub fn get_translations(i18n: State<Arc<I18n>>) -> serde_json::Value {
 }
 
 #[tauri::command]
-pub fn change_language(lang: String, i18n: State<Arc<I18n>>) {
+pub fn change_language(lang: String, i18n: State<Arc<I18n>>, app: tauri::AppHandle) {
     i18n.load_language(&lang);
+    let _ = crate::tray::update_tray_language(&app, &i18n);
 }

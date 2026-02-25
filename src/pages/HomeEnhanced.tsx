@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
@@ -47,6 +47,8 @@ export default function HomeEnhanced() {
   const setPage = useAppStore((s) => s.setPage);
   const [breaks, setBreaks] = useState<BreakRecord[]>([]);
   const [audioPlaying, setAudioPlaying] = useState(false);
+  const [showMethodPicker, setShowMethodPicker] = useState(false);
+  const methodRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     invoke<BreakRecord[]>("get_breaks_today").then(setBreaks);
@@ -72,6 +74,28 @@ export default function HomeEnhanced() {
   const smallBreakMax = (config?.small_break_interval_min ?? 25) * 60;
   const bigBreakMax = (config?.big_break_interval_min ?? 100) * 60;
 
+  const METHODS = ["pomodoro", "20-20-20", "52-17", "90-min", "custom"];
+
+  const changeMethod = async (method: string) => {
+    if (!config) return;
+    const newConfig = { ...config, work_method: method };
+    await useAppStore.getState().saveConfig(newConfig);
+    setShowMethodPicker(false);
+  };
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (methodRef.current && !methodRef.current.contains(e.target as Node)) {
+        setShowMethodPicker(false);
+      }
+    };
+    if (showMethodPicker) document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showMethodPicker]);
+
+  const NATIVE_SOUNDS = ["brown_noise", "rain", "white_noise", "pink_noise", "drone", "forest"];
+
   const toggleAudio = async () => {
     if (audioPlaying) {
       await invoke("stop_sound");
@@ -79,9 +103,18 @@ export default function HomeEnhanced() {
       setAudioPlaying(false);
     } else {
       const lastType = config?.audio_last_type;
-      if (lastType) {
-        await invoke("play_sound", { soundType: lastType, volume: config?.audio_last_volume ?? 10 });
+      const lastSource = config?.audio_last_source;
+      const vol = config?.audio_last_volume ?? 10;
+      if (lastType && NATIVE_SOUNDS.includes(lastType)) {
+        await invoke("play_sound", { soundType: lastType, volume: vol });
         setAudioPlaying(true);
+      } else if (lastSource === "youtube" && lastType) {
+        try {
+          await invoke("play_youtube_search", { query: lastType, volume: vol });
+          setAudioPlaying(true);
+        } catch {
+          setPage("music");
+        }
       } else {
         setPage("music");
       }
@@ -94,19 +127,45 @@ export default function HomeEnhanced() {
       <Card>
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-text-muted text-sm">{t("home.work_time_today")}</h2>
-          <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full">{methodLabel}</span>
+          <div className="relative" ref={methodRef}>
+            <button
+              onClick={() => setShowMethodPicker(!showMethodPicker)}
+              className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full hover:bg-accent/30 transition-colors cursor-pointer"
+              title={t(`settings.method_${(config?.work_method ?? "pomodoro").replace(/-/g, "_")}_desc`)}
+            >
+              {methodLabel} ▾
+            </button>
+            {showMethodPicker && (
+              <div className="absolute right-0 top-7 bg-card border border-card-hover rounded-lg shadow-lg z-10 py-1 min-w-[140px]">
+                {METHODS.map((m) => (
+                  <button
+                    key={m}
+                    onClick={() => changeMethod(m)}
+                    className={`block w-full text-left text-xs px-3 py-1.5 hover:bg-card-hover transition-colors ${
+                      config?.work_method === m ? "text-accent" : "text-text"
+                    }`}
+                  >
+                    {t(`settings.method_${m.replace(/-/g, "_")}`)}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
         <div className="text-3xl font-bold text-accent">{formatDuration(totalTimeToday)}</div>
         <div className="flex items-center gap-2 mt-2">
           <ProgressBar value={dayPct} max={100} color="#2ecc71" />
-          <span className="text-xs text-text-muted whitespace-nowrap">{Math.round(dayPct)}% {t("home.day_progress")}</span>
+          <span className="text-xs text-text-muted whitespace-nowrap">{Math.round(dayPct)}% {t("home.day_progress")} ({workStart}–{workEnd})</span>
         </div>
       </Card>
 
       {/* Break timers side by side */}
       <div className="grid grid-cols-2 gap-4">
         <Card>
-          <h3 className="text-text-muted text-xs mb-1">{t("home.small_break")}</h3>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-text-muted text-xs">{t("home.small_break")}</h3>
+            <span className="text-xs text-text-muted">{config?.small_break_interval_min ?? 25} min</span>
+          </div>
           <div className="text-xl font-mono" style={{ color: "#3498db" }}>
             {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
           </div>
@@ -119,7 +178,10 @@ export default function HomeEnhanced() {
           )}
         </Card>
         <Card>
-          <h3 className="text-text-muted text-xs mb-1">{t("home.big_break")}</h3>
+          <div className="flex items-center justify-between mb-1">
+            <h3 className="text-text-muted text-xs">{t("home.big_break")}</h3>
+            <span className="text-xs text-text-muted">{config?.big_break_interval_min ?? 100} min</span>
+          </div>
           <div className="text-xl font-mono" style={{ color: "#e67e22" }}>
             {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
           </div>
@@ -136,7 +198,11 @@ export default function HomeEnhanced() {
       {/* Water */}
       <Card>
         <div className="flex items-center justify-between mb-2">
-          <h3 className="text-text-muted text-xs">{t("home.water")}</h3>
+          <div className="flex items-center gap-2">
+            <h3 className="text-text-muted text-xs">{t("home.water")}</h3>
+            <span className="text-sm font-bold text-info">{waterToday}</span>
+            <span className="text-xs text-text-muted">/ {waterGoal}</span>
+          </div>
           <button
             onClick={() => useAppStore.getState().logWater()}
             className="text-xs bg-info/20 text-info px-2 py-0.5 rounded hover:bg-info/30 transition-colors"

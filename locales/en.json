@@ -261,6 +261,8 @@
     "pause": "Pause (30 min)",
     "resume": "Resume",
     "check_updates": "Check for updates",
+    "music_play": "▶ Play music",
+    "music_stop": "⏹ Stop music",
     "quit": "Quit",
     "tooltip": "HealthDesk - Healthy work",
     "water_logged": "Logged! Today: {total} glasses",

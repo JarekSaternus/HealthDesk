@@ -80,7 +80,7 @@ pub fn run() {
             let app_handle = app.handle().clone();
 
             // Setup tray
-            let _ = tray::setup_tray(&app_handle, db_clone.clone(), scheduler_clone.clone(), config_clone.clone(), i18n.clone());
+            let _ = tray::setup_tray(&app_handle, db_clone.clone(), scheduler_clone.clone(), config_clone.clone(), i18n.clone(), audio.clone(), yt_player.clone());
 
             // Start session
             {

@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { open } from "@tauri-apps/plugin-shell";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
@@ -35,7 +36,8 @@ export default function SettingsPage() {
   const isCustom = form.work_method === "custom";
 
   return (
-    <div className="space-y-4 max-w-2xl">
+    <div className="flex flex-col h-full max-w-2xl">
+    <div className="space-y-4 flex-1 overflow-y-auto pb-4">
       {/* Dashboard layout */}
       <Card>
         <h3 className="text-sm font-medium mb-3">{t("settings.dashboard_layout")}</h3>
@@ -239,6 +241,12 @@ export default function SettingsPage() {
             checked={form.auto_update}
             onChange={(v) => update("auto_update", v)}
           />
+          <button
+            onClick={() => open("https://github.com/JarekSaternus/HealthDesk/releases/latest")}
+            className="text-xs text-accent hover:text-accent-hover underline cursor-pointer"
+          >
+            {t("settings.check_now")}
+          </button>
           <div>
             <label className="text-xs text-text-muted">{t("settings.language")}</label>
             <select
@@ -253,14 +261,18 @@ export default function SettingsPage() {
           </div>
         </div>
       </Card>
+    </div>
 
-      {/* Save button */}
+    {/* Sticky footer */}
+    <div className="sticky bottom-0 bg-content pt-3 pb-1 border-t border-card-hover flex items-center gap-4">
       <button
         onClick={handleSave}
         className="bg-accent hover:bg-accent-hover text-white rounded px-6 py-2 text-sm font-medium transition-colors"
       >
         {saved ? t("settings.saved") : t("settings.save")}
       </button>
+      <span className="text-xs text-text-muted">HealthDesk v{APP_VERSION}</span>
+    </div>
     </div>
   );
 }

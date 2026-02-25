@@ -46,6 +46,8 @@ export default function HomeCompact() {
     ? t("settings.method_custom")
     : config?.work_method ?? "pomodoro";
 
+  const NATIVE_SOUNDS = ["brown_noise", "rain", "white_noise", "pink_noise", "drone", "forest"];
+
   const toggleAudio = async () => {
     if (audioPlaying) {
       await invoke("stop_sound");
@@ -53,9 +55,18 @@ export default function HomeCompact() {
       setAudioPlaying(false);
     } else {
       const lastType = config?.audio_last_type;
-      if (lastType) {
-        await invoke("play_sound", { soundType: lastType, volume: config?.audio_last_volume ?? 10 });
+      const lastSource = config?.audio_last_source;
+      const vol = config?.audio_last_volume ?? 10;
+      if (lastType && NATIVE_SOUNDS.includes(lastType)) {
+        await invoke("play_sound", { soundType: lastType, volume: vol });
         setAudioPlaying(true);
+      } else if (lastSource === "youtube" && lastType) {
+        try {
+          await invoke("play_youtube_search", { query: lastType, volume: vol });
+          setAudioPlaying(true);
+        } catch {
+          setPage("music");
+        }
       } else {
         setPage("music");
       }

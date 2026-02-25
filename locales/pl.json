@@ -261,6 +261,8 @@
     "pause": "Pauza (30 min)",
     "resume": "Wznów",
     "check_updates": "Sprawdź aktualizacje",
+    "music_play": "▶ Włącz muzykę",
+    "music_stop": "⏹ Wyłącz muzykę",
     "quit": "Zakończ",
     "tooltip": "HealthDesk — Zdrowa praca",
     "water_logged": "Zapisano! Dziś: {total} szklanek",
