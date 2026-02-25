@@ -9,7 +9,7 @@ CONFIG_FILE = os.path.join(CONFIG_DIR, "config.json")
 DB_FILE = os.path.join(CONFIG_DIR, "healthdesk.db")
 _UUID_FILE = os.path.join(CONFIG_DIR, ".client_uuid")
 
-APP_VERSION = "1.2.3"
+APP_VERSION = "1.2.4"
 API_HOST = "https://api.healthdesk.app"
 
 WORK_METHODS = {
