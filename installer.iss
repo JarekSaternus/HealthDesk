@@ -22,6 +22,7 @@ SetupIconFile=assets\icon.ico
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+LicenseFile=LICENSE_TERMS.rtf
 PrivilegesRequired=lowest
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
