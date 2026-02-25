@@ -350,8 +350,8 @@ img {
 }
 
 .hero-logo {
-  width: 240px;
-  height: 240px;
+  width: 480px;
+  height: 480px;
   filter: drop-shadow(0 0 30px rgba(45, 200, 216, 0.2));
   animation: fadeIn 1.2s ease both;
 }
