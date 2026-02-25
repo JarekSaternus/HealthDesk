@@ -729,7 +729,7 @@ img {
 }
 
 .mockup-wrapper {
-  max-width: 780px;
+  max-width: 900px;
   margin: 0 auto;
   position: relative;
 }
@@ -790,12 +790,12 @@ img {
 
 .mockup-body {
   display: flex;
-  min-height: 380px;
+  min-height: 440px;
 }
 
 /* Sidebar */
 .mockup-sidebar {
-  width: 140px;
+  width: 160px;
   background: #141821;
   border-right: 1px solid rgba(255,255,255,0.06);
   padding: 0.75rem 0;
@@ -895,13 +895,13 @@ img {
 }
 
 .mockup-big-value {
-  font-size: 1.5rem;
+  font-size: 1.75rem;
   font-weight: 800;
   margin: 0.15rem 0;
 }
 
 .mockup-timer {
-  font-size: 1.1rem;
+  font-size: 1.25rem;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   font-family: "Cascadia Code", "Fira Code", monospace;
@@ -963,7 +963,7 @@ img {
   position: absolute;
   bottom: -20px;
   right: -30px;
-  width: 240px;
+  width: 276px;
   border-radius: 10px;
   overflow: hidden;
   background: #1a1f2b;
@@ -1000,7 +1000,7 @@ img {
 }
 
 .mockup-popup-title {
-  font-size: 0.85rem;
+  font-size: 1rem;
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 0.3rem;
@@ -1014,7 +1014,7 @@ img {
 }
 
 .mockup-popup-timer {
-  font-size: 1.4rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: var(--accent);
   font-variant-numeric: tabular-nums;
