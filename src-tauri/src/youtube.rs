@@ -2,6 +2,11 @@ use serde::Serialize;
 use std::process::{Child, Command};
 use std::sync::Mutex;
 
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
 #[derive(Debug, Clone, Serialize)]
 pub struct YTStation {
     pub key: String,
@@ -36,9 +41,11 @@ impl YouTubePlayer {
         self.stop();
 
         // Use yt-dlp to get audio URL
-        let output = Command::new("yt-dlp")
-            .args(["--get-url", "-f", "bestaudio", "--no-playlist", url])
-            .output()
+        let mut cmd = Command::new("yt-dlp");
+        cmd.args(["--get-url", "-f", "bestaudio", "--no-playlist", url]);
+        #[cfg(target_os = "windows")]
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        let output = cmd.output()
             .map_err(|e| format!("yt-dlp not found: {}", e))?;
 
         if !output.status.success() {
@@ -51,13 +58,15 @@ impl YouTubePlayer {
         }
 
         let vol = (volume as f32 / 100.0 * 256.0) as u32;
-        let child = Command::new("ffplay")
-            .args([
+        let mut ffcmd = Command::new("ffplay");
+        ffcmd.args([
                 "-nodisp", "-autoexit", "-loglevel", "quiet",
                 "-volume", &vol.to_string(),
                 &audio_url,
-            ])
-            .spawn()
+            ]);
+        #[cfg(target_os = "windows")]
+        ffcmd.creation_flags(CREATE_NO_WINDOW);
+        let child = ffcmd.spawn()
             .map_err(|e| format!("ffplay not found: {}", e))?;
 
         *self.ffplay_process.lock().unwrap() = Some(child);
@@ -115,9 +124,11 @@ pub struct YTSearchResult {
 }
 
 pub fn search_youtube(query: &str) -> Result<Vec<YTSearchResult>, String> {
-    let output = Command::new("yt-dlp")
-        .args(["--dump-json", "--flat-playlist", &format!("ytsearch5:{}", query)])
-        .output()
+    let mut cmd = Command::new("yt-dlp");
+    cmd.args(["--dump-json", "--flat-playlist", &format!("ytsearch5:{}", query)]);
+    #[cfg(target_os = "windows")]
+    cmd.creation_flags(CREATE_NO_WINDOW);
+    let output = cmd.output()
         .map_err(|e| format!("yt-dlp not found: {}", e))?;
 
     if !output.status.success() {

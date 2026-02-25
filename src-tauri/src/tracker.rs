@@ -4,6 +4,7 @@ use std::time::Duration;
 
 use crate::config::AppConfig;
 use crate::database::Database;
+use crate::scheduler::SharedScheduler;
 
 fn category_map() -> HashMap<&'static str, &'static str> {
     let mut m = HashMap::new();
@@ -126,12 +127,20 @@ mod platform {
     }
 }
 
-pub fn start_tracker(db: Arc<Database>, config: Arc<Mutex<AppConfig>>) {
+pub fn start_tracker(db: Arc<Database>, config: Arc<Mutex<AppConfig>>, scheduler: SharedScheduler) {
     let categories = category_map();
 
     tauri::async_runtime::spawn(async move {
         loop {
             tokio::time::sleep(Duration::from_secs(5)).await;
+
+            // Skip tracking when paused
+            {
+                let sched = scheduler.lock().unwrap();
+                if sched.paused {
+                    continue;
+                }
+            }
 
             if let Some((process_name, window_title)) = platform::get_foreground_info() {
                 let category = if let Some(&cat) = categories.get(process_name.as_str()) {

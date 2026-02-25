@@ -47,6 +47,9 @@ export default function MusicPage() {
     } else {
       await invoke("play_sound", { soundType: key, volume });
       setNativePlaying(key);
+      if (config) {
+        saveConfig({ ...config, audio_last_type: key, audio_last_source: "native", audio_last_volume: volume });
+      }
     }
   };
 
@@ -59,6 +62,9 @@ export default function MusicPage() {
       await invoke("play_youtube_search", { query, volume });
       setYtPlaying(name);
       setStatus(t("music.playing", { name }));
+      if (config) {
+        saveConfig({ ...config, audio_last_type: query, audio_last_source: "youtube", audio_last_volume: volume });
+      }
     } catch (e: any) {
       setStatus(t("music.error", { msg: String(e) }));
     }
@@ -75,6 +81,9 @@ export default function MusicPage() {
       await invoke("play_youtube", { url: customUrl, name: t("music.custom_link_name"), volume });
       setYtPlaying(t("music.custom_link_name"));
       setStatus(t("music.playing", { name: t("music.custom_link_name") }));
+      if (config) {
+        saveConfig({ ...config, audio_last_type: customUrl, audio_last_source: "youtube", audio_last_volume: volume });
+      }
     } catch (e: any) {
       setStatus(t("music.error", { msg: String(e) }));
     }
@@ -225,7 +234,13 @@ export default function MusicPage() {
                   setNativePlaying(null);
                   setLoading(true);
                   invoke("play_youtube", { url: r.url, name: r.title, volume })
-                    .then(() => { setYtPlaying(r.title); setStatus(t("music.playing", { name: r.title })); })
+                    .then(() => {
+                      setYtPlaying(r.title);
+                      setStatus(t("music.playing", { name: r.title }));
+                      if (config) {
+                        saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_volume: volume });
+                      }
+                    })
                     .catch((e) => setStatus(t("music.error", { msg: String(e) })))
                     .finally(() => setLoading(false));
                 }}

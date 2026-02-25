@@ -92,7 +92,7 @@ pub fn run() {
             scheduler::start_scheduler(app_handle.clone(), scheduler_clone.clone(), config_clone.clone());
 
             // Start tracker
-            tracker::start_tracker(db_clone.clone(), config_clone.clone());
+            tracker::start_tracker(db_clone.clone(), config_clone.clone(), scheduler_clone.clone());
 
             // Start telemetry
             let _telemetry = telemetry::TelemetryEngine::new(

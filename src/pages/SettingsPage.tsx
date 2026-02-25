@@ -236,17 +236,21 @@ export default function SettingsPage() {
             checked={form.autostart}
             onChange={(v) => update("autostart", v)}
           />
-          <Checkbox
-            label={t("settings.auto_update")}
-            checked={form.auto_update}
-            onChange={(v) => update("auto_update", v)}
-          />
-          <button
-            onClick={() => open("https://github.com/JarekSaternus/HealthDesk/releases/latest")}
-            className="text-xs text-accent hover:text-accent-hover underline cursor-pointer"
-          >
-            {t("settings.check_now")}
-          </button>
+          <div className="flex items-center gap-3">
+            <Checkbox
+              label={t("settings.auto_update")}
+              checked={form.auto_update}
+              onChange={(v) => update("auto_update", v)}
+            />
+            {!form.auto_update && (
+              <button
+                onClick={() => open("https://github.com/JarekSaternus/HealthDesk/releases/latest")}
+                className="text-xs text-accent hover:text-accent-hover underline cursor-pointer"
+              >
+                {t("settings.check_now")}
+              </button>
+            )}
+          </div>
           <div>
             <label className="text-xs text-text-muted">{t("settings.language")}</label>
             <select

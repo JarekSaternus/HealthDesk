@@ -218,9 +218,14 @@ fn detect_system_language() -> String {
     // On Windows, check via system locale name
     #[cfg(target_os = "windows")]
     {
-        if let Ok(output) = std::process::Command::new("powershell")
-            .args(["-NoProfile", "-Command", "(Get-Culture).TwoLetterISOLanguageName"])
-            .output()
+        let mut cmd = std::process::Command::new("powershell");
+        cmd.args(["-NoProfile", "-Command", "(Get-Culture).TwoLetterISOLanguageName"]);
+        #[cfg(target_os = "windows")]
+        {
+            use std::os::windows::process::CommandExt;
+            cmd.creation_flags(0x08000000);
+        }
+        if let Ok(output) = cmd.output()
         {
             let lang = String::from_utf8_lossy(&output.stdout).trim().to_lowercase();
             if lang == "pl" { return "pl".into(); }

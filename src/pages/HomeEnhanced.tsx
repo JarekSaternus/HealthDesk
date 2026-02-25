@@ -248,17 +248,31 @@ export default function HomeEnhanced() {
         <Card>
           <h3 className="text-text-muted text-xs mb-2">{t("home.sound")}</h3>
           <div className="flex items-center gap-2">
-            <span className={`text-sm ${audioPlaying ? "text-accent" : "text-text-muted"}`}>
+            <span className={`text-sm truncate ${audioPlaying ? "text-accent" : "text-text-muted"}`}>
               {audioPlaying ? config?.audio_last_type ?? "♫" : t("home.sound_off")}
             </span>
           </div>
-          <div className="flex gap-2 mt-2">
+          <div className="flex items-center gap-2 mt-2">
             <button
               onClick={toggleAudio}
               className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
             >
               {audioPlaying ? "⏹" : "▶"}
             </button>
+            <input
+              type="range"
+              min={0}
+              max={100}
+              value={config?.audio_last_volume ?? 10}
+              onChange={async (e) => {
+                const v = Number(e.target.value);
+                await invoke("set_sound_volume", { volume: v });
+                if (config) {
+                  useAppStore.getState().saveConfig({ ...config, audio_last_volume: v });
+                }
+              }}
+              className="flex-1 h-1"
+            />
             <button
               onClick={() => setPage("music")}
               className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
