@@ -11,15 +11,47 @@ _UUID_FILE = os.path.join(CONFIG_DIR, ".client_uuid")
 
 APP_VERSION = "1.1.0"
 
+WORK_METHODS = {
+    "pomodoro": {
+        "small_break_interval_min": 25,
+        "small_break_duration_sec": 300,  # 5 min
+        "big_break_interval_min": 100,    # every 4 pomodoros (25*4)
+        "big_break_duration_min": 15,
+        "eye_exercise_interval_min": 25,
+    },
+    "20-20-20": {
+        "small_break_interval_min": 20,
+        "small_break_duration_sec": 20,
+        "big_break_interval_min": 60,
+        "big_break_duration_min": 5,
+        "eye_exercise_interval_min": 30,
+    },
+    "52-17": {
+        "small_break_interval_min": 52,
+        "small_break_duration_sec": 1020,  # 17 min
+        "big_break_interval_min": 52,      # same as small (no separate big)
+        "big_break_duration_min": 17,
+        "eye_exercise_interval_min": 52,
+    },
+    "90-min": {
+        "small_break_interval_min": 90,
+        "small_break_duration_sec": 300,  # 5 min
+        "big_break_interval_min": 270,    # every 3 cycles (90*3)
+        "big_break_duration_min": 20,
+        "eye_exercise_interval_min": 30,
+    },
+}
+
 DEFAULTS = {
-    "small_break_interval_min": 20,
-    "small_break_duration_sec": 20,
-    "big_break_interval_min": 60,
-    "big_break_duration_min": 5,
+    "work_method": "pomodoro",
+    "small_break_interval_min": 25,
+    "small_break_duration_sec": 300,
+    "big_break_interval_min": 100,
+    "big_break_duration_min": 15,
     "break_mode": "moderate",  # "moderate" or "aggressive"
     "water_interval_min": 30,
     "water_daily_goal": 8,
-    "eye_exercise_interval_min": 30,
+    "eye_exercise_interval_min": 25,
     "work_hours_start": "08:00",
     "work_hours_end": "18:00",
     "work_hours_enabled": False,
@@ -28,6 +60,11 @@ DEFAULTS = {
     "show_ads": True,
     "telemetry_enabled": True,
     "track_window_titles": False,
+    "audio_autoplay": True,
+    "audio_last_source": None,     # "native" or "youtube"
+    "audio_last_type": None,       # sound type key or station key
+    "audio_last_volume": 10,       # 0-100, startup volume
+    "language": "pl",
 }
 
 

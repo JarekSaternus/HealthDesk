@@ -8,6 +8,7 @@ import audio_engine
 import yt_player
 import database
 from config import save_config, set_autostart
+from i18n import t
 from ui.yt_search_dialog import YouTubeSearchDialog
 
 
@@ -47,7 +48,7 @@ def _fmt_dur(seconds: int) -> str:
 
 def _fmt_countdown(seconds_left: float) -> str:
     if seconds_left <= 0:
-        return "teraz!"
+        return t("home.now")
     m, s = divmod(int(seconds_left), 60)
     return f"{m}:{s:02d}"
 
@@ -55,12 +56,12 @@ def _fmt_countdown(seconds_left: float) -> str:
 class MainWindow(ctk.CTkToplevel):
     """Single unified window with sidebar navigation."""
 
-    PAGES = [
-        ("home", "\U0001f3e0", "Home"),
-        ("stats", "\U0001f4ca", "Statystyki"),
-        ("music", "\U0001f3b5", "Audio"),
-        ("settings", "\u2699", "Ustawienia"),
-        ("help", "\u2753", "Pomoc"),
+    PAGE_KEYS = [
+        ("home", "\U0001f3e0", "nav.home"),
+        ("stats", "\U0001f4ca", "nav.stats"),
+        ("music", "\U0001f3b5", "nav.music"),
+        ("settings", "\u2699", "nav.settings"),
+        ("help", "\u2753", "nav.help"),
     ]
 
     def __init__(self, app_ref):
@@ -78,6 +79,11 @@ class MainWindow(ctk.CTkToplevel):
         self._last_big_text = ""
 
         self.title("HealthDesk")
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.geometry("820x620")
         self.minsize(700, 500)
         self.configure(fg_color=C_CONTENT)
@@ -117,9 +123,9 @@ class MainWindow(ctk.CTkToplevel):
                      text_color=C_TEXT).pack(side="left")
 
         # Nav buttons
-        for page_id, icon, label in self.PAGES:
+        for page_id, icon, label_key in self.PAGE_KEYS:
             btn = ctk.CTkButton(
-                self.sidebar, text=f" {icon}  {label}",
+                self.sidebar, text=f" {icon}  {t(label_key)}",
                 anchor="w", height=38,
                 font=ctk.CTkFont(size=13),
                 fg_color="transparent", hover_color=C_SIDEBAR_HOVER,
@@ -137,7 +143,7 @@ class MainWindow(ctk.CTkToplevel):
         sep.pack(fill="x", padx=12, pady=(0, 8))
 
         ctk.CTkButton(
-            self.sidebar, text="\U0001f4a7  +1 woda", height=32,
+            self.sidebar, text=f"\U0001f4a7  {t('nav.water_plus')}", height=32,
             font=ctk.CTkFont(size=12), anchor="w",
             fg_color="transparent", hover_color=C_SIDEBAR_HOVER,
             text_color=C_BLUE, corner_radius=8,
@@ -145,7 +151,7 @@ class MainWindow(ctk.CTkToplevel):
         ).pack(fill="x", padx=8, pady=1)
 
         self.pause_sidebar_btn = ctk.CTkButton(
-            self.sidebar, text="\u23f8  Pauza", height=32,
+            self.sidebar, text=f"\u23f8  {t('nav.pause')}", height=32,
             font=ctk.CTkFont(size=12), anchor="w",
             fg_color="transparent", hover_color=C_SIDEBAR_HOVER,
             text_color=C_ORANGE, corner_radius=8,
@@ -233,7 +239,7 @@ class MainWindow(ctk.CTkToplevel):
 
         left = ctk.CTkFrame(row, fg_color="transparent")
         left.pack(side="left")
-        ctk.CTkLabel(left, text="\U0001f5a5  Czas pracy dzisiaj",
+        ctk.CTkLabel(left, text=f"\U0001f5a5  {t('home.work_time_today')}",
                      font=ctk.CTkFont(size=13)).pack(anchor="w")
         self.home_work_time = ctk.CTkLabel(left, text="0min",
                                            font=ctk.CTkFont(size=28, weight="bold"),
@@ -242,7 +248,7 @@ class MainWindow(ctk.CTkToplevel):
 
         right = ctk.CTkFrame(row, fg_color="transparent")
         right.pack(side="right")
-        ctk.CTkLabel(right, text="Przerwy", font=ctk.CTkFont(size=12),
+        ctk.CTkLabel(right, text=t("home.breaks"), font=ctk.CTkFont(size=12),
                      text_color=C_TEXT_DIM).pack()
         self.home_breaks = ctk.CTkLabel(right, text="0 / 0",
                                         font=ctk.CTkFont(size=16, weight="bold"))
@@ -250,7 +256,7 @@ class MainWindow(ctk.CTkToplevel):
 
         # --- Break timers ---
         card = self._card(main)
-        ctk.CTkLabel(card, text="\u23f1  Nastepna przerwa",
+        ctk.CTkLabel(card, text=f"\u23f1  {t('home.next_break')}",
                      font=ctk.CTkFont(size=13)).pack(anchor="w", padx=18, pady=(14, 6))
 
         timers = ctk.CTkFrame(card, fg_color="transparent")
@@ -258,7 +264,7 @@ class MainWindow(ctk.CTkToplevel):
 
         small_f = ctk.CTkFrame(timers, fg_color="#162030", corner_radius=10)
         small_f.pack(side="left", expand=True, fill="x", padx=(0, 4))
-        ctk.CTkLabel(small_f, text="Mala (20-20-20)", font=ctk.CTkFont(size=11),
+        ctk.CTkLabel(small_f, text=t("home.small_break"), font=ctk.CTkFont(size=11),
                      text_color=C_TEXT_DIM).pack(pady=(8, 0))
         self.home_small_timer = ctk.CTkLabel(small_f, text="--:--",
                                              font=ctk.CTkFont(size=22, weight="bold"),
@@ -267,7 +273,7 @@ class MainWindow(ctk.CTkToplevel):
 
         big_f = ctk.CTkFrame(timers, fg_color="#162030", corner_radius=10)
         big_f.pack(side="left", expand=True, fill="x", padx=(4, 0))
-        ctk.CTkLabel(big_f, text="Duza", font=ctk.CTkFont(size=11),
+        ctk.CTkLabel(big_f, text=t("home.big_break"), font=ctk.CTkFont(size=11),
                      text_color=C_TEXT_DIM).pack(pady=(8, 0))
         self.home_big_timer = ctk.CTkLabel(big_f, text="--:--",
                                            font=ctk.CTkFont(size=22, weight="bold"),
@@ -281,7 +287,7 @@ class MainWindow(ctk.CTkToplevel):
 
         water_left = ctk.CTkFrame(water_row, fg_color="transparent")
         water_left.pack(side="left", fill="x", expand=True)
-        ctk.CTkLabel(water_left, text="\U0001f4a7  Woda",
+        ctk.CTkLabel(water_left, text=f"\U0001f4a7  {t('home.water')}",
                      font=ctk.CTkFont(size=13)).pack(anchor="w")
 
         self.home_water_dots = ctk.CTkFrame(water_left, fg_color="transparent")
@@ -305,9 +311,9 @@ class MainWindow(ctk.CTkToplevel):
 
         music_left = ctk.CTkFrame(music_top, fg_color="transparent")
         music_left.pack(side="left", fill="x", expand=True)
-        ctk.CTkLabel(music_left, text="\U0001f3b5  Dzwiek",
+        ctk.CTkLabel(music_left, text=f"\U0001f3b5  {t('home.sound')}",
                      font=ctk.CTkFont(size=13)).pack(anchor="w")
-        self.home_music_status = ctk.CTkLabel(music_left, text="Wylaczony",
+        self.home_music_status = ctk.CTkLabel(music_left, text=t("home.sound_off"),
                                               font=ctk.CTkFont(size=12), text_color=C_TEXT_DIM)
         self.home_music_status.pack(anchor="w")
 
@@ -346,7 +352,7 @@ class MainWindow(ctk.CTkToplevel):
             self._home_yt_dropdown.pack(side="left", padx=(0, 5))
 
             ctk.CTkButton(
-                yt_row, text="Graj", width=55, height=30,
+                yt_row, text=t("home.play"), width=55, height=30,
                 corner_radius=8, fg_color=C_ACCENT, hover_color=C_ACCENT_HOVER,
                 font=ctk.CTkFont(size=12, weight="bold"),
                 command=self._home_play_yt_station,
@@ -384,15 +390,15 @@ class MainWindow(ctk.CTkToplevel):
     def _build_stats_page(self) -> ctk.CTkFrame:
         page = ctk.CTkFrame(self.content, fg_color="transparent")
 
-        ctk.CTkLabel(page, text="\U0001f4ca  Statystyki",
+        ctk.CTkLabel(page, text=f"\U0001f4ca  {t('stats.title')}",
                      font=ctk.CTkFont(size=20, weight="bold")).pack(
             anchor="w", padx=20, pady=(12, 4))
 
         self.stats_tabview = ctk.CTkTabview(page, corner_radius=10)
         self.stats_tabview.pack(fill="both", expand=True, padx=15, pady=(0, 10))
 
-        self.stats_tab_today = self.stats_tabview.add("Dzisiaj")
-        self.stats_tab_week = self.stats_tabview.add("Tydzien")
+        self.stats_tab_today = self.stats_tabview.add(t("stats.today"))
+        self.stats_tab_week = self.stats_tabview.add(t("stats.week"))
 
         # Container frames for dynamic rebuild
         self.stats_today_container = ctk.CTkFrame(self.stats_tab_today, fg_color="transparent")
@@ -423,20 +429,20 @@ class MainWindow(ctk.CTkToplevel):
         summary_row.pack(fill="x", pady=(5, 5), padx=5)
 
         total_sec = database.get_total_time_today()
-        self._summary_card(summary_row, "\U0001f5a5", "Czas pracy", _fmt_dur(total_sec), C_ACCENT)
+        self._summary_card(summary_row, "\U0001f5a5", t("stats.work_time"), _fmt_dur(total_sec), C_ACCENT)
 
         breaks = database.get_breaks_today()
         taken = sum(1 for b in breaks if not b["skipped"])
         skipped = sum(1 for b in breaks if b["skipped"])
-        self._summary_card(summary_row, "\u23f8", "Przerwy", f"{taken} \u2713  {skipped} \u2717", C_BLUE)
+        self._summary_card(summary_row, "\u23f8", t("stats.breaks"), f"{taken} \u2713  {skipped} \u2717", C_BLUE)
 
         water = database.get_water_today()
         goal = self.app.config.get("water_daily_goal", 8)
-        self._summary_card(summary_row, "\U0001f4a7", "Woda", f"{water} / {goal}", C_BLUE)
+        self._summary_card(summary_row, "\U0001f4a7", t("stats.water"), f"{water} / {goal}", C_BLUE)
 
         # Water progress
         water_card = self._card(frame)
-        ctk.CTkLabel(water_card, text="Nawodnienie",
+        ctk.CTkLabel(water_card, text=t("stats.hydration"),
                      font=ctk.CTkFont(size=14, weight="bold")).pack(anchor="w", padx=15, pady=(12, 5))
 
         progress_frame = ctk.CTkFrame(water_card, fg_color="transparent")
@@ -456,7 +462,7 @@ class MainWindow(ctk.CTkToplevel):
         activity = database.get_activity_today()
         if activity:
             apps_card = self._card(frame)
-            ctk.CTkLabel(apps_card, text="Top aplikacje",
+            ctk.CTkLabel(apps_card, text=t("stats.top_apps"),
                          font=ctk.CTkFont(size=14, weight="bold")).pack(
                 anchor="w", padx=15, pady=(12, 5))
 
@@ -489,7 +495,7 @@ class MainWindow(ctk.CTkToplevel):
         categories = database.get_category_summary_today()
         if categories:
             cat_card = self._card(frame)
-            ctk.CTkLabel(cat_card, text="Kategorie",
+            ctk.CTkLabel(cat_card, text=t("stats.categories"),
                          font=ctk.CTkFont(size=14, weight="bold")).pack(
                 anchor="w", padx=15, pady=(12, 5))
             self._draw_pie_chart(cat_card, categories)
@@ -553,7 +559,7 @@ class MainWindow(ctk.CTkToplevel):
 
         # Bar chart
         chart_card = self._card(frame)
-        ctk.CTkLabel(chart_card, text="Czas pracy - ostatnie 7 dni",
+        ctk.CTkLabel(chart_card, text=t("stats.work_time_7days"),
                      font=ctk.CTkFont(size=14, weight="bold")).pack(anchor="w", padx=15, pady=(12, 5))
 
         daily = database.get_weekly_daily_totals()
@@ -564,7 +570,7 @@ class MainWindow(ctk.CTkToplevel):
         breaks = database.get_weekly_breaks()
         if breaks:
             breaks_card = self._card(frame)
-            ctk.CTkLabel(breaks_card, text="Przerwy - ostatnie 7 dni",
+            ctk.CTkLabel(breaks_card, text=t("stats.breaks_7days"),
                          font=ctk.CTkFont(size=14, weight="bold")).pack(
                 anchor="w", padx=15, pady=(12, 5))
 
@@ -608,7 +614,7 @@ class MainWindow(ctk.CTkToplevel):
         values = list(week.values())
 
         if not any(values):
-            canvas.create_text(280, 100, text="Brak danych z tego tygodnia",
+            canvas.create_text(280, 100, text=t("stats.no_data_week"),
                                fill="#555d6b", font=("Segoe UI", 13))
             return
 
@@ -655,17 +661,17 @@ class MainWindow(ctk.CTkToplevel):
         header = ctk.CTkFrame(main, fg_color="transparent")
         header.pack(pady=(8, 3), padx=10, anchor="w")
         ctk.CTkLabel(header, text="\U0001f3b5", font=ctk.CTkFont(size=20)).pack(side="left", padx=(0, 8))
-        ctk.CTkLabel(header, text="Dzwieki do skupienia",
+        ctk.CTkLabel(header, text=t("music.focus_sounds"),
                      font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
 
-        ctk.CTkLabel(main, text="Generowane natywnie - bez internetu",
+        ctk.CTkLabel(main, text=t("music.native_desc"),
                      font=ctk.CTkFont(size=12), text_color=C_TEXT_DIM).pack(padx=10, anchor="w", pady=(0, 5))
 
         # Volume
         vol_frame = ctk.CTkFrame(main, fg_color="transparent")
         vol_frame.pack(fill="x", padx=10, pady=(0, 8))
 
-        ctk.CTkLabel(vol_frame, text="Glosnosc:", font=ctk.CTkFont(size=12)).pack(side="left")
+        ctk.CTkLabel(vol_frame, text=t("music.volume"), font=ctk.CTkFont(size=12)).pack(side="left")
         self.music_vol_label = ctk.CTkLabel(vol_frame, text=f"{int(audio_engine.get_volume()*100)}%",
                                             font=ctk.CTkFont(size=12, weight="bold"),
                                             text_color=C_ACCENT, width=40)
@@ -732,14 +738,14 @@ class MainWindow(ctk.CTkToplevel):
 
         if not self._yt_available:
             warn_card = self._card(main)
-            ctk.CTkLabel(warn_card, text="\u26a0  Wymaga: pip install yt-dlp + ffmpeg na PATH",
+            ctk.CTkLabel(warn_card, text=f"\u26a0  {t('music.yt_requires')}",
                          font=ctk.CTkFont(size=12), text_color=C_ORANGE,
                          wraplength=500).pack(padx=15, pady=12)
-            ctk.CTkLabel(warn_card, text="Zainstaluj i zrestartuj aplikacje aby odblkowac radio YouTube",
+            ctk.CTkLabel(warn_card, text=t("music.yt_install_hint"),
                          font=ctk.CTkFont(size=11), text_color=C_TEXT_DIM,
                          wraplength=500).pack(padx=15, pady=(0, 12))
         else:
-            ctk.CTkLabel(main, text="Muzyka instrumentalna bez slow - streamowanie z YouTube",
+            ctk.CTkLabel(main, text=t("music.yt_desc"),
                          font=ctk.CTkFont(size=12), text_color=C_TEXT_DIM).pack(padx=10, anchor="w", pady=(0, 5))
 
             # Status label for YouTube playback
@@ -787,7 +793,7 @@ class MainWindow(ctk.CTkToplevel):
 
             # Custom URL input
             custom_card = self._card(main)
-            ctk.CTkLabel(custom_card, text="Wlasny link YouTube (muzyka instrumentalna):",
+            ctk.CTkLabel(custom_card, text=t("music.custom_link_label"),
                          font=ctk.CTkFont(size=12)).pack(anchor="w", padx=15, pady=(12, 4))
 
             url_frame = ctk.CTkFrame(custom_card, fg_color="transparent")
@@ -798,14 +804,14 @@ class MainWindow(ctk.CTkToplevel):
             self._yt_custom_entry.pack(side="left", fill="x", expand=True, padx=(0, 8))
 
             ctk.CTkButton(
-                url_frame, text="\U0001f50d Szukaj", width=90, height=36,
+                url_frame, text=f"\U0001f50d {t('music.search')}", width=90, height=36,
                 corner_radius=8, fg_color=C_BTN_DARK, hover_color=C_BTN_DARK_HOVER,
                 font=ctk.CTkFont(size=13, weight="bold"),
                 command=self._open_yt_search,
             ).pack(side="right", padx=(0, 5))
 
             ctk.CTkButton(
-                url_frame, text="\u25b6 Graj", width=80, height=36,
+                url_frame, text=f"\u25b6 {t('music.play')}", width=80, height=36,
                 corner_radius=8, fg_color="#9b59b6", hover_color="#8e44ad",
                 font=ctk.CTkFont(size=13, weight="bold"),
                 command=self._play_custom_yt,
@@ -813,7 +819,7 @@ class MainWindow(ctk.CTkToplevel):
 
         # ---- Stop all button ----
         ctk.CTkButton(
-            main, text="\u23f9  Zatrzymaj wszystko", command=self._stop_all_music,
+            main, text=f"\u23f9  {t('music.stop_all')}", command=self._stop_all_music,
             fg_color="transparent", hover_color="#3a3a4a",
             border_width=1, border_color="#555555",
             height=36, corner_radius=10, width=180,
@@ -828,7 +834,7 @@ class MainWindow(ctk.CTkToplevel):
     def _build_settings_page(self) -> ctk.CTkFrame:
         page = ctk.CTkFrame(self.content, fg_color="transparent")
 
-        ctk.CTkLabel(page, text="\u2699  Ustawienia",
+        ctk.CTkLabel(page, text=f"\u2699  {t('settings.title')}",
                      font=ctk.CTkFont(size=20, weight="bold")).pack(
             anchor="w", padx=20, pady=(12, 4))
 
@@ -836,20 +842,57 @@ class MainWindow(ctk.CTkToplevel):
         main.pack(fill="both", expand=True, padx=15, pady=(0, 5))
 
         cfg = self.app.config
+        from config import WORK_METHODS
+
+        # --- Work method ---
+        self._section_header(main, f"\U0001f4cb  {t('settings.work_method')}")
+        method_card = self._card(main)
+
+        self._method_keys = ["pomodoro", "20-20-20", "52-17", "90-min", "custom"]
+        method_names = [
+            t("settings.method_pomodoro"),
+            t("settings.method_20_20_20"),
+            t("settings.method_52_17"),
+            t("settings.method_90_min"),
+            t("settings.method_custom"),
+        ]
+        self._method_name_to_key = dict(zip(method_names, self._method_keys))
+        current_method = cfg.get("work_method", "pomodoro")
+        current_method_name = method_names[self._method_keys.index(current_method)] if current_method in self._method_keys else method_names[-1]
+
+        method_row = ctk.CTkFrame(method_card, fg_color="transparent")
+        method_row.pack(fill="x", padx=15, pady=(12, 2))
+
+        self.set_work_method = ctk.CTkOptionMenu(
+            method_row, values=method_names, width=200, height=34,
+            font=ctk.CTkFont(size=13),
+            fg_color=C_BTN_DARK, button_color=C_BTN_DARK_HOVER,
+            dropdown_fg_color=C_CARD,
+            command=self._on_method_changed,
+        )
+        self.set_work_method.set(current_method_name)
+        self.set_work_method.pack(side="left")
+
+        self._method_desc_label = ctk.CTkLabel(
+            method_card, text=self._get_method_desc(current_method),
+            font=ctk.CTkFont(size=11), text_color=C_TEXT_DIM,
+            wraplength=500, justify="left",
+        )
+        self._method_desc_label.pack(anchor="w", padx=15, pady=(2, 12))
 
         # --- Breaks ---
-        self._section_header(main, "\u23f8  Przerwy")
+        self._section_header(main, f"\u23f8  {t('settings.breaks_section')}")
         card = self._card(main)
-        self.set_small_interval = self._add_slider(card, "Mala przerwa co", "min",
-                                                   1, 60, cfg["small_break_interval_min"])
-        self.set_small_duration = self._add_slider(card, "Czas malej przerwy", "sek",
-                                                   10, 120, cfg["small_break_duration_sec"])
-        self.set_big_interval = self._add_slider(card, "Duza przerwa co", "min",
-                                                 15, 180, cfg["big_break_interval_min"])
-        self.set_big_duration = self._add_slider(card, "Czas duzej przerwy", "min",
+        self.set_small_interval = self._add_slider(card, t("settings.small_break_every"), t("settings.unit_min"),
+                                                   1, 120, cfg["small_break_interval_min"])
+        self.set_small_duration = self._add_slider(card, t("settings.small_break_duration"), t("settings.unit_sec"),
+                                                   10, 1200, cfg["small_break_duration_sec"])
+        self.set_big_interval = self._add_slider(card, t("settings.big_break_every"), t("settings.unit_min"),
+                                                 15, 300, cfg["big_break_interval_min"])
+        self.set_big_duration = self._add_slider(card, t("settings.big_break_duration"), t("settings.unit_min"),
                                                  1, 30, cfg["big_break_duration_min"])
 
-        mode_label = ctk.CTkLabel(card, text="Tryb przerw", font=ctk.CTkFont(size=13))
+        mode_label = ctk.CTkLabel(card, text=t("settings.break_mode"), font=ctk.CTkFont(size=13))
         mode_label.pack(anchor="w", padx=15, pady=(10, 2))
 
         self.set_break_mode = ctk.StringVar(value=cfg["break_mode"])
@@ -857,75 +900,100 @@ class MainWindow(ctk.CTkToplevel):
         mode_frame.pack(anchor="w", padx=15, pady=(0, 10))
 
         ctk.CTkRadioButton(
-            mode_frame, text="Umiarkowany  (popup)", variable=self.set_break_mode,
+            mode_frame, text=t("settings.mode_moderate"), variable=self.set_break_mode,
             value="moderate", font=ctk.CTkFont(size=12)).pack(side="left", padx=(0, 20))
         ctk.CTkRadioButton(
-            mode_frame, text="Agresywny  (fullscreen)", variable=self.set_break_mode,
+            mode_frame, text=t("settings.mode_aggressive"), variable=self.set_break_mode,
             value="aggressive", font=ctk.CTkFont(size=12)).pack(side="left")
 
         # --- Water ---
-        self._section_header(main, "\U0001f4a7  Nawodnienie")
+        self._section_header(main, f"\U0001f4a7  {t('settings.hydration_section')}")
         card = self._card(main)
-        self.set_water_interval = self._add_slider(card, "Przypomnienie co", "min",
+        self.set_water_interval = self._add_slider(card, t("settings.reminder_every"), t("settings.unit_min"),
                                                    10, 120, cfg["water_interval_min"])
-        self.set_water_goal = self._add_slider(card, "Cel dzienny", "szklanek",
+        self.set_water_goal = self._add_slider(card, t("settings.daily_goal"), t("settings.unit_glasses"),
                                                1, 20, cfg["water_daily_goal"])
 
         # --- Eyes ---
-        self._section_header(main, "\U0001f441  Cwiczenia oczu")
+        self._section_header(main, f"\U0001f441  {t('settings.eye_section')}")
         card = self._card(main)
-        self.set_eye_interval = self._add_slider(card, "Przypomnienie co", "min",
+        self.set_eye_interval = self._add_slider(card, t("settings.reminder_every"), t("settings.unit_min"),
                                                  10, 120, cfg["eye_exercise_interval_min"])
 
         # --- Work hours ---
-        self._section_header(main, "\U0001f550  Godziny pracy")
+        self._section_header(main, f"\U0001f550  {t('settings.work_hours_section')}")
         card = self._card(main)
         self.set_work_hours_enabled = ctk.BooleanVar(value=cfg.get("work_hours_enabled", False))
-        ctk.CTkCheckBox(card, text="Przypominaj tylko w godzinach pracy",
+        ctk.CTkCheckBox(card, text=t("settings.work_hours_only"),
                         variable=self.set_work_hours_enabled,
                         font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=(12, 5))
 
         hours_frame = ctk.CTkFrame(card, fg_color="transparent")
         hours_frame.pack(anchor="w", padx=15, pady=(0, 12))
-        ctk.CTkLabel(hours_frame, text="Od:", font=ctk.CTkFont(size=13)).pack(side="left")
+        ctk.CTkLabel(hours_frame, text=t("settings.from_hour"), font=ctk.CTkFont(size=13)).pack(side="left")
         self.set_work_start = ctk.CTkEntry(hours_frame, width=65, height=32, corner_radius=8)
         self.set_work_start.insert(0, cfg.get("work_hours_start", "08:00"))
         self.set_work_start.pack(side="left", padx=(5, 15))
-        ctk.CTkLabel(hours_frame, text="Do:", font=ctk.CTkFont(size=13)).pack(side="left")
+        ctk.CTkLabel(hours_frame, text=t("settings.to_hour"), font=ctk.CTkFont(size=13)).pack(side="left")
         self.set_work_end = ctk.CTkEntry(hours_frame, width=65, height=32, corner_radius=8)
         self.set_work_end.insert(0, cfg.get("work_hours_end", "18:00"))
         self.set_work_end.pack(side="left", padx=5)
 
         # --- Dzwiek ---
-        self._section_header(main, "\U0001f514  Powiadomienia dzwiekowe")
+        self._section_header(main, f"\U0001f514  {t('settings.sound_section')}")
         card = self._card(main)
         self.set_sound_notifications = ctk.BooleanVar(value=cfg.get("sound_notifications", True))
-        ctk.CTkCheckBox(card, text="Dzwiek przy poczatku i koncu przerwy",
+        ctk.CTkCheckBox(card, text=t("settings.sound_on_break"),
                         variable=self.set_sound_notifications,
                         font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=12)
 
         # --- Prywatnosc ---
-        self._section_header(main, "\U0001f512  Prywatnosc i dane")
+        self._section_header(main, f"\U0001f512  {t('settings.privacy_section')}")
         card = self._card(main)
         self.set_telemetry_enabled = ctk.BooleanVar(value=cfg.get("telemetry_enabled", True))
-        ctk.CTkCheckBox(card, text="Anonimowe statystyki uzytkowania",
+        ctk.CTkCheckBox(card, text=t("settings.telemetry"),
                         variable=self.set_telemetry_enabled,
                         font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=(12, 2))
-        ctk.CTkLabel(card, text="Pomagaja nam ulepszac aplikacje. Zadne dane osobowe.",
+        ctk.CTkLabel(card, text=t("settings.telemetry_desc"),
                      font=ctk.CTkFont(size=11), text_color=C_TEXT_DIM).pack(anchor="w", padx=35, pady=(0, 8))
 
         self.set_track_titles = ctk.BooleanVar(value=cfg.get("track_window_titles", False))
-        ctk.CTkCheckBox(card, text="Zapisuj tytuly okien w statystykach",
+        ctk.CTkCheckBox(card, text=t("settings.track_titles"),
                         variable=self.set_track_titles,
                         font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=(4, 2))
-        ctk.CTkLabel(card, text="Wylaczone = zapisuje tylko nazwy programow (wiecej prywatnosci)",
+        ctk.CTkLabel(card, text=t("settings.track_titles_desc"),
                      font=ctk.CTkFont(size=11), text_color=C_TEXT_DIM).pack(anchor="w", padx=35, pady=(0, 12))
 
         # --- System ---
-        self._section_header(main, "\U0001f5a5  System")
+        self._section_header(main, f"\U0001f5a5  {t('settings.system_section')}")
         card = self._card(main)
+
+        # Language selector
+        lang_frame = ctk.CTkFrame(card, fg_color="transparent")
+        lang_frame.pack(fill="x", padx=15, pady=(12, 5))
+        ctk.CTkLabel(lang_frame, text=t("settings.language"), font=ctk.CTkFont(size=13)).pack(side="left")
+
+        import i18n as _i18n
+        available = _i18n.get_available_languages()
+        lang_names = [l["name"] for l in available]
+        self._lang_codes = [l["code"] for l in available]
+        current_lang = cfg.get("language", "pl")
+        current_name = next((l["name"] for l in available if l["code"] == current_lang), "Polski")
+
+        self.set_language = ctk.CTkOptionMenu(
+            lang_frame, values=lang_names, width=150, height=32,
+            font=ctk.CTkFont(size=12),
+            command=self._on_language_changed,
+        )
+        self.set_language.set(current_name)
+        self.set_language.pack(side="right")
+
+        self._lang_restart_label = ctk.CTkLabel(card, text="", font=ctk.CTkFont(size=11),
+                                                 text_color=C_ORANGE)
+        self._lang_restart_label.pack(anchor="w", padx=15, pady=(0, 5))
+
         self.set_autostart = ctk.BooleanVar(value=cfg.get("autostart", False))
-        ctk.CTkCheckBox(card, text="Uruchamiaj z Windows",
+        ctk.CTkCheckBox(card, text=t("settings.autostart"),
                         variable=self.set_autostart,
                         font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=12)
 
@@ -934,7 +1002,7 @@ class MainWindow(ctk.CTkToplevel):
         btn_frame.pack(fill="x", padx=15, pady=10)
 
         ctk.CTkButton(
-            btn_frame, text="Zapisz ustawienia", command=self._save_settings,
+            btn_frame, text=t("settings.save"), command=self._save_settings,
             fg_color=C_ACCENT, hover_color=C_ACCENT_HOVER,
             height=42, corner_radius=10,
             font=ctk.CTkFont(size=14, weight="bold"),
@@ -970,10 +1038,53 @@ class MainWindow(ctk.CTkToplevel):
         )
         slider.set(default)
         slider.pack(side="right", padx=8, expand=True, fill="x")
+        slider._hd_val_label = val_label
+        slider._hd_unit = unit
         return slider
+
+    def _get_method_desc(self, method_key: str) -> str:
+        desc_map = {
+            "pomodoro": "settings.method_pomodoro_desc",
+            "20-20-20": "settings.method_20_20_20_desc",
+            "52-17": "settings.method_52_17_desc",
+            "90-min": "settings.method_90_min_desc",
+            "custom": "settings.method_custom_desc",
+        }
+        return t(desc_map.get(method_key, "settings.method_custom_desc"))
+
+    def _on_method_changed(self, value):
+        from config import WORK_METHODS
+        method_key = self._method_name_to_key.get(value, "custom")
+        self._method_desc_label.configure(text=self._get_method_desc(method_key))
+
+        if method_key in WORK_METHODS:
+            preset = WORK_METHODS[method_key]
+            self.set_small_interval.set(preset["small_break_interval_min"])
+            self.set_small_duration.set(preset["small_break_duration_sec"])
+            self.set_big_interval.set(preset["big_break_interval_min"])
+            self.set_big_duration.set(preset["big_break_duration_min"])
+            self.set_eye_interval.set(preset["eye_exercise_interval_min"])
+            # Trigger label updates
+            self._update_slider_label(self.set_small_interval, t("settings.unit_min"))
+            self._update_slider_label(self.set_small_duration, t("settings.unit_sec"))
+            self._update_slider_label(self.set_big_interval, t("settings.unit_min"))
+            self._update_slider_label(self.set_big_duration, t("settings.unit_min"))
+            self._update_slider_label(self.set_eye_interval, t("settings.unit_min"))
+
+    def _update_slider_label(self, slider, unit: str):
+        """Update the label next to a slider after programmatic change."""
+        lbl = getattr(slider, "_hd_val_label", None)
+        if lbl:
+            lbl.configure(text=f"{int(slider.get())} {unit}")
+
+    def _on_language_changed(self, value):
+        self._lang_restart_label.configure(text=t("settings.language_restart"))
 
     def _save_settings(self):
         cfg = self.app.config
+        # Save work method
+        method_name = self.set_work_method.get()
+        cfg["work_method"] = self._method_name_to_key.get(method_name, "custom")
         cfg["small_break_interval_min"] = int(self.set_small_interval.get())
         cfg["small_break_duration_sec"] = int(self.set_small_duration.get())
         cfg["big_break_interval_min"] = int(self.set_big_interval.get())
@@ -990,13 +1101,23 @@ class MainWindow(ctk.CTkToplevel):
         cfg["telemetry_enabled"] = self.set_telemetry_enabled.get()
         cfg["track_window_titles"] = self.set_track_titles.get()
 
+        # Save language
+        lang_name = self.set_language.get()
+        try:
+            import i18n as _i18n
+            available = _i18n.get_available_languages()
+            idx = [l["name"] for l in available].index(lang_name)
+            cfg["language"] = available[idx]["code"]
+        except (ValueError, IndexError):
+            pass
+
         save_config(cfg)
         set_autostart(cfg["autostart"])
 
         self.app.config = cfg
         self.app.scheduler.update_config(cfg)
 
-        self.settings_status.configure(text="\u2713 Zapisano!")
+        self.settings_status.configure(text=f"\u2713 {t('settings.saved')}")
         self.after(2000, lambda: self.settings_status.configure(text=""))
 
     # =========================================================================
@@ -1005,14 +1126,14 @@ class MainWindow(ctk.CTkToplevel):
     def _build_help_page(self) -> ctk.CTkFrame:
         page = ctk.CTkFrame(self.content, fg_color="transparent")
 
-        ctk.CTkLabel(page, text="\u2753  Pomoc",
+        ctk.CTkLabel(page, text=f"\u2753  {t('help.title')}",
                      font=ctk.CTkFont(size=20, weight="bold")).pack(
             anchor="w", padx=20, pady=(12, 4))
 
         textbox = ctk.CTkTextbox(page, font=ctk.CTkFont(family="Consolas", size=13),
                                  wrap="word", activate_scrollbars=True)
         textbox.pack(fill="both", expand=True, padx=15, pady=(5, 10))
-        textbox.insert("1.0", HELP_TEXT)
+        textbox.insert("1.0", t("help.text"))
         textbox.configure(state="disabled")
 
         return page
@@ -1049,8 +1170,10 @@ class MainWindow(ctk.CTkToplevel):
             yt_player.stop()
             self._refresh_yt_buttons()
             self._set_yt_status("")
+            self._save_audio_state(None, None)
         else:
             audio_engine.play("brown_noise")
+            self._save_audio_state("native", "brown_noise")
         self._update_home_music()
         self._refresh_music_buttons()
 
@@ -1074,7 +1197,7 @@ class MainWindow(ctk.CTkToplevel):
         audio_engine.stop()
         self._refresh_music_buttons()
         yt_player.stop()
-        self._set_yt_status("Laczenie...")
+        self._set_yt_status(t("music.connecting"))
         yt_player.play(
             custom_url=url,
             callback_started=lambda k: self._safe_after(self._on_yt_started, k),
@@ -1088,28 +1211,47 @@ class MainWindow(ctk.CTkToplevel):
         audio_engine.stop()
         self._refresh_music_buttons()
         yt_player.stop()
-        self._set_yt_status("Laczenie...")
+        self._set_yt_status(t("music.connecting"))
         yt_player.play(
             custom_url=url,
             callback_started=lambda k: self._safe_after(self._on_yt_started, k),
             callback_error=lambda e: self._safe_after(self._on_yt_error, e),
         )
 
+    def _save_audio_state(self, source: str | None = None, audio_type: str | None = None):
+        """Persist last audio selection to config for autoplay on next launch."""
+        try:
+            cfg = self.app.config
+            cfg["audio_last_source"] = source
+            cfg["audio_last_type"] = audio_type
+            if source == "native":
+                cfg["audio_last_volume"] = int(audio_engine.get_volume() * 100)
+            elif source == "youtube":
+                cfg["audio_last_volume"] = yt_player.get_volume()
+            else:
+                cfg["audio_last_volume"] = 10
+            save_config(cfg)
+        except Exception:
+            pass
+
     def _toggle_sound(self, sound_key: str):
         if audio_engine.get_current() == sound_key and audio_engine.is_playing():
             audio_engine.stop()
+            self._save_audio_state(None, None)
         else:
             # Stop YouTube if playing
             yt_player.stop()
             self._refresh_yt_buttons()
             self._set_yt_status("")
             audio_engine.play(sound_key)
+            self._save_audio_state("native", sound_key)
         self._refresh_music_buttons()
         self._update_home_music()
 
     def _toggle_yt_station(self, station_key: str):
         if yt_player.get_current() == station_key:
             yt_player.stop()
+            self._save_audio_state(None, None)
             self._refresh_yt_buttons()
             self._update_home_music()
         else:
@@ -1118,7 +1260,7 @@ class MainWindow(ctk.CTkToplevel):
             self._refresh_music_buttons()
             # Stop other YT station
             yt_player.stop()
-            self._set_yt_status("Laczenie...")
+            self._set_yt_status(t("music.connecting"))
             yt_player.play(
                 station_key=station_key,
                 callback_started=lambda k: self._safe_after(self._on_yt_started, k),
@@ -1132,7 +1274,7 @@ class MainWindow(ctk.CTkToplevel):
         audio_engine.stop()
         self._refresh_music_buttons()
         yt_player.stop()
-        self._set_yt_status("Laczenie...")
+        self._set_yt_status(t("music.connecting"))
         yt_player.play(
             custom_url=url,
             callback_started=lambda k: self._safe_after(self._on_yt_started, k),
@@ -1152,12 +1294,13 @@ class MainWindow(ctk.CTkToplevel):
         if self._destroyed:
             return
         try:
-            name = "Wlasny link"
+            name = t("music.custom_link_name")
             if station_key in yt_player.STATIONS:
                 name = yt_player.STATIONS[station_key]["name"]
-            self._set_yt_status(f"\u25b6 Gra: {name}")
+            self._set_yt_status(f"\u25b6 {t('music.playing', name=name)}")
             self._refresh_yt_buttons()
             self._update_home_music()
+            self._save_audio_state("youtube", station_key)
         except Exception:
             pass
 
@@ -1165,7 +1308,7 @@ class MainWindow(ctk.CTkToplevel):
         if self._destroyed:
             return
         try:
-            self._set_yt_status(f"\u26a0 Blad: {error_msg}")
+            self._set_yt_status(f"\u26a0 {t('music.error', msg=error_msg)}")
             self._refresh_yt_buttons()
         except Exception:
             pass
@@ -1288,7 +1431,7 @@ class MainWindow(ctk.CTkToplevel):
                 color = C_BLUE if i < current else C_BTN_DARK
                 ctk.CTkLabel(self.home_water_dots, text="\u25cf", font=ctk.CTkFont(size=14),
                              text_color=color).pack(side="left", padx=1)
-            self.home_water_text.configure(text=f"{current} / {goal} szklanek")
+            self.home_water_text.configure(text=t("home.glasses_count", current=current, goal=goal))
 
     def _update_home_music(self):
         current = audio_engine.get_current()
@@ -1306,7 +1449,7 @@ class MainWindow(ctk.CTkToplevel):
             self.home_music_status.configure(text=f"{icon} {name}", text_color="#9b59b6")
             self.home_music_toggle.configure(text="\u23f9", fg_color=C_RED, hover_color="#c0392b")
         else:
-            self.home_music_status.configure(text="Wylaczony", text_color=C_TEXT_DIM)
+            self.home_music_status.configure(text=t("home.sound_off"), text_color=C_TEXT_DIM)
             self.home_music_toggle.configure(text="\u25b6", fg_color=C_ACCENT, hover_color=C_ACCENT_HOVER)
 
     def _update_bottom_bar(self):
@@ -1336,20 +1479,20 @@ class MainWindow(ctk.CTkToplevel):
 
         next_left = min(small_left, big_left)
         if sched._paused:
-            self.bottom_status.configure(text="\u23f8 Pauza", text_color=C_ORANGE)
+            self.bottom_status.configure(text=f"\u23f8 {t('status.pause')}", text_color=C_ORANGE)
         elif next_left > 0:
             self.bottom_status.configure(
-                text=f"\u23f1 {_fmt_countdown(next_left)} do przerwy",
+                text=f"\u23f1 {t('status.to_break', time=_fmt_countdown(next_left))}",
                 text_color=C_TEXT_DIM)
         else:
-            self.bottom_status.configure(text="\u23f1 przerwa!", text_color=C_ACCENT)
+            self.bottom_status.configure(text=f"\u23f1 {t('status.break_now')}", text_color=C_ACCENT)
 
     def _update_pause_ui(self):
         paused = self.app.scheduler._paused
         if paused:
-            self.pause_sidebar_btn.configure(text="\u25b6  Wznow", text_color=C_ACCENT)
+            self.pause_sidebar_btn.configure(text=f"\u25b6  {t('nav.resume')}", text_color=C_ACCENT)
         else:
-            self.pause_sidebar_btn.configure(text="\u23f8  Pauza", text_color=C_ORANGE)
+            self.pause_sidebar_btn.configure(text=f"\u23f8  {t('nav.pause')}", text_color=C_ORANGE)
 
     # =========================================================================
     #  CLOSE
@@ -1357,97 +1500,3 @@ class MainWindow(ctk.CTkToplevel):
     def _close(self):
         self._destroyed = True
         self.destroy()
-
-
-# =========================================================================
-#  HELP TEXT
-# =========================================================================
-HELP_TEXT = """
-HEALTHDESK - PORADNIK
-
-IKONA W ZASOBNIKU (TRAY)
-  Prawy klik na zielona ikone obok zegara Windows:
-  \u2022 Otworz          - otwiera glowne okno aplikacji
-  \u2022 Wypilem szlanke wody - rejestruje szlanke w trackerze
-  \u2022 Pauza (30 min)       - wstrzymuje wszystkie przypomnienia
-  \u2022 Zakoncz              - zamyka aplikacje
-
-  Dwuklik na ikone rowniez otwiera okno.
-
-NAWIGACJA W OKNIE
-  Po lewej stronie znajduje sie panel nawigacji:
-  \u2022 Home       - pulpit z podsumowaniem dnia
-  \u2022 Statystyki - szczegolowe dane dzienne i tygodniowe
-  \u2022 Audio      - dzwieki do skupienia (brown noise, deszcz, las...)
-  \u2022 Ustawienia - konfiguracja interwalow, trybow, godzin pracy
-  \u2022 Pomoc      - to okno
-
-PRZERWY
-  Aplikacja przypomina o przerwach w dwoch trybach:
-
-  Tryb umiarkowany (domyslny):
-    Niewielkie okno always-on-top z odliczaniem.
-    Mozesz kliknac "Pomin" lub "OK, robie przerwe!".
-
-  Tryb agresywny:
-    Pelnoekranowa blokada z odliczaniem.
-    Awaryjne wyjscie: kliknij 3 razy szybko (w 2 sekundy).
-
-  Rodzaje przerw:
-    \u2022 Mala przerwa (20-20-20) - co 20 min, patrzysz 20 sek w dal
-    \u2022 Duza przerwa - co 60 min, 5 min odpoczynku + cwiczenie
-
-CWICZENIA
-  Oczy: mruganie, ruch galkami, fokus bliski/daleki, osemki.
-  Rozciaganie: szyja, ramiona, tulow, nadgarstki, nogi, plecy.
-  Cwiczenia pojawiaja sie automatycznie przy przerwach.
-
-NAWODNIENIE
-  Aplikacja przypomina o piciu wody (domyslnie co 30 min).
-  Cel dzienny: 8 szklanek (konfigurowalne w Ustawieniach).
-  Mozesz szybko dodac szlanke z panelu nawigacji (+1 woda).
-
-SLEDZENIE AKTYWNOSCI
-  Aplikacja co 5 sek sprawdza aktywne okno i kategoryzuje:
-    \u2022 Praca        - IDE, Office, edytory
-    \u2022 Rozrywka     - YouTube, gry, media
-    \u2022 Komunikacja  - Teams, Slack, Zoom
-    \u2022 Przegladarka - Chrome, Firefox, Edge
-    \u2022 Inne         - pozostale
-
-  Dane widoczne w zakladce Statystyki.
-
-DZWIEKI DO SKUPIENIA
-  Zakladka Audio oferuje dzwieki generowane natywnie (bez internetu):
-    \u2022 Brown Noise - gleboki, kojacy szum
-    \u2022 Deszcz     - szum deszczu z kroplami
-    \u2022 White/Pink Noise - rownomierny szum
-    \u2022 Ambient Drone - gleboki ton z modulacja
-    \u2022 Las        - wiatr w drzewach, ptaki
-
-  Dzwiek gra w tle nawet po zamknieciu okna.
-
-YOUTUBE RADIO
-  Muzyka instrumentalna bez slow, streamowana z YouTube:
-    \u2022 Lofi Girl - lofi hip hop beats
-    \u2022 Jazz Cafe - smooth jazz & bossa nova
-    \u2022 Classical Focus - muzyka klasyczna
-    \u2022 Synthwave Radio - synthwave instrumental
-    \u2022 Piano & Ambient - spokojne pianino
-
-  Mozesz tez wkleic wlasny link do YouTube.
-  Wymaga: yt-dlp (pip install yt-dlp) + ffmpeg na PATH.
-
-GODZINY PRACY
-  W Ustawieniach mozna wlaczyc godziny pracy (np. 8:00-18:00).
-  Poza tymi godzinami przypomnienia sa wstrzymane.
-
-AUTOSTART
-  Ustawienia > "Autostart z Windows" - aplikacja uruchomi sie
-  automatycznie po zalogowaniu do systemu.
-
-DANE
-  Konfiguracja i baza danych sa w:
-    %APPDATA%\\HealthDesk\\
-  Mozesz usunac ten folder, aby zresetowac aplikacje.
-""".strip()

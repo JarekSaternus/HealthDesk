@@ -4,6 +4,7 @@ import pystray
 from PIL import Image
 
 from generate_icon import generate_icon
+from i18n import t
 import database
 
 
@@ -19,15 +20,15 @@ class TrayApp:
 
     def _create_menu(self):
         return pystray.Menu(
-            pystray.MenuItem("Otworz", self._on_open, default=True),
+            pystray.MenuItem(t("tray.open"), self._on_open, default=True),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Wypilem szlanke wody", self._on_water),
+            pystray.MenuItem(t("tray.log_water"), self._on_water),
             pystray.MenuItem(
-                lambda item: "Wznow" if self._paused else "Pauza (30 min)",
+                lambda item: t("tray.resume") if self._paused else t("tray.pause"),
                 self._on_pause,
             ),
             pystray.Menu.SEPARATOR,
-            pystray.MenuItem("Zakoncz", self._on_quit),
+            pystray.MenuItem(t("tray.quit"), self._on_quit),
         )
 
     def _on_open(self, icon, item):
@@ -38,7 +39,7 @@ class TrayApp:
     def _on_water(self, icon, item):
         database.log_water(1)
         total = database.get_water_today()
-        self._icon.notify(f"Zapisano! Dzis: {total} szklanek", "Woda")
+        self._icon.notify(t("tray.water_logged", total=total), t("tray.water_title"))
         cb = self.callbacks.get("on_water")
         if cb:
             cb()
@@ -65,7 +66,7 @@ class TrayApp:
         self._icon = pystray.Icon(
             "HealthDesk",
             image,
-            "HealthDesk - Zdrowa praca",
+            t("tray.tooltip"),
             menu=self._create_menu(),
         )
         self._icon.run()

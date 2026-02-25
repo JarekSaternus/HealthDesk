@@ -3,23 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>HealthDesk — Zadbaj o zdrowie przy komputerze</title>
-  <meta name="description" content="HealthDesk to darmowa aplikacja na Windows, ktora przypomina o przerwach, nawodnieniu i cwiczeniach oczu. Sledzi aktywnosc i dba o Twoje zdrowie przy komputerze.">
-  <meta name="keywords" content="przerwy w pracy, zdrowie przy komputerze, cwiczenia oczu, nawodnienie, tracker aktywnosci, Windows">
+  <title>HealthDesk — Twoje oczy, kręgosłup i głowa Ci podziękują</title>
+  <meta name="description" content="HealthDesk to darmowa aplikacja na Windows, która przypomina o przerwach, nawodnieniu i ćwiczeniach oczu. Działa w tle i dba o Twoje zdrowie przy komputerze.">
+  <meta name="keywords" content="przerwy w pracy, zdrowie przy komputerze, ćwiczenia oczu, nawodnienie, tracker aktywności, Windows, pomodoro">
   <meta name="author" content="HealthDesk">
 
   <!-- Open Graph -->
-  <meta property="og:title" content="HealthDesk — Zadbaj o zdrowie przy komputerze">
-  <meta property="og:description" content="Inteligentne przerwy, nawodnienie, cwiczenia oczu i sledzenie aktywnosci — wszystko w jednej darmowej aplikacji na Windows.">
+  <meta property="og:title" content="HealthDesk — Twoje oczy, kręgosłup i głowa Ci podziękują">
+  <meta property="og:description" content="Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — darmowa aplikacja na Windows.">
   <meta property="og:type" content="website">
   <meta property="og:url" content="https://healthdesk.site">
   <meta property="og:locale" content="pl_PL">
+  <meta property="og:image" content="https://healthdesk.site/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="HealthDesk — inteligentne przerwy, nawodnienie i ćwiczenia oczu">
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image">
-  <meta name="twitter:title" content="HealthDesk — Zadbaj o zdrowie przy komputerze">
-  <meta name="twitter:description" content="Inteligentne przerwy, nawodnienie, cwiczenia oczu i sledzenie aktywnosci — wszystko w jednej darmowej aplikacji na Windows.">
+  <meta name="twitter:title" content="HealthDesk — Twoje oczy, kręgosłup i głowa Ci podziękują">
+  <meta name="twitter:description" content="Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — darmowa aplikacja na Windows.">
+  <meta name="twitter:image" content="https://healthdesk.site/og-image.png">
 
+  <link rel="icon" type="image/svg+xml" href="logo-color.svg">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -28,10 +34,7 @@
   <nav class="navbar">
     <div class="container">
       <a href="#" class="navbar-brand">
-        <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <path d="M20 4L4 12v10c0 9.33 6.82 18.06 16 20 9.18-1.94 16-10.67 16-20V12L20 4z" fill="rgba(46,204,113,0.15)" stroke="#2ecc71" stroke-width="2" stroke-linejoin="round"/>
-          <path d="M20 15c-1.5-2.5-5-2.5-5 0 0 3.5 5 6.5 5 6.5s5-3 5-6.5c0-2.5-3.5-2.5-5 0z" fill="#2ecc71"/>
-        </svg>
+        <img src="logo-color.svg" alt="HealthDesk logo" class="navbar-logo">
         HealthDesk
       </a>
       <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
@@ -42,43 +45,74 @@
       </label>
       <ul class="navbar-links">
         <li><a href="#features" onclick="document.getElementById('nav-toggle').checked=false">Funkcje</a></li>
-        <li><a href="#preview" onclick="document.getElementById('nav-toggle').checked=false">Podglad</a></li>
-        <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false">Jak dziala</a></li>
+        <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false">Jak działa</a></li>
+        <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false">Dlaczego</a></li>
         <li><a href="#faq" onclick="document.getElementById('nav-toggle').checked=false">FAQ</a></li>
         <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">Pobierz</a></li>
       </ul>
     </div>
   </nav>
 
-  <!-- ===== Hero ===== -->
+  <!-- ===== Hero (2-column layout) ===== -->
   <section class="hero">
-    <div class="hero-content">
-      <div class="hero-badge">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        Darmowa aplikacja dla Windows
+    <div class="hero-split">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Darmowa aplikacja dla Windows
+        </div>
+        <h1>Twoje oczy, kręgosłup i głowa <span class="accent">Ci podziękują</span></h1>
+        <p>Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — wszystko w jednej lekkiej aplikacji, która działa w tle.</p>
+        <div class="hero-buttons">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest/download/HealthDesk_Setup.exe" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Pobierz za darmo
+          </a>
+          <a href="#preview" class="btn btn-outline btn-lg">Zobacz podgląd</a>
+        </div>
+        <div class="hero-trust">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Windows 10 / 11
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Bez zbierania danych
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Pobrano 500+ razy
+          </span>
+        </div>
       </div>
-      <h1>Zadbaj o <span class="accent">zdrowie</span> przy komputerze</h1>
-      <p>Inteligentne przerwy, nawodnienie, cwiczenia oczu i sledzenie aktywnosci — wszystko w jednej lekkiej aplikacji, ktora dziala w tle.</p>
-      <div class="hero-buttons">
-        <a href="HealthDesk_Setup.exe" class="btn btn-primary btn-lg">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Pobierz za darmo
-        </a>
-        <a href="#features" class="btn btn-outline btn-lg">Dowiedz sie wiecej</a>
-      </div>
-      <div class="hero-trust">
-        <span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-          Windows 10 / 11
-        </span>
-        <span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          Bez zbierania danych
-        </span>
-        <span>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M16 8l-8 8m0-8l8 8"/></svg>
-          100% za darmo
-        </span>
+      <div class="hero-visual">
+        <img src="logo-color.svg" alt="HealthDesk" class="hero-logo">
+        <!-- App mini-preview in hero -->
+        <div class="hero-app-mini">
+          <div class="app-mini-header">
+            <div class="app-mini-dot"></div>
+            <div class="app-mini-dot"></div>
+            <div class="app-mini-dot"></div>
+          </div>
+          <div class="app-mini-body">
+            <div class="app-mini-timer-label">Następna przerwa za</div>
+            <div class="app-mini-timer">14:32</div>
+            <div class="app-mini-stats">
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val">6</span>
+                <span class="app-mini-stat-lbl">Przerwy</span>
+              </div>
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" style="color:#3b82f6;">5/8</span>
+                <span class="app-mini-stat-lbl">Woda</span>
+              </div>
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" style="color:#a78bfa;">4h 23m</span>
+                <span class="app-mini-stat-lbl">Praca</span>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -86,62 +120,69 @@
   <!-- ===== Features ===== -->
   <section class="features" id="features">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Wszystko, czego potrzebujesz</h2>
-      <p class="section-subtitle animate-on-scroll">Kompletny zestaw narzedzi do dbania o zdrowie podczas dlugich godzin przy komputerze.</p>
+      <h2 class="section-title animate-on-scroll">Co robi HealthDesk?</h2>
+      <p class="section-subtitle animate-on-scroll">Trzy kluczowe funkcje + bonusy, które zmienią Twoje codzienne siedzenie przy komputerze.</p>
 
-      <div class="features-grid">
-        <!-- 1: Breaks -->
-        <div class="feature-card animate-on-scroll delay-1">
+      <!-- Top 3 features -->
+      <div class="features-grid features-main">
+        <div class="feature-card feature-card-primary animate-on-scroll delay-1">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <h3>Inteligentne przerwy</h3>
-          <p>Automatyczne planowanie krotkich i dlugich przerw wedlug zasady 20-20-20. Dostosuj harmonogram do swoich godzin pracy i preferencji.</p>
+          <p><strong>4 metody pracy do wyboru:</strong> Pomodoro, 20-20-20, 52-17 i 90-minutowa. Inteligentna ochrona przerw — przypomnienia nigdy się nie nakładają.</p>
         </div>
 
-        <!-- 2: Water -->
-        <div class="feature-card animate-on-scroll delay-2">
+        <div class="feature-card feature-card-primary animate-on-scroll delay-2">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           </div>
           <h3>Przypomnienia o wodzie</h3>
-          <p>Delikatne powiadomienia o nawodnieniu z dziennym celem 8 szklanek. Sledz postepy i buduj nawyk regularnego picia wody.</p>
+          <p><strong>Cel: 8 szklanek dziennie.</strong> Delikatne przypomnienia co 30 minut. Śledź postępy i buduj nawyk.</p>
         </div>
 
-        <!-- 3: Eye exercises -->
-        <div class="feature-card animate-on-scroll delay-3">
+        <div class="feature-card feature-card-primary animate-on-scroll delay-3">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </div>
-          <h3>Cwiczenia oczu</h3>
-          <p>Prowadzone sesje cwiczen galkami ocznymi, mrugania i zmiany fokusa. Zaprojektowane przez specjalistow do redukcji zmeczenia wzroku.</p>
+          <h3>Ćwiczenia oczu</h3>
+          <p><strong>Prowadzone sesje z timerem.</strong> Ruch gałkami, mruganie, zmiana fokusu — redukcja zmęczenia wzroku.</p>
         </div>
+      </div>
 
-        <!-- 4: Activity tracking -->
+      <!-- Bonus features -->
+      <h3 class="features-bonus-title animate-on-scroll">Bonus</h3>
+      <div class="features-grid features-bonus">
         <div class="feature-card animate-on-scroll delay-4">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
           </div>
-          <h3>Sledzenie aktywnosci</h3>
-          <p>Automatyczna kategoryzacja aplikacji na prace, rozrywke, komunikacje i nauke. Przegladaj szczegolowe statystyki dzienne i tygodniowe.</p>
+          <h3>Śledzenie aktywności</h3>
+          <p><strong>Automatyczna kategoryzacja aplikacji</strong> na pracę, rozrywkę, komunikację i naukę.</p>
         </div>
 
-        <!-- 5: Ambient sounds -->
         <div class="feature-card animate-on-scroll delay-5">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           </div>
-          <h3>Dzwieki do skupienia</h3>
-          <p>Wbudowany generator dzwiekow otoczenia: brown noise, deszcz, las, fale oceaniczne i ambient. Generowane w czasie rzeczywistym, bez plików.</p>
+          <h3>Dźwięki do skupienia</h3>
+          <p><strong>Brown noise, deszcz, las, ocean</strong> — generowane w czasie rzeczywistym.</p>
         </div>
 
-        <!-- 6: YouTube Radio -->
         <div class="feature-card animate-on-scroll delay-6">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
           </div>
           <h3>YouTube Radio</h3>
-          <p>Piec stacji z muzyka instrumentalna, lo-fi, jazzem i klasyka — streamowanych prosto w aplikacji. Idealne tlo do produktywnej pracy.</p>
+          <p><strong>5 stacji muzycznych</strong> — lo-fi, jazz, klasyka, ambient. Streaming w aplikacji.</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-7">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+          </div>
+          <h3>Wielojęzyczność</h3>
+          <p><strong>Polski i angielski</strong> wbudowane. Możliwość dodania własnych tłumaczeń przez plik JSON.</p>
         </div>
       </div>
     </div>
@@ -150,90 +191,11 @@
   <!-- ===== App Preview ===== -->
   <section class="app-preview" id="preview">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Zobacz jak wyglada</h2>
-      <p class="section-subtitle animate-on-scroll">Ciemny, elegancki interfejs, ktory nie rozprasza — dostarcza informacje na pierwszy rzut oka.</p>
+      <h2 class="section-title animate-on-scroll">Zobacz jak wygląda</h2>
+      <p class="section-subtitle animate-on-scroll">Ciemny, elegancki interfejs, który nie rozprasza — dostarcza informacje na pierwszy rzut oka.</p>
 
-      <div class="app-window animate-on-scroll">
-        <div class="app-titlebar">
-          <div class="app-titlebar-dot red"></div>
-          <div class="app-titlebar-dot yellow"></div>
-          <div class="app-titlebar-dot green"></div>
-          <div class="app-titlebar-title">HealthDesk v1.0</div>
-        </div>
-        <div class="app-body">
-          <div class="app-sidebar">
-            <div class="app-sidebar-logo">
-              <div class="app-sidebar-logo-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/></svg>
-              </div>
-              <span>HealthDesk</span>
-            </div>
-            <div class="app-nav-item active">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-              Strona glowna
-            </div>
-            <div class="app-nav-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
-              Statystyki
-            </div>
-            <div class="app-nav-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
-              Audio
-            </div>
-            <div class="app-nav-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-              Ustawienia
-            </div>
-            <div class="app-nav-item">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-              Pomoc
-            </div>
-          </div>
-          <div class="app-main">
-            <div class="app-header-row">
-              <div class="app-greeting">Dzien dobry!</div>
-              <div class="app-date">Pon, 24 lutego 2026</div>
-            </div>
-
-            <div class="app-timer-card">
-              <div class="app-timer-label">Nastepna przerwa za</div>
-              <div class="app-timer-value">14:32</div>
-              <div class="app-timer-sub">Mala przerwa (20s) — cwiczenia oczu</div>
-            </div>
-
-            <div class="app-stats-row">
-              <div class="app-stat">
-                <div class="app-stat-value">6</div>
-                <div class="app-stat-label">Przerwy dzis</div>
-              </div>
-              <div class="app-stat">
-                <div class="app-stat-value" style="color:#3b82f6;">5/8</div>
-                <div class="app-stat-label">Szklanki wody</div>
-              </div>
-              <div class="app-stat">
-                <div class="app-stat-value" style="color:#a78bfa;">4h 23m</div>
-                <div class="app-stat-label">Czas pracy</div>
-              </div>
-            </div>
-
-            <div class="app-progress-section">
-              <div class="app-progress-label">
-                <span>Nawodnienie</span>
-                <span>62%</span>
-              </div>
-              <div class="app-progress-bar">
-                <div class="app-progress-fill" style="width:62%"></div>
-              </div>
-              <div class="app-progress-label">
-                <span>Przerwy zrealizowane</span>
-                <span>85%</span>
-              </div>
-              <div class="app-progress-bar">
-                <div class="app-progress-fill" style="width:85%"></div>
-              </div>
-            </div>
-          </div>
-        </div>
+      <div class="app-screenshot animate-on-scroll">
+        <img src="screenshot.png" alt="HealthDesk — dashboard aplikacji" class="screenshot-img">
       </div>
     </div>
   </section>
@@ -241,7 +203,7 @@
   <!-- ===== How it works ===== -->
   <section class="how-it-works" id="how-it-works">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Jak to dziala?</h2>
+      <h2 class="section-title animate-on-scroll">Jak to działa?</h2>
       <p class="section-subtitle animate-on-scroll">Trzy proste kroki do zdrowszej pracy przy komputerze.</p>
 
       <div class="steps">
@@ -250,19 +212,19 @@
         <div class="step animate-on-scroll delay-1">
           <div class="step-number">1</div>
           <h3>Zainstaluj</h3>
-          <p>Pobierz instalator, kliknij dalej i gotowe. Konfiguracja zajmuje mniej niz minute. Bez konta, bez rejestracji.</p>
+          <p>Pobierz instalator, kliknij dalej i gotowe. Bez konta, bez rejestracji.</p>
         </div>
 
         <div class="step animate-on-scroll delay-2">
           <div class="step-number">2</div>
           <h3>Pracuj normalnie</h3>
-          <p>HealthDesk dziala w tle i automatycznie sledzi Twoja aktywnosc. Nie zauważysz go, dopoki nie nadejdzie pora na przerwe.</p>
+          <p>HealthDesk działa w tle. Nie zauważysz go, dopóki nie nadejdzie pora na przerwę.</p>
         </div>
 
         <div class="step animate-on-scroll delay-3">
           <div class="step-number">3</div>
           <h3>Odpoczywaj regularnie</h3>
-          <p>Reaguj na przypomnienia o przerwach, wodzie i cwiczeniach. Twoje oczy i kregoslup beda Ci wdzieczne.</p>
+          <p>Reaguj na przypomnienia. Twoje oczy i kręgosłup będą Ci wdzięczne.</p>
         </div>
       </div>
     </div>
@@ -272,7 +234,7 @@
   <section class="stats-section" id="why">
     <div class="container">
       <h2 class="section-title animate-on-scroll">Dlaczego warto?</h2>
-      <p class="section-subtitle animate-on-scroll">Badania naukowe potwierdzaja — regularne przerwy i nawadnianie chronia Twoje zdrowie.</p>
+      <p class="section-subtitle animate-on-scroll">Nawyki poparte badaniami naukowymi.</p>
 
       <div class="stats-grid">
         <div class="stat-card animate-on-scroll delay-1">
@@ -281,7 +243,8 @@
           </div>
           <div class="stat-card-value">20-20-20</div>
           <div class="stat-card-title">Zasada dla oczu</div>
-          <div class="stat-card-desc">Co 20 minut patrz przez 20 sekund na obiekt odlegly o 20 stop. Zmniejsza zmeczenie wzroku nawet o 50%.</div>
+          <div class="stat-card-desc">Co 20 minut patrz przez 20 sekund na obiekt odległy o 20 stóp. Zmniejsza zmęczenie wzroku.</div>
+          <div class="stat-card-source">Źródło: American Academy of Ophthalmology (AAO)</div>
         </div>
 
         <div class="stat-card animate-on-scroll delay-2">
@@ -290,7 +253,8 @@
           </div>
           <div class="stat-card-value">8 szklanek</div>
           <div class="stat-card-title">Wody dziennie</div>
-          <div class="stat-card-desc">Regularne nawadnianie poprawia koncentracje, zmniejsza bole glowy i wspiera funkcjonowanie mozgu przez caly dzien.</div>
+          <div class="stat-card-desc">Regularne nawadnianie poprawia koncentrację i zmniejsza bóle głowy.</div>
+          <div class="stat-card-source">Źródło: European Food Safety Authority (EFSA)</div>
         </div>
 
         <div class="stat-card animate-on-scroll delay-3">
@@ -298,8 +262,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <div class="stat-card-value">5 min / godz.</div>
-          <div class="stat-card-title">Cwiczen i rozciagania</div>
-          <div class="stat-card-desc">Krotkie przerwy na ruch zapobiegaja bolom kregoslupa, poprawiaja krazenie i zwiekszaja produktywnosc o 15%.</div>
+          <div class="stat-card-title">Ćwiczeń i rozciągania</div>
+          <div class="stat-card-desc">Krótkie przerwy na ruch zapobiegają bólom pleców i poprawiają krążenie.</div>
+          <div class="stat-card-source">Źródło: WHO Guidelines on Physical Activity (2020)</div>
         </div>
       </div>
     </div>
@@ -313,12 +278,15 @@
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
         </div>
         <h2>Pobierz HealthDesk</h2>
-        <p>Darmowa aplikacja dla systemu Windows. Bez reklam, bez konta, bez ograniczen. Zainstaluj i zacznij dbac o swoje zdrowie juz dzis.</p>
+        <p>Darmowa aplikacja dla systemu Windows. Bez reklam, bez konta, bez ograniczeń.</p>
 
-        <a href="HealthDesk_Setup.exe" class="btn btn-primary btn-lg">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Pobierz dla Windows
-        </a>
+        <div class="download-buttons">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest/download/HealthDesk_Setup.exe" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Pobierz dla Windows
+          </a>
+          <a href="#preview" class="btn btn-outline btn-lg">Zobacz podgląd</a>
+        </div>
 
         <div class="download-meta">
           <span>
@@ -326,12 +294,8 @@
             Windows 10 / 11
           </span>
           <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-            ~79 MB
-          </span>
-          <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
-            Wersja 1.0
+            Wersja 1.1
           </span>
         </div>
       </div>
@@ -341,11 +305,9 @@
   <!-- ===== FAQ ===== -->
   <section class="faq" id="faq">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Czesto zadawane pytania</h2>
-      <p class="section-subtitle animate-on-scroll">Odpowiedzi na najczestsze pytania dotyczace HealthDesk.</p>
+      <h2 class="section-title animate-on-scroll">Często zadawane pytania</h2>
 
       <div class="faq-list">
-        <!-- FAQ 1 -->
         <div class="faq-item animate-on-scroll delay-1">
           <input type="checkbox" id="faq-1" class="faq-toggle">
           <label for="faq-1" class="faq-question">
@@ -354,12 +316,11 @@
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Tak, HealthDesk jest calkowicie darmowy. Nie ma zadnych ukrytych oplat, subskrypcji ani premium funkcji za dodatkowa oplata. Wszystkie funkcje sa dostepne od razu po instalacji.
+              Tak, całkowicie darmowy. Bez ukrytych opłat, subskrypcji czy premium. Wszystkie funkcje dostępne od razu.
             </div>
           </div>
         </div>
 
-        <!-- FAQ 2 -->
         <div class="faq-item animate-on-scroll delay-2">
           <input type="checkbox" id="faq-2" class="faq-toggle">
           <label for="faq-2" class="faq-question">
@@ -368,49 +329,59 @@
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Nie. Wszystkie dane (statystyki aktywnosci, przerwy, nawodnienie) sa przechowywane wylacznie lokalnie na Twoim komputerze w pliku bazy danych SQLite. Nic nie jest wysylane na zewnetrzne serwery. Twoja prywatnosc jest w pelni chroniona.
+              Nie. Wszystkie dane (statystyki, przerwy, nawodnienie) przechowywane są wyłącznie lokalnie na Twoim komputerze w pliku SQLite. Nic nie jest wysyłane na serwery.
             </div>
           </div>
         </div>
 
-        <!-- FAQ 3 -->
         <div class="faq-item animate-on-scroll delay-3">
           <input type="checkbox" id="faq-3" class="faq-toggle">
           <label for="faq-3" class="faq-question">
-            <h3>Czy HealthDesk dziala offline?</h3>
+            <h3>Czy HealthDesk działa offline?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Tak, wszystkie glowne funkcje dzialaja bez internetu — przerwy, cwiczenia oczu, przypomnienia o wodzie, sledzenie aktywnosci oraz dzwieki do skupienia. Jedynie funkcja YouTube Radio wymaga polaczenia z internetem do streamowania muzyki.
+              Tak — przerwy, ćwiczenia, woda, aktywność i dźwięki działają offline. Tylko YouTube Radio wymaga internetu.
             </div>
           </div>
         </div>
 
-        <!-- FAQ 4 -->
         <div class="faq-item animate-on-scroll delay-4">
           <input type="checkbox" id="faq-4" class="faq-toggle">
           <label for="faq-4" class="faq-question">
-            <h3>Jak odinstalowac aplikacje?</h3>
+            <h3>Czy mogę dostosować częstotliwość przerw?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Otwórz Ustawienia systemu Windows, przejdz do Aplikacje > Zainstalowane aplikacje, znajdz HealthDesk i kliknij Odinstaluj. Mozesz tez uzyc pliku uninstall.exe w folderze instalacyjnym. Wszystkie dane uzytkownika sa przechowywane w %APPDATA%/HealthDesk/.
+              Tak. Wybierz gotową metodę pracy (Pomodoro, 20-20-20, 52-17, 90-minutowa) lub ustaw własne interwały. Częstotliwość przerw, przypomnienia o wodzie, godziny pracy — wszystko konfigurowalne w ustawieniach.
             </div>
           </div>
         </div>
 
-        <!-- FAQ 5 -->
         <div class="faq-item animate-on-scroll delay-5">
           <input type="checkbox" id="faq-5" class="faq-toggle">
           <label for="faq-5" class="faq-question">
-            <h3>Czy moge dostosowac czestotliwosc przerw?</h3>
+            <h3>Jak odinstalować aplikację?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Oczywiscie. W ustawieniach aplikacji mozesz zmienic czestotliwosc malych i duzych przerw, przypomien o wodzie, ustaw godziny pracy i wiele wiecej. Wszystko jest w pelni konfigurowalne pod Twoje potrzeby.
+              Windows > Ustawienia > Aplikacje > HealthDesk > Odinstaluj. Dane użytkownika w %APPDATA%/HealthDesk/.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-6">
+          <input type="checkbox" id="faq-6" class="faq-toggle">
+          <label for="faq-6" class="faq-question">
+            <h3>Dlaczego instalator waży ~80 MB?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Aplikacja zawiera wbudowany odtwarzacz YouTube Radio (ffplay), generator dźwięków (numpy + sounddevice) oraz kompletny framework GUI. Dzięki temu nie potrzebujesz instalować żadnych dodatkowych zależności — wszystko działa od razu.
             </div>
           </div>
         </div>
@@ -423,17 +394,14 @@
     <div class="container">
       <div class="footer-content">
         <div class="footer-brand">
-          <svg viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M20 4L4 12v10c0 9.33 6.82 18.06 16 20 9.18-1.94 16-10.67 16-20V12L20 4z" fill="rgba(46,204,113,0.15)" stroke="#2ecc71" stroke-width="2" stroke-linejoin="round"/>
-            <path d="M20 15c-1.5-2.5-5-2.5-5 0 0 3.5 5 6.5 5 6.5s5-3 5-6.5c0-2.5-3.5-2.5-5 0z" fill="#2ecc71"/>
-          </svg>
+          <img src="logo-white.svg" alt="HealthDesk" class="footer-logo">
           HealthDesk
         </div>
         <ul class="footer-links">
-          <li><a href="#">Polityka prywatnosci</a></li>
+          <li><a href="privacy.html">Polityka prywatności</a></li>
           <li><a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></li>
         </ul>
-        <p class="footer-copy">&copy; 2026 HealthDesk. Wszelkie prawa zastrzezone.</p>
+        <p class="footer-copy">&copy; 2026 HealthDesk. Wszelkie prawa zastrzeżone.</p>
       </div>
     </div>
   </footer>

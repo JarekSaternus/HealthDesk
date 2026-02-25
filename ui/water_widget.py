@@ -1,5 +1,6 @@
 import customtkinter as ctk
 import database
+from i18n import t
 
 
 class WaterReminderWindow(ctk.CTkToplevel):
@@ -14,7 +15,12 @@ class WaterReminderWindow(ctk.CTkToplevel):
         except Exception:
             pass
 
-        self.title("Przypomnienie o wodzie")
+        self.title(t("water.window_title"))
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.geometry("370x300")
         self.resizable(False, False)
         self.attributes("-topmost", True)
@@ -30,8 +36,8 @@ class WaterReminderWindow(ctk.CTkToplevel):
         # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(pady=(20, 5))
-        ctk.CTkLabel(header, text="💧", font=ctk.CTkFont(size=28)).pack(side="left", padx=(0, 8))
-        ctk.CTkLabel(header, text="Czas na wode!",
+        ctk.CTkLabel(header, text="\U0001f4a7", font=ctk.CTkFont(size=28)).pack(side="left", padx=(0, 8))
+        ctk.CTkLabel(header, text=t("water.time_to_drink"),
                      font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
 
         # Progress card
@@ -45,10 +51,10 @@ class WaterReminderWindow(ctk.CTkToplevel):
         # Show filled/empty glass indicators
         for i in range(daily_goal):
             color = "#3498db" if i < current else "#2d3748"
-            ctk.CTkLabel(glasses_frame, text="●", font=ctk.CTkFont(size=18),
+            ctk.CTkLabel(glasses_frame, text="\u25cf", font=ctk.CTkFont(size=18),
                          text_color=color).pack(side="left", padx=2)
 
-        ctk.CTkLabel(card, text=f"{current} / {daily_goal} szklanek",
+        ctk.CTkLabel(card, text=t("water.glasses_count", current=current, goal=daily_goal),
                      font=ctk.CTkFont(size=15, weight="bold")).pack(pady=(5, 3))
 
         self.progress = ctk.CTkProgressBar(card, width=260, height=10,
@@ -58,7 +64,7 @@ class WaterReminderWindow(ctk.CTkToplevel):
         self.progress.set(min(current / max(daily_goal, 1), 1.0))
 
         if current >= daily_goal:
-            ctk.CTkLabel(self, text="Cel osiagniety! Swietnie!",
+            ctk.CTkLabel(self, text=t("water.goal_reached"),
                          font=ctk.CTkFont(size=13, weight="bold"),
                          text_color="#2ecc71").pack(pady=(0, 5))
 
@@ -67,14 +73,14 @@ class WaterReminderWindow(ctk.CTkToplevel):
         btn_frame.pack(pady=10)
 
         ctk.CTkButton(
-            btn_frame, text="💧 Wypilem!", command=self._drink,
+            btn_frame, text=f"\U0001f4a7 {t('water.drank')}", command=self._drink,
             fg_color="#3498db", hover_color="#2980b9",
             width=140, height=38, corner_radius=10,
             font=ctk.CTkFont(size=14, weight="bold"),
         ).pack(side="left", padx=8)
 
         ctk.CTkButton(
-            btn_frame, text="Pozniej", command=self._close,
+            btn_frame, text=t("water.later"), command=self._close,
             fg_color="transparent", hover_color="#3a3a4a",
             border_width=1, border_color="#555555",
             width=80, height=38, corner_radius=10,

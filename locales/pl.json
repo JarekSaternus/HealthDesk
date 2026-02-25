@@ -1,0 +1,254 @@
+{
+  "_name": "Polski",
+
+  "nav": {
+    "home": "Home",
+    "stats": "Statystyki",
+    "music": "Audio",
+    "settings": "Ustawienia",
+    "help": "Pomoc",
+    "water_plus": "+1 woda",
+    "pause": "Pauza",
+    "resume": "Wznow"
+  },
+
+  "home": {
+    "work_time_today": "Czas pracy dzisiaj",
+    "breaks": "Przerwy",
+    "next_break": "Nastepna przerwa",
+    "small_break": "Mala (20-20-20)",
+    "big_break": "Duza",
+    "water": "Woda",
+    "sound": "Dzwiek",
+    "sound_off": "Wylaczony",
+    "play": "Graj",
+    "now": "teraz!",
+    "glasses_count": "{current} / {goal} szklanek"
+  },
+
+  "stats": {
+    "title": "Statystyki",
+    "today": "Dzisiaj",
+    "week": "Tydzien",
+    "work_time": "Czas pracy",
+    "breaks": "Przerwy",
+    "water": "Woda",
+    "hydration": "Nawodnienie",
+    "top_apps": "Top aplikacje",
+    "categories": "Kategorie",
+    "work_time_7days": "Czas pracy - ostatnie 7 dni",
+    "breaks_7days": "Przerwy - ostatnie 7 dni",
+    "no_data_week": "Brak danych z tego tygodnia"
+  },
+
+  "music": {
+    "focus_sounds": "Dzwieki do skupienia",
+    "native_desc": "Generowane natywnie - bez internetu",
+    "volume": "Glosnosc:",
+    "yt_radio": "YouTube Radio",
+    "yt_requires": "Wymaga: pip install yt-dlp + ffmpeg na PATH",
+    "yt_install_hint": "Zainstaluj i zrestartuj aplikacje aby odblokowac radio YouTube",
+    "yt_desc": "Muzyka instrumentalna bez slow - streamowanie z YouTube",
+    "custom_link_label": "Wlasny link YouTube (muzyka instrumentalna):",
+    "search": "Szukaj",
+    "play": "Graj",
+    "stop_all": "Zatrzymaj wszystko",
+    "connecting": "Laczenie...",
+    "playing": "Gra: {name}",
+    "error": "Blad: {msg}",
+    "custom_link_name": "Wlasny link"
+  },
+
+  "settings": {
+    "title": "Ustawienia",
+    "work_method": "Metoda pracy",
+    "method_pomodoro": "Pomodoro",
+    "method_pomodoro_desc": "25 min pracy, 5 min przerwy, co 4 cykle duza 15 min przerwa. Najlepsza dla skupionej, intensywnej pracy w blokach.",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "Co 20 min patrzysz 20 sek w dal (6m). Opracowana przez okulistow — chroni oczy przy dlugiej pracy z ekranem.",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52 min pracy, 17 min przerwy. Wyniki badan DeskTime — najbardziej produktywni pracownicy tak pracuja.",
+    "method_90_min": "90-minutowy",
+    "method_90_min_desc": "90 min pracy, 5 min przerwy, co 3 cykle duza 20 min. Oparty na naturalnym rytmie organizmu (cykle ultradialne).",
+    "method_custom": "Wlasny",
+    "method_custom_desc": "Ustaw wlasne interwaly za pomoca sliderow ponizej.",
+    "breaks_section": "Przerwy",
+    "small_break_every": "Mala przerwa co",
+    "small_break_duration": "Czas malej przerwy",
+    "big_break_every": "Duza przerwa co",
+    "big_break_duration": "Czas duzej przerwy",
+    "break_mode": "Tryb przerw",
+    "mode_moderate": "Umiarkowany  (popup)",
+    "mode_aggressive": "Agresywny  (fullscreen)",
+    "hydration_section": "Nawodnienie",
+    "reminder_every": "Przypomnienie co",
+    "daily_goal": "Cel dzienny",
+    "eye_section": "Cwiczenia oczu",
+    "work_hours_section": "Godziny pracy",
+    "work_hours_only": "Przypominaj tylko w godzinach pracy",
+    "from_hour": "Od:",
+    "to_hour": "Do:",
+    "sound_section": "Powiadomienia dzwiekowe",
+    "sound_on_break": "Dzwiek przy poczatku i koncu przerwy",
+    "privacy_section": "Prywatnosc i dane",
+    "telemetry": "Anonimowe statystyki uzytkowania",
+    "telemetry_desc": "Pomagaja nam ulepszac aplikacje. Zadne dane osobowe.",
+    "track_titles": "Zapisuj tytuly okien w statystykach",
+    "track_titles_desc": "Wylaczone = zapisuje tylko nazwy programow (wiecej prywatnosci)",
+    "system_section": "System",
+    "autostart": "Uruchamiaj z Windows",
+    "save": "Zapisz ustawienia",
+    "saved": "Zapisano!",
+    "language": "Jezyk",
+    "language_restart": "Zmiana jezyka wymaga restartu aplikacji.",
+    "unit_min": "min",
+    "unit_sec": "sek",
+    "unit_glasses": "szklanek"
+  },
+
+  "help": {
+    "title": "Pomoc",
+    "text": "HEALTHDESK - PORADNIK\n\nIKONA W ZASOBNIKU (TRAY)\n  Prawy klik na zielona ikone obok zegara Windows:\n  \u2022 Otworz          - otwiera glowne okno aplikacji\n  \u2022 Wypilem szlanke wody - rejestruje szlanke w trackerze\n  \u2022 Pauza (30 min)       - wstrzymuje wszystkie przypomnienia\n  \u2022 Zakoncz              - zamyka aplikacje\n\n  Dwuklik na ikone rowniez otwiera okno.\n\nNAWIGACJA W OKNIE\n  Po lewej stronie znajduje sie panel nawigacji:\n  \u2022 Home       - pulpit z podsumowaniem dnia\n  \u2022 Statystyki - szczegolowe dane dzienne i tygodniowe\n  \u2022 Audio      - dzwieki do skupienia (brown noise, deszcz, las...)\n  \u2022 Ustawienia - konfiguracja interwalow, trybow, godzin pracy\n  \u2022 Pomoc      - to okno\n\nPRZERWY\n  Aplikacja przypomina o przerwach w dwoch trybach:\n\n  Tryb umiarkowany (domyslny):\n    Niewielkie okno always-on-top z odliczaniem.\n    Mozesz kliknac \"Pomin\" lub \"OK, robie przerwe!\".\n\n  Tryb agresywny:\n    Pelnoekranowa blokada z odliczaniem.\n    Awaryjne wyjscie: kliknij 3 razy szybko (w 2 sekundy).\n\n  Rodzaje przerw:\n    \u2022 Mala przerwa (20-20-20) - co 20 min, patrzysz 20 sek w dal\n    \u2022 Duza przerwa - co 60 min, 5 min odpoczynku + cwiczenie\n\nCWICZENIA\n  Oczy: mruganie, ruch galkami, fokus bliski/daleki, osemki.\n  Rozciaganie: szyja, ramiona, tulow, nadgarstki, nogi, plecy.\n  Cwiczenia pojawiaja sie automatycznie przy przerwach.\n\nNAWODNIENIE\n  Aplikacja przypomina o piciu wody (domyslnie co 30 min).\n  Cel dzienny: 8 szklanek (konfigurowalne w Ustawieniach).\n  Mozesz szybko dodac szlanke z panelu nawigacji (+1 woda).\n\nSLEDZENIE AKTYWNOSCI\n  Aplikacja co 5 sek sprawdza aktywne okno i kategoryzuje:\n    \u2022 Praca        - IDE, Office, edytory\n    \u2022 Rozrywka     - YouTube, gry, media\n    \u2022 Komunikacja  - Teams, Slack, Zoom\n    \u2022 Przegladarka - Chrome, Firefox, Edge\n    \u2022 Inne         - pozostale\n\n  Dane widoczne w zakladce Statystyki.\n\nDZWIEKI DO SKUPIENIA\n  Zakladka Audio oferuje dzwieki generowane natywnie (bez internetu):\n    \u2022 Brown Noise - gleboki, kojacy szum\n    \u2022 Deszcz     - szum deszczu z kroplami\n    \u2022 White/Pink Noise - rownomierny szum\n    \u2022 Ambient Drone - gleboki ton z modulacja\n    \u2022 Las        - wiatr w drzewach, ptaki\n\n  Dzwiek gra w tle nawet po zamknieciu okna.\n\nYOUTUBE RADIO\n  Muzyka instrumentalna bez slow, streamowana z YouTube:\n    \u2022 Lofi Girl - lofi hip hop beats\n    \u2022 Jazz Cafe - smooth jazz & bossa nova\n    \u2022 Classical Focus - muzyka klasyczna\n    \u2022 Synthwave Radio - synthwave instrumental\n    \u2022 Piano & Ambient - spokojne pianino\n\n  Mozesz tez wkleic wlasny link do YouTube.\n  Wymaga: yt-dlp (pip install yt-dlp) + ffmpeg na PATH.\n\nGODZINY PRACY\n  W Ustawieniach mozna wlaczyc godziny pracy (np. 8:00-18:00).\n  Poza tymi godzinami przypomnienia sa wstrzymane.\n\nAUTOSTART\n  Ustawienia > \"Autostart z Windows\" - aplikacja uruchomi sie\n  automatycznie po zalogowaniu do systemu.\n\nDANE\n  Konfiguracja i baza danych sa w:\n    %APPDATA%\\HealthDesk\\\n  Mozesz usunac ten folder, aby zresetowac aplikacje."
+  },
+
+  "break": {
+    "window_title": "HealthDesk - Przerwa!",
+    "small_title": "Przerwa 20-20-20",
+    "small_desc": "Odwroc wzrok od ekranu i patrz\nna obiekt oddalony o ~6 metrow.",
+    "big_title": "Czas na duza przerwe!",
+    "big_desc": "Wstan od biurka na {minutes} minut.\nRozciagnij sie, napij wody, rusz sie!",
+    "accept": "Robie przerwe!",
+    "skip": "Pomin"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - Przerwa",
+    "small_title": "Przerwa 20-20-20",
+    "small_desc": "Odwroc wzrok od ekranu.\nPatrz na cos dalekiego. Daj oczom odpoczac.",
+    "big_title": "Czas na przerwe!",
+    "big_desc": "Wstan od komputera. Rozciagnij sie.\nNapij sie wody. Twoje cialo Ci podziekuje!",
+    "exit_hint": "Awaryjne wyjscie: kliknij 3x szybko (w 2 sek)",
+    "check": "Sprawdz",
+    "msg_eyes": "Twoje oczy Ci dziekuja...",
+    "msg_health": "Kazda przerwa to inwestycja w zdrowie",
+    "msg_breathe": "Oddychaj gleboko...",
+    "msg_relax": "Rozluznil ramiona i szczeke",
+    "msg_halfway": "Jestes w polowie!"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "Cwiczenie oczu",
+      "exercises": [
+        {
+          "name": "Ruch galkami ocznymi",
+          "icon": "\u2195",
+          "steps": [
+            "Patrz w gore (3 sek)",
+            "Patrz w dol (3 sek)",
+            "Patrz w lewo (3 sek)",
+            "Patrz w prawo (3 sek)",
+            "Powtorz 3 razy"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "Mruganie",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "Mrugaj szybko przez 15 sekund",
+            "Zamknij oczy na 5 sekund",
+            "Powtorz 2 razy"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "Fokus bliski / daleki",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "Patrz na kciuk (30 cm) przez 5 sek",
+            "Patrz na daleki obiekt przez 5 sek",
+            "Powtorz 5 razy"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "Osemka",
+          "icon": "\u221e",
+          "steps": [
+            "Wyobraz sobie duza osemke na scianie",
+            "Sledz jej ksztalt oczami powoli",
+            "Zmien kierunek po 15 sekundach"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "Zamknij"
+    },
+    "stretch": {
+      "title": "Czas na rozciaganie!",
+      "window_title": "Rozciaganie",
+      "tip": "Nie forsuj sie - ruch powinien byc delikatny!",
+      "done": "Gotowe!",
+      "exercises": [
+        {
+          "name": "Rozciaganie szyi",
+          "icon": "\ud83e\udd92",
+          "desc": "1. Przechyl glowe w prawo (15 sek)\n2. Przechyl glowe w lewo (15 sek)\n3. Opusc brode na klatke (15 sek)\n4. Odchyl glowe do tylu (15 sek)"
+        },
+        {
+          "name": "Rozciaganie ramion",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. Prawa reka nad glowe, zegnij w lokciu\n   Lewa reka naciska na lokiec (15 sek)\n2. Powtorz na druga strone\n3. Splec rece za plecami, wypnij klatke (15 sek)"
+        },
+        {
+          "name": "Skret tulowia",
+          "icon": "\ud83d\udd04",
+          "desc": "1. Siadz prosto na krzesle\n2. Poloz prawa reke na lewym kolanie\n3. Delikatnie obracaj sie w lewo (15 sek)\n4. Powtorz na druga strone"
+        },
+        {
+          "name": "Nadgarstki i dlonie",
+          "icon": "\ud83e\udd32",
+          "desc": "1. Wyciagnij reke przed siebie, dlonia do gory\n2. Druga reka delikatnie ociagnij palce w dol (15 sek)\n3. Powtorz z dlonia do dolu\n4. Krecenie nadgarstkow - 10 razy w kazda strone"
+        },
+        {
+          "name": "Rozciaganie nog",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. Wyprostuj noge przed siebie (15 sek)\n2. Zmien noge (15 sek)\n3. Wstan - 5 przysiadow\n4. Wstan na palce 10 razy"
+        },
+        {
+          "name": "Rozciaganie plecow",
+          "icon": "\ud83d\udc08",
+          "desc": "1. Siadz na brzegu krzesla\n2. Schyl sie, rece dotykaja podlogi (15 sek)\n3. Wstan, rece do gory, wychyl sie lekko w tyl (10 sek)\n4. Koci grzbiet: wygiecie plecow siedzac (10 sek)"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "Przypomnienie o wodzie",
+    "time_to_drink": "Czas na wode!",
+    "glasses_count": "{current} / {goal} szklanek",
+    "goal_reached": "Cel osiagniety! Swietnie!",
+    "drank": "Wypilem!",
+    "later": "Pozniej"
+  },
+
+  "tray": {
+    "open": "Otworz",
+    "log_water": "Wypilem szlanke wody",
+    "pause": "Pauza (30 min)",
+    "resume": "Wznow",
+    "quit": "Zakoncz",
+    "tooltip": "HealthDesk - Zdrowa praca",
+    "water_logged": "Zapisano! Dzis: {total} szklanek",
+    "water_title": "Woda"
+  },
+
+  "status": {
+    "pause": "Pauza",
+    "to_break": "{time} do przerwy",
+    "break_now": "przerwa!",
+    "already_running": "HealthDesk juz dziala!\nSprawdz ikone w zasobniku systemowym (tray)."
+  }
+}

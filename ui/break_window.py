@@ -1,6 +1,7 @@
 import webbrowser
 import customtkinter as ctk
 import database
+from i18n import t
 
 
 class BreakWindow(ctk.CTkToplevel):
@@ -31,7 +32,12 @@ class BreakWindow(ctk.CTkToplevel):
 
         win_h = 390 if self._ad else 340
 
-        self.title("HealthDesk - Przerwa!")
+        self.title(t("break.window_title"))
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.geometry(f"460x{win_h}")
         self.resizable(False, False)
         self.attributes("-topmost", True)
@@ -45,15 +51,15 @@ class BreakWindow(ctk.CTkToplevel):
 
         if break_type == "small":
             icon = "\U0001f441"
-            title = "Przerwa 20-20-20"
-            desc = "Odwroc wzrok od ekranu i patrz\nna obiekt oddalony o ~6 metrow."
+            title = t("break.small_title")
+            desc = t("break.small_desc")
             accent = "#3498db"
             accent_hover = "#2980b9"
         else:
             icon = "\U0001f9d8"
-            title = "Czas na duza przerwe!"
+            title = t("break.big_title")
             minutes = duration_sec // 60
-            desc = f"Wstan od biurka na {minutes} minut.\nRozciagnij sie, napij wody, rusz sie!"
+            desc = t("break.big_desc", minutes=minutes)
             accent = "#e67e22"
             accent_hover = "#d35400"
 
@@ -85,14 +91,14 @@ class BreakWindow(ctk.CTkToplevel):
         btn_frame.pack(pady=5)
 
         ctk.CTkButton(
-            btn_frame, text="Robie przerwe!", command=self._accept,
+            btn_frame, text=t("break.accept"), command=self._accept,
             fg_color=accent, hover_color=accent_hover,
             width=170, height=38, corner_radius=10,
             font=ctk.CTkFont(size=14, weight="bold"),
         ).pack(side="left", padx=8)
 
         ctk.CTkButton(
-            btn_frame, text="Pomin", command=self._skip,
+            btn_frame, text=t("break.skip"), command=self._skip,
             fg_color="transparent", hover_color="#3a3a4a",
             border_width=1, border_color="#555555",
             width=90, height=38, corner_radius=10,

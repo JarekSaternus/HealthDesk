@@ -25,6 +25,11 @@ class YouTubeSearchDialog(ctk.CTkToplevel):
         self._destroyed = False
 
         self.title("Szukaj na YouTube")
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.geometry("520x460")
         self.resizable(False, False)
         self.configure(fg_color=C_CONTENT)

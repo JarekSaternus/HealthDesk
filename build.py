@@ -84,6 +84,8 @@ def build():
         "--add-data", f"{ctk_path};customtkinter/",
         # Bundle app assets
         "--add-data", "assets;assets/",
+        # Bundle locale files
+        "--add-data", "locales;locales/",
         # Hidden imports that PyInstaller misses
         "--hidden-import", "pystray._win32",
         "--hidden-import", "numpy",

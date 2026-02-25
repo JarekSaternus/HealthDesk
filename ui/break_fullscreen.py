@@ -2,6 +2,7 @@ import time
 import webbrowser
 import customtkinter as ctk
 import database
+from i18n import t
 
 
 class BreakFullscreen(ctk.CTkToplevel):
@@ -30,7 +31,12 @@ class BreakFullscreen(ctk.CTkToplevel):
         except Exception:
             pass
 
-        self.title("HealthDesk - Przerwa")
+        self.title(t("break_fs.window_title"))
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.attributes("-fullscreen", True)
         self.attributes("-topmost", True)
         self.configure(fg_color="#0d1117")
@@ -39,13 +45,13 @@ class BreakFullscreen(ctk.CTkToplevel):
 
         if break_type == "small":
             icon = "\U0001f441"
-            title = "Przerwa 20-20-20"
-            desc = "Odwroc wzrok od ekranu.\nPatrz na cos dalekiego. Daj oczom odpoczac."
+            title = t("break_fs.small_title")
+            desc = t("break_fs.small_desc")
             accent = "#3498db"
         else:
             icon = "\U0001f9d8"
-            title = "Czas na przerwe!"
-            desc = "Wstan od komputera. Rozciagnij sie.\nNapij sie wody. Twoje cialo Ci podziekuje!"
+            title = t("break_fs.big_title")
+            desc = t("break_fs.big_desc")
             accent = "#2ecc71"
 
         # Centered content container
@@ -82,18 +88,18 @@ class BreakFullscreen(ctk.CTkToplevel):
             self._build_ad_banner()
 
         self.label_exit = ctk.CTkLabel(
-            self, text="Awaryjne wyjscie: kliknij 3x szybko (w 2 sek)",
+            self, text=t("break_fs.exit_hint"),
             font=ctk.CTkFont(size=11),
             text_color="#30363d",
         )
         self.label_exit.pack(side="bottom", pady=20)
 
         self._motivational_messages = [
-            "Twoje oczy Ci dziekuja...",
-            "Kazda przerwa to inwestycja w zdrowie",
-            "Oddychaj gleboko...",
-            "Rozluznil ramiona i szczeke",
-            "Jestes w polowie!",
+            t("break_fs.msg_eyes"),
+            t("break_fs.msg_health"),
+            t("break_fs.msg_breathe"),
+            t("break_fs.msg_relax"),
+            t("break_fs.msg_halfway"),
         ]
         self._msg_index = 0
 
@@ -123,7 +129,7 @@ class BreakFullscreen(ctk.CTkToplevel):
 
         if url:
             link_btn = ctk.CTkButton(
-                inner, text="Sprawdz \u2192", width=90, height=32,
+                inner, text=f"{t('break_fs.check')} \u2192", width=90, height=32,
                 corner_radius=8, fg_color=accent,
                 hover_color="#d68910",
                 font=ctk.CTkFont(size=12, weight="bold"),
@@ -173,7 +179,7 @@ class BreakFullscreen(ctk.CTkToplevel):
     def _on_click(self, event):
         now = time.time()
         self._exit_clicks.append(now)
-        self._exit_clicks = [t for t in self._exit_clicks if now - t <= 2.0]
+        self._exit_clicks = [t_ for t_ in self._exit_clicks if now - t_ <= 2.0]
         if len(self._exit_clicks) >= 3:
             self._finish(skipped=True)
 

@@ -1,113 +1,34 @@
 import random
 import customtkinter as ctk
+from i18n import t
 
-EYE_EXERCISES = [
-    {
-        "name": "Ruch galkami ocznymi",
-        "icon": "↕",
-        "steps": [
-            "Patrz w gore (3 sek)",
-            "Patrz w dol (3 sek)",
-            "Patrz w lewo (3 sek)",
-            "Patrz w prawo (3 sek)",
-            "Powtorz 3 razy",
-        ],
-        "duration": 30,
-    },
-    {
-        "name": "Mruganie",
-        "icon": "😌",
-        "steps": [
-            "Mrugaj szybko przez 15 sekund",
-            "Zamknij oczy na 5 sekund",
-            "Powtorz 2 razy",
-        ],
-        "duration": 40,
-    },
-    {
-        "name": "Fokus bliski / daleki",
-        "icon": "🔍",
-        "steps": [
-            "Patrz na kciuk (30 cm) przez 5 sek",
-            "Patrz na daleki obiekt przez 5 sek",
-            "Powtorz 5 razy",
-        ],
-        "duration": 50,
-    },
-    {
-        "name": "Osemka",
-        "icon": "∞",
-        "steps": [
-            "Wyobraz sobie duza osemke na scianie",
-            "Sledz jej ksztalt oczami powoli",
-            "Zmien kierunek po 15 sekundach",
-        ],
-        "duration": 30,
-    },
-]
 
-STRETCH_EXERCISES = [
-    {
-        "name": "Rozciaganie szyi",
-        "icon": "🦒",
-        "desc": (
-            "1. Przechyl glowe w prawo (15 sek)\n"
-            "2. Przechyl glowe w lewo (15 sek)\n"
-            "3. Opusc brode na klatke (15 sek)\n"
-            "4. Odchyl glowe do tylu (15 sek)"
-        ),
-    },
-    {
-        "name": "Rozciaganie ramion",
-        "icon": "💪",
-        "desc": (
-            "1. Prawa reka nad glowe, zegnij w lokciu\n"
-            "   Lewa reka naciska na lokiec (15 sek)\n"
-            "2. Powtorz na druga strone\n"
-            "3. Splec rece za plecami, wypnij klatke (15 sek)"
-        ),
-    },
-    {
-        "name": "Skret tulowia",
-        "icon": "🔄",
-        "desc": (
-            "1. Siadz prosto na krzesle\n"
-            "2. Poloz prawa reke na lewym kolanie\n"
-            "3. Delikatnie obracaj sie w lewo (15 sek)\n"
-            "4. Powtorz na druga strone"
-        ),
-    },
-    {
-        "name": "Nadgarstki i dlonie",
-        "icon": "🤲",
-        "desc": (
-            "1. Wyciagnij reke przed siebie, dlonia do gory\n"
-            "2. Druga reka delikatnie ociagnij palce w dol (15 sek)\n"
-            "3. Powtorz z dlonia do dolu\n"
-            "4. Krecenie nadgarstkow - 10 razy w kazda strone"
-        ),
-    },
-    {
-        "name": "Rozciaganie nog",
-        "icon": "🦵",
-        "desc": (
-            "1. Wyprostuj noge przed siebie (15 sek)\n"
-            "2. Zmien noge (15 sek)\n"
-            "3. Wstan - 5 przysiadow\n"
-            "4. Wstan na palce 10 razy"
-        ),
-    },
-    {
-        "name": "Rozciaganie plecow",
-        "icon": "🐈",
-        "desc": (
-            "1. Siadz na brzegu krzesla\n"
-            "2. Schyl sie, rece dotykaja podlogi (15 sek)\n"
-            "3. Wstan, rece do gory, wychyl sie lekko w tyl (10 sek)\n"
-            "4. Koci grzbiet: wygiecie plecow siedzac (10 sek)"
-        ),
-    },
-]
+def _get_eye_exercises() -> list[dict]:
+    """Get eye exercises from locale, with hardcoded fallback."""
+    from i18n import _resolve, _strings, _fallback
+    data = _resolve("exercise.eye.exercises", _strings)
+    if data is None:
+        data = _resolve("exercise.eye.exercises", _fallback)
+    if isinstance(data, list):
+        return data
+    # Final fallback
+    return [
+        {"name": "Eye movement", "icon": "\u2195",
+         "steps": ["Look up", "Look down", "Look left", "Look right"], "duration": 30},
+    ]
+
+
+def _get_stretch_exercises() -> list[dict]:
+    """Get stretch exercises from locale, with hardcoded fallback."""
+    from i18n import _resolve, _strings, _fallback
+    data = _resolve("exercise.stretch.exercises", _strings)
+    if data is None:
+        data = _resolve("exercise.stretch.exercises", _fallback)
+    if isinstance(data, list):
+        return data
+    return [
+        {"name": "Stretch", "icon": "\ud83e\udd38", "desc": "Stretch your body"},
+    ]
 
 
 class EyeExerciseWindow(ctk.CTkToplevel):
@@ -115,7 +36,8 @@ class EyeExerciseWindow(ctk.CTkToplevel):
         super().__init__()
         self._on_close = on_close
         self._exercise_done = False
-        exercise = random.choice(EYE_EXERCISES)
+        exercises = _get_eye_exercises()
+        exercise = random.choice(exercises)
 
         try:
             import audio_engine
@@ -123,7 +45,12 @@ class EyeExerciseWindow(ctk.CTkToplevel):
         except Exception:
             pass
 
-        self.title("Cwiczenie oczu")
+        self.title(t("exercise.eye.title"))
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.geometry("420x400")
         self.resizable(False, False)
         self.attributes("-topmost", True)
@@ -136,9 +63,9 @@ class EyeExerciseWindow(ctk.CTkToplevel):
         # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(pady=(25, 5))
-        ctk.CTkLabel(header, text=exercise.get("icon", "👁"),
+        ctk.CTkLabel(header, text=exercise.get("icon", "\U0001f441"),
                      font=ctk.CTkFont(size=28)).pack(side="left", padx=(0, 10))
-        ctk.CTkLabel(header, text="Cwiczenie oczu",
+        ctk.CTkLabel(header, text=t("exercise.eye.title"),
                      font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
 
         ctk.CTkLabel(self, text=exercise["name"], font=ctk.CTkFont(size=16),
@@ -148,16 +75,17 @@ class EyeExerciseWindow(ctk.CTkToplevel):
         card = ctk.CTkFrame(self, corner_radius=12, fg_color="#1e2530")
         card.pack(fill="x", padx=30, pady=5)
 
-        for i, step in enumerate(exercise["steps"]):
+        steps = exercise.get("steps", [])
+        for i, step in enumerate(steps):
             step_frame = ctk.CTkFrame(card, fg_color="transparent")
-            step_frame.pack(fill="x", padx=15, pady=(8 if i == 0 else 3, 8 if i == len(exercise["steps"]) - 1 else 3))
+            step_frame.pack(fill="x", padx=15, pady=(8 if i == 0 else 3, 8 if i == len(steps) - 1 else 3))
             ctk.CTkLabel(step_frame, text=f"  {i+1}.", font=ctk.CTkFont(size=13, weight="bold"),
                          text_color="#3498db", width=30).pack(side="left")
             ctk.CTkLabel(step_frame, text=step, font=ctk.CTkFont(size=13),
                          anchor="w").pack(side="left")
 
         # Timer
-        self.remaining = exercise["duration"]
+        self.remaining = exercise.get("duration", 30)
         self.label_timer = ctk.CTkLabel(self, text=f"{self.remaining}s",
                                         font=ctk.CTkFont(size=36, weight="bold"),
                                         text_color="#2ecc71")
@@ -168,9 +96,9 @@ class EyeExerciseWindow(ctk.CTkToplevel):
                                            corner_radius=3)
         self.progress.pack(pady=(0, 10))
         self.progress.set(1.0)
-        self._total = exercise["duration"]
+        self._total = self.remaining
 
-        ctk.CTkButton(self, text="Zamknij", command=self._close, width=100,
+        ctk.CTkButton(self, text=t("exercise.eye.close"), command=self._close, width=100,
                       fg_color="transparent", hover_color="#3a3a4a",
                       border_width=1, border_color="#555555",
                       corner_radius=10).pack(pady=5)
@@ -204,7 +132,8 @@ class StretchExerciseWindow(ctk.CTkToplevel):
     def __init__(self, on_close=None):
         super().__init__()
         self._on_close = on_close
-        exercise = random.choice(STRETCH_EXERCISES)
+        exercises = _get_stretch_exercises()
+        exercise = random.choice(exercises)
 
         try:
             import audio_engine
@@ -212,7 +141,12 @@ class StretchExerciseWindow(ctk.CTkToplevel):
         except Exception:
             pass
 
-        self.title("Rozciaganie")
+        self.title(t("exercise.stretch.window_title"))
+        try:
+            from generate_icon import generate_icon
+            self.after(200, lambda: self.iconbitmap(generate_icon()))
+        except Exception:
+            pass
         self.geometry("480x400")
         self.resizable(False, False)
         self.attributes("-topmost", True)
@@ -225,9 +159,9 @@ class StretchExerciseWindow(ctk.CTkToplevel):
         # Header
         header = ctk.CTkFrame(self, fg_color="transparent")
         header.pack(pady=(25, 5))
-        ctk.CTkLabel(header, text=exercise.get("icon", "🤸"),
+        ctk.CTkLabel(header, text=exercise.get("icon", "\ud83e\udd38"),
                      font=ctk.CTkFont(size=28)).pack(side="left", padx=(0, 10))
-        ctk.CTkLabel(header, text="Czas na rozciaganie!",
+        ctk.CTkLabel(header, text=t("exercise.stretch.title"),
                      font=ctk.CTkFont(size=20, weight="bold")).pack(side="left")
 
         ctk.CTkLabel(self, text=exercise["name"], font=ctk.CTkFont(size=16),
@@ -236,14 +170,14 @@ class StretchExerciseWindow(ctk.CTkToplevel):
         # Instructions card
         card = ctk.CTkFrame(self, corner_radius=12, fg_color="#1e2530")
         card.pack(fill="x", padx=30, pady=5)
-        ctk.CTkLabel(card, text=exercise["desc"], font=ctk.CTkFont(size=13),
+        ctk.CTkLabel(card, text=exercise.get("desc", ""), font=ctk.CTkFont(size=13),
                      justify="left", wraplength=400).pack(padx=20, pady=18)
 
         # Tip
-        ctk.CTkLabel(self, text="Nie forsuj sie - ruch powinien byc delikatny!",
+        ctk.CTkLabel(self, text=t("exercise.stretch.tip"),
                      font=ctk.CTkFont(size=12), text_color="#555d6b").pack(pady=(15, 5))
 
-        ctk.CTkButton(self, text="Gotowe!", command=self._close,
+        ctk.CTkButton(self, text=t("exercise.stretch.done"), command=self._close,
                       fg_color="#2ecc71", hover_color="#27ae60",
                       width=140, height=38, corner_radius=10,
                       font=ctk.CTkFont(size=14, weight="bold")).pack(pady=10)

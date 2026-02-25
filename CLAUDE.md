@@ -68,8 +68,19 @@ No test suite exists.
 
 ## Conventions
 
-- All UI strings are in Polish (no i18n infrastructure)
+- UI strings use `i18n.t("key")` — locale files in `locales/*.json`, user overrides in `%APPDATA%/HealthDesk/locales/`
 - Silent `try/except` blocks throughout for production robustness — features degrade gracefully
 - Dark theme with green accent (`#2ecc71`) via customtkinter
 - Config uses defaults-merge pattern: `DEFAULTS.copy()` updated with user JSON
 - User data stored in `%APPDATA%/HealthDesk/` (config.json, healthdesk.db, ads_cache.json)
+- All CTkToplevel windows set `iconbitmap` via `generate_icon()` with `after(200, ...)` delay
+
+## Landing Page Sync
+
+When implementing **user-facing functional changes** (new features, changed behavior, new settings, removed features), always propose updating the landing page (`landing/index.html`, `landing/style.css`) to reflect the changes. This includes:
+- New feature sections or updated feature descriptions
+- Screenshot updates if UI changed significantly
+- FAQ updates if behavior changed
+- Removal of references to removed features
+
+**Workflow**: After completing the functional change, propose specific LP updates to the user for approval before implementing. Do not silently update the LP.
