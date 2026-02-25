@@ -23,7 +23,10 @@
     "sound_off": "Wyłączony",
     "play": "Graj",
     "now": "teraz!",
-    "glasses_count": "{current} / {goal} szklanek"
+    "glasses_count": "{current} / {goal} szklanek",
+    "day_progress": "dnia",
+    "breaks_taken": "wykonane",
+    "breaks_skipped": "pominięte"
   },
 
   "stats": {
@@ -103,6 +106,9 @@
     "saved": "Zapisano!",
     "language": "Język",
     "language_restart": "Zmiana języka wymaga restartu aplikacji.",
+    "dashboard_layout": "Układ dashboardu",
+    "layout_enhanced": "Ulepszony",
+    "layout_compact": "Kompaktowy",
     "unit_min": "min",
     "unit_sec": "sek",
     "unit_glasses": "szklanek"

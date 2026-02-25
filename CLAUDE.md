@@ -1,6 +1,10 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Język komunikacji
+
+Zawsze komunikuj się z użytkownikiem po polsku.
 
 ## Project Overview
 
@@ -77,6 +81,13 @@ No test suite exists yet.
 - Popup windows are separate Tauri webview windows routed by URL path
 - Async operations use `tauri::async_runtime::spawn` (not raw `tokio::spawn`)
 - Config uses defaults-merge pattern via serde defaults
+
+## Wersjonowanie
+
+**WAŻNE:** Przy każdym buildzie (`npm run tauri build`) podbij wersję patch (np. 2.0.0 → 2.0.1 → 2.0.2). Wersja musi być zmieniona w **trzech** plikach jednocześnie:
+1. `package.json` — pole `"version"`
+2. `src-tauri/Cargo.toml` — pole `version`
+3. `src-tauri/tauri.conf.json` — pole `"version"`
 
 ## Build Requirements
 

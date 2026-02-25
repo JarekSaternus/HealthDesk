@@ -17,6 +17,8 @@ import WaterReminder from "./windows/WaterReminder";
 
 function MainLayout() {
   const currentPage = useAppStore((s) => s.currentPage);
+  // Subscribe to langVersion to force re-render when language changes
+  useAppStore((s) => s.langVersion);
 
   const renderPage = () => {
     switch (currentPage) {
@@ -43,17 +45,32 @@ function MainLayout() {
 
 export default function App() {
   const [ready, setReady] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const loadConfig = useAppStore((s) => s.loadConfig);
   const initListeners = useAppStore((s) => s.initListeners);
 
   useEffect(() => {
     (async () => {
-      await loadTranslations();
-      await loadConfig();
-      await initListeners();
-      setReady(true);
+      try {
+        await loadTranslations();
+        await loadConfig();
+        await initListeners();
+        setReady(true);
+      } catch (err) {
+        console.error("Init failed:", err);
+        setError(String(err));
+      }
     })();
   }, []);
+
+  if (error) {
+    return (
+      <div className="flex flex-col items-center justify-center h-screen bg-content gap-4">
+        <div className="text-red-400 text-xl">Błąd inicjalizacji</div>
+        <div className="text-gray-400 text-sm max-w-md text-center">{error}</div>
+      </div>
+    );
+  }
 
   if (!ready) {
     return (

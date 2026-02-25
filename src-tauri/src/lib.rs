@@ -80,7 +80,7 @@ pub fn run() {
             let app_handle = app.handle().clone();
 
             // Setup tray
-            let _ = tray::setup_tray(&app_handle, db_clone.clone(), scheduler_clone.clone(), config_clone.clone());
+            let _ = tray::setup_tray(&app_handle, db_clone.clone(), scheduler_clone.clone(), config_clone.clone(), i18n.clone());
 
             // Start session
             {
@@ -192,6 +192,15 @@ pub fn run() {
             commands::get_translations,
             commands::change_language,
         ])
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if window.label() == "main" {
+                    // Hide to tray instead of closing
+                    api.prevent_close();
+                    let _ = window.hide();
+                }
+            }
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }

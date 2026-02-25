@@ -22,6 +22,7 @@ export interface AppConfig {
   audio_last_volume: number;
   language: string;
   auto_update: boolean;
+  dashboard_layout: string;
 }
 
 export interface SchedulerState {

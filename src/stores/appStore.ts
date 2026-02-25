@@ -1,6 +1,7 @@
 import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
+import { loadTranslations } from "../i18n";
 import type { AppConfig, SchedulerState, Page } from "../types";
 
 interface AppStore {
@@ -9,6 +10,7 @@ interface AppStore {
   currentPage: Page;
   waterToday: number;
   totalTimeToday: number;
+  langVersion: number;
 
   setPage: (page: Page) => void;
   loadConfig: () => Promise<void>;
@@ -26,6 +28,7 @@ export const useAppStore = create<AppStore>((set, get) => ({
   currentPage: "home",
   waterToday: 0,
   totalTimeToday: 0,
+  langVersion: 0,
 
   setPage: (page) => set({ currentPage: page }),
 
@@ -35,8 +38,16 @@ export const useAppStore = create<AppStore>((set, get) => ({
   },
 
   saveConfig: async (cfg) => {
+    const prevLang = get().config?.language;
     await invoke("save_config", { newConfig: cfg });
     set({ config: cfg });
+    // Reload translations if language changed
+    if (cfg.language !== prevLang) {
+      await invoke("change_language", { lang: cfg.language });
+      await loadTranslations();
+      // Bump langVersion to force re-render of components using t()
+      set((s) => ({ langVersion: s.langVersion + 1 }));
+    }
   },
 
   refreshWater: async () => {

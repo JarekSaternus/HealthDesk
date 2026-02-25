@@ -36,6 +36,25 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-4 max-w-2xl">
+      {/* Dashboard layout */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.dashboard_layout")}</h3>
+        <div className="flex gap-3">
+          {(["enhanced", "compact"] as const).map((layout) => (
+            <label key={layout} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="dashboard_layout"
+                checked={form.dashboard_layout === layout}
+                onChange={() => update("dashboard_layout", layout)}
+                className="accent-accent"
+              />
+              {t(`settings.layout_${layout}`)}
+            </label>
+          ))}
+        </div>
+      </Card>
+
       {/* Work method */}
       <Card>
         <h3 className="text-sm font-medium mb-3">{t("settings.work_method")}</h3>

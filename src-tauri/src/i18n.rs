@@ -26,11 +26,12 @@ impl I18n {
         // Load bundled locale
         let bundled = self.load_bundled(lang).unwrap_or_default();
 
-        // Load user overlay from %APPDATA%/HealthDesk/locales/
-        let overlay = self.load_user_overlay(lang).unwrap_or_default();
-
-        // Deep merge: overlay wins
-        let merged = deep_merge(bundled, overlay);
+        // Deep merge with user overlay from %APPDATA%/HealthDesk/locales/ (if exists)
+        let merged = if let Some(overlay) = self.load_user_overlay(lang) {
+            deep_merge(bundled, overlay)
+        } else {
+            bundled
+        };
 
         *self.translations.lock().unwrap() = flatten_json(&merged, "");
     }
@@ -104,6 +105,7 @@ fn deep_merge(base: Value, overlay: Value) -> Value {
             }
             Value::Object(b)
         }
+        (base, Value::Null) => base,
         (_, overlay) => overlay,
     }
 }

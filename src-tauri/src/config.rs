@@ -52,6 +52,8 @@ pub struct AppConfig {
     pub language: String,
     #[serde(default = "default_true")]
     pub auto_update: bool,
+    #[serde(default = "default_dashboard_layout")]
+    pub dashboard_layout: String,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -68,6 +70,7 @@ fn default_work_hours_end() -> String { "18:00".into() }
 fn default_true() -> bool { true }
 fn default_volume() -> u32 { 10 }
 fn default_lang() -> String { "pl".into() }
+fn default_dashboard_layout() -> String { "enhanced".into() }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkMethodPreset {
@@ -134,7 +137,21 @@ pub fn load_config() -> AppConfig {
             }
         }
     }
-    AppConfig::default()
+    // First launch: check installer language file, then system locale
+    let mut cfg = AppConfig::default();
+    let lang_file = config_dir().join("installer_lang.txt");
+    if lang_file.exists() {
+        if let Ok(lang) = fs::read_to_string(&lang_file) {
+            let lang = lang.trim().to_lowercase();
+            if lang == "en" || lang == "english" {
+                cfg.language = "en".into();
+            }
+        }
+    } else {
+        // Detect system locale
+        cfg.language = detect_system_language();
+    }
+    cfg
 }
 
 pub fn save_config(cfg: &AppConfig) -> Result<(), String> {
@@ -184,8 +201,33 @@ impl Default for AppConfig {
             audio_last_volume: 10,
             language: "pl".into(),
             auto_update: true,
+            dashboard_layout: "enhanced".into(),
         }
     }
+}
+
+fn detect_system_language() -> String {
+    // Check LANG, LC_ALL, LC_MESSAGES env vars first (cross-platform)
+    for var in &["LC_ALL", "LC_MESSAGES", "LANG"] {
+        if let Ok(val) = std::env::var(var) {
+            let lower = val.to_lowercase();
+            if lower.starts_with("pl") { return "pl".into(); }
+            if lower.starts_with("en") { return "en".into(); }
+        }
+    }
+    // On Windows, check via system locale name
+    #[cfg(target_os = "windows")]
+    {
+        if let Ok(output) = std::process::Command::new("powershell")
+            .args(["-NoProfile", "-Command", "(Get-Culture).TwoLetterISOLanguageName"])
+            .output()
+        {
+            let lang = String::from_utf8_lossy(&output.stdout).trim().to_lowercase();
+            if lang == "pl" { return "pl".into(); }
+            if lang == "en" { return "en".into(); }
+        }
+    }
+    "en".into()
 }
 
 pub struct ConfigState(pub Mutex<AppConfig>);

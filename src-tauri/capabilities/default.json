@@ -1,0 +1,15 @@
+{
+  "$schema": "../gen/schemas/desktop-schema.json",
+  "identifier": "default",
+  "description": "Default capabilities for HealthDesk main window",
+  "windows": ["main", "break", "break-fullscreen", "eye-exercise", "stretch-exercise", "water-reminder"],
+  "permissions": [
+    "core:default",
+    "core:event:default",
+    "core:event:allow-listen",
+    "core:event:allow-emit",
+    "shell:allow-open",
+    "notification:default",
+    "autostart:default"
+  ]
+}

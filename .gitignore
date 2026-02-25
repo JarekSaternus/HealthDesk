@@ -3,3 +3,4 @@ dist/
 src-tauri/target/
 *.exe
 .DS_Store
+.claude/

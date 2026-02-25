@@ -23,7 +23,10 @@
     "sound_off": "Off",
     "play": "Play",
     "now": "now!",
-    "glasses_count": "{current} / {goal} glasses"
+    "glasses_count": "{current} / {goal} glasses",
+    "day_progress": "of day",
+    "breaks_taken": "taken",
+    "breaks_skipped": "skipped"
   },
 
   "stats": {
@@ -103,6 +106,9 @@
     "saved": "Saved!",
     "language": "Language",
     "language_restart": "Language change requires app restart.",
+    "dashboard_layout": "Dashboard layout",
+    "layout_enhanced": "Enhanced",
+    "layout_compact": "Compact",
     "unit_min": "min",
     "unit_sec": "sec",
     "unit_glasses": "glasses"

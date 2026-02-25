@@ -8,6 +8,7 @@ use std::sync::Mutex;
 
 use crate::config::AppConfig;
 use crate::database::Database;
+use crate::i18n::I18n;
 use crate::scheduler::SharedScheduler;
 
 pub fn setup_tray(
@@ -15,11 +16,12 @@ pub fn setup_tray(
     db: Arc<Database>,
     scheduler: SharedScheduler,
     _config: Arc<Mutex<AppConfig>>,
+    i18n: Arc<I18n>,
 ) -> Result<(), String> {
-    let open = MenuItem::with_id(app, "open", "Open", true, None::<&str>).map_err(|e| e.to_string())?;
-    let water = MenuItem::with_id(app, "log_water", "I drank a glass", true, None::<&str>).map_err(|e| e.to_string())?;
-    let pause = MenuItem::with_id(app, "pause", "Pause (30 min)", true, None::<&str>).map_err(|e| e.to_string())?;
-    let quit = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>).map_err(|e| e.to_string())?;
+    let open = MenuItem::with_id(app, "open", &i18n.t("tray.open"), true, None::<&str>).map_err(|e| e.to_string())?;
+    let water = MenuItem::with_id(app, "log_water", &i18n.t("tray.log_water"), true, None::<&str>).map_err(|e| e.to_string())?;
+    let pause = MenuItem::with_id(app, "pause", &i18n.t("tray.pause"), true, None::<&str>).map_err(|e| e.to_string())?;
+    let quit = MenuItem::with_id(app, "quit", &i18n.t("tray.quit"), true, None::<&str>).map_err(|e| e.to_string())?;
 
     let menu = Menu::with_items(app, &[&open, &water, &pause, &quit]).map_err(|e| e.to_string())?;
 
@@ -29,7 +31,7 @@ pub fn setup_tray(
 
     TrayIconBuilder::with_id("main-tray")
         .icon(app.default_window_icon().cloned().unwrap())
-        .tooltip("HealthDesk - Healthy work")
+        .tooltip(&i18n.t("tray.tooltip"))
         .menu(&menu)
         .on_menu_event(move |app, event| {
             match event.id.as_ref() {
