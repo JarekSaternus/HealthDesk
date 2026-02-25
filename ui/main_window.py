@@ -1358,6 +1358,16 @@ class MainWindow(ctk.CTkToplevel):
 
         # Timers
         sched = self.app.scheduler
+        if sched._paused:
+            pause_text = f"\u23f8 {t('status.pause')}"
+            if pause_text != self._last_small_text:
+                self._last_small_text = pause_text
+                self.home_small_timer.configure(text=pause_text, text_color=C_ORANGE)
+            if pause_text != self._last_big_text:
+                self._last_big_text = pause_text
+                self.home_big_timer.configure(text=pause_text, text_color=C_ORANGE)
+            return
+
         now = time.time()
         small_interval = self.app.config.get("small_break_interval_min", 20) * 60
         big_interval = self.app.config.get("big_break_interval_min", 60) * 60
