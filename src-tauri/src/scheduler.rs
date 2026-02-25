@@ -10,6 +10,7 @@ const PROTECTION_ZONE_SEC: f64 = 5.0 * 60.0;
 pub struct SchedulerState {
     pub paused: bool,
     pub popup_paused: bool,
+    pub outside_work_hours: bool,
     pub time_to_small_break: f64,
     pub time_to_big_break: f64,
     pub time_to_water: f64,
@@ -102,7 +103,13 @@ impl SchedulerInner {
             return true;
         }
         let now = chrono::Local::now().format("%H:%M").to_string();
-        now >= config.work_hours_start && now <= config.work_hours_end
+        if config.work_hours_start <= config.work_hours_end {
+            // Normal range: e.g. 08:00-18:00
+            now >= config.work_hours_start && now <= config.work_hours_end
+        } else {
+            // Overnight range: e.g. 22:00-03:00
+            now >= config.work_hours_start || now <= config.work_hours_end
+        }
     }
 
     fn time_to_next(last: Instant, interval_sec: f64) -> f64 {
@@ -114,10 +121,12 @@ impl SchedulerInner {
         let big_interval = config.big_break_interval_min as f64 * 60.0;
         let water_interval = config.water_interval_min as f64 * 60.0;
         let eye_interval = config.eye_exercise_interval_min as f64 * 60.0;
+        let outside = !self.in_work_hours(config);
 
         SchedulerState {
             paused: self.paused,
             popup_paused: self.popup_paused,
+            outside_work_hours: outside,
             time_to_small_break: Self::time_to_next(self.last_small_break, small_interval),
             time_to_big_break: Self::time_to_next(self.last_big_break, big_interval),
             time_to_water: Self::time_to_next(self.last_water, water_interval),
@@ -164,6 +173,12 @@ pub fn start_scheduler(
             }
 
             if !sched.in_work_hours(&cfg) {
+                // Reset timers so they start fresh when work hours begin
+                let now = Instant::now();
+                sched.last_small_break = now;
+                sched.last_big_break = now;
+                sched.last_water = now;
+                sched.last_eye = now;
                 let state = sched.get_state(&cfg);
                 let _ = app.emit("scheduler:state-update", &state);
                 continue;

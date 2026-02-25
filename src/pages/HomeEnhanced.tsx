@@ -160,40 +160,49 @@ export default function HomeEnhanced() {
       </Card>
 
       {/* Break timers side by side */}
-      <div className="grid grid-cols-2 gap-4">
+      {schedulerState?.outside_work_hours ? (
         <Card>
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-text-muted text-xs">{t("home.small_break")}</h3>
-            <span className="text-xs text-text-muted">{config?.small_break_interval_min ?? 25} min</span>
+          <div className="text-center py-2">
+            <span className="text-text-muted text-sm">{t("home.outside_work_hours")}</span>
+            <div className="text-xs text-text-muted mt-1">{workStart}–{workEnd}</div>
           </div>
-          <div className="text-xl font-mono" style={{ color: "#3498db" }}>
-            {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
-          </div>
-          {schedulerState && (
-            <ProgressBar
-              value={smallBreakMax - schedulerState.time_to_small_break}
-              max={smallBreakMax}
-              color="#3498db"
-            />
-          )}
         </Card>
-        <Card>
-          <div className="flex items-center justify-between mb-1">
-            <h3 className="text-text-muted text-xs">{t("home.big_break")}</h3>
-            <span className="text-xs text-text-muted">{config?.big_break_interval_min ?? 100} min</span>
-          </div>
-          <div className="text-xl font-mono" style={{ color: "#e67e22" }}>
-            {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
-          </div>
-          {schedulerState && (
-            <ProgressBar
-              value={bigBreakMax - schedulerState.time_to_big_break}
-              max={bigBreakMax}
-              color="#e67e22"
-            />
-          )}
-        </Card>
-      </div>
+      ) : (
+        <div className="grid grid-cols-2 gap-4">
+          <Card>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-text-muted text-xs">{t("home.small_break")}</h3>
+              <span className="text-xs text-text-muted">{config?.small_break_interval_min ?? 25} min</span>
+            </div>
+            <div className="text-xl font-mono" style={{ color: "#3498db" }}>
+              {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
+            </div>
+            {schedulerState && (
+              <ProgressBar
+                value={smallBreakMax - schedulerState.time_to_small_break}
+                max={smallBreakMax}
+                color="#3498db"
+              />
+            )}
+          </Card>
+          <Card>
+            <div className="flex items-center justify-between mb-1">
+              <h3 className="text-text-muted text-xs">{t("home.big_break")}</h3>
+              <span className="text-xs text-text-muted">{config?.big_break_interval_min ?? 100} min</span>
+            </div>
+            <div className="text-xl font-mono" style={{ color: "#e67e22" }}>
+              {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
+            </div>
+            {schedulerState && (
+              <ProgressBar
+                value={bigBreakMax - schedulerState.time_to_big_break}
+                max={bigBreakMax}
+                color="#e67e22"
+              />
+            )}
+          </Card>
+        </div>
+      )}
 
       {/* Water */}
       <Card>

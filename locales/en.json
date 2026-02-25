@@ -23,6 +23,7 @@
     "sound_off": "Off",
     "play": "Play",
     "now": "now!",
+    "outside_work_hours": "Outside work hours",
     "glasses_count": "{current} / {goal} glasses",
     "day_progress": "of day",
     "breaks_taken": "taken",

@@ -28,6 +28,7 @@ export interface AppConfig {
 export interface SchedulerState {
   paused: boolean;
   popup_paused: boolean;
+  outside_work_hours: boolean;
   time_to_small_break: number;
   time_to_big_break: number;
   time_to_water: number;

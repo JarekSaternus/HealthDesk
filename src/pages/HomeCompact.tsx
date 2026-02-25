@@ -95,9 +95,15 @@ export default function HomeCompact() {
           </div>
         </div>
         <div className="text-xs text-text-muted">
-          {t("home.small_break")}: {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
-          {" | "}
-          {t("home.big_break")}: {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
+          {schedulerState?.outside_work_hours ? (
+            t("home.outside_work_hours")
+          ) : (
+            <>
+              {t("home.small_break")}: {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
+              {" | "}
+              {t("home.big_break")}: {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
+            </>
+          )}
         </div>
         <span className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full mt-2 inline-block">{methodLabel}</span>
       </Card>
