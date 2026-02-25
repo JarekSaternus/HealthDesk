@@ -16,20 +16,12 @@ jobs:
         include:
           - platform: windows-latest
             target: x86_64-pc-windows-msvc
-            ext: exe
-            glob: 'src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/*.exe'
           - platform: macos-latest
             target: aarch64-apple-darwin
-            ext: dmg
-            glob: 'src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg'
           - platform: macos-latest
             target: x86_64-apple-darwin
-            ext: dmg
-            glob: 'src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg'
           - platform: ubuntu-22.04
             target: x86_64-unknown-linux-gnu
-            ext: deb
-            glob: 'src-tauri/target/x86_64-unknown-linux-gnu/release/bundle/deb/*.deb'
 
     runs-on: ${{ matrix.platform }}
 
@@ -65,20 +57,6 @@ jobs:
 
       - name: Build Tauri
         run: npx tauri build --target ${{ matrix.target }}
-
-      - name: Find artifacts
-        id: artifacts
-        shell: bash
-        run: |
-          shopt -s globstar nullglob
-          FILES=(${{ matrix.glob }})
-          if [ ${#FILES[@]} -eq 0 ]; then
-            echo "No artifacts found for glob: ${{ matrix.glob }}"
-            # Try AppImage for Linux
-            FILES=(src-tauri/target/${{ matrix.target }}/release/bundle/appimage/*.AppImage)
-          fi
-          echo "files=${FILES[*]}" >> $GITHUB_OUTPUT
-          echo "Found: ${FILES[*]}"
 
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
