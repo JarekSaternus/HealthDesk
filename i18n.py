@@ -1,10 +1,17 @@
 """Internationalization module for HealthDesk."""
 import json
 import os
+import sys
 
 from config import CONFIG_DIR
 
-_BUNDLED_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), "locales")
+# PyInstaller extracts to _internal/, but locales/ is next to the exe
+if getattr(sys, 'frozen', False):
+    _APP_DIR = os.path.dirname(sys.executable)
+else:
+    _APP_DIR = os.path.dirname(os.path.abspath(__file__))
+
+_BUNDLED_DIR = os.path.join(_APP_DIR, "locales")
 _USER_DIR = os.path.join(CONFIG_DIR, "locales")
 
 _strings: dict = {}

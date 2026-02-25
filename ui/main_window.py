@@ -304,12 +304,12 @@ class MainWindow(ctk.CTkToplevel):
             command=self._log_water,
         ).pack(side="right")
 
-        # --- Music card ---
+        # --- Music card (compact) ---
         card = self._card(main)
-        music_top = ctk.CTkFrame(card, fg_color="transparent")
-        music_top.pack(fill="x", padx=18, pady=(14, 6))
+        music_row = ctk.CTkFrame(card, fg_color="transparent")
+        music_row.pack(fill="x", padx=18, pady=14)
 
-        music_left = ctk.CTkFrame(music_top, fg_color="transparent")
+        music_left = ctk.CTkFrame(music_row, fg_color="transparent")
         music_left.pack(side="left", fill="x", expand=True)
         ctk.CTkLabel(music_left, text=f"\U0001f3b5  {t('home.sound')}",
                      font=ctk.CTkFont(size=13)).pack(anchor="w")
@@ -317,7 +317,7 @@ class MainWindow(ctk.CTkToplevel):
                                               font=ctk.CTkFont(size=12), text_color=C_TEXT_DIM)
         self.home_music_status.pack(anchor="w")
 
-        music_btns = ctk.CTkFrame(music_top, fg_color="transparent")
+        music_btns = ctk.CTkFrame(music_row, fg_color="transparent")
         music_btns.pack(side="right")
 
         self.home_music_toggle = ctk.CTkButton(
@@ -334,53 +334,6 @@ class MainWindow(ctk.CTkToplevel):
             font=ctk.CTkFont(size=14),
             command=lambda: self._show_page("music"),
         ).pack(side="left")
-
-        # YouTube Radio quick controls
-        if self._yt_available:
-            yt_row = ctk.CTkFrame(card, fg_color="transparent")
-            yt_row.pack(fill="x", padx=18, pady=(0, 6))
-
-            # Station dropdown
-            station_names = [f"{s['icon']} {s['name']}" for s in yt_player.STATIONS.values()]
-            self._home_yt_station_keys = list(yt_player.STATIONS.keys())
-            self._home_yt_dropdown = ctk.CTkOptionMenu(
-                yt_row, values=station_names, width=200, height=30,
-                font=ctk.CTkFont(size=12),
-                fg_color=C_BTN_DARK, button_color=C_BTN_DARK_HOVER,
-                dropdown_fg_color=C_CARD,
-            )
-            self._home_yt_dropdown.pack(side="left", padx=(0, 5))
-
-            ctk.CTkButton(
-                yt_row, text=t("home.play"), width=55, height=30,
-                corner_radius=8, fg_color=C_ACCENT, hover_color=C_ACCENT_HOVER,
-                font=ctk.CTkFont(size=12, weight="bold"),
-                command=self._home_play_yt_station,
-            ).pack(side="left")
-
-            # Custom URL row
-            url_row = ctk.CTkFrame(card, fg_color="transparent")
-            url_row.pack(fill="x", padx=18, pady=(0, 14))
-
-            self._home_yt_url_entry = ctk.CTkEntry(
-                url_row, placeholder_text="YouTube URL...",
-                height=30, font=ctk.CTkFont(size=12),
-            )
-            self._home_yt_url_entry.pack(side="left", fill="x", expand=True, padx=(0, 5))
-
-            ctk.CTkButton(
-                url_row, text="\u25b6", width=36, height=30,
-                corner_radius=8, fg_color="#9b59b6", hover_color="#8e44ad",
-                font=ctk.CTkFont(size=13),
-                command=self._home_play_custom_yt,
-            ).pack(side="left")
-
-            ctk.CTkButton(
-                url_row, text="\U0001f50d", width=36, height=30,
-                corner_radius=8, fg_color=C_BTN_DARK, hover_color=C_BTN_DARK_HOVER,
-                font=ctk.CTkFont(size=13),
-                command=self._open_yt_search,
-            ).pack(side="left", padx=(5, 0))
 
         return page
 
@@ -1177,37 +1130,12 @@ class MainWindow(ctk.CTkToplevel):
         self._update_home_music()
         self._refresh_music_buttons()
 
-    def _home_play_yt_station(self):
-        idx = self._home_yt_dropdown.get()
-        # Find station key by matching display text
-        station_names = [f"{s['icon']} {s['name']}" for s in yt_player.STATIONS.values()]
-        try:
-            i = station_names.index(idx)
-        except ValueError:
-            return
-        key = self._home_yt_station_keys[i]
-        self._toggle_yt_station(key)
-
     def _open_yt_search(self):
         """Open YouTube search dialog."""
         YouTubeSearchDialog(self, self._on_yt_search_selected)
 
     def _on_yt_search_selected(self, url: str):
         """Callback when user picks a track from search results."""
-        audio_engine.stop()
-        self._refresh_music_buttons()
-        yt_player.stop()
-        self._set_yt_status(t("music.connecting"))
-        yt_player.play(
-            custom_url=url,
-            callback_started=lambda k: self._safe_after(self._on_yt_started, k),
-            callback_error=lambda e: self._safe_after(self._on_yt_error, e),
-        )
-
-    def _home_play_custom_yt(self):
-        url = self._home_yt_url_entry.get().strip()
-        if not url:
-            return
         audio_engine.stop()
         self._refresh_music_buttons()
         yt_player.stop()
