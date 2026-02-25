@@ -104,6 +104,7 @@ class HealthDeskApp:
                 "on_pause": self._on_pause,
                 "on_quit": self._on_quit,
                 "on_water": None,
+                "on_check_updates": self._on_check_updates,
             }
         )
 
@@ -115,6 +116,10 @@ class HealthDeskApp:
 
         # Auto-play audio from last session
         self._autoplay_audio()
+
+        # Auto-check for updates after 5s delay
+        if self.config.get("auto_update", True):
+            self.root.after(5000, self._auto_check_update)
 
         # Run tray in separate thread (it has its own event loop)
         tray_thread = threading.Thread(target=self.tray.run, daemon=True)
@@ -187,6 +192,32 @@ class HealthDeskApp:
     def _show_eye_exercise(self, on_close=None):
         from ui.exercises import EyeExerciseWindow
         EyeExerciseWindow(on_close=on_close)
+
+    def _auto_check_update(self):
+        """Silent background update check at startup — notify via tray if available."""
+        try:
+            from updater import check_for_update
+            def _on_result(result):
+                if result.get("available"):
+                    ver = result.get("version", "")
+                    self.tray.notify(
+                        i18n.t("update.available", version=ver),
+                        i18n.t("update.title"),
+                    )
+            check_for_update(lambda r: self.root.after(0, _on_result, r))
+        except Exception:
+            pass
+
+    def _on_check_updates(self):
+        """Open the update dialog (from tray menu)."""
+        self.root.after(0, self._show_update_dialog)
+
+    def _show_update_dialog(self):
+        try:
+            from updater import UpdateDialog
+            UpdateDialog(self.root, self._on_quit)
+        except Exception:
+            pass
 
     def _on_open(self):
         self.root.after(0, self._show_main)

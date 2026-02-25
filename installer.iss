@@ -4,7 +4,7 @@
 ; Then: iscc installer.iss
 
 #define MyAppName "HealthDesk"
-#define MyAppVersion "1.1"
+#define MyAppVersion "1.1.0"
 #define MyAppPublisher "HealthDesk"
 #define MyAppExeName "HealthDesk.exe"
 
@@ -24,6 +24,7 @@ SolidCompression=yes
 WizardStyle=modern
 LicenseFile=LICENSE_TERMS.rtf
 PrivilegesRequired=lowest
+AppUpdatesURL=https://github.com/JarekSaternus/HealthDesk/releases
 UninstallDisplayIcon={app}\{#MyAppExeName}
 
 [Languages]

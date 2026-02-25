@@ -28,6 +28,7 @@ class TrayApp:
                 self._on_pause,
             ),
             pystray.Menu.SEPARATOR,
+            pystray.MenuItem(t("tray.check_updates"), self._on_check_updates),
             pystray.MenuItem(t("tray.quit"), self._on_quit),
         )
 
@@ -49,6 +50,11 @@ class TrayApp:
         cb = self.callbacks.get("on_pause")
         if cb:
             cb(self._paused)
+
+    def _on_check_updates(self, icon, item):
+        cb = self.callbacks.get("on_check_updates")
+        if cb:
+            cb()
 
     def _on_quit(self, icon, item):
         cb = self.callbacks.get("on_quit")

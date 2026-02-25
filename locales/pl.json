@@ -97,6 +97,8 @@
     "track_titles_desc": "Wyłączone = zapisuje tylko nazwy programów (więcej prywatności)",
     "system_section": "System",
     "autostart": "Uruchamiaj z Windows",
+    "auto_update": "Automatycznie sprawdzaj aktualizacje",
+    "check_now": "Sprawdź teraz",
     "save": "Zapisz ustawienia",
     "saved": "Zapisano!",
     "language": "Język",
@@ -234,11 +236,25 @@
     "later": "Później"
   },
 
+  "update": {
+    "checking": "Sprawdzanie aktualizacji...",
+    "available": "Dostępna nowa wersja {version}",
+    "up_to_date": "Masz najnowszą wersję ({version})",
+    "download": "Pobierz i zainstaluj",
+    "later": "Później",
+    "downloading": "Pobieranie... {percent}%",
+    "installing": "Instalowanie...",
+    "error": "Nie udało się sprawdzić aktualizacji",
+    "restart_note": "Aplikacja zostanie zamknięta i zaktualizowana.",
+    "title": "Aktualizacja"
+  },
+
   "tray": {
     "open": "Otwórz",
     "log_water": "Wypiłem szklankę wody",
     "pause": "Pauza (30 min)",
     "resume": "Wznów",
+    "check_updates": "Sprawdź aktualizacje",
     "quit": "Zakończ",
     "tooltip": "HealthDesk — Zdrowa praca",
     "water_logged": "Zapisano! Dziś: {total} szklanek",

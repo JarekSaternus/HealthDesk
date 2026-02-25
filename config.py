@@ -10,6 +10,7 @@ DB_FILE = os.path.join(CONFIG_DIR, "healthdesk.db")
 _UUID_FILE = os.path.join(CONFIG_DIR, ".client_uuid")
 
 APP_VERSION = "1.1.0"
+API_HOST = "https://api.healthdesk.app"
 
 WORK_METHODS = {
     "pomodoro": {
@@ -65,6 +66,7 @@ DEFAULTS = {
     "audio_last_type": None,       # sound type key or station key
     "audio_last_volume": 10,       # 0-100, startup volume
     "language": "pl",
+    "auto_update": True,
 }
 
 

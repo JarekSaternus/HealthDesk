@@ -97,6 +97,8 @@
     "track_titles_desc": "Disabled = saves only program names (more privacy)",
     "system_section": "System",
     "autostart": "Start with Windows",
+    "auto_update": "Automatically check for updates",
+    "check_now": "Check now",
     "save": "Save settings",
     "saved": "Saved!",
     "language": "Language",
@@ -234,11 +236,25 @@
     "later": "Later"
   },
 
+  "update": {
+    "checking": "Checking for updates...",
+    "available": "New version {version} available",
+    "up_to_date": "You have the latest version ({version})",
+    "download": "Download and install",
+    "later": "Later",
+    "downloading": "Downloading... {percent}%",
+    "installing": "Installing...",
+    "error": "Could not check for updates",
+    "restart_note": "The app will close and update.",
+    "title": "Update"
+  },
+
   "tray": {
     "open": "Open",
     "log_water": "I drank a glass of water",
     "pause": "Pause (30 min)",
     "resume": "Resume",
+    "check_updates": "Check for updates",
     "quit": "Quit",
     "tooltip": "HealthDesk - Healthy work",
     "water_logged": "Logged! Today: {total} glasses",

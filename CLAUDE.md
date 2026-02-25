@@ -62,7 +62,7 @@ No test suite exists.
 ## Platform Constraints
 
 - **Windows-only**: uses ctypes Win32 API, winreg, Windows mutex for single-instance
-- **Python 3.7+** with modern type hints (`dict[str, ...]`)
+- **Python 3.10+** with modern type hints (`dict[str, ...]`, `str | None`)
 - Audio features are optional — app runs if sounddevice/numpy unavailable
 - YouTube Radio requires ffplay.exe (bundled by build.py or found in PATH)
 

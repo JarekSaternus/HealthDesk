@@ -7,19 +7,13 @@ import json
 import os
 import platform
 import queue
-import ssl
 import threading
 import traceback
 import urllib.request
 
-# SSL context for self-signed VPS certificate
-_ssl_ctx = ssl.create_default_context()
-_ssl_ctx.check_hostname = False
-_ssl_ctx.verify_mode = ssl.CERT_NONE
+from config import get_client_uuid, load_config, APP_VERSION, API_HOST
 
-from config import get_client_uuid, load_config, APP_VERSION
-
-API_URL = "https://172.104.234.32/healthdesk/api/events"
+API_URL = f"{API_HOST}/healthdesk/api/events"
 
 _queue: queue.Queue = queue.Queue(maxsize=100)
 _worker_thread: threading.Thread | None = None
@@ -118,7 +112,7 @@ def _send_event(event: dict) -> bool:
             },
             method="POST",
         )
-        with urllib.request.urlopen(req, timeout=5, context=_ssl_ctx) as resp:
+        with urllib.request.urlopen(req, timeout=5) as resp:
             return resp.status == 200
     except Exception:
         return False

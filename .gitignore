@@ -6,4 +6,7 @@ __pycache__/
 *.pyc
 *.spec
 *.egg-info/
+*.db
+*.log
+.env
 .claude/

@@ -962,6 +962,18 @@ class MainWindow(ctk.CTkToplevel):
                         variable=self.set_autostart,
                         font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=12)
 
+        self.set_auto_update = ctk.BooleanVar(value=cfg.get("auto_update", True))
+        ctk.CTkCheckBox(card, text=t("settings.auto_update"),
+                        variable=self.set_auto_update,
+                        font=ctk.CTkFont(size=13)).pack(anchor="w", padx=15, pady=(0, 8))
+
+        ctk.CTkButton(
+            card, text=t("settings.check_now"), width=160, height=32,
+            fg_color=C_CARD, hover_color="#333355",
+            font=ctk.CTkFont(size=12),
+            command=self._on_check_updates,
+        ).pack(anchor="w", padx=15, pady=(0, 12))
+
         # Save / Cancel
         btn_frame = ctk.CTkFrame(page, fg_color="transparent")
         btn_frame.pack(fill="x", padx=15, pady=10)
@@ -1045,6 +1057,13 @@ class MainWindow(ctk.CTkToplevel):
     def _on_language_changed(self, value):
         self._lang_restart_label.configure(text=t("settings.language_restart"))
 
+    def _on_check_updates(self):
+        try:
+            from updater import UpdateDialog
+            UpdateDialog(self, self.app._on_quit)
+        except Exception:
+            pass
+
     def _save_settings(self):
         cfg = self.app.config
         # Save work method
@@ -1062,6 +1081,7 @@ class MainWindow(ctk.CTkToplevel):
         cfg["work_hours_start"] = self.set_work_start.get()
         cfg["work_hours_end"] = self.set_work_end.get()
         cfg["autostart"] = self.set_autostart.get()
+        cfg["auto_update"] = self.set_auto_update.get()
         cfg["sound_notifications"] = self.set_sound_notifications.get()
         cfg["telemetry_enabled"] = self.set_telemetry_enabled.get()
         cfg["track_window_titles"] = self.set_track_titles.get()
