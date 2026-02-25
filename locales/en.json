@@ -1,0 +1,270 @@
+{
+  "_name": "English",
+
+  "nav": {
+    "home": "Home",
+    "stats": "Statistics",
+    "music": "Audio",
+    "settings": "Settings",
+    "help": "Help",
+    "water_plus": "+1 water",
+    "pause": "Pause",
+    "resume": "Resume"
+  },
+
+  "home": {
+    "work_time_today": "Work time today",
+    "breaks": "Breaks",
+    "next_break": "Next break",
+    "small_break": "Small (20-20-20)",
+    "big_break": "Big",
+    "water": "Water",
+    "sound": "Sound",
+    "sound_off": "Off",
+    "play": "Play",
+    "now": "now!",
+    "glasses_count": "{current} / {goal} glasses"
+  },
+
+  "stats": {
+    "title": "Statistics",
+    "today": "Today",
+    "week": "Week",
+    "work_time": "Work time",
+    "breaks": "Breaks",
+    "water": "Water",
+    "hydration": "Hydration",
+    "top_apps": "Top applications",
+    "categories": "Categories",
+    "work_time_7days": "Work time - last 7 days",
+    "breaks_7days": "Breaks - last 7 days",
+    "no_data_week": "No data for this week"
+  },
+
+  "music": {
+    "focus_sounds": "Focus sounds",
+    "native_desc": "Generated natively - no internet required",
+    "volume": "Volume:",
+    "yt_radio": "YouTube Radio",
+    "yt_requires": "Requires: pip install yt-dlp + ffmpeg on PATH",
+    "yt_install_hint": "Install and restart the app to unlock YouTube radio",
+    "yt_desc": "Instrumental music without lyrics - streamed from YouTube",
+    "custom_link_label": "Custom YouTube link (instrumental music):",
+    "search": "Search",
+    "play": "Play",
+    "stop_all": "Stop all",
+    "connecting": "Connecting...",
+    "playing": "Playing: {name}",
+    "error": "Error: {msg}",
+    "custom_link_name": "Custom link"
+  },
+
+  "settings": {
+    "title": "Settings",
+    "work_method": "Work method",
+    "method_pomodoro": "Pomodoro",
+    "method_pomodoro_desc": "25 min work, 5 min break, big 15 min break every 4 cycles. Best for focused, intensive work in blocks.",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "Every 20 min look 20 sec at something 6m away. Developed by eye doctors — protects eyes during long screen work.",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52 min work, 17 min break. DeskTime research — this is how the most productive workers operate.",
+    "method_90_min": "90-minute",
+    "method_90_min_desc": "90 min work, 5 min break, big 20 min every 3 cycles. Based on the body's natural ultradian rhythm.",
+    "method_custom": "Custom",
+    "method_custom_desc": "Set your own intervals using the sliders below.",
+    "breaks_section": "Breaks",
+    "small_break_every": "Small break every",
+    "small_break_duration": "Small break duration",
+    "big_break_every": "Big break every",
+    "big_break_duration": "Big break duration",
+    "break_mode": "Break mode",
+    "mode_moderate": "Moderate  (popup)",
+    "mode_aggressive": "Aggressive  (fullscreen)",
+    "hydration_section": "Hydration",
+    "reminder_every": "Reminder every",
+    "daily_goal": "Daily goal",
+    "eye_section": "Eye exercises",
+    "work_hours_section": "Work hours",
+    "work_hours_only": "Remind only during work hours",
+    "from_hour": "From:",
+    "to_hour": "To:",
+    "sound_section": "Sound notifications",
+    "sound_on_break": "Sound at break start and end",
+    "privacy_section": "Privacy & data",
+    "telemetry": "Anonymous usage statistics",
+    "telemetry_desc": "Help us improve the app. No personal data collected.",
+    "track_titles": "Save window titles in statistics",
+    "track_titles_desc": "Disabled = saves only program names (more privacy)",
+    "system_section": "System",
+    "autostart": "Start with Windows",
+    "auto_update": "Automatically check for updates",
+    "check_now": "Check now",
+    "save": "Save settings",
+    "saved": "Saved!",
+    "language": "Language",
+    "language_restart": "Language change requires app restart.",
+    "unit_min": "min",
+    "unit_sec": "sec",
+    "unit_glasses": "glasses"
+  },
+
+  "help": {
+    "title": "Help",
+    "text": "HEALTHDESK - USER GUIDE\n\nSYSTEM TRAY ICON\n  Right-click the green icon next to the Windows clock:\n  \u2022 Open             - opens the main app window\n  \u2022 I drank a glass  - logs a glass in the water tracker\n  \u2022 Pause (30 min)   - pauses all reminders\n  \u2022 Quit             - closes the application\n\n  Double-click the icon also opens the window.\n\nWINDOW NAVIGATION\n  On the left side you'll find the navigation panel:\n  \u2022 Home       - dashboard with daily summary\n  \u2022 Statistics - detailed daily and weekly data\n  \u2022 Audio      - focus sounds (brown noise, rain, forest...)\n  \u2022 Settings   - configure intervals, modes, work hours\n  \u2022 Help       - this window\n\nBREAKS\n  The app reminds you about breaks in two modes:\n\n  Moderate mode (default):\n    A small always-on-top window with countdown.\n    You can click \"Skip\" or \"Taking a break!\".\n\n  Aggressive mode:\n    Full-screen block with countdown.\n    Emergency exit: click 3 times quickly (within 2 seconds).\n\n  Break types:\n    \u2022 Small break (20-20-20) - every 20 min, look 20 sec at distance\n    \u2022 Big break - every 60 min, 5 min rest + exercise\n\nEXERCISES\n  Eyes: blinking, eye movements, near/far focus, figure eights.\n  Stretching: neck, shoulders, torso, wrists, legs, back.\n  Exercises appear automatically during breaks.\n\nHYDRATION\n  The app reminds you to drink water (default: every 30 min).\n  Daily goal: 8 glasses (configurable in Settings).\n  You can quickly add a glass from the navigation panel (+1 water).\n\nACTIVITY TRACKING\n  The app checks the active window every 5 seconds and categorizes:\n    \u2022 Work         - IDE, Office, editors\n    \u2022 Entertainment - YouTube, games, media\n    \u2022 Communication - Teams, Slack, Zoom\n    \u2022 Browser      - Chrome, Firefox, Edge\n    \u2022 Other        - everything else\n\n  Data is visible in the Statistics tab.\n\nFOCUS SOUNDS\n  The Audio tab offers natively generated sounds (no internet):\n    \u2022 Brown Noise - deep, soothing noise\n    \u2022 Rain       - rain with droplets\n    \u2022 White/Pink Noise - even noise\n    \u2022 Ambient Drone - deep tone with modulation\n    \u2022 Forest     - wind in trees, birds\n\n  Sound plays in the background even after closing the window.\n\nYOUTUBE RADIO\n  Instrumental music without lyrics, streamed from YouTube:\n    \u2022 Lofi Girl - lofi hip hop beats\n    \u2022 Jazz Cafe - smooth jazz & bossa nova\n    \u2022 Classical Focus - classical music\n    \u2022 Synthwave Radio - synthwave instrumental\n    \u2022 Piano & Ambient - calm piano\n\n  You can also paste your own YouTube link.\n  Requires: yt-dlp (pip install yt-dlp) + ffmpeg on PATH.\n\nWORK HOURS\n  In Settings you can enable work hours (e.g. 8:00-18:00).\n  Outside these hours, reminders are paused.\n\nAUTOSTART\n  Settings > \"Start with Windows\" - the app will start\n  automatically after logging into the system.\n\nDATA\n  Configuration and database are in:\n    %APPDATA%\\HealthDesk\\\n  You can delete this folder to reset the application."
+  },
+
+  "break": {
+    "window_title": "HealthDesk - Break!",
+    "small_title": "20-20-20 Break",
+    "small_desc": "Look away from the screen and focus\non an object about 6 meters away.",
+    "big_title": "Time for a big break!",
+    "big_desc": "Get up from your desk for {minutes} minutes.\nStretch, drink water, move around!",
+    "accept": "Taking a break!",
+    "skip": "Skip"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - Break",
+    "small_title": "20-20-20 Break",
+    "small_desc": "Look away from the screen.\nFocus on something far away. Let your eyes rest.",
+    "big_title": "Time for a break!",
+    "big_desc": "Get up from the computer. Stretch.\nDrink some water. Your body will thank you!",
+    "exit_hint": "Emergency exit: click 3x quickly (within 2 sec)",
+    "check": "Check",
+    "msg_eyes": "Your eyes thank you...",
+    "msg_health": "Every break is an investment in health",
+    "msg_breathe": "Breathe deeply...",
+    "msg_relax": "Relax your shoulders and jaw",
+    "msg_halfway": "You're halfway there!"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "Eye exercise",
+      "exercises": [
+        {
+          "name": "Eye movement",
+          "icon": "\u2195",
+          "steps": [
+            "Look up (3 sec)",
+            "Look down (3 sec)",
+            "Look left (3 sec)",
+            "Look right (3 sec)",
+            "Repeat 3 times"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "Blinking",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "Blink rapidly for 15 seconds",
+            "Close your eyes for 5 seconds",
+            "Repeat 2 times"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "Near / far focus",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "Look at your thumb (30 cm) for 5 sec",
+            "Look at a distant object for 5 sec",
+            "Repeat 5 times"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "Figure eight",
+          "icon": "\u221e",
+          "steps": [
+            "Imagine a large figure eight on the wall",
+            "Follow its shape slowly with your eyes",
+            "Change direction after 15 seconds"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "Close"
+    },
+    "stretch": {
+      "title": "Time to stretch!",
+      "window_title": "Stretching",
+      "tip": "Don't push too hard - movements should be gentle!",
+      "done": "Done!",
+      "exercises": [
+        {
+          "name": "Neck stretch",
+          "icon": "\ud83e\udd92",
+          "desc": "1. Tilt head to the right (15 sec)\n2. Tilt head to the left (15 sec)\n3. Lower chin to chest (15 sec)\n4. Tilt head backwards (15 sec)"
+        },
+        {
+          "name": "Shoulder stretch",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. Right arm over head, bend at elbow\n   Left hand presses on elbow (15 sec)\n2. Repeat on the other side\n3. Clasp hands behind back, push chest out (15 sec)"
+        },
+        {
+          "name": "Torso twist",
+          "icon": "\ud83d\udd04",
+          "desc": "1. Sit straight on the chair\n2. Place right hand on left knee\n3. Gently twist to the left (15 sec)\n4. Repeat on the other side"
+        },
+        {
+          "name": "Wrists and hands",
+          "icon": "\ud83e\udd32",
+          "desc": "1. Extend arm forward, palm up\n2. With other hand gently pull fingers down (15 sec)\n3. Repeat with palm down\n4. Rotate wrists - 10 times each direction"
+        },
+        {
+          "name": "Leg stretch",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. Extend leg forward (15 sec)\n2. Switch legs (15 sec)\n3. Stand up - 5 squats\n4. Rise on toes 10 times"
+        },
+        {
+          "name": "Back stretch",
+          "icon": "\ud83d\udc08",
+          "desc": "1. Sit on the edge of the chair\n2. Bend down, hands touch the floor (15 sec)\n3. Stand up, hands up, lean slightly back (10 sec)\n4. Cat stretch: arch your back while sitting (10 sec)"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "Water reminder",
+    "time_to_drink": "Time to drink water!",
+    "glasses_count": "{current} / {goal} glasses",
+    "goal_reached": "Goal reached! Great job!",
+    "drank": "I drank!",
+    "later": "Later"
+  },
+
+  "update": {
+    "checking": "Checking for updates...",
+    "available": "New version {version} available",
+    "up_to_date": "You have the latest version ({version})",
+    "download": "Download and install",
+    "later": "Later",
+    "downloading": "Downloading... {percent}%",
+    "installing": "Installing...",
+    "error": "Could not check for updates",
+    "restart_note": "The app will close and update.",
+    "title": "Update"
+  },
+
+  "tray": {
+    "open": "Open",
+    "log_water": "I drank a glass of water",
+    "pause": "Pause (30 min)",
+    "resume": "Resume",
+    "check_updates": "Check for updates",
+    "quit": "Quit",
+    "tooltip": "HealthDesk - Healthy work",
+    "water_logged": "Logged! Today: {total} glasses",
+    "water_title": "Water"
+  },
+
+  "status": {
+    "pause": "Paused",
+    "to_break": "{time} to break",
+    "break_now": "break!",
+    "already_running": "HealthDesk is already running!\nCheck the system tray icon."
+  }
+}
