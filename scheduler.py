@@ -29,15 +29,21 @@ class Scheduler:
             elapsed = (datetime.now() - last_break_time).total_seconds()
             small_interval = config.get("small_break_interval_min", 20) * 60
             big_interval = config.get("big_break_interval_min", 60) * 60
-            small_remaining = small_interval - elapsed
-            big_remaining = big_interval - elapsed
-            # If overdue, set minimum 5 minutes instead of firing immediately
-            if small_remaining < 0:
-                small_remaining = min(300, small_interval)
-            if big_remaining < 0:
-                big_remaining = min(300, big_interval)
-            self._last_small_break = now - (small_interval - small_remaining)
-            self._last_big_break = now - (big_interval - big_remaining)
+
+            # Long absence (>30 min) = fresh start with full intervals
+            if elapsed > 30 * 60:
+                self._last_small_break = now
+                self._last_big_break = now
+            else:
+                small_remaining = small_interval - elapsed
+                big_remaining = big_interval - elapsed
+                # If slightly overdue, give 5 min grace instead of firing immediately
+                if small_remaining < 0:
+                    small_remaining = min(300, small_interval)
+                if big_remaining < 0:
+                    big_remaining = min(300, big_interval)
+                self._last_small_break = now - (small_interval - small_remaining)
+                self._last_big_break = now - (big_interval - big_remaining)
         else:
             self._last_small_break = now
             self._last_big_break = now
