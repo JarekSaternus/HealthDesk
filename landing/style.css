@@ -1187,25 +1187,24 @@ img {
   font-style: italic;
 }
 
-/* ===== CTA Download Strip ===== */
+/* ===== CTA Download ===== */
 .cta-section {
   padding: 5rem 0;
 }
 
-.cta-strip {
+.cta-card {
   background: var(--bg-card);
   border: 1px solid var(--border);
   border-radius: var(--radius-xl);
-  padding: 3rem 3.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 3rem;
+  padding: 4rem 2rem;
+  max-width: 680px;
+  margin: 0 auto;
+  text-align: center;
   position: relative;
   overflow: hidden;
 }
 
-.cta-strip::before {
+.cta-card::before {
   content: "";
   position: absolute;
   top: 0;
@@ -1215,51 +1214,70 @@ img {
   background: linear-gradient(90deg, transparent, var(--accent), transparent);
 }
 
-.cta-strip::after {
+.cta-card::after {
   content: "";
   position: absolute;
-  bottom: -80px;
-  right: -80px;
-  width: 250px;
-  height: 250px;
+  bottom: -100px;
+  right: -100px;
+  width: 300px;
+  height: 300px;
   background: radial-gradient(circle, rgba(45, 200, 216, 0.05), transparent 70%);
   pointer-events: none;
 }
 
-.cta-content h2 {
-  font-size: 1.75rem;
+.cta-card h2 {
+  font-size: 2rem;
   font-weight: 800;
   color: var(--text-primary);
   margin-bottom: 0.5rem;
 }
 
-.cta-content p {
+.cta-card > p {
   color: var(--text-muted);
-  font-size: 0.95rem;
-  line-height: 1.6;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  margin-bottom: 2rem;
 }
 
-.cta-actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 1rem;
-  flex-shrink: 0;
+.cta-btn {
   position: relative;
   z-index: 1;
 }
 
+.cta-platforms {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-top: 1.25rem;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.cta-platform {
+  color: var(--text-secondary);
+}
+
+.cta-divider {
+  color: var(--text-dim);
+}
+
 .cta-meta {
   display: flex;
-  gap: 1.5rem;
+  justify-content: center;
+  gap: 1.75rem;
+  flex-wrap: wrap;
+  margin-top: 1.5rem;
   color: var(--text-dim);
   font-size: 0.8rem;
+  position: relative;
+  z-index: 1;
 }
 
 .cta-meta-item {
   display: flex;
   align-items: center;
-  gap: 0.3rem;
+  gap: 0.35rem;
 }
 
 /* ===== FAQ ===== */
