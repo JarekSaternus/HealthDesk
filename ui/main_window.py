@@ -229,7 +229,9 @@ class MainWindow(ctk.CTkToplevel):
     def _build_home_page(self) -> ctk.CTkFrame:
         page = ctk.CTkFrame(self.content, fg_color="transparent")
 
-        main = ctk.CTkScrollableFrame(page, fg_color="transparent")
+        main = ctk.CTkScrollableFrame(page, fg_color="transparent",
+                                       scrollbar_button_color="#1a1f2b",
+                                       scrollbar_button_hover_color="#333")
         main.pack(fill="both", expand=True, padx=15, pady=10)
 
         # --- Work time card ---
@@ -256,8 +258,18 @@ class MainWindow(ctk.CTkToplevel):
 
         # --- Break timers ---
         card = self._card(main)
-        ctk.CTkLabel(card, text=f"\u23f1  {t('home.next_break')}",
-                     font=ctk.CTkFont(size=13)).pack(anchor="w", padx=18, pady=(14, 6))
+        break_header = ctk.CTkFrame(card, fg_color="transparent")
+        break_header.pack(fill="x", padx=18, pady=(14, 6))
+        ctk.CTkLabel(break_header, text=f"\u23f1  {t('home.next_break')}",
+                     font=ctk.CTkFont(size=13)).pack(side="left")
+
+        method_key = self.app.config.get("work_method", "pomodoro")
+        method_names = {"pomodoro": "Pomodoro", "20-20-20": "20-20-20",
+                        "52-17": "52-17", "90-min": "90 min", "custom": t("settings.method_custom")}
+        ctk.CTkLabel(break_header, text=method_names.get(method_key, method_key),
+                     font=ctk.CTkFont(size=11), text_color=C_ACCENT,
+                     corner_radius=6, fg_color="#162030",
+                     padx=8, pady=2).pack(side="right")
 
         timers = ctk.CTkFrame(card, fg_color="transparent")
         timers.pack(fill="x", padx=18, pady=(0, 14))
@@ -1123,10 +1135,33 @@ class MainWindow(ctk.CTkToplevel):
             yt_player.stop()
             self._refresh_yt_buttons()
             self._set_yt_status("")
-            self._save_audio_state(None, None)
+
         else:
-            audio_engine.play("brown_noise")
-            self._save_audio_state("native", "brown_noise")
+            # Resume last played sound
+            cfg = self.app.config
+            source = cfg.get("audio_last_source")
+            audio_type = cfg.get("audio_last_type")
+            if source == "youtube" and audio_type and self._yt_available:
+                yt_player.stop()
+                self._set_yt_status(t("music.connecting"))
+                if audio_type in yt_player.STATIONS:
+                    yt_player.play(
+                        station_key=audio_type,
+                        callback_started=lambda k: self._safe_after(self._on_yt_started, k),
+                        callback_error=lambda e: self._safe_after(self._on_yt_error, e),
+                    )
+                else:
+                    yt_player.play(
+                        custom_url=audio_type,
+                        callback_started=lambda k: self._safe_after(self._on_yt_started, k),
+                        callback_error=lambda e: self._safe_after(self._on_yt_error, e),
+                    )
+            elif source == "native" and audio_type and audio_type in audio_engine.SOUND_TYPES:
+                audio_engine.play(audio_type)
+                self._save_audio_state("native", audio_type)
+            else:
+                audio_engine.play("brown_noise")
+                self._save_audio_state("native", "brown_noise")
         self._update_home_music()
         self._refresh_music_buttons()
 
@@ -1165,7 +1200,7 @@ class MainWindow(ctk.CTkToplevel):
     def _toggle_sound(self, sound_key: str):
         if audio_engine.get_current() == sound_key and audio_engine.is_playing():
             audio_engine.stop()
-            self._save_audio_state(None, None)
+
         else:
             # Stop YouTube if playing
             yt_player.stop()
@@ -1179,7 +1214,7 @@ class MainWindow(ctk.CTkToplevel):
     def _toggle_yt_station(self, station_key: str):
         if yt_player.get_current() == station_key:
             yt_player.stop()
-            self._save_audio_state(None, None)
+
             self._refresh_yt_buttons()
             self._update_home_music()
         else:

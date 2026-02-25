@@ -95,6 +95,12 @@ def load_config() -> dict:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 user = json.load(f)
             merged = {**DEFAULTS, **user}
+            # Enforce preset values for non-custom work methods
+            method = merged.get("work_method", "pomodoro")
+            if method != "custom" and method in WORK_METHODS:
+                preset = WORK_METHODS[method]
+                for k, v in preset.items():
+                    merged[k] = v
             return merged
         except (json.JSONDecodeError, OSError):
             pass
