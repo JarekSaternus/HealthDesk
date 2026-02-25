@@ -969,7 +969,9 @@ class MainWindow(ctk.CTkToplevel):
 
         ctk.CTkButton(
             card, text=t("settings.check_now"), width=160, height=32,
-            fg_color=C_CARD, hover_color="#333355",
+            fg_color="transparent", hover_color="#333355",
+            border_width=1, border_color=C_ACCENT,
+            text_color=C_ACCENT,
             font=ctk.CTkFont(size=12),
             command=self._on_check_updates,
         ).pack(anchor="w", padx=15, pady=(0, 12))
@@ -1060,7 +1062,7 @@ class MainWindow(ctk.CTkToplevel):
     def _on_check_updates(self):
         try:
             from updater import UpdateDialog
-            UpdateDialog(self, self.app._on_quit)
+            UpdateDialog(self.app.root, self.app._on_quit)
         except Exception:
             pass
 
