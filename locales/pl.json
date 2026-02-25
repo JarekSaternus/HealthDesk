@@ -27,7 +27,13 @@
     "glasses_count": "{current} / {goal} szklanek",
     "day_progress": "dnia",
     "breaks_taken": "wykonane",
-    "breaks_skipped": "pominięte"
+    "breaks_skipped": "pominięte",
+    "search_music": "Szukaj muzyki",
+    "search_placeholder": "Szukaj na YouTube...",
+    "show_more": "Pokaż więcej",
+    "show_less": "Pokaż mniej",
+    "no_results": "Brak wyników",
+    "searching": "Szukanie..."
   },
 
   "stats": {

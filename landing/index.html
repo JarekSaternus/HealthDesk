@@ -89,7 +89,7 @@
           </span>
           <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            Pobrano 500+ razy
+            <span id="hero-download-count">Pobrano 500+ razy</span>
           </span>
         </div>
       </div>
@@ -273,33 +273,29 @@
     </div>
   </section>
 
-  <!-- ===== Download ===== -->
-  <section class="download" id="download">
+  <!-- ===== CTA Download ===== -->
+  <section class="cta-section" id="download">
     <div class="container">
-      <div class="download-card animate-on-scroll">
-        <div class="download-icon">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <div class="cta-strip animate-on-scroll">
+        <div class="cta-content">
+          <h2>Gotowy na zdrowszą pracę?</h2>
+          <p>Zainstaluj za darmo i zacznij dbać o siebie — od pierwszej przerwy.</p>
         </div>
-        <h2>Pobierz HealthDesk</h2>
-        <p>Darmowa aplikacja na Windows, macOS i Linux. Bez reklam, bez konta, bez ograniczeń.</p>
-
-        <div class="download-buttons">
+        <div class="cta-actions">
           <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="bottom-download" data-download="true" class="btn btn-primary btn-lg">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
             <span id="bottom-download-label">Pobierz za darmo</span>
           </a>
-        </div>
-        <div class="download-all-platforms" id="download-platforms"></div>
-
-        <div class="download-meta">
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-            Windows · macOS · Linux
-          </span>
-          <span>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
-            <span data-version>Wersja 2.0.6</span>
-          </span>
+          <div class="cta-meta">
+            <span class="cta-meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              <span id="download-count">–</span> pobrań
+            </span>
+            <span class="cta-meta-item">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
+              <span data-version>Wersja 2.0.6</span>
+            </span>
+          </div>
         </div>
       </div>
     </div>
@@ -496,17 +492,13 @@
           if (!urls.macos) document.getElementById('dl-macos').classList.add('platform-unavailable');
           if (!linux) document.getElementById('dl-linux').classList.add('platform-unavailable');
 
-          // Bottom download section — show all platform links
-          var container = document.getElementById('download-platforms');
-          if (container) {
-            var html = '';
-            if (urls.windows) html += '<a href="' + urls.windows + '" class="platform-dl-btn">⊞ Windows (.exe)</a>';
-            if (urls.macos) html += '<a href="' + urls.macos + '" class="platform-dl-btn">⌘ macOS (.dmg)</a>';
-            if (urls.linux_deb) html += '<a href="' + urls.linux_deb + '" class="platform-dl-btn">🐧 Linux (.deb)</a>';
-            if (urls.linux_appimage) html += '<a href="' + urls.linux_appimage + '" class="platform-dl-btn">🐧 Linux (.AppImage)</a>';
-            if (!html) html = '<a href="' + RELEASES + '" class="platform-dl-btn">Wszystkie platformy (GitHub)</a>';
-            container.innerHTML = html;
-          }
+          // Download count from GitHub
+          var totalDownloads = 0;
+          assets.forEach(function(a) { totalDownloads += (a.download_count || 0); });
+          var countEl = document.getElementById('download-count');
+          if (countEl && totalDownloads > 0) countEl.textContent = totalDownloads.toLocaleString('pl-PL');
+          var heroCount = document.getElementById('hero-download-count');
+          if (heroCount && totalDownloads > 0) heroCount.textContent = 'Pobrano ' + totalDownloads.toLocaleString('pl-PL') + ' razy';
 
           // Version badge
           var tag = (data.tag_name || '').replace(/^v/i, '');
@@ -515,6 +507,13 @@
               el.textContent = 'Wersja ' + tag;
             });
           }
+          // Track download clicks
+          document.querySelectorAll('[data-download], .platform-dl-btn').forEach(function(el) {
+            el.addEventListener('click', function() {
+              var count = parseInt(localStorage.getItem('hd_downloads') || '0', 10) + 1;
+              localStorage.setItem('hd_downloads', String(count));
+            });
+          });
         });
       } catch(e) {}
     })();

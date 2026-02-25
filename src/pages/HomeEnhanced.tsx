@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
-import type { BreakRecord } from "../types";
+import type { BreakRecord, YTSearchResult } from "../types";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -48,7 +48,14 @@ export default function HomeEnhanced() {
   const [breaks, setBreaks] = useState<BreakRecord[]>([]);
   const [audioPlaying, setAudioPlaying] = useState(false);
   const [showMethodPicker, setShowMethodPicker] = useState(false);
+  const [showSearch, setShowSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchResults, setSearchResults] = useState<YTSearchResult[]>([]);
+  const [searchLoading, setSearchLoading] = useState(false);
+  const [showAllResults, setShowAllResults] = useState(false);
   const methodRef = useRef<HTMLDivElement>(null);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     invoke<BreakRecord[]>("get_breaks_today").then(setBreaks);
@@ -93,6 +100,45 @@ export default function HomeEnhanced() {
     if (showMethodPicker) document.addEventListener("mousedown", handler);
     return () => document.removeEventListener("mousedown", handler);
   }, [showMethodPicker]);
+
+  // Close search on click outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) {
+        setShowSearch(false);
+      }
+    };
+    if (showSearch) {
+      document.addEventListener("mousedown", handler);
+      setTimeout(() => searchInputRef.current?.focus(), 50);
+    }
+    return () => document.removeEventListener("mousedown", handler);
+  }, [showSearch]);
+
+  const doSearch = async () => {
+    if (!searchQuery.trim()) return;
+    setSearchLoading(true);
+    try {
+      const results = await invoke<YTSearchResult[]>("search_youtube_cmd", { query: searchQuery });
+      setSearchResults(results);
+      setShowAllResults(false);
+    } catch {
+      setSearchResults([]);
+    }
+    setSearchLoading(false);
+  };
+
+  const playSearchResult = async (r: YTSearchResult) => {
+    await invoke("stop_sound");
+    try {
+      await invoke("play_youtube", { url: r.url, name: r.title, volume: config?.audio_last_volume ?? 10 });
+      setAudioPlaying(true);
+      if (config) {
+        useAppStore.getState().saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_volume: config.audio_last_volume });
+      }
+      setShowSearch(false);
+    } catch { /* ignore */ }
+  };
 
   const NATIVE_SOUNDS = ["brown_noise", "rain", "white_noise", "pink_noise", "drone", "forest"];
 
@@ -245,7 +291,7 @@ export default function HomeEnhanced() {
           </div>
         </Card>
 
-        <Card>
+        <Card className="relative">
           <h3 className="text-text-muted text-xs mb-2">{t("home.sound")}</h3>
           <div className="flex items-center gap-2">
             <span className={`text-sm truncate ${audioPlaying ? "text-accent" : "text-text-muted"}`}>
@@ -274,12 +320,70 @@ export default function HomeEnhanced() {
               className="flex-1 h-1"
             />
             <button
+              onClick={() => setShowSearch(!showSearch)}
+              className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+              title={t("home.search_music")}
+            >
+              🔍
+            </button>
+            <button
               onClick={() => setPage("music")}
               className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
             >
               ♫
             </button>
           </div>
+
+          {/* Search modal */}
+          {showSearch && (
+            <div
+              ref={searchRef}
+              className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-hover rounded-lg shadow-lg z-20 p-3"
+            >
+              <div className="flex gap-2 mb-2">
+                <input
+                  ref={searchInputRef}
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && doSearch()}
+                  placeholder={t("home.search_placeholder")}
+                  className="flex-1 bg-content border border-card-hover rounded px-2 py-1 text-xs text-text outline-none focus:border-accent"
+                />
+                <button
+                  onClick={doSearch}
+                  disabled={searchLoading}
+                  className="text-xs bg-accent/20 text-accent px-3 py-1 rounded hover:bg-accent/30 transition-colors disabled:opacity-50"
+                >
+                  {searchLoading ? t("home.searching") : t("music.search")}
+                </button>
+              </div>
+              {searchResults.length > 0 ? (
+                <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                  {(showAllResults ? searchResults : searchResults.slice(0, 5)).map((r, i) => (
+                    <button
+                      key={i}
+                      onClick={() => playSearchResult(r)}
+                      className="w-full text-left p-1.5 rounded hover:bg-card-hover text-xs flex justify-between gap-2"
+                    >
+                      <span className="truncate">{r.title}</span>
+                      <span className="text-text-muted whitespace-nowrap">{r.duration}</span>
+                    </button>
+                  ))}
+                  {searchResults.length > 5 && (
+                    <button
+                      onClick={() => setShowAllResults(!showAllResults)}
+                      className="w-full text-center text-xs text-accent py-1 hover:bg-accent/10 rounded transition-colors"
+                    >
+                      {showAllResults ? t("home.show_less") : `${t("home.show_more")} (${searchResults.length - 5})`}
+                    </button>
+                  )}
+                </div>
+              ) : searchLoading ? null : searchQuery && searchResults.length === 0 ? (
+                <div className="text-xs text-text-muted text-center py-2">{t("home.no_results")}</div>
+              ) : null}
+            </div>
+          )}
         </Card>
       </div>
     </div>

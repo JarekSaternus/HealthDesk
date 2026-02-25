@@ -27,7 +27,13 @@
     "glasses_count": "{current} / {goal} glasses",
     "day_progress": "of day",
     "breaks_taken": "taken",
-    "breaks_skipped": "skipped"
+    "breaks_skipped": "skipped",
+    "search_music": "Search music",
+    "search_placeholder": "Search YouTube...",
+    "show_more": "Show more",
+    "show_less": "Show less",
+    "no_results": "No results",
+    "searching": "Searching..."
   },
 
   "stats": {

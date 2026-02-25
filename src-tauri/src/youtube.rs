@@ -125,7 +125,7 @@ pub struct YTSearchResult {
 
 pub fn search_youtube(query: &str) -> Result<Vec<YTSearchResult>, String> {
     let mut cmd = Command::new("yt-dlp");
-    cmd.args(["--dump-json", "--flat-playlist", &format!("ytsearch5:{}", query)]);
+    cmd.args(["--dump-json", "--flat-playlist", &format!("ytsearch15:{}", query)]);
     #[cfg(target_os = "windows")]
     cmd.creation_flags(CREATE_NO_WINDOW);
     let output = cmd.output()
