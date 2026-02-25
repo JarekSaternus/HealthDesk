@@ -350,8 +350,8 @@ img {
 }
 
 .hero-logo {
-  width: 380px;
-  height: 380px;
+  width: 200px;
+  height: 200px;
   filter: drop-shadow(0 0 30px rgba(45, 200, 216, 0.2));
   animation: fadeIn 1.2s ease both;
 }
@@ -503,56 +503,68 @@ img {
 .hero-platforms {
   display: flex;
   gap: 1.5rem;
-  margin-bottom: 1.5rem;
+  margin: 2rem 0 1.5rem;
 }
 
-.platform-link {
+.platform-card {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.5rem;
-  color: var(--text-muted);
-  text-decoration: none;
-  padding: 0.75rem 1.25rem;
-  border-radius: var(--radius-sm);
-  border: 1px solid transparent;
+  gap: 0.75rem;
+  padding: 1.5rem 2rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: rgba(255,255,255,0.02);
   transition: all var(--transition);
+  min-width: 130px;
 }
 
-.platform-link:hover {
-  color: var(--accent);
+.platform-card:hover {
   border-color: var(--border-hover);
   background: var(--accent-glow);
 }
 
-.platform-link.platform-active {
-  color: var(--accent);
+.platform-card.platform-active {
   border-color: var(--accent);
   background: var(--accent-glow);
 }
 
-.platform-link.platform-unavailable {
-  opacity: 0.4;
+.platform-card svg {
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  transition: color var(--transition);
 }
 
-.platform-link.platform-unavailable::after {
-  content: 'wkrótce';
-  font-size: 0.6rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--text-dim);
-  margin-top: -0.3rem;
+.platform-card:hover svg,
+.platform-card.platform-active svg {
+  color: var(--accent);
 }
 
-.platform-link svg {
-  width: 40px;
-  height: 40px;
-}
-
-.platform-link span {
-  font-size: 0.8rem;
+.platform-name {
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.03em;
+  color: var(--text-primary);
+}
+
+.platform-card .btn-sm {
+  padding: 0.4rem 1.2rem;
+  font-size: 0.8rem;
+  border-radius: 6px;
+}
+
+.platform-card.platform-unavailable {
+  opacity: 0.35;
+}
+
+.platform-card.platform-unavailable .platform-dl-btn {
+  pointer-events: none;
+}
+
+.platform-card.platform-unavailable .platform-name::after {
+  content: ' (wkrótce)';
+  font-size: 0.65rem;
+  color: var(--text-dim);
+  font-weight: 400;
 }
 
 .download-all-platforms {
