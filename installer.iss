@@ -4,7 +4,7 @@
 ; Then: iscc installer.iss
 
 #define MyAppName "HealthDesk"
-#define MyAppVersion "1.2.2"
+#define MyAppVersion "1.2.3"
 #define MyAppPublisher "HealthDesk"
 #define MyAppExeName "HealthDesk.exe"
 

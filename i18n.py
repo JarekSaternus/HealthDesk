@@ -5,9 +5,9 @@ import sys
 
 from config import CONFIG_DIR
 
-# PyInstaller extracts to _internal/, but locales/ is next to the exe
+# PyInstaller bundles data into _internal/ next to the exe
 if getattr(sys, 'frozen', False):
-    _APP_DIR = os.path.dirname(sys.executable)
+    _APP_DIR = os.path.join(os.path.dirname(sys.executable), "_internal")
 else:
     _APP_DIR = os.path.dirname(os.path.abspath(__file__))
 
