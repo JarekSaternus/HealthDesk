@@ -214,8 +214,8 @@ class HealthDeskApp:
 
     def _show_update_dialog(self):
         try:
-            from updater import UpdateDialog
-            UpdateDialog(self.root, self._on_quit)
+            from updater import show_update_dialog
+            show_update_dialog(self.root, self._on_quit)
         except Exception:
             pass
 

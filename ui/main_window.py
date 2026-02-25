@@ -1061,8 +1061,8 @@ class MainWindow(ctk.CTkToplevel):
 
     def _on_check_updates(self):
         try:
-            from updater import UpdateDialog
-            UpdateDialog(self.app.root, self.app._on_quit)
+            from updater import show_update_dialog
+            show_update_dialog(self.app.root, self.app._on_quit)
         except Exception:
             pass
 
