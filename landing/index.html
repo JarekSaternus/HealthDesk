@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthDesk — Twoje oczy, kręgosłup i głowa Ci podziękują</title>
+  <meta name="description" content="HealthDesk to darmowa aplikacja na Windows, macOS i Linux, która przypomina o przerwach, nawodnieniu i ćwiczeniach oczu. Działa w tle i dba o Twoje zdrowie przy komputerze.">
+  <meta name="keywords" content="przerwy w pracy, zdrowie przy komputerze, ćwiczenia oczu, nawodnienie, tracker aktywności, Windows, macOS, Linux, pomodoro, cross-platform">
+  <meta name="author" content="HealthDesk">
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="HealthDesk — Twoje oczy, kręgosłup i głowa Ci podziękują">
+  <meta property="og:description" content="Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — darmowa aplikacja na Windows, macOS i Linux.">
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://healthdesk.site">
+  <meta property="og:locale" content="pl_PL">
+  <meta property="og:image" content="https://healthdesk.site/og-image.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="HealthDesk — inteligentne przerwy, nawodnienie i ćwiczenia oczu">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="HealthDesk — Twoje oczy, kręgosłup i głowa Ci podziękują">
+  <meta name="twitter:description" content="Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — darmowa aplikacja na Windows, macOS i Linux.">
+  <meta name="twitter:image" content="https://healthdesk.site/og-image.png">
+
+  <link rel="icon" type="image/svg+xml" href="logo-color.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="#" class="navbar-brand">
+        <img src="logo-color.svg" alt="HealthDesk logo" class="navbar-logo">
+        HealthDesk
+      </a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+      <label for="nav-toggle" class="nav-hamburger" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </label>
+      <ul class="navbar-links">
+        <li><a href="#features" onclick="document.getElementById('nav-toggle').checked=false">Funkcje</a></li>
+        <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false">Jak działa</a></li>
+        <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false">Dlaczego</a></li>
+        <li><a href="#faq" onclick="document.getElementById('nav-toggle').checked=false">FAQ</a></li>
+        <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">Pobierz</a></li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ===== Hero (2-column layout) ===== -->
+  <section class="hero">
+    <div class="hero-split">
+      <div class="hero-text">
+        <div class="hero-badge">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          Darmowa aplikacja — Windows, macOS, Linux
+        </div>
+        <h1>Twoje oczy, kręgosłup i głowa <span class="accent">Ci podziękują</span></h1>
+        <p>Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — wszystko w jednej lekkiej aplikacji, która działa w tle.</p>
+        <div class="hero-buttons">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="main-download" data-download="true" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="main-download-label">Pobierz za darmo</span>
+          </a>
+          <a href="#preview" class="btn btn-outline btn-lg">Zobacz podgląd</a>
+        </div>
+        <!-- Platform download links -->
+        <div class="hero-platforms">
+          <a href="#" id="dl-windows" class="platform-link" data-platform="windows">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+            <span>Windows</span>
+          </a>
+          <a href="#" id="dl-macos" class="platform-link" data-platform="macos">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <span>macOS</span>
+          </a>
+          <a href="#" id="dl-linux" class="platform-link" data-platform="linux">
+            <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.455.788.074 1.568-.422 1.735-1.26.298-1.554-1.234-5.596-1.234-5.596-.022-.301.017-.591.158-.844.508-1.07.549-2.178.126-3.39-.19-.556-.47-1.086-.84-1.507l-.01-.009c-.09-.263-.065-.603.157-.881.205-.273.39-.425.467-.584.143-.3.163-.548-.03-.744-.18-.18-.404-.18-.621-.18-.212 0-.405.013-.621.01-1.121-.068-1.63-1.306-1.63-1.306s-.068-.137-.09-.137c-.136 0-.249-.067-.3-.34-.067-.349.13-.75.375-1.07.33-.389.54-.94.423-1.467-.075-.341-.25-.714-.502-1.04.25-.03.499-.097.699-.203a.832.832 0 00.395-.558c.09-.373-.065-.71-.247-.882-.091-.066-.155-.09-.229-.09-.082.002-.167.035-.258.068a3.6 3.6 0 01-.458.139c-.234.052-.497.082-.736.073-.164-.005-.32-.022-.452-.06-.145-.042-.285-.126-.335-.302-.067-.23-.058-.456.093-.625.215-.235.561-.356.866-.477.305-.12.601-.242.824-.456.222-.215.362-.507.277-.85-.032-.145-.128-.262-.237-.342a.63.63 0 00-.326-.125 2.082 2.082 0 00-.415-.007c-.276.02-.57.067-.856.12-.286.05-.56.1-.785.103-.45.015-.813-.188-1.127-.518-.264-.278-.444-.613-.621-.927-.177-.314-.351-.614-.544-.832a3.06 3.06 0 00-.49-.44c-.175-.126-.37-.222-.59-.249z"/></svg>
+            <span>Linux</span>
+          </a>
+        </div>
+
+        <div class="hero-trust">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Bez konta, bez rejestracji
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            Pobrano 500+ razy
+          </span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="logo-color.svg" alt="HealthDesk" class="hero-logo">
+        <!-- App mini-preview in hero -->
+        <div class="hero-app-mini">
+          <div class="app-mini-header">
+            <span class="app-mini-title">HealthDesk</span>
+            <div class="app-mini-controls">
+              <span class="app-mini-ctrl">&#8212;</span>
+              <span class="app-mini-ctrl">&#9633;</span>
+              <span class="app-mini-ctrl">&#10005;</span>
+            </div>
+          </div>
+          <div class="app-mini-body">
+            <div class="app-mini-timer-label">Następna przerwa za</div>
+            <div class="app-mini-timer">14:32</div>
+            <div class="app-mini-stats">
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val">6</span>
+                <span class="app-mini-stat-lbl">Przerwy</span>
+              </div>
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" style="color:#3b82f6;">5/8</span>
+                <span class="app-mini-stat-lbl">Woda</span>
+              </div>
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" style="color:#a78bfa;">4h 23m</span>
+                <span class="app-mini-stat-lbl">Praca</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Features ===== -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">Co robi HealthDesk?</h2>
+      <p class="section-subtitle animate-on-scroll">Trzy kluczowe funkcje + bonusy, które zmienią Twoje codzienne siedzenie przy komputerze.</p>
+
+      <!-- Top 3 features -->
+      <div class="features-grid features-main">
+        <div class="feature-card feature-card-primary animate-on-scroll delay-1">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>Inteligentne przerwy</h3>
+          <p><strong>4 metody pracy do wyboru:</strong> Pomodoro, 20-20-20, 52-17 i 90-minutowa. Inteligentna ochrona przerw — przypomnienia nigdy się nie nakładają.</p>
+        </div>
+
+        <div class="feature-card feature-card-primary animate-on-scroll delay-2">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <h3>Przypomnienia o wodzie</h3>
+          <p><strong>Cel: 8 szklanek dziennie.</strong> Delikatne przypomnienia co 30 minut. Śledź postępy i buduj nawyk.</p>
+        </div>
+
+        <div class="feature-card feature-card-primary animate-on-scroll delay-3">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h3>Ćwiczenia oczu</h3>
+          <p><strong>Prowadzone sesje z timerem.</strong> Ruch gałkami, mruganie, zmiana fokusu — redukcja zmęczenia wzroku.</p>
+        </div>
+      </div>
+
+      <!-- Bonus features -->
+      <h3 class="features-bonus-title animate-on-scroll">Bonus</h3>
+      <div class="features-grid features-bonus">
+        <div class="feature-card animate-on-scroll delay-4">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          </div>
+          <h3>Śledzenie aktywności</h3>
+          <p><strong>Automatyczna kategoryzacja aplikacji</strong> na pracę, rozrywkę, komunikację i naukę.</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-5">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <h3>Dźwięki do skupienia</h3>
+          <p><strong>Brown noise, deszcz, las, ocean</strong> — generowane w czasie rzeczywistym.</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-6">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <h3>YouTube Radio</h3>
+          <p><strong>5 stacji muzycznych</strong> — lo-fi, jazz, klasyka, ambient. Streaming w aplikacji.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== App Preview ===== -->
+  <section class="app-preview" id="preview">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">Zobacz jak wygląda</h2>
+      <p class="section-subtitle animate-on-scroll">Ciemny, elegancki interfejs, który nie rozprasza — dostarcza informacje na pierwszy rzut oka.</p>
+
+      <div class="app-screenshot animate-on-scroll">
+        <img src="screenshot.png" alt="HealthDesk — dashboard aplikacji" class="screenshot-img">
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How it works ===== -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">Jak to działa?</h2>
+      <p class="section-subtitle animate-on-scroll">Trzy proste kroki do zdrowszej pracy przy komputerze.</p>
+
+      <div class="steps">
+        <div class="steps-line" aria-hidden="true"></div>
+
+        <div class="step animate-on-scroll delay-1">
+          <div class="step-number">1</div>
+          <h3>Zainstaluj</h3>
+          <p>Pobierz instalator, kliknij dalej i gotowe. Bez konta, bez rejestracji.</p>
+        </div>
+
+        <div class="step animate-on-scroll delay-2">
+          <div class="step-number">2</div>
+          <h3>Pracuj normalnie</h3>
+          <p>HealthDesk działa w tle. Nie zauważysz go, dopóki nie nadejdzie pora na przerwę.</p>
+        </div>
+
+        <div class="step animate-on-scroll delay-3">
+          <div class="step-number">3</div>
+          <h3>Odpoczywaj regularnie</h3>
+          <p>Reaguj na przypomnienia. Twoje oczy i kręgosłup będą Ci wdzięczne.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Stats / Social Proof ===== -->
+  <section class="stats-section" id="why">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">Dlaczego warto?</h2>
+      <p class="section-subtitle animate-on-scroll">Nawyki poparte badaniami naukowymi.</p>
+
+      <div class="stats-grid">
+        <div class="stat-card animate-on-scroll delay-1">
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="stat-card-value">Co 25–52 min</div>
+          <div class="stat-card-title">Regularne przerwy</div>
+          <div class="stat-card-desc">Krótkie przerwy co 25–52 minuty zwiększają produktywność o 13% i zmniejszają zmęczenie psychiczne.</div>
+          <div class="stat-card-source">Źródło: DeskTime Productivity Research (2023)</div>
+        </div>
+
+        <div class="stat-card animate-on-scroll delay-2">
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <div class="stat-card-value">8 szklanek</div>
+          <div class="stat-card-title">Wody dziennie</div>
+          <div class="stat-card-desc">Regularne nawadnianie poprawia koncentrację i zmniejsza bóle głowy.</div>
+          <div class="stat-card-source">Źródło: European Food Safety Authority (EFSA)</div>
+        </div>
+
+        <div class="stat-card animate-on-scroll delay-3">
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-card-value">5 min / godz.</div>
+          <div class="stat-card-title">Ćwiczeń i rozciągania</div>
+          <div class="stat-card-desc">Krótkie przerwy na ruch zapobiegają bólom pleców i poprawiają krążenie.</div>
+          <div class="stat-card-source">Źródło: WHO Guidelines on Physical Activity (2020)</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Download ===== -->
+  <section class="download" id="download">
+    <div class="container">
+      <div class="download-card animate-on-scroll">
+        <div class="download-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </div>
+        <h2>Pobierz HealthDesk</h2>
+        <p>Darmowa aplikacja na Windows, macOS i Linux. Bez reklam, bez konta, bez ograniczeń.</p>
+
+        <div class="download-buttons">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="bottom-download" data-download="true" class="btn btn-primary btn-lg">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="bottom-download-label">Pobierz za darmo</span>
+          </a>
+        </div>
+        <div class="download-all-platforms" id="download-platforms"></div>
+
+        <div class="download-meta">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Windows · macOS · Linux
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
+            <span data-version>Wersja 2.0.6</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">Często zadawane pytania</h2>
+
+      <div class="faq-list">
+        <div class="faq-item animate-on-scroll delay-1">
+          <input type="checkbox" id="faq-1" class="faq-toggle">
+          <label for="faq-1" class="faq-question">
+            <h3>Czy HealthDesk jest darmowy?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Tak, całkowicie darmowy. Bez ukrytych opłat, subskrypcji czy premium. Wszystkie funkcje dostępne od razu.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-2">
+          <input type="checkbox" id="faq-2" class="faq-toggle">
+          <label for="faq-2" class="faq-question">
+            <h3>Czy aplikacja zbiera moje dane?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Statystyki, przerwy i nawodnienie przechowywane są lokalnie na Twoim komputerze. Aplikacja wysyła anonimowe dane telemetryczne (UUID instalacji, zdarzenia użytkowania, wersja systemu) w celu poprawy jakości produktu. Możesz to wyłączyć w Ustawieniach &gt; System &gt; Anonimowa telemetria. Nie zbieramy żadnych danych osobowych.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-3">
+          <input type="checkbox" id="faq-3" class="faq-toggle">
+          <label for="faq-3" class="faq-question">
+            <h3>Czy HealthDesk działa offline?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Tak — przerwy, ćwiczenia, woda, aktywność i dźwięki działają offline. Tylko YouTube Radio wymaga internetu.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-4">
+          <input type="checkbox" id="faq-4" class="faq-toggle">
+          <label for="faq-4" class="faq-question">
+            <h3>Czy mogę dostosować częstotliwość przerw?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Tak. Wybierz gotową metodę pracy (Pomodoro, 20-20-20, 52-17, 90-minutowa) lub ustaw własne interwały. Częstotliwość przerw, przypomnienia o wodzie, godziny pracy — wszystko konfigurowalne w ustawieniach.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-5">
+          <input type="checkbox" id="faq-5" class="faq-toggle">
+          <label for="faq-5" class="faq-question">
+            <h3>Jak odinstalować aplikację?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Windows > Ustawienia > Aplikacje > HealthDesk > Odinstaluj. Dane użytkownika w %APPDATA%/HealthDesk/.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-6">
+          <input type="checkbox" id="faq-6" class="faq-toggle">
+          <label for="faq-6" class="faq-question">
+            <h3>Ile waży instalator?</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Instalator Windows to tylko ~4 MB, a aplikacja po zainstalowaniu zajmuje ~16 MB RAM. HealthDesk 2.0 został przepisany w technologii Tauri (Rust + React), co zapewnia natywną wydajność i minimalny rozmiar. Generator dźwięków działa w czasie rzeczywistym bez dodatkowych zależności.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="logo-white.svg" alt="HealthDesk" class="footer-logo">
+          HealthDesk
+        </div>
+        <ul class="footer-links">
+          <li><a href="privacy.html">Polityka prywatności</a></li>
+          <li><a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></li>
+        </ul>
+        <p class="footer-copy">&copy; 2026 HealthDesk. Wszelkie prawa zastrzeżone.</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== Scroll Animation Script ===== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var elements = document.querySelectorAll('.animate-on-scroll');
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        elements.forEach(function (el) { observer.observe(el); });
+      } else {
+        elements.forEach(function (el) { el.classList.add('visible'); });
+      }
+    });
+  </script>
+
+  <script>
+    (function() {
+      var API = 'https://api.github.com/repos/JarekSaternus/HealthDesk/releases/latest';
+      var RELEASES = 'https://github.com/JarekSaternus/HealthDesk/releases/latest';
+
+      // Detect user OS
+      var ua = navigator.userAgent.toLowerCase();
+      var userOS = 'windows';
+      if (ua.indexOf('mac') !== -1) userOS = 'macos';
+      else if (ua.indexOf('linux') !== -1) userOS = 'linux';
+
+      var osLabels = {
+        windows: 'Pobierz dla Windows',
+        macos: 'Pobierz dla macOS',
+        linux: 'Pobierz dla Linux'
+      };
+
+      // Highlight current platform icon
+      var currentLink = document.getElementById('dl-' + userOS);
+      if (currentLink) currentLink.classList.add('platform-active');
+
+      // Set main button label to detected OS
+      var mainLabel = document.getElementById('main-download-label');
+      var bottomLabel = document.getElementById('bottom-download-label');
+      if (mainLabel) mainLabel.textContent = osLabels[userOS] || 'Pobierz za darmo';
+      if (bottomLabel) bottomLabel.textContent = osLabels[userOS] || 'Pobierz za darmo';
+
+      // Fetch release assets
+      try {
+        fetch(API).then(function(r) { return r.json(); }).then(function(data) {
+          var assets = data.assets || [];
+          var urls = { windows: '', macos: '', linux_deb: '', linux_appimage: '' };
+
+          assets.forEach(function(a) {
+            var name = (a.name || '').toLowerCase();
+            if (name.endsWith('.exe') || name.endsWith('.msi')) urls.windows = a.browser_download_url;
+            else if (name.endsWith('.dmg')) urls.macos = a.browser_download_url;
+            else if (name.endsWith('.deb')) urls.linux_deb = a.browser_download_url;
+            else if (name.endsWith('.appimage')) urls.linux_appimage = a.browser_download_url;
+          });
+
+          var linux = urls.linux_appimage || urls.linux_deb;
+          var bestUrl = '';
+          if (userOS === 'windows' && urls.windows) bestUrl = urls.windows;
+          else if (userOS === 'macos' && urls.macos) bestUrl = urls.macos;
+          else if (userOS === 'linux' && linux) bestUrl = linux;
+          else bestUrl = urls.windows || RELEASES;
+
+          // Update main download buttons
+          document.querySelectorAll('[data-download]').forEach(function(el) {
+            el.href = bestUrl;
+          });
+
+          // Update platform icon links
+          document.getElementById('dl-windows').href = urls.windows || RELEASES;
+          document.getElementById('dl-macos').href = urls.macos || RELEASES;
+          document.getElementById('dl-linux').href = linux || RELEASES;
+
+          // Mark unavailable platforms
+          if (!urls.windows) document.getElementById('dl-windows').classList.add('platform-unavailable');
+          if (!urls.macos) document.getElementById('dl-macos').classList.add('platform-unavailable');
+          if (!linux) document.getElementById('dl-linux').classList.add('platform-unavailable');
+
+          // Bottom download section — show all platform links
+          var container = document.getElementById('download-platforms');
+          if (container) {
+            var html = '';
+            if (urls.windows) html += '<a href="' + urls.windows + '" class="platform-dl-btn">⊞ Windows (.exe)</a>';
+            if (urls.macos) html += '<a href="' + urls.macos + '" class="platform-dl-btn">⌘ macOS (.dmg)</a>';
+            if (urls.linux_deb) html += '<a href="' + urls.linux_deb + '" class="platform-dl-btn">🐧 Linux (.deb)</a>';
+            if (urls.linux_appimage) html += '<a href="' + urls.linux_appimage + '" class="platform-dl-btn">🐧 Linux (.AppImage)</a>';
+            if (!html) html = '<a href="' + RELEASES + '" class="platform-dl-btn">Wszystkie platformy (GitHub)</a>';
+            container.innerHTML = html;
+          }
+
+          // Version badge
+          var tag = (data.tag_name || '').replace(/^v/i, '');
+          if (tag) {
+            document.querySelectorAll('[data-version]').forEach(function(el) {
+              el.textContent = 'Wersja ' + tag;
+            });
+          }
+        });
+      } catch(e) {}
+    })();
+  </script>
+
+</body>
+</html>

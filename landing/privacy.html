@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Polityka Prywatności — HealthDesk</title>
+  <meta name="description" content="Polityka prywatności aplikacji HealthDesk.">
+  <meta name="robots" content="noindex">
+  <link rel="icon" type="image/svg+xml" href="logo-color.svg">
+  <link rel="stylesheet" href="style.css">
+  <style>
+    .privacy-page {
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 120px 24px 80px;
+    }
+    .privacy-page h1 {
+      font-size: 2rem;
+      color: var(--text-primary);
+      margin-bottom: 0.5rem;
+    }
+    .privacy-page .updated {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-bottom: 2.5rem;
+    }
+    .privacy-page h2 {
+      font-size: 1.25rem;
+      color: var(--text-primary);
+      margin-top: 2rem;
+      margin-bottom: 0.75rem;
+    }
+    .privacy-page p,
+    .privacy-page li {
+      color: var(--text-secondary);
+      line-height: 1.8;
+      margin-bottom: 0.75rem;
+    }
+    .privacy-page ul {
+      padding-left: 1.5rem;
+      margin-bottom: 1rem;
+    }
+    .privacy-page li {
+      margin-bottom: 0.4rem;
+    }
+    .privacy-page a {
+      color: var(--accent);
+    }
+    .privacy-page .back-link {
+      display: inline-block;
+      margin-top: 2rem;
+      padding: 0.6rem 1.5rem;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      transition: var(--transition);
+    }
+    .privacy-page .back-link:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="index.html" class="navbar-brand">
+        <img src="logo-color.svg" alt="HealthDesk logo" class="navbar-logo">
+        HealthDesk
+      </a>
+    </div>
+  </nav>
+
+  <div class="privacy-page">
+    <h1>Polityka Prywatności</h1>
+    <p class="updated">Ostatnia aktualizacja: 25 lutego 2026</p>
+
+    <h2>1. Informacje ogólne</h2>
+    <p>HealthDesk to darmowa aplikacja desktopowa na system Windows, stworzona z myślą o zdrowiu użytkowników pracujących przy komputerze. Niniejsza polityka prywatności opisuje, jakie dane są przetwarzane i w jaki sposób.</p>
+
+    <h2>2. Dane przechowywane lokalnie</h2>
+    <p>Wszystkie dane generowane przez aplikację są przechowywane wyłącznie na komputerze użytkownika:</p>
+    <ul>
+      <li><strong>Statystyki przerw</strong> — liczba i czas trwania przerw małych i dużych</li>
+      <li><strong>Nawodnienie</strong> — liczba wypitych szklanek wody</li>
+      <li><strong>Aktywność okien</strong> — nazwy procesów (nie treści okien) kategoryzowane do 5 grup: praca, rozrywka, komunikacja, przeglądarka, inne</li>
+      <li><strong>Sesje pracy</strong> — czas rozpoczęcia i zakończenia sesji</li>
+      <li><strong>Ustawienia</strong> — konfiguracja interwałów, godzin pracy i preferencji audio</li>
+    </ul>
+    <p>Dane przechowywane są w pliku SQLite oraz JSON w folderze <code>%APPDATA%\HealthDesk\</code>.</p>
+
+    <h2>3. Anonimowa telemetria</h2>
+    <p>Aplikacja może wysyłać anonimowe dane telemetryczne na nasz serwer w celu poprawy jakości oprogramowania:</p>
+    <ul>
+      <li>Zdarzenia: uruchomienie/zamknięcie aplikacji, wykonanie/pominięcie przerwy, odtwarzanie audio</li>
+      <li>Anonimowy identyfikator (UUID) — generowany losowo, nie powiązany z tożsamością użytkownika</li>
+      <li>Wersja aplikacji i systemu operacyjnego</li>
+    </ul>
+    <p>Telemetria <strong>nie</strong> obejmuje: nazw okien, odwiedzanych stron, treści pracy, danych osobowych ani adresów IP (IP nie jest logowane).</p>
+    <p>Telemetrię można wyłączyć w ustawieniach aplikacji.</p>
+
+    <h2>4. Reklamy</h2>
+    <p>Aplikacja może wyświetlać banery reklamowe pobierane z naszego serwera. System reklam:</p>
+    <ul>
+      <li>Nie używa plików cookie</li>
+      <li>Nie tworzy profilu użytkownika</li>
+      <li>Nie zbiera danych behawioralnych</li>
+      <li>Rejestruje jedynie anonimowe zdarzenia wyświetlenia i kliknięcia</li>
+    </ul>
+
+    <h2>5. Połączenia sieciowe</h2>
+    <p>Aplikacja łączy się z internetem wyłącznie w celu:</p>
+    <ul>
+      <li>Pobierania banerów reklamowych (opcjonalne)</li>
+      <li>Wysyłania telemetrii (opcjonalne, można wyłączyć)</li>
+      <li>Streamowania audio z YouTube (tylko gdy użytkownik włączy YouTube Radio)</li>
+    </ul>
+    <p>Wszystkie połączenia sieciowe są opcjonalne — aplikacja działa w pełni offline.</p>
+
+    <h2>6. Dane dzieci</h2>
+    <p>Aplikacja nie jest skierowana do osób poniżej 13 roku życia i świadomie nie zbiera danych od dzieci.</p>
+
+    <h2>7. Usuwanie danych</h2>
+    <p>Wszystkie dane lokalne można usunąć poprzez:</p>
+    <ul>
+      <li>Odinstalowanie aplikacji (usunie pliki programu)</li>
+      <li>Ręczne usunięcie folderu <code>%APPDATA%\HealthDesk\</code> (usunie bazę danych i konfigurację)</li>
+    </ul>
+
+    <h2>8. Zmiany w polityce</h2>
+    <p>Zastrzegamy sobie prawo do aktualizacji niniejszej polityki prywatności. Zmiany będą publikowane na tej stronie z aktualną datą.</p>
+
+    <h2>9. Kontakt</h2>
+    <p>W razie pytań dotyczących prywatności prosimy o kontakt: <a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></p>
+
+    <a href="index.html" class="back-link">Powrót do strony głównej</a>
+  </div>
+
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="logo-white.svg" alt="HealthDesk" class="footer-logo">
+          HealthDesk
+        </div>
+        <p class="footer-copy">&copy; 2026 HealthDesk. Wszelkie prawa zastrzeżone.</p>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>
