@@ -70,9 +70,11 @@ jobs:
             if [ -d "$base" ]; then
               echo "Found bundle at: $base"
               # Installers for users
-              find "$base" -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" \) -exec cp {} dist-upload/ \;
+              find "$base" -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" \) ! -name "*.nsis.zip" -exec cp {} dist-upload/ \;
               # Update bundles + signatures for auto-updater
-              find "$base" -type f \( -name "*.nsis.zip" -o -name "*.nsis.zip.sig" -o -name "*.tar.gz" -o -name "*.tar.gz.sig" -o -name "*.AppImage.sig" \) -exec cp {} dist-upload/ \;
+              find "$base" -type f \( -name "*.nsis.zip" -o -name "*.nsis.zip.sig" -o -name "*.AppImage.sig" \) -exec cp {} dist-upload/ \;
+              # macOS updater bundles (app.tar.gz) — exclude deb internals like control.tar.gz/data.tar.gz
+              find "$base" -type f \( -name "*.app.tar.gz" -o -name "*.app.tar.gz.sig" \) -exec cp {} dist-upload/ \;
             fi
           done
           echo "=== Collected artifacts ==="
@@ -118,7 +120,7 @@ jobs:
           for f in all-artifacts/*.nsis.zip.sig; do
             [ -f "$f" ] && WIN_SIG=$(cat "$f")
           done
-          for f in all-artifacts/*.tar.gz.sig; do
+          for f in all-artifacts/*.app.tar.gz.sig; do
             [ -f "$f" ] || continue
             name=$(basename "$f")
             case "$name" in
@@ -143,7 +145,7 @@ jobs:
           for f in all-artifacts/*.nsis.zip; do
             [ -f "$f" ] && WIN_ZIP=$(basename "$f")
           done
-          for f in all-artifacts/*.tar.gz; do
+          for f in all-artifacts/*.app.tar.gz; do
             [ -f "$f" ] || continue
             name=$(basename "$f")
             case "$name" in
