@@ -244,10 +244,10 @@
                   <span class="mockup-label">Czas pracy dzisiaj</span>
                   <span class="mockup-badge">Pomodoro ▾</span>
                 </div>
-                <div class="mockup-big-value" style="color:#2ecc71">4h 23m</div>
+                <div class="mockup-big-value" style="color:#2ecc71" id="mock-worktime">4h 23m</div>
                 <div class="mockup-progress-row">
-                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:58%;background:#2ecc71"></div></div>
-                  <span class="mockup-label-sm">58% dnia (8:00–18:00)</span>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:58%;background:#2ecc71" id="mock-work-progress"></div></div>
+                  <span class="mockup-label-sm" id="mock-work-pct">58% dnia (8:00–18:00)</span>
                 </div>
               </div>
               <!-- Break timers -->
@@ -257,16 +257,16 @@
                     <span class="mockup-label-xs">Mała</span>
                     <span class="mockup-label-xs">25 min</span>
                   </div>
-                  <div class="mockup-timer" style="color:#3498db">14:32</div>
-                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:42%;background:#3498db"></div></div>
+                  <div class="mockup-timer" style="color:#3498db" id="mock-small-timer">14:32</div>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:42%;background:#3498db" id="mock-small-progress"></div></div>
                 </div>
                 <div class="mockup-card">
                   <div class="mockup-card-row">
                     <span class="mockup-label-xs">Duża</span>
                     <span class="mockup-label-xs">100 min</span>
                   </div>
-                  <div class="mockup-timer" style="color:#e67e22">1:02:15</div>
-                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:38%;background:#e67e22"></div></div>
+                  <div class="mockup-timer" style="color:#e67e22" id="mock-big-timer">1:02:15</div>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:38%;background:#e67e22" id="mock-big-progress"></div></div>
                 </div>
               </div>
               <!-- Water -->
@@ -274,22 +274,22 @@
                 <div class="mockup-card-row">
                   <div class="mockup-card-row" style="gap:0.4rem">
                     <span class="mockup-label-xs">Woda</span>
-                    <span style="color:#3498db;font-weight:700;font-size:0.8rem">5</span>
+                    <span style="color:#3498db;font-weight:700;font-size:0.8rem" id="mock-water-num">5</span>
                     <span class="mockup-label-xs">/ 8</span>
                   </div>
                   <span class="mockup-water-btn">+1</span>
                 </div>
-                <div class="mockup-dots">
+                <div class="mockup-dots" id="mock-water-dots">
                   <span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#394561">○</span><span style="color:#394561">○</span><span style="color:#394561">○</span>
                 </div>
-                <div class="mockup-progress"><div class="mockup-progress-fill" style="width:62.5%;background:#3498db"></div></div>
+                <div class="mockup-progress"><div class="mockup-progress-fill" style="width:62.5%;background:#3498db" id="mock-water-progress"></div></div>
               </div>
               <!-- Breaks + Sound -->
               <div class="mockup-grid-2">
                 <div class="mockup-card">
                   <span class="mockup-label-xs">Przerwy</span>
                   <div class="mockup-card-row" style="margin-top:0.35rem">
-                    <div><span style="font-size:1.1rem;font-weight:700;color:#2ecc71">6</span> <span class="mockup-label-xs">wykonane</span></div>
+                    <div><span style="font-size:1.1rem;font-weight:700;color:#2ecc71" id="mock-breaks-done">6</span> <span class="mockup-label-xs">wykonane</span></div>
                     <div><span style="font-size:1.1rem;font-weight:700;color:#e74c3c">1</span> <span class="mockup-label-xs">pominięte</span></div>
                   </div>
                 </div>
@@ -318,7 +318,7 @@
             <div class="mockup-popup-icon">⏰</div>
             <div class="mockup-popup-title">Mała przerwa</div>
             <div class="mockup-popup-desc">Odwróć wzrok od ekranu i patrz<br>na obiekt oddalony o ~6 metrów.</div>
-            <div class="mockup-popup-timer">0:18</div>
+            <div class="mockup-popup-timer" id="mock-popup-timer">0:18</div>
             <div class="mockup-popup-buttons">
               <span class="mockup-popup-btn mockup-popup-btn-accept">Robię przerwę!</span>
               <span class="mockup-popup-btn mockup-popup-btn-skip">Pomiń</span>
@@ -867,6 +867,97 @@
         waterEl.textContent = water + '/8';
         popStat(waterEl);
       }, 8000);
+    })();
+  </script>
+
+  <!-- Mockup preview animations -->
+  <script>
+    (function() {
+      // Elements
+      var mWorktime = document.getElementById('mock-worktime');
+      var mWorkProgress = document.getElementById('mock-work-progress');
+      var mWorkPct = document.getElementById('mock-work-pct');
+      var mSmallTimer = document.getElementById('mock-small-timer');
+      var mSmallProgress = document.getElementById('mock-small-progress');
+      var mBigTimer = document.getElementById('mock-big-timer');
+      var mBigProgress = document.getElementById('mock-big-progress');
+      var mWaterNum = document.getElementById('mock-water-num');
+      var mWaterDots = document.getElementById('mock-water-dots');
+      var mWaterProgress = document.getElementById('mock-water-progress');
+      var mBreaksDone = document.getElementById('mock-breaks-done');
+      var mPopupTimer = document.getElementById('mock-popup-timer');
+
+      // State
+      var workH = 4, workM = 23, workSecAcc = 0;
+      var smallMin = 14, smallSec = 32, smallTotal = 25 * 60;
+      var bigMin = 62, bigSec = 15, bigTotal = 100 * 60;
+      var mWater = 5;
+      var mBreaks = 6;
+      var popupSec = 18;
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function updateWaterDots(count) {
+        var html = '';
+        for (var i = 0; i < 8; i++) {
+          html += i < count
+            ? '<span style="color:#3498db">\u25CF</span>'
+            : '<span style="color:#394561">\u25CB</span>';
+        }
+        mWaterDots.innerHTML = html;
+      }
+
+      // Main tick — every second
+      setInterval(function() {
+        // Small break timer
+        smallSec--;
+        if (smallSec < 0) { smallSec = 59; smallMin--; }
+        if (smallMin < 0) {
+          smallMin = 24; smallSec = 59;
+          mBreaks++;
+          mBreaksDone.textContent = mBreaks;
+        }
+        var smallElapsed = smallTotal - (smallMin * 60 + smallSec);
+        mSmallTimer.textContent = smallMin + ':' + pad(smallSec);
+        mSmallProgress.style.width = Math.round((smallElapsed / smallTotal) * 100) + '%';
+
+        // Big break timer
+        bigSec--;
+        if (bigSec < 0) { bigSec = 59; bigMin--; }
+        if (bigMin < 0) { bigMin = 99; bigSec = 59; }
+        var bigElapsed = bigTotal - (bigMin * 60 + bigSec);
+        var bh = Math.floor(bigMin / 60);
+        var bm = bigMin % 60;
+        mBigTimer.textContent = bh + ':' + pad(bm) + ':' + pad(bigSec);
+        mBigProgress.style.width = Math.round((bigElapsed / bigTotal) * 100) + '%';
+
+        // Popup timer
+        popupSec--;
+        if (popupSec < 0) popupSec = 20;
+        mPopupTimer.textContent = '0:' + pad(popupSec);
+
+        // Work time — tick every 60 real seconds
+        workSecAcc++;
+        if (workSecAcc >= 60) {
+          workSecAcc = 0;
+          workM++;
+          if (workM >= 60) { workM = 0; workH++; }
+          mWorktime.textContent = workH + 'h ' + workM + 'm';
+          var totalMin = workH * 60 + workM;
+          var pct = Math.min(Math.round((totalMin / 600) * 100), 100);
+          mWorkProgress.style.width = pct + '%';
+          mWorkPct.textContent = pct + '% dnia (8:00\u201318:00)';
+        }
+      }, 1000);
+
+      // Water — every 10 seconds
+      setInterval(function() {
+        mWater++;
+        if (mWater > 8) mWater = 1;
+        mWaterNum.textContent = mWater;
+        updateWaterDots(mWater);
+        mWaterProgress.style.width = Math.round((mWater / 8) * 100) + '%';
+      }, 10000);
     })();
   </script>
 
