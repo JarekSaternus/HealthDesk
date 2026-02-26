@@ -66,6 +66,18 @@ export interface DailyBreaks {
   skipped_count: number;
 }
 
+export interface PeriodBreakStats {
+  total: number;
+  taken: number;
+  skipped: number;
+  by_type: { break_type: string; count: number }[];
+}
+
+export interface DailyWater {
+  day: string;
+  glasses: number;
+}
+
 export interface WorkMethodPreset {
   small_break_interval_min: number;
   small_break_duration_sec: number;

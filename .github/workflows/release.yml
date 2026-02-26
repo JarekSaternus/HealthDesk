@@ -117,10 +117,6 @@ jobs:
           for f in all-artifacts/*aarch64*.tar.gz.sig; do
             [ -f "$f" ] && MAC_AARCH64_SIG=$(cat "$f")
           done
-          for f in all-artifacts/*x64*.tar.gz.sig all-artifacts/*x86_64*.tar.gz.sig; do
-            [ -f "$f" ] && [ -z "$MAC_AARCH64_SIG" ] || MAC_X64_SIG=$(cat "$f")
-          done
-          # Fix: read mac x64 sig properly
           for f in all-artifacts/*.tar.gz.sig; do
             [ -f "$f" ] || continue
             name=$(basename "$f")

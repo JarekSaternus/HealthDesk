@@ -21,6 +21,7 @@ pub fn preset_stations() -> Vec<YTStation> {
         YTStation { key: "classical".into(), name: "Classical Focus".into(), query: "classical music for studying and concentration".into() },
         YTStation { key: "synthwave".into(), name: "Synthwave Radio".into(), query: "synthwave radio instrumental".into() },
         YTStation { key: "piano".into(), name: "Piano & Ambient".into(), query: "calm piano ambient music for focus".into() },
+        YTStation { key: "chillhop".into(), name: "Chillhop Radio".into(), query: "chillhop radio beats chill study music".into() },
     ]
 }
 

@@ -89,6 +89,21 @@ fn week_ago_str() -> String {
     d.format("%Y-%m-%d").to_string()
 }
 
+fn days_ago_str(days: i64) -> String {
+    let d = Local::now().date_naive() - chrono::Duration::days(days);
+    d.format("%Y-%m-%d").to_string()
+}
+
+fn period_start_str(period: &str) -> String {
+    match period {
+        "today" => today_str(),
+        "week" => days_ago_str(6),
+        "month" => days_ago_str(29),
+        "year" => days_ago_str(364),
+        _ => today_str(),
+    }
+}
+
 pub fn log_break(conn: &Connection, break_type: &str, duration_sec: i64, skipped: bool) -> Result<(), String> {
     conn.execute(
         "INSERT INTO breaks (timestamp, type, duration_sec, skipped) VALUES (?1, ?2, ?3, ?4)",
@@ -276,6 +291,97 @@ pub fn get_last_break_time(conn: &Connection) -> Result<Option<String>, String> 
         Err(rusqlite::Error::QueryReturnedNoRows) => Ok(None),
         Err(e) => Err(e.to_string()),
     }
+}
+
+// ---- Period-based stats ----
+
+#[derive(Debug, Serialize)]
+pub struct PeriodBreakStats {
+    pub total: i64,
+    pub taken: i64,
+    pub skipped: i64,
+    pub by_type: Vec<BreakTypeCount>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct BreakTypeCount {
+    pub break_type: String,
+    pub count: i64,
+}
+
+#[derive(Debug, Serialize)]
+pub struct DailyWater {
+    pub day: String,
+    pub glasses: i64,
+}
+
+pub fn get_break_stats_period(conn: &Connection, period: &str) -> Result<PeriodBreakStats, String> {
+    let start = period_start_str(period);
+    let total: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM breaks WHERE timestamp >= ?1",
+        params![start], |row| row.get(0),
+    ).map_err(|e| e.to_string())?;
+    let skipped: i64 = conn.query_row(
+        "SELECT COUNT(*) FROM breaks WHERE timestamp >= ?1 AND skipped = 1",
+        params![start], |row| row.get(0),
+    ).map_err(|e| e.to_string())?;
+
+    let mut stmt = conn.prepare(
+        "SELECT type, COUNT(*) FROM breaks WHERE timestamp >= ?1 GROUP BY type"
+    ).map_err(|e| e.to_string())?;
+    let by_type = stmt.query_map(params![start], |row| {
+        Ok(BreakTypeCount { break_type: row.get(0)?, count: row.get(1)? })
+    }).map_err(|e| e.to_string())?
+      .collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())?;
+
+    Ok(PeriodBreakStats { total, taken: total - skipped, skipped, by_type })
+}
+
+pub fn get_water_period(conn: &Connection, period: &str) -> Result<i64, String> {
+    let start = period_start_str(period);
+    let total: i64 = conn.query_row(
+        "SELECT COALESCE(SUM(glasses), 0) FROM water WHERE timestamp >= ?1",
+        params![start], |row| row.get(0),
+    ).map_err(|e| e.to_string())?;
+    Ok(total)
+}
+
+pub fn get_daily_water(conn: &Connection, period: &str) -> Result<Vec<DailyWater>, String> {
+    let start = period_start_str(period);
+    let mut stmt = conn.prepare(
+        "SELECT DATE(timestamp) as day, SUM(glasses) as glasses \
+         FROM water WHERE timestamp >= ?1 GROUP BY DATE(timestamp) ORDER BY day"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(params![start], |row| {
+        Ok(DailyWater { day: row.get(0)?, glasses: row.get(1)? })
+    }).map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+pub fn get_daily_totals_period(conn: &Connection, period: &str) -> Result<Vec<DailyTotal>, String> {
+    let start = period_start_str(period);
+    let mut stmt = conn.prepare(
+        "SELECT DATE(timestamp) as day, SUM(duration_sec) as total_sec \
+         FROM window_activity WHERE timestamp >= ?1 \
+         GROUP BY DATE(timestamp) ORDER BY day"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(params![start], |row| {
+        Ok(DailyTotal { day: row.get(0)?, total_sec: row.get(1)? })
+    }).map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
+}
+
+pub fn get_daily_breaks_period(conn: &Connection, period: &str) -> Result<Vec<DailyBreaks>, String> {
+    let start = period_start_str(period);
+    let mut stmt = conn.prepare(
+        "SELECT DATE(timestamp) as day, COUNT(*) as count, \
+         SUM(CASE WHEN skipped=1 THEN 1 ELSE 0 END) as skipped_count \
+         FROM breaks WHERE timestamp >= ?1 GROUP BY DATE(timestamp) ORDER BY day"
+    ).map_err(|e| e.to_string())?;
+    let rows = stmt.query_map(params![start], |row| {
+        Ok(DailyBreaks { day: row.get(0)?, count: row.get(1)?, skipped_count: row.get(2)? })
+    }).map_err(|e| e.to_string())?;
+    rows.collect::<Result<Vec<_>, _>>().map_err(|e| e.to_string())
 }
 
 pub fn close_orphaned_sessions(conn: &Connection) -> Result<(), String> {

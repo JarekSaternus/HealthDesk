@@ -155,6 +155,38 @@ pub fn get_weekly_breaks(db: State<Arc<Database>>) -> Result<Vec<database::Daily
     database::get_weekly_breaks(&conn)
 }
 
+// ---- Period-based stats ----
+
+#[tauri::command]
+pub fn get_break_stats_period(period: String, db: State<Arc<Database>>) -> Result<database::PeriodBreakStats, String> {
+    let conn = db.0.lock().unwrap();
+    database::get_break_stats_period(&conn, &period)
+}
+
+#[tauri::command]
+pub fn get_water_period(period: String, db: State<Arc<Database>>) -> Result<i64, String> {
+    let conn = db.0.lock().unwrap();
+    database::get_water_period(&conn, &period)
+}
+
+#[tauri::command]
+pub fn get_daily_water(period: String, db: State<Arc<Database>>) -> Result<Vec<database::DailyWater>, String> {
+    let conn = db.0.lock().unwrap();
+    database::get_daily_water(&conn, &period)
+}
+
+#[tauri::command]
+pub fn get_daily_totals_period(period: String, db: State<Arc<Database>>) -> Result<Vec<database::DailyTotal>, String> {
+    let conn = db.0.lock().unwrap();
+    database::get_daily_totals_period(&conn, &period)
+}
+
+#[tauri::command]
+pub fn get_daily_breaks_period(period: String, db: State<Arc<Database>>) -> Result<Vec<database::DailyBreaks>, String> {
+    let conn = db.0.lock().unwrap();
+    database::get_daily_breaks_period(&conn, &period)
+}
+
 // ---- Scheduler ----
 
 #[tauri::command]
