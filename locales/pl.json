@@ -134,6 +134,7 @@
     "big_title": "Czas na dużą przerwę!",
     "big_desc": "Wstań od biurka na {minutes} minut.\nRozciągnij się, napij wody, rusz się!",
     "accept": "Robię przerwę!",
+    "accepted_msg": "Odpocznij... okno zamknie się automatycznie",
     "skip": "Pomiń"
   },
 

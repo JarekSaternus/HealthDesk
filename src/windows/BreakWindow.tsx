@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { t } from "../i18n";
@@ -8,35 +8,37 @@ export default function BreakWindow() {
   const breakType = params.get("type") || "small";
   const duration = parseInt(params.get("duration") || "20", 10);
   const [remaining, setRemaining] = useState(duration);
+  const [accepted, setAccepted] = useState(false);
   const [ad, setAd] = useState<any>(null);
+  const closedRef = useRef(false);
+
+  const closeWindow = async (skipped: boolean) => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    try { await invoke("log_break", { breakType, durationSec: duration, skipped }); } catch (e) { console.warn("log_break failed:", e); }
+    try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
+    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => {
       setRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleAccept();
+          closeWindow(false);
           return 0;
         }
         return prev - 1;
       });
     }, 1000);
 
-    // Load ad
     invoke("get_ad", { clientUuid: "" }).then(setAd).catch(() => {});
-    // Play chime
     invoke("play_chime").catch(() => {});
 
     return () => clearInterval(timer);
   }, []);
 
-  const closeWindow = async (skipped: boolean) => {
-    try { await invoke("log_break", { breakType, durationSec: duration, skipped }); } catch (e) { console.warn("log_break failed:", e); }
-    try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
-    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
-  };
-
-  const handleAccept = () => closeWindow(false);
+  const handleAccept = () => setAccepted(true);
   const handleSkip = () => closeWindow(true);
 
   const progress = ((duration - remaining) / duration) * 100;
@@ -69,20 +71,24 @@ export default function BreakWindow() {
       </div>
 
       {/* Buttons */}
-      <div className="flex gap-3">
-        <button
-          onClick={handleAccept}
-          className="bg-accent hover:bg-accent-hover text-white rounded px-6 py-2 text-sm font-medium"
-        >
-          {t("break.accept")}
-        </button>
-        <button
-          onClick={handleSkip}
-          className="bg-card hover:bg-card-hover text-text-muted rounded px-6 py-2 text-sm"
-        >
-          {t("break.skip")}
-        </button>
-      </div>
+      {!accepted ? (
+        <div className="flex gap-3">
+          <button
+            onClick={handleAccept}
+            className="bg-accent hover:bg-accent-hover text-white rounded px-6 py-2 text-sm font-medium"
+          >
+            {t("break.accept")}
+          </button>
+          <button
+            onClick={handleSkip}
+            className="bg-card hover:bg-card-hover text-text-muted rounded px-6 py-2 text-sm"
+          >
+            {t("break.skip")}
+          </button>
+        </div>
+      ) : (
+        <p className="text-accent text-sm">{t("break.accepted_msg")}</p>
+      )}
 
       {/* Ad banner */}
       {ad && ad.title && (

@@ -134,6 +134,7 @@
     "big_title": "Time for a big break!",
     "big_desc": "Get up from your desk for {minutes} minutes.\nStretch, drink water, move around!",
     "accept": "Taking a break!",
+    "accepted_msg": "Rest up... window will close automatically",
     "skip": "Skip"
   },
 
