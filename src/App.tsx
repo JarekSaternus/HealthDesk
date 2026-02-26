@@ -50,11 +50,14 @@ export default function App() {
   const initListeners = useAppStore((s) => s.initListeners);
 
   useEffect(() => {
+    const isPopup = window.location.pathname !== "/";
     (async () => {
       try {
         await loadTranslations();
         await loadConfig();
-        await initListeners();
+        if (!isPopup) {
+          await initListeners();
+        }
         setReady(true);
       } catch (err) {
         console.error("Init failed:", err);
