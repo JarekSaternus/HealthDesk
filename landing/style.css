@@ -732,6 +732,14 @@ img {
   max-width: 900px;
   margin: 0 auto;
   position: relative;
+  overflow: visible;
+}
+
+@media (max-width: 767px) {
+  .mockup-wrapper {
+    overflow: hidden;
+    padding-bottom: 1rem;
+  }
 }
 
 /* Main window */
@@ -1549,6 +1557,30 @@ img {
     gap: 0.6rem;
   }
 
+  .hero-platforms {
+    flex-direction: column;
+    align-items: center;
+    gap: 1rem;
+  }
+
+  .platform-card {
+    width: 100%;
+    max-width: 280px;
+    flex-direction: row;
+    padding: 0.9rem 1.25rem;
+    gap: 1rem;
+  }
+
+  .platform-card svg {
+    width: 32px;
+    height: 32px;
+  }
+
+  .platform-name {
+    flex: 1;
+    text-align: left;
+  }
+
   .mockup-sidebar {
     display: none;
   }
@@ -1558,9 +1590,21 @@ img {
   }
 
   .mockup-popup {
-    right: -10px;
+    right: 5px;
     bottom: -10px;
-    width: 200px;
+    width: 180px;
+  }
+
+  .mockup-popup-title {
+    font-size: 0.85rem;
+  }
+
+  .mockup-popup-timer {
+    font-size: 1.2rem;
+  }
+
+  .mockup-popup-desc {
+    font-size: 0.5rem;
   }
 
   .hero h1 {
@@ -1612,5 +1656,32 @@ img {
 
   .stat-card-value {
     font-size: 1.6rem;
+  }
+
+  .cta-card {
+    padding: 2.5rem 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+
+  .cta-card h2 {
+    font-size: 1.5rem;
+  }
+
+  .cta-platforms {
+    flex-wrap: wrap;
+    gap: 0.3rem 0.5rem;
+  }
+
+  .faq-question {
+    padding: 1rem 1.25rem;
+  }
+
+  .faq-question h3 {
+    font-size: 0.9rem;
+  }
+
+  .faq-answer-inner {
+    padding: 0 1.25rem 1rem;
+    font-size: 0.88rem;
   }
 }
