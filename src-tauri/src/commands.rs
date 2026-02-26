@@ -22,15 +22,43 @@ pub fn save_config(
     config: State<ConfigState>,
     scheduler: State<SharedScheduler>,
 ) -> Result<(), String> {
-    crate::config::save_config(&new_config)?;
-    *config.0.lock().unwrap() = new_config;
-    // Reset timers so new intervals take effect immediately
-    let now = std::time::Instant::now();
-    let mut sched = scheduler.lock().unwrap();
-    sched.last_small_break = now;
-    sched.last_big_break = now;
-    sched.last_water = now;
-    sched.last_eye = now;
+    let mut cfg = new_config;
+    // Apply work method preset (overrides interval fields)
+    crate::config::apply_preset(&mut cfg);
+    crate::config::save_config(&cfg)?;
+
+    let mut conf = config.0.lock().unwrap();
+    let old_cfg = conf.clone();
+    *conf = cfg.clone();
+    drop(conf);
+
+    // Only reset timers if break intervals actually changed
+    let intervals_changed =
+        old_cfg.small_break_interval_min != cfg.small_break_interval_min
+        || old_cfg.big_break_interval_min != cfg.big_break_interval_min
+        || old_cfg.water_interval_min != cfg.water_interval_min
+        || old_cfg.eye_exercise_interval_min != cfg.eye_exercise_interval_min;
+
+    if intervals_changed {
+        let mut sched = scheduler.lock().unwrap();
+        // Recalculate timers: keep elapsed time, cap to new interval
+        let now = std::time::Instant::now();
+        let clamp = |last: std::time::Instant, new_interval_min: u32| -> std::time::Instant {
+            let elapsed = last.elapsed().as_secs_f64();
+            let new_interval = new_interval_min as f64 * 60.0;
+            if elapsed >= new_interval {
+                // Already past new interval — trigger soon (5s grace)
+                now - std::time::Duration::from_secs_f64(new_interval - 5.0)
+            } else {
+                last // Keep current progress
+            }
+        };
+        sched.last_small_break = clamp(sched.last_small_break, cfg.small_break_interval_min);
+        sched.last_big_break = clamp(sched.last_big_break, cfg.big_break_interval_min);
+        sched.last_water = clamp(sched.last_water, cfg.water_interval_min);
+        sched.last_eye = clamp(sched.last_eye, cfg.eye_exercise_interval_min);
+    }
+
     Ok(())
 }
 
@@ -105,6 +133,20 @@ pub fn get_weekly_breaks(db: State<Arc<Database>>) -> Result<Vec<database::Daily
 }
 
 // ---- Scheduler ----
+
+#[tauri::command]
+pub fn reset_timers(scheduler: State<SharedScheduler>, config: State<ConfigState>, app: tauri::AppHandle) {
+    let now = std::time::Instant::now();
+    let mut sched = scheduler.lock().unwrap();
+    sched.last_small_break = now;
+    sched.last_big_break = now;
+    sched.last_water = now;
+    sched.last_eye = now;
+    sched.pause_start = None;
+    let cfg = config.0.lock().unwrap();
+    let state = sched.get_state(&cfg);
+    let _ = app.emit("scheduler:state-update", &state);
+}
 
 #[tauri::command]
 pub fn get_scheduler_state(

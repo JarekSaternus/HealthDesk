@@ -281,6 +281,10 @@
     "to_break": "{time} do przerwy",
     "break_now": "przerwa!",
     "already_running": "HealthDesk już działa!\nSprawdź ikonę w zasobniku systemowym (tray).",
-    "outside_work_hours": "Poza godzinami pracy"
+    "outside_work_hours": "Poza godzinami pracy",
+    "reset_timers": "Resetuj timery",
+    "reset_confirm": "Resetować timery?",
+    "reset_yes": "Tak",
+    "reset_no": "Nie"
   }
 }

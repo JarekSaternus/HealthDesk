@@ -21,6 +21,7 @@ pub struct SchedulerState {
 pub struct SchedulerInner {
     pub paused: bool,
     pub pause_until: Option<Instant>,
+    pub pause_start: Option<Instant>,
     pub popup_paused: bool,
     pub last_small_break: Instant,
     pub last_big_break: Instant,
@@ -60,6 +61,7 @@ impl SchedulerInner {
         Self {
             paused: false,
             pause_until: None,
+            pause_start: None,
             popup_paused: false,
             last_small_break: last_small,
             last_big_break: last_big,
@@ -72,17 +74,22 @@ impl SchedulerInner {
 
     pub fn pause(&mut self, minutes: u32) {
         self.paused = true;
+        self.pause_start = Some(Instant::now());
         self.pause_until = Some(Instant::now() + Duration::from_secs(minutes as u64 * 60));
     }
 
     pub fn resume(&mut self) {
+        // Shift all last_* forward by pause duration so timers continue from where they were
+        if let Some(start) = self.pause_start {
+            let paused_duration = start.elapsed();
+            self.last_small_break += paused_duration;
+            self.last_big_break += paused_duration;
+            self.last_water += paused_duration;
+            self.last_eye += paused_duration;
+        }
         self.paused = false;
         self.pause_until = None;
-        let now = Instant::now();
-        self.last_small_break = now;
-        self.last_big_break = now;
-        self.last_water = now;
-        self.last_eye = now;
+        self.pause_start = None;
     }
 
     pub fn pause_for_popup(&mut self) {
@@ -116,6 +123,11 @@ impl SchedulerInner {
         interval_sec - last.elapsed().as_secs_f64()
     }
 
+    fn time_to_next_frozen(last: Instant, interval_sec: f64, frozen_at: Instant) -> f64 {
+        let elapsed = frozen_at.duration_since(last).as_secs_f64();
+        interval_sec - elapsed
+    }
+
     pub fn get_state(&self, config: &AppConfig) -> SchedulerState {
         let small_interval = config.small_break_interval_min as f64 * 60.0;
         let big_interval = config.big_break_interval_min as f64 * 60.0;
@@ -123,14 +135,31 @@ impl SchedulerInner {
         let eye_interval = config.eye_exercise_interval_min as f64 * 60.0;
         let outside = !self.in_work_hours(config);
 
+        // When paused, show frozen timer values from pause_start moment
+        let (t_small, t_big, t_water, t_eye) = if let Some(frozen) = self.pause_start {
+            (
+                Self::time_to_next_frozen(self.last_small_break, small_interval, frozen),
+                Self::time_to_next_frozen(self.last_big_break, big_interval, frozen),
+                Self::time_to_next_frozen(self.last_water, water_interval, frozen),
+                Self::time_to_next_frozen(self.last_eye, eye_interval, frozen),
+            )
+        } else {
+            (
+                Self::time_to_next(self.last_small_break, small_interval),
+                Self::time_to_next(self.last_big_break, big_interval),
+                Self::time_to_next(self.last_water, water_interval),
+                Self::time_to_next(self.last_eye, eye_interval),
+            )
+        };
+
         SchedulerState {
             paused: self.paused,
             popup_paused: self.popup_paused,
             outside_work_hours: outside,
-            time_to_small_break: Self::time_to_next(self.last_small_break, small_interval),
-            time_to_big_break: Self::time_to_next(self.last_big_break, big_interval),
-            time_to_water: Self::time_to_next(self.last_water, water_interval),
-            time_to_eye: Self::time_to_next(self.last_eye, eye_interval),
+            time_to_small_break: t_small,
+            time_to_big_break: t_big,
+            time_to_water: t_water,
+            time_to_eye: t_eye,
             include_eyes_in_big_break: self.include_eyes_in_big_break,
         }
     }

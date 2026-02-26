@@ -142,6 +142,27 @@ impl YouTubePlayer {
     }
 }
 
+impl Drop for YouTubePlayer {
+    fn drop(&mut self) {
+        self.stop();
+    }
+}
+
+/// Kill any orphaned ffplay processes left from a previous run
+pub fn kill_orphan_ffplay() {
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = Command::new("taskkill");
+        cmd.args(["/F", "/IM", "ffplay.exe"]);
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        let _ = cmd.output();
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        let _ = Command::new("pkill").arg("ffplay").output();
+    }
+}
+
 #[derive(Debug, Serialize)]
 pub struct YTSearchResult {
     pub title: String,

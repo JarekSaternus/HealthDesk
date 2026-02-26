@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 use std::fs;
 use std::path::PathBuf;
-use std::sync::Mutex;
+use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
@@ -132,7 +132,7 @@ pub fn load_config() -> AppConfig {
     if path.exists() {
         if let Ok(data) = fs::read_to_string(&path) {
             if let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&data) {
-                enforce_preset(&mut cfg);
+                apply_preset(&mut cfg);
                 return cfg;
             }
         }
@@ -162,7 +162,7 @@ pub fn save_config(cfg: &AppConfig) -> Result<(), String> {
     Ok(())
 }
 
-fn enforce_preset(cfg: &mut AppConfig) {
+pub fn apply_preset(cfg: &mut AppConfig) {
     let methods = work_methods();
     if cfg.work_method != "custom" {
         if let Some(preset) = methods.get(&cfg.work_method) {
@@ -235,4 +235,4 @@ fn detect_system_language() -> String {
     "en".into()
 }
 
-pub struct ConfigState(pub Mutex<AppConfig>);
+pub struct ConfigState(pub Arc<Mutex<AppConfig>>);

@@ -45,6 +45,8 @@ pub fn run() {
     let config_state = Arc::new(Mutex::new(cfg.clone()));
     let i18n = Arc::new(I18n::new(&cfg.language));
     let audio = Arc::new(audio::AudioEngine::new());
+    // Kill any orphaned ffplay from previous run (e.g. after update/crash)
+    youtube::kill_orphan_ffplay();
     let yt_player = Arc::new(youtube::YouTubePlayer::new());
     let popup_mgr = popup_manager::create_popup_manager();
 
@@ -69,7 +71,7 @@ pub fn run() {
                 let _ = win.set_focus();
             }
         }))
-        .manage(ConfigState(Mutex::new(cfg.clone())))
+        .manage(ConfigState(config_state.clone()))
         .manage(db.clone())
         .manage(scheduler.clone())
         .manage(popup_mgr.clone())
@@ -174,6 +176,7 @@ pub fn run() {
             commands::get_weekly_daily_totals,
             commands::get_weekly_breaks,
             commands::get_scheduler_state,
+            commands::reset_timers,
             commands::toggle_pause,
             commands::popup_closed,
             commands::play_sound,

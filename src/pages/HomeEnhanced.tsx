@@ -200,10 +200,12 @@ export default function HomeEnhanced() {
           </div>
         </div>
         <div className="text-3xl font-bold text-accent">{formatDuration(totalTimeToday)}</div>
-        <div className="flex items-center gap-2 mt-2">
-          <ProgressBar value={dayPct} max={100} color="#2ecc71" />
-          <span className="text-xs text-text-muted whitespace-nowrap">{Math.round(dayPct)}% {t("home.day_progress")} ({workStart}–{workEnd})</span>
-        </div>
+        {config?.work_hours_enabled && (
+          <div className="flex items-center gap-2 mt-2">
+            <ProgressBar value={dayPct} max={100} color="#2ecc71" />
+            <span className="text-xs text-text-muted whitespace-nowrap">{Math.round(dayPct)}% {t("home.day_progress")} ({workStart}–{workEnd})</span>
+          </div>
+        )}
       </Card>
 
       {/* Break timers side by side */}

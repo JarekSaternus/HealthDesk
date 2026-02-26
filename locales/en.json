@@ -281,6 +281,10 @@
     "to_break": "{time} to break",
     "break_now": "break!",
     "already_running": "HealthDesk is already running!\nCheck the system tray icon.",
-    "outside_work_hours": "Outside work hours"
+    "outside_work_hours": "Outside work hours",
+    "reset_timers": "Reset timers",
+    "reset_confirm": "Reset timers?",
+    "reset_yes": "Yes",
+    "reset_no": "No"
   }
 }
