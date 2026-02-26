@@ -82,61 +82,59 @@ export default function SettingsPage() {
         </p>
       </Card>
 
-      {/* Break intervals */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.breaks_section")}</h3>
-        <div className="space-y-3">
-          <SliderField
-            label={t("settings.small_break_every")}
-            value={form.small_break_interval_min}
-            min={5} max={120}
-            unit={t("settings.unit_min")}
-            disabled={!isCustom}
-            onChange={(v) => update("small_break_interval_min", v)}
-          />
-          <SliderField
-            label={t("settings.small_break_duration")}
-            value={form.small_break_duration_sec}
-            min={10} max={1800} step={10}
-            unit={t("settings.unit_sec")}
-            disabled={!isCustom}
-            onChange={(v) => update("small_break_duration_sec", v)}
-          />
-          <SliderField
-            label={t("settings.big_break_every")}
-            value={form.big_break_interval_min}
-            min={15} max={300}
-            unit={t("settings.unit_min")}
-            disabled={!isCustom}
-            onChange={(v) => update("big_break_interval_min", v)}
-          />
-          <SliderField
-            label={t("settings.big_break_duration")}
-            value={form.big_break_duration_min}
-            min={1} max={30}
-            unit={t("settings.unit_min")}
-            disabled={!isCustom}
-            onChange={(v) => update("big_break_duration_min", v)}
-          />
-
-          {/* Break mode */}
-          <div>
-            <label className="text-xs text-text-muted">{t("settings.break_mode")}</label>
-            <div className="flex gap-3 mt-1">
-              {(["moderate", "aggressive"] as const).map((mode) => (
-                <label key={mode} className="flex items-center gap-2 text-sm cursor-pointer">
-                  <input
-                    type="radio"
-                    name="break_mode"
-                    checked={form.break_mode === mode}
-                    onChange={() => update("break_mode", mode)}
-                    className="accent-accent"
-                  />
-                  {t(`settings.mode_${mode}`)}
-                </label>
-              ))}
-            </div>
+      {/* Break intervals — only visible for custom method */}
+      {isCustom && (
+        <Card>
+          <h3 className="text-sm font-medium mb-3">{t("settings.breaks_section")}</h3>
+          <div className="space-y-3">
+            <SliderField
+              label={t("settings.small_break_every")}
+              value={form.small_break_interval_min}
+              min={5} max={120}
+              unit={t("settings.unit_min")}
+              onChange={(v) => update("small_break_interval_min", v)}
+            />
+            <SliderField
+              label={t("settings.small_break_duration")}
+              value={form.small_break_duration_sec}
+              min={10} max={1800} step={10}
+              unit={t("settings.unit_sec")}
+              onChange={(v) => update("small_break_duration_sec", v)}
+            />
+            <SliderField
+              label={t("settings.big_break_every")}
+              value={form.big_break_interval_min}
+              min={15} max={300}
+              unit={t("settings.unit_min")}
+              onChange={(v) => update("big_break_interval_min", v)}
+            />
+            <SliderField
+              label={t("settings.big_break_duration")}
+              value={form.big_break_duration_min}
+              min={1} max={30}
+              unit={t("settings.unit_min")}
+              onChange={(v) => update("big_break_duration_min", v)}
+            />
           </div>
+        </Card>
+      )}
+
+      {/* Break mode — always visible */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.break_mode")}</h3>
+        <div className="flex gap-3">
+          {(["moderate", "aggressive"] as const).map((mode) => (
+            <label key={mode} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input
+                type="radio"
+                name="break_mode"
+                checked={form.break_mode === mode}
+                onChange={() => update("break_mode", mode)}
+                className="accent-accent"
+              />
+              {t(`settings.mode_${mode}`)}
+            </label>
+          ))}
         </div>
       </Card>
 
@@ -161,18 +159,19 @@ export default function SettingsPage() {
         </div>
       </Card>
 
-      {/* Eye exercises */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.eye_section")}</h3>
-        <SliderField
-          label={t("settings.small_break_every")}
-          value={form.eye_exercise_interval_min}
-          min={10} max={120}
-          unit={t("settings.unit_min")}
-          disabled={!isCustom}
-          onChange={(v) => update("eye_exercise_interval_min", v)}
-        />
-      </Card>
+      {/* Eye exercises — only visible for custom method */}
+      {isCustom && (
+        <Card>
+          <h3 className="text-sm font-medium mb-3">{t("settings.eye_section")}</h3>
+          <SliderField
+            label={t("settings.small_break_every")}
+            value={form.eye_exercise_interval_min}
+            min={10} max={120}
+            unit={t("settings.unit_min")}
+            onChange={(v) => update("eye_exercise_interval_min", v)}
+          />
+        </Card>
+      )}
 
       {/* Work hours */}
       <Card>
@@ -278,7 +277,7 @@ export default function SettingsPage() {
               setUpdateStatus("downloading");
               let downloaded = 0;
               let total = 0;
-              await updateObj.downloadAndInstall((event: any) => {
+              updateObj.downloadAndInstall((event: any) => {
                 if (event.event === "Started") {
                   total = event.data.contentLength || 0;
                 } else if (event.event === "Progress") {
@@ -286,9 +285,9 @@ export default function SettingsPage() {
                   if (total > 0) setDownloadProgress(Math.round((downloaded / total) * 100));
                 } else if (event.event === "Finished") {
                   setUpdateStatus("installing");
+                  relaunch();
                 }
               });
-              await relaunch();
             }}
           />
           <div>
