@@ -126,6 +126,28 @@ impl SchedulerInner {
         }
     }
 
+    pub fn snooze_break(&mut self, break_type: &str, config: &AppConfig, snooze_sec: u64) {
+        self.popup_paused = false;
+        let now = Instant::now();
+        match break_type {
+            "small" => {
+                let interval = config.small_break_interval_min as f64 * 60.0;
+                let offset = interval - snooze_sec as f64;
+                self.last_small_break = now - Duration::from_secs_f64(offset.max(0.0));
+            }
+            "big" => {
+                let interval = config.big_break_interval_min as f64 * 60.0;
+                let offset = interval - snooze_sec as f64;
+                self.last_big_break = now - Duration::from_secs_f64(offset.max(0.0));
+                // Also push small break so it doesn't trigger before snoozed big break
+                let small_interval = config.small_break_interval_min as f64 * 60.0;
+                let small_offset = small_interval - snooze_sec as f64;
+                self.last_small_break = now - Duration::from_secs_f64(small_offset.max(0.0));
+            }
+            _ => {}
+        }
+    }
+
     fn in_work_hours(&self, config: &AppConfig) -> bool {
         if !config.work_hours_enabled {
             return true;

@@ -102,8 +102,12 @@ jobs:
       - name: Generate latest.json
         shell: bash
         run: |
+          set +e
           VERSION="${GITHUB_REF_NAME#v}"
           DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          echo "=== All artifacts ==="
+          ls -la all-artifacts/
 
           # Read signatures
           WIN_SIG=""
@@ -114,58 +118,57 @@ jobs:
           for f in all-artifacts/*.nsis.zip.sig; do
             [ -f "$f" ] && WIN_SIG=$(cat "$f")
           done
-          for f in all-artifacts/*aarch64*.tar.gz.sig; do
-            [ -f "$f" ] && MAC_AARCH64_SIG=$(cat "$f")
-          done
           for f in all-artifacts/*.tar.gz.sig; do
             [ -f "$f" ] || continue
             name=$(basename "$f")
-            if echo "$name" | grep -q "aarch64"; then
-              MAC_AARCH64_SIG=$(cat "$f")
-            else
-              MAC_X64_SIG=$(cat "$f")
-            fi
+            case "$name" in
+              *aarch64*) MAC_AARCH64_SIG=$(cat "$f") ;;
+              *) MAC_X64_SIG=$(cat "$f") ;;
+            esac
           done
           for f in all-artifacts/*.AppImage.sig; do
             [ -f "$f" ] && LINUX_SIG=$(cat "$f")
           done
 
-          # Find update bundle URLs
+          # Find update bundle filenames
           REPO="JarekSaternus/HealthDesk"
           TAG="${GITHUB_REF_NAME}"
           BASE="https://github.com/${REPO}/releases/download/${TAG}"
 
-          WIN_ZIP=$(ls all-artifacts/*.nsis.zip 2>/dev/null | head -1 | xargs -r basename)
-          MAC_AARCH64_TAR=$(ls all-artifacts/*aarch64*.tar.gz 2>/dev/null | grep -v '.sig' | head -1 | xargs -r basename)
-          MAC_X64_TAR=$(ls all-artifacts/*.tar.gz 2>/dev/null | grep -v '.sig' | grep -v 'aarch64' | head -1 | xargs -r basename)
-          LINUX_APPIMAGE=$(ls all-artifacts/*.AppImage 2>/dev/null | head -1 | xargs -r basename)
+          WIN_ZIP=""
+          MAC_AARCH64_TAR=""
+          MAC_X64_TAR=""
+          LINUX_APPIMAGE=""
 
-          # Build latest.json
-          cat > all-artifacts/latest.json << ENDJSON
-          {
-            "version": "${VERSION}",
-            "notes": "HealthDesk ${TAG}",
-            "pub_date": "${DATE}",
-            "platforms": {
-              "windows-x86_64": {
-                "signature": "${WIN_SIG}",
-                "url": "${BASE}/${WIN_ZIP}"
-              },
-              "darwin-aarch64": {
-                "signature": "${MAC_AARCH64_SIG}",
-                "url": "${BASE}/${MAC_AARCH64_TAR}"
-              },
-              "darwin-x86_64": {
-                "signature": "${MAC_X64_SIG}",
-                "url": "${BASE}/${MAC_X64_TAR}"
-              },
-              "linux-x86_64": {
-                "signature": "${LINUX_SIG}",
-                "url": "${BASE}/${LINUX_APPIMAGE}"
-              }
-            }
-          }
-          ENDJSON
+          for f in all-artifacts/*.nsis.zip; do
+            [ -f "$f" ] && WIN_ZIP=$(basename "$f")
+          done
+          for f in all-artifacts/*.tar.gz; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            case "$name" in
+              *.sig) continue ;;
+              *aarch64*) MAC_AARCH64_TAR="$name" ;;
+              *) MAC_X64_TAR="$name" ;;
+            esac
+          done
+          for f in all-artifacts/*.AppImage; do
+            [ -f "$f" ] && LINUX_APPIMAGE=$(basename "$f")
+          done
+
+          echo "WIN_ZIP=$WIN_ZIP"
+          echo "MAC_AARCH64_TAR=$MAC_AARCH64_TAR"
+          echo "MAC_X64_TAR=$MAC_X64_TAR"
+          echo "LINUX_APPIMAGE=$LINUX_APPIMAGE"
+
+          # Build latest.json using printf to avoid heredoc issues
+          printf '{\n  "version": "%s",\n  "notes": "HealthDesk %s",\n  "pub_date": "%s",\n  "platforms": {\n    "windows-x86_64": {\n      "signature": "%s",\n      "url": "%s/%s"\n    },\n    "darwin-aarch64": {\n      "signature": "%s",\n      "url": "%s/%s"\n    },\n    "darwin-x86_64": {\n      "signature": "%s",\n      "url": "%s/%s"\n    },\n    "linux-x86_64": {\n      "signature": "%s",\n      "url": "%s/%s"\n    }\n  }\n}\n' \
+            "$VERSION" "$TAG" "$DATE" \
+            "$WIN_SIG" "$BASE" "$WIN_ZIP" \
+            "$MAC_AARCH64_SIG" "$BASE" "$MAC_AARCH64_TAR" \
+            "$MAC_X64_SIG" "$BASE" "$MAC_X64_TAR" \
+            "$LINUX_SIG" "$BASE" "$LINUX_APPIMAGE" \
+            > all-artifacts/latest.json
 
           echo "=== latest.json ==="
           cat all-artifacts/latest.json

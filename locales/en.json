@@ -145,6 +145,7 @@
     "big_desc": "Get up from your desk for {minutes} minutes.\nStretch, drink water, move around!",
     "accept": "Taking a break!",
     "accepted_msg": "Rest up... window will close automatically",
+    "snooze": "Snooze 3 min",
     "skip": "Skip"
   },
 

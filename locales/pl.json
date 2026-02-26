@@ -145,6 +145,7 @@
     "big_desc": "Wstań od biurka na {minutes} minut.\nRozciągnij się, napij wody, rusz się!",
     "accept": "Robię przerwę!",
     "accepted_msg": "Odpocznij... okno zamknie się automatycznie",
+    "snooze": "Drzemka 3 min",
     "skip": "Pomiń"
   },
 

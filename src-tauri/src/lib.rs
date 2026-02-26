@@ -189,6 +189,7 @@ pub fn run() {
             commands::get_daily_totals_period,
             commands::get_daily_breaks_period,
             commands::get_scheduler_state,
+            commands::snooze_break,
             commands::reset_timers,
             commands::toggle_pause,
             commands::popup_closed,

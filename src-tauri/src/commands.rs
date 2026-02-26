@@ -190,6 +190,25 @@ pub fn get_daily_breaks_period(period: String, db: State<Arc<Database>>) -> Resu
 // ---- Scheduler ----
 
 #[tauri::command]
+pub fn snooze_break(
+    break_type: String,
+    snooze_sec: u64,
+    scheduler: State<SharedScheduler>,
+    config: State<ConfigState>,
+    manager: State<SharedPopupManager>,
+    app: tauri::AppHandle,
+) {
+    let cfg = config.0.lock().unwrap().clone();
+    // Close the popup first
+    popup_manager::popup_closed(&app, &manager, &scheduler, &cfg.break_mode, &cfg);
+    // Then set snooze (override the timer that popup_closed just reset)
+    let mut sched = scheduler.lock().unwrap();
+    sched.snooze_break(&break_type, &cfg, snooze_sec);
+    let state = sched.get_state(&cfg);
+    let _ = app.emit("scheduler:state-update", &state);
+}
+
+#[tauri::command]
 pub fn reset_timers(scheduler: State<SharedScheduler>, config: State<ConfigState>, app: tauri::AppHandle) {
     let now = std::time::Instant::now();
     let mut sched = scheduler.lock().unwrap();

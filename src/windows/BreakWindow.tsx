@@ -40,6 +40,12 @@ export default function BreakWindow() {
 
   const handleAccept = () => setAccepted(true);
   const handleSkip = () => closeWindow(true);
+  const handleSnooze = async () => {
+    if (closedRef.current) return;
+    closedRef.current = true;
+    try { await invoke("snooze_break", { breakType, snoozeSec: 180 }); } catch (e) { console.warn("snooze failed:", e); }
+    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
+  };
 
   const progress = ((duration - remaining) / duration) * 100;
   const minutes = Math.floor(remaining / 60);
@@ -78,6 +84,12 @@ export default function BreakWindow() {
             className="bg-accent hover:bg-accent-hover text-white rounded px-6 py-2 text-sm font-medium"
           >
             {t("break.accept")}
+          </button>
+          <button
+            onClick={handleSnooze}
+            className="bg-card hover:bg-card-hover text-text-muted rounded px-6 py-2 text-sm"
+          >
+            {t("break.snooze")}
           </button>
           <button
             onClick={handleSkip}
