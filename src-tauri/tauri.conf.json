@@ -54,7 +54,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEZDMDIxNkQ5QkVFMzgzRTQKUldUa2crTysyUllDL0JHczQ3ODdIQllxMGpkNXVVZ2Z2eGpYUXJrKzV3b2U4RTliTGRmZXErYXkK",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDEzMkIxQkZENEI3MDQ0ODIKUldTQ1JIQkwvUnNyRTNZbGFHMW5QREtDMnQrODN5SmFBRzJtMy81V0IwMGJWdlZLcmRIcFJENGoK",
       "endpoints": [
         "https://github.com/JarekSaternus/HealthDesk/releases/latest/download/latest.json"
       ]
