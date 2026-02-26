@@ -18,6 +18,7 @@ import BreakFullscreen from "./windows/BreakFullscreen";
 import EyeExercise from "./windows/EyeExercise";
 import StretchExercise from "./windows/StretchExercise";
 import WaterReminder from "./windows/WaterReminder";
+import BreathingExercise from "./windows/BreathingExercise";
 
 function UpdateModal({ version, onClose }: { version: string; onClose: () => void }) {
   const [status, setStatus] = useState<"prompt" | "downloading" | "installing">("prompt");
@@ -193,6 +194,7 @@ export default function App() {
   if (path.startsWith("/break")) return <BreakWindow />;
   if (path.startsWith("/eye-exercise")) return <EyeExercise />;
   if (path.startsWith("/stretch-exercise")) return <StretchExercise />;
+  if (path.startsWith("/breathing-exercise")) return <BreathingExercise />;
   if (path.startsWith("/water-reminder")) return <WaterReminder />;
 
   return (

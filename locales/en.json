@@ -104,6 +104,9 @@
     "reminder_every": "Reminder every",
     "daily_goal": "Daily goal",
     "eye_section": "Eye exercises",
+    "breathing_section": "Breathing exercise",
+    "breathing_enabled": "Enable breathing exercise",
+    "breathing_every": "Breathing exercise every",
     "work_hours_section": "Work hours",
     "work_hours_only": "Remind only during work hours",
     "from_hour": "From:",
@@ -211,6 +214,14 @@
           "duration": 30
         }
       ],
+      "close": "Close"
+    },
+    "breathing": {
+      "title": "Breathing Exercise",
+      "inhale": "Inhale...",
+      "hold": "Hold...",
+      "exhale": "Exhale...",
+      "cycle": "Cycle {current}/{total}",
       "close": "Close"
     },
     "stretch": {

@@ -173,6 +173,27 @@ export default function SettingsPage() {
         </Card>
       )}
 
+      {/* Breathing exercise */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.breathing_section")}</h3>
+        <Checkbox
+          label={t("settings.breathing_enabled")}
+          checked={form.breathing_exercise_enabled}
+          onChange={(v) => update("breathing_exercise_enabled", v)}
+        />
+        {form.breathing_exercise_enabled && (
+          <div className="mt-3">
+            <SliderField
+              label={t("settings.breathing_every")}
+              value={form.breathing_exercise_interval_min}
+              min={15} max={120}
+              unit={t("settings.unit_min")}
+              onChange={(v) => update("breathing_exercise_interval_min", v)}
+            />
+          </div>
+        )}
+      </Card>
+
       {/* Work hours */}
       <Card>
         <h3 className="text-sm font-medium mb-3">{t("settings.work_hours_section")}</h3>

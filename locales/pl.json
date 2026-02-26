@@ -104,6 +104,9 @@
     "reminder_every": "Przypomnienie co",
     "daily_goal": "Cel dzienny",
     "eye_section": "Ćwiczenia oczu",
+    "breathing_section": "Trening oddechowy",
+    "breathing_enabled": "Włącz trening oddechowy",
+    "breathing_every": "Trening oddechowy co",
     "work_hours_section": "Godziny pracy",
     "work_hours_only": "Przypominaj tylko w godzinach pracy",
     "from_hour": "Od:",
@@ -212,6 +215,14 @@
         }
       ],
       "close": "Zamknij"
+    },
+    "breathing": {
+      "title": "Trening oddechowy",
+      "inhale": "Wdech...",
+      "hold": "Zatrzymaj...",
+      "exhale": "Wydech...",
+      "cycle": "Cykl {current}/{total}",
+      "close": "Zakończ"
     },
     "stretch": {
       "title": "Czas na rozciąganie!",

@@ -2,7 +2,7 @@
   "$schema": "../gen/schemas/desktop-schema.json",
   "identifier": "default",
   "description": "Default capabilities for HealthDesk main window",
-  "windows": ["main", "break-big", "break-small", "exercise-eye", "exercise-stretch", "water-reminder"],
+  "windows": ["main", "break-big", "break-small", "exercise-eye", "exercise-stretch", "exercise-breathing", "water-reminder"],
   "permissions": [
     "core:default",
     "core:event:default",

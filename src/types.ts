@@ -23,6 +23,8 @@ export interface AppConfig {
   language: string;
   auto_update: boolean;
   dashboard_layout: string;
+  breathing_exercise_interval_min: number;
+  breathing_exercise_enabled: boolean;
 }
 
 export interface SchedulerState {
@@ -33,6 +35,7 @@ export interface SchedulerState {
   time_to_big_break: number;
   time_to_water: number;
   time_to_eye: number;
+  time_to_breathing: number;
   include_eyes_in_big_break: boolean;
 }
 

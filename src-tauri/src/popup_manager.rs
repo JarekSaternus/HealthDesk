@@ -13,6 +13,7 @@ pub enum PopupType {
     EyeExercise,
     StretchExercise,
     WaterReminder,
+    BreathingExercise,
 }
 
 impl PopupType {
@@ -23,6 +24,7 @@ impl PopupType {
             PopupType::EyeExercise => 3,
             PopupType::StretchExercise => 3,
             PopupType::WaterReminder => 4,
+            PopupType::BreathingExercise => 3,
         }
     }
 
@@ -33,6 +35,7 @@ impl PopupType {
             PopupType::EyeExercise => "exercise-eye",
             PopupType::StretchExercise => "exercise-stretch",
             PopupType::WaterReminder => "water-reminder",
+            PopupType::BreathingExercise => "exercise-breathing",
         }
     }
 
@@ -55,6 +58,7 @@ impl PopupType {
             PopupType::EyeExercise => "/eye-exercise".into(),
             PopupType::StretchExercise => "/stretch-exercise".into(),
             PopupType::WaterReminder => "/water-reminder".into(),
+            PopupType::BreathingExercise => "/breathing-exercise".into(),
         }
     }
 }
@@ -203,7 +207,7 @@ fn show_popup_window(app: &AppHandle, popup_type: PopupType, break_mode: &str, d
                     .build();
             }
         }
-        PopupType::EyeExercise | PopupType::StretchExercise => {
+        PopupType::EyeExercise | PopupType::StretchExercise | PopupType::BreathingExercise => {
             let _ = WebviewWindowBuilder::new(app, label, url)
                 .title("HealthDesk - Exercise")
                 .inner_size(400.0, 350.0)

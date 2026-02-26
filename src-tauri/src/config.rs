@@ -54,6 +54,10 @@ pub struct AppConfig {
     pub auto_update: bool,
     #[serde(default = "default_dashboard_layout")]
     pub dashboard_layout: String,
+    #[serde(default = "default_breathing_interval")]
+    pub breathing_exercise_interval_min: u32,
+    #[serde(default = "default_true")]
+    pub breathing_exercise_enabled: bool,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -71,6 +75,7 @@ fn default_true() -> bool { true }
 fn default_volume() -> u32 { 10 }
 fn default_lang() -> String { "pl".into() }
 fn default_dashboard_layout() -> String { "enhanced".into() }
+fn default_breathing_interval() -> u32 { 45 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkMethodPreset {
@@ -202,6 +207,8 @@ impl Default for AppConfig {
             language: "pl".into(),
             auto_update: true,
             dashboard_layout: "enhanced".into(),
+            breathing_exercise_interval_min: 45,
+            breathing_exercise_enabled: true,
         }
     }
 }

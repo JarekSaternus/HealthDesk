@@ -15,6 +15,7 @@ pub struct SchedulerState {
     pub time_to_big_break: f64,
     pub time_to_water: f64,
     pub time_to_eye: f64,
+    pub time_to_breathing: f64,
     pub include_eyes_in_big_break: bool,
 }
 
@@ -27,6 +28,7 @@ pub struct SchedulerInner {
     pub last_big_break: Instant,
     pub last_water: Instant,
     pub last_eye: Instant,
+    pub last_breathing: Instant,
     pub include_eyes_in_big_break: bool,
     pub running: bool,
 }
@@ -67,6 +69,7 @@ impl SchedulerInner {
             last_big_break: last_big,
             last_water: now,
             last_eye: now,
+            last_breathing: now,
             include_eyes_in_big_break: false,
             running: true,
         }
@@ -86,6 +89,7 @@ impl SchedulerInner {
             self.last_big_break += paused_duration;
             self.last_water += paused_duration;
             self.last_eye += paused_duration;
+            self.last_breathing += paused_duration;
         }
         self.paused = false;
         self.pause_until = None;
@@ -116,12 +120,16 @@ impl SchedulerInner {
             Some(crate::popup_manager::PopupType::StretchExercise) => {
                 // stretch comes with big break, don't reset break timers
             }
+            Some(crate::popup_manager::PopupType::BreathingExercise) => {
+                self.last_breathing = now;
+            }
             None => {
                 // fallback: reset all
                 self.last_small_break = now;
                 self.last_big_break = now;
                 self.last_water = now;
                 self.last_eye = now;
+                self.last_breathing = now;
             }
         }
     }
@@ -176,15 +184,17 @@ impl SchedulerInner {
         let big_interval = config.big_break_interval_min as f64 * 60.0;
         let water_interval = config.water_interval_min as f64 * 60.0;
         let eye_interval = config.eye_exercise_interval_min as f64 * 60.0;
+        let breathing_interval = config.breathing_exercise_interval_min as f64 * 60.0;
         let outside = !self.in_work_hours(config);
 
         // When paused, show frozen timer values from pause_start moment
-        let (t_small, t_big, t_water, t_eye) = if let Some(frozen) = self.pause_start {
+        let (t_small, t_big, t_water, t_eye, t_breathing) = if let Some(frozen) = self.pause_start {
             (
                 Self::time_to_next_frozen(self.last_small_break, small_interval, frozen),
                 Self::time_to_next_frozen(self.last_big_break, big_interval, frozen),
                 Self::time_to_next_frozen(self.last_water, water_interval, frozen),
                 Self::time_to_next_frozen(self.last_eye, eye_interval, frozen),
+                Self::time_to_next_frozen(self.last_breathing, breathing_interval, frozen),
             )
         } else {
             (
@@ -192,6 +202,7 @@ impl SchedulerInner {
                 Self::time_to_next(self.last_big_break, big_interval),
                 Self::time_to_next(self.last_water, water_interval),
                 Self::time_to_next(self.last_eye, eye_interval),
+                Self::time_to_next(self.last_breathing, breathing_interval),
             )
         };
 
@@ -203,6 +214,7 @@ impl SchedulerInner {
             time_to_big_break: t_big,
             time_to_water: t_water,
             time_to_eye: t_eye,
+            time_to_breathing: t_breathing,
             include_eyes_in_big_break: self.include_eyes_in_big_break,
         }
     }
@@ -251,6 +263,7 @@ pub fn start_scheduler(
                 sched.last_big_break = now;
                 sched.last_water = now;
                 sched.last_eye = now;
+                sched.last_breathing = now;
                 let state = sched.get_state(&cfg);
                 let _ = app.emit("scheduler:state-update", &state);
                 continue;
@@ -260,10 +273,12 @@ pub fn start_scheduler(
             let big_interval = cfg.big_break_interval_min as f64 * 60.0;
             let water_interval = cfg.water_interval_min as f64 * 60.0;
             let eye_interval = cfg.eye_exercise_interval_min as f64 * 60.0;
+            let breathing_interval = cfg.breathing_exercise_interval_min as f64 * 60.0;
 
             let time_to_small = SchedulerInner::time_to_next(sched.last_small_break, small_interval);
             let time_to_big = SchedulerInner::time_to_next(sched.last_big_break, big_interval);
             let time_to_eye = SchedulerInner::time_to_next(sched.last_eye, eye_interval);
+            let time_to_breathing = SchedulerInner::time_to_next(sched.last_breathing, breathing_interval);
             let time_to_water = SchedulerInner::time_to_next(sched.last_water, water_interval);
             let now = Instant::now();
 
@@ -311,6 +326,22 @@ pub fn start_scheduler(
                 let _ = app.emit("scheduler:state-update", &state);
                 drop(sched);
                 let _ = app.emit("scheduler:eye-exercise", ());
+                continue;
+            }
+
+            // Breathing exercise
+            if cfg.breathing_exercise_enabled && time_to_breathing <= 0.0 {
+                if time_to_small <= PROTECTION_ZONE_SEC && time_to_small > 0.0 {
+                    continue;
+                }
+                if time_to_big <= PROTECTION_ZONE_SEC {
+                    continue;
+                }
+                sched.last_breathing = now;
+                let state = sched.get_state(&cfg);
+                let _ = app.emit("scheduler:state-update", &state);
+                drop(sched);
+                let _ = app.emit("scheduler:breathing-exercise", ());
                 continue;
             }
 

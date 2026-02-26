@@ -162,6 +162,19 @@ pub fn run() {
             let pm4 = popup_mgr_clone.clone();
             let sc4 = scheduler_clone.clone();
 
+            app_handle.listen("scheduler:breathing-exercise", move |_| {
+                popup_manager::enqueue_popup(
+                    &app5, &pm4, &sc4,
+                    popup_manager::PopupType::BreathingExercise,
+                    "moderate",
+                    80,
+                );
+            });
+
+            let app5 = app_handle.clone();
+            let pm4 = popup_mgr_clone.clone();
+            let sc4 = scheduler_clone.clone();
+
             app_handle.listen("scheduler:water-reminder", move |_| {
                 popup_manager::enqueue_popup(
                     &app5, &pm4, &sc4,
