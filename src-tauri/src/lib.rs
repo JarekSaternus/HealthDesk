@@ -12,7 +12,7 @@ pub mod tray;
 pub mod youtube;
 
 use std::sync::{Arc, Mutex};
-use tauri::{Listener, Manager};
+use tauri::{Listener, Manager, RunEvent};
 
 use config::ConfigState;
 use database::Database;
@@ -57,6 +57,9 @@ pub fn run() {
     let scheduler_clone = scheduler.clone();
     let config_clone = config_state.clone();
     let popup_mgr_clone = popup_mgr.clone();
+
+    let audio_exit = audio.clone();
+    let yt_exit = yt_player.clone();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_autostart::init(
@@ -219,8 +222,14 @@ pub fn run() {
                 }
             }
         })
-        .run(tauri::generate_context!())
-        .expect("error while running tauri application");
+        .build(tauri::generate_context!())
+        .expect("error while building tauri application")
+        .run(move |_app, event| {
+            if let RunEvent::Exit = event {
+                audio_exit.stop();
+                yt_exit.stop();
+            }
+        });
 }
 
 fn get_client_uuid() -> String {

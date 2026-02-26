@@ -277,7 +277,7 @@ export default function SettingsPage() {
               setUpdateStatus("downloading");
               let downloaded = 0;
               let total = 0;
-              updateObj.downloadAndInstall((event: any) => {
+              await updateObj.downloadAndInstall((event: any) => {
                 if (event.event === "Started") {
                   total = event.data.contentLength || 0;
                 } else if (event.event === "Progress") {
@@ -285,9 +285,9 @@ export default function SettingsPage() {
                   if (total > 0) setDownloadProgress(Math.round((downloaded / total) * 100));
                 } else if (event.event === "Finished") {
                   setUpdateStatus("installing");
-                  relaunch();
                 }
               });
+              await relaunch();
             }}
           />
           <div>

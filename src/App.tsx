@@ -35,7 +35,7 @@ function UpdateModal({ version, onClose }: { version: string; onClose: () => voi
     setStatus("downloading");
     let downloaded = 0;
     let total = 0;
-    updateObj.downloadAndInstall((event: any) => {
+    await updateObj.downloadAndInstall((event: any) => {
       if (event.event === "Started") {
         total = event.data.contentLength || 0;
       } else if (event.event === "Progress") {
@@ -43,11 +43,9 @@ function UpdateModal({ version, onClose }: { version: string; onClose: () => voi
         if (total > 0) setProgress(Math.round((downloaded / total) * 100));
       } else if (event.event === "Finished") {
         setStatus("installing");
-        // On Windows, downloadAndInstall never resolves after install
-        // so we relaunch from the Finished callback
-        relaunch();
       }
     });
+    await relaunch();
   };
 
   return (

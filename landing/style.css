@@ -353,7 +353,28 @@ img {
   width: 200px;
   height: 200px;
   filter: drop-shadow(0 0 30px rgba(45, 200, 216, 0.2));
-  animation: fadeIn 1.2s ease both;
+  animation: fadeIn 1.2s ease both, logoFloat 4s ease-in-out 1.2s infinite, logoGlow 6s ease-in-out infinite;
+}
+
+@keyframes logoFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+
+@keyframes logoGlow {
+  0%, 100% { filter: drop-shadow(0 0 30px rgba(45, 200, 216, 0.2)); }
+  50% { filter: drop-shadow(0 0 40px rgba(45, 200, 216, 0.35)); }
+}
+
+/* Stat value pop animation */
+.hero-stat-pop {
+  animation: statPop 0.4s ease;
+}
+
+@keyframes statPop {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.2); }
+  100% { transform: scale(1); }
 }
 
 /* Hero mini app preview */

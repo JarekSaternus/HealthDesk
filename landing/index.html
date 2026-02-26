@@ -94,7 +94,7 @@
         </div>
       </div>
       <div class="hero-visual">
-        <img src="logo-color.svg" alt="HealthDesk" class="hero-logo">
+        <img src="logo-color.svg" alt="HealthDesk" class="hero-logo" id="hero-logo">
         <!-- App mini-preview in hero -->
         <div class="hero-app-mini">
           <div class="app-mini-header">
@@ -107,18 +107,18 @@
           </div>
           <div class="app-mini-body">
             <div class="app-mini-timer-label">Następna przerwa za</div>
-            <div class="app-mini-timer">14:32</div>
+            <div class="app-mini-timer" id="hero-timer">14:32</div>
             <div class="app-mini-stats">
               <div class="app-mini-stat">
-                <span class="app-mini-stat-val">6</span>
+                <span class="app-mini-stat-val" id="hero-breaks">6</span>
                 <span class="app-mini-stat-lbl">Przerwy</span>
               </div>
               <div class="app-mini-stat">
-                <span class="app-mini-stat-val" style="color:#3b82f6;">5/8</span>
+                <span class="app-mini-stat-val" style="color:#3b82f6;" id="hero-water">5/8</span>
                 <span class="app-mini-stat-lbl">Woda</span>
               </div>
               <div class="app-mini-stat">
-                <span class="app-mini-stat-val" style="color:#a78bfa;">4h 23m</span>
+                <span class="app-mini-stat-val" style="color:#a78bfa;" id="hero-worktime">4h 23m</span>
                 <span class="app-mini-stat-lbl">Praca</span>
               </div>
             </div>
@@ -801,6 +801,72 @@
           });
         });
       } catch(e) {}
+    })();
+  </script>
+
+  <!-- Hero animations: live timer, stats, logo -->
+  <script>
+    (function() {
+      var timerEl = document.getElementById('hero-timer');
+      var breaksEl = document.getElementById('hero-breaks');
+      var waterEl = document.getElementById('hero-water');
+      var worktimeEl = document.getElementById('hero-worktime');
+
+      // Timer countdown state
+      var timerMinutes = 14;
+      var timerSeconds = 32;
+      var breaks = 6;
+      var water = 5;
+      var workHours = 4;
+      var workMinutes = 23;
+      var workSecondAcc = 0;
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function popStat(el) {
+        el.classList.remove('hero-stat-pop');
+        void el.offsetWidth;
+        el.classList.add('hero-stat-pop');
+      }
+
+      // Timer: every second
+      setInterval(function() {
+        timerSeconds--;
+        if (timerSeconds < 0) {
+          timerSeconds = 59;
+          timerMinutes--;
+        }
+        if (timerMinutes < 0) {
+          // Timer hit 0 — new break cycle
+          timerMinutes = 24;
+          timerSeconds = 59;
+          breaks++;
+          breaksEl.textContent = breaks;
+          popStat(breaksEl);
+        }
+        timerEl.textContent = timerMinutes + ':' + pad(timerSeconds);
+
+        // Work time: tick every real second
+        workSecondAcc++;
+        if (workSecondAcc >= 60) {
+          workSecondAcc = 0;
+          workMinutes++;
+          if (workMinutes >= 60) {
+            workMinutes = 0;
+            workHours++;
+          }
+          worktimeEl.textContent = workHours + 'h ' + workMinutes + 'm';
+          popStat(worktimeEl);
+        }
+      }, 1000);
+
+      // Water: every 8 seconds
+      setInterval(function() {
+        water++;
+        if (water > 8) water = 1;
+        waterEl.textContent = water + '/8';
+        popStat(waterEl);
+      }, 8000);
     })();
   </script>
 

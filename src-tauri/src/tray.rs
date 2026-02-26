@@ -96,6 +96,8 @@ pub fn setup_tray(
                     let _ = app.emit("scheduler:pause-toggled", sched.paused);
                 }
                 "quit" => {
+                    audio.stop();
+                    yt_player.stop();
                     app.exit(0);
                 }
                 _ => {}
