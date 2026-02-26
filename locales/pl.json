@@ -100,6 +100,7 @@
     "to_hour": "Do:",
     "sound_section": "Powiadomienia dźwiękowe",
     "sound_on_break": "Dźwięk przy początku i końcu przerwy",
+    "audio_autoplay": "Wznawiaj muzykę po starcie aplikacji",
     "privacy_section": "Prywatność i dane",
     "telemetry": "Anonimowe statystyki użytkowania",
     "telemetry_desc": "Pomagają nam ulepszać aplikację. Żadne dane osobowe.",

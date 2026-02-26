@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "./stores/appStore";
 import { loadTranslations } from "./i18n";
 import Sidebar from "./components/Sidebar";
@@ -57,6 +58,20 @@ export default function App() {
         await loadConfig();
         if (!isPopup) {
           await initListeners();
+          // Auto-resume music if enabled
+          try {
+            const cfg = useAppStore.getState().config;
+            if (cfg?.audio_autoplay && cfg.audio_last_type) {
+              const vol = cfg.audio_last_volume ?? 10;
+              if (cfg.audio_last_source === "youtube") {
+                await invoke("play_youtube_search", { query: cfg.audio_last_type, volume: vol });
+              } else {
+                await invoke("play_sound", { soundType: cfg.audio_last_type, volume: vol });
+              }
+            }
+          } catch (e) {
+            console.warn("Auto-resume audio failed:", e);
+          }
         }
         setReady(true);
       } catch (err) {

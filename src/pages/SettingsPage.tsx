@@ -208,6 +208,11 @@ export default function SettingsPage() {
           checked={form.sound_notifications}
           onChange={(v) => update("sound_notifications", v)}
         />
+        <Checkbox
+          label={t("settings.audio_autoplay")}
+          checked={form.audio_autoplay}
+          onChange={(v) => update("audio_autoplay", v)}
+        />
       </Card>
 
       <Card>

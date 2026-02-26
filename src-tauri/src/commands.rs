@@ -276,8 +276,9 @@ pub fn get_youtube_state(yt: State<Arc<YouTubePlayer>>) -> serde_json::Value {
 // ---- Ads ----
 
 #[tauri::command]
-pub async fn get_ad(client_uuid: String) -> crate::ads::Ad {
-    crate::ads::fetch_ad(&client_uuid).await
+pub async fn get_ad(client_uuid: String, config: State<'_, ConfigState>) -> Result<crate::ads::Ad, String> {
+    let lang = config.0.lock().unwrap().language.clone();
+    Ok(crate::ads::fetch_ad(&client_uuid, &lang).await)
 }
 
 #[tauri::command]

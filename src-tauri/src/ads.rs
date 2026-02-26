@@ -21,11 +21,16 @@ fn cache_path() -> PathBuf {
     config::config_dir().join("ads_cache.json")
 }
 
-fn fallback_ads() -> Vec<Ad> {
+fn fallback_ads(lang: &str) -> Vec<Ad> {
+    let is_pl = lang.starts_with("pl");
     vec![
         Ad {
             title: "HealthDesk Pro".into(),
-            description: "Upgrade for advanced features".into(),
+            description: if is_pl {
+                "Ulepsz do wersji z zaawansowanymi funkcjami".into()
+            } else {
+                "Upgrade for advanced features".into()
+            },
             image_url: String::new(),
             click_url: "https://healthdesk.app/pro".into(),
             bg_color: "#1a1f2b".into(),
@@ -33,8 +38,12 @@ fn fallback_ads() -> Vec<Ad> {
             ad_id: "fallback_1".into(),
         },
         Ad {
-            title: "Stay Healthy".into(),
-            description: "Take regular breaks for better health".into(),
+            title: if is_pl { "Dbaj o zdrowie".into() } else { "Stay Healthy".into() },
+            description: if is_pl {
+                "Rób regularne przerwy dla lepszego zdrowia".into()
+            } else {
+                "Take regular breaks for better health".into()
+            },
             image_url: String::new(),
             click_url: "https://healthdesk.app".into(),
             bg_color: "#1a1f2b".into(),
@@ -42,8 +51,12 @@ fn fallback_ads() -> Vec<Ad> {
             ad_id: "fallback_2".into(),
         },
         Ad {
-            title: "Eye Care Tips".into(),
-            description: "Follow the 20-20-20 rule daily".into(),
+            title: if is_pl { "Dbaj o wzrok".into() } else { "Eye Care Tips".into() },
+            description: if is_pl {
+                "Stosuj zasadę 20-20-20 każdego dnia".into()
+            } else {
+                "Follow the 20-20-20 rule daily".into()
+            },
             image_url: String::new(),
             click_url: "https://healthdesk.app/tips".into(),
             bg_color: "#1a1f2b".into(),
@@ -88,7 +101,7 @@ fn sanitize_ad(ad: &mut Ad) {
     }
 }
 
-pub async fn fetch_ad(client_uuid: &str) -> Ad {
+pub async fn fetch_ad(client_uuid: &str, lang: &str) -> Ad {
     // Try remote
     if let Ok(mut ad) = fetch_remote(client_uuid).await {
         sanitize_ad(&mut ad);
@@ -104,7 +117,7 @@ pub async fn fetch_ad(client_uuid: &str) -> Ad {
     }
 
     // Fallback
-    let mut ads = fallback_ads();
+    let mut ads = fallback_ads(lang);
     let idx = rand::random_range(0..ads.len());
     let mut ad = ads.remove(idx);
     sanitize_ad(&mut ad);

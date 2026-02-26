@@ -43,7 +43,7 @@ No test suite exists yet.
 
 **Stack:** Tauri v2 (Rust backend) + React 19 + TypeScript + Tailwind CSS 4
 
-**Rust backend** (~2500 lines) — 12 modules in `src-tauri/src/`:
+**Rust backend** (~2900 lines) — 12 modules in `src-tauri/src/`:
 | Module | Role |
 |--------|------|
 | `config.rs` | JSON config at `%APPDATA%/HealthDesk/config.json`, work method presets |
@@ -57,9 +57,9 @@ No test suite exists yet.
 | `telemetry.rs` | Async batch telemetry via mpsc channel |
 | `tray.rs` | System tray icon + menu via Tauri built-in |
 | `i18n.rs` | JSON locale loading with user overlay + deep merge |
-| `commands.rs` | ~30 Tauri IPC commands |
+| `commands.rs` | 32 Tauri IPC commands |
 
-**React frontend** (~3100 lines) in `src/`:
+**React frontend** (~2000 lines) in `src/`:
 | Path | Role |
 |------|------|
 | `pages/` | Home, Stats, Music, Settings, Help |
@@ -77,7 +77,9 @@ No test suite exists yet.
 - `/stretch-exercise` → StretchExercise
 - `/water-reminder` → WaterReminder
 
-**Tauri plugins:** autostart, notification, shell (yt-dlp), single-instance, updater
+**Tauri plugins:** autostart, notification, shell (yt-dlp), single-instance. Updater npm package installed but Rust plugin not yet wired up in lib.rs.
+
+**Capabilities (ACL):** `src-tauri/capabilities/default.json` defines permissions per window label (main + all popup windows). Popup windows have limited permissions — event listeners are skipped in React for popup windows to avoid ACL errors.
 
 **Data compatibility:** Reads same `%APPDATA%/HealthDesk/` as the Python version (same SQLite schema, same config.json keys).
 
