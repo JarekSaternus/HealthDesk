@@ -63,7 +63,7 @@ export default function HomeEnhanced() {
     const interval = setInterval(() => {
       invoke<BreakRecord[]>("get_breaks_today").then(setBreaks);
       invoke<{ playing: boolean }>("get_audio_state").then((s) => setAudioPlaying(s.playing));
-    }, 30000);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 
@@ -130,6 +130,7 @@ export default function HomeEnhanced() {
 
   const playSearchResult = async (r: YTSearchResult) => {
     await invoke("stop_sound");
+    await invoke("stop_youtube");
     try {
       await invoke("play_youtube", { url: r.url, name: r.title, volume: config?.audio_last_volume ?? 10 });
       setAudioPlaying(true);
@@ -310,12 +311,19 @@ export default function HomeEnhanced() {
               min={0}
               max={100}
               value={config?.audio_last_volume ?? 10}
-              onChange={async (e) => {
+              onChange={(e) => {
                 const v = Number(e.target.value);
-                await invoke("set_sound_volume", { volume: v });
                 if (config) {
                   useAppStore.getState().saveConfig({ ...config, audio_last_volume: v });
                 }
+              }}
+              onMouseUp={(e) => {
+                const v = Number((e.target as HTMLInputElement).value);
+                invoke("set_sound_volume", { volume: v });
+              }}
+              onTouchEnd={(e) => {
+                const v = Number((e.target as HTMLInputElement).value);
+                invoke("set_sound_volume", { volume: v });
               }}
               className="flex-1 h-1"
             />

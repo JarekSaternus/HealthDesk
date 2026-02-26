@@ -68,8 +68,8 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
   togglePause: async () => {
     const state = get().schedulerState;
-    if (!state) return;
-    await invoke("toggle_pause", { paused: !state.paused });
+    const isPaused = state?.paused ?? false;
+    await invoke("toggle_pause", { paused: !isPaused });
   },
 
   initListeners: async () => {

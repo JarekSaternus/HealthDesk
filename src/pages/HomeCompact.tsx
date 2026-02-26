@@ -34,7 +34,7 @@ export default function HomeCompact() {
     const interval = setInterval(() => {
       invoke<BreakRecord[]>("get_breaks_today").then(setBreaks);
       invoke<{ playing: boolean }>("get_audio_state").then((s) => setAudioPlaying(s.playing));
-    }, 30000);
+    }, 2000);
     return () => clearInterval(interval);
   }, []);
 

@@ -280,6 +280,7 @@
     "pause": "Paused",
     "to_break": "{time} to break",
     "break_now": "break!",
-    "already_running": "HealthDesk is already running!\nCheck the system tray icon."
+    "already_running": "HealthDesk is already running!\nCheck the system tray icon.",
+    "outside_work_hours": "Outside work hours"
   }
 }

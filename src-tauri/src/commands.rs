@@ -1,5 +1,5 @@
 use std::sync::Arc;
-use tauri::State;
+use tauri::{Emitter, State};
 
 use crate::audio::AudioEngine;
 use crate::config::{AppConfig, ConfigState};
@@ -20,10 +20,17 @@ pub fn get_config(config: State<ConfigState>) -> AppConfig {
 pub fn save_config(
     new_config: AppConfig,
     config: State<ConfigState>,
-    _scheduler: State<SharedScheduler>,
+    scheduler: State<SharedScheduler>,
 ) -> Result<(), String> {
     crate::config::save_config(&new_config)?;
     *config.0.lock().unwrap() = new_config;
+    // Reset timers so new intervals take effect immediately
+    let now = std::time::Instant::now();
+    let mut sched = scheduler.lock().unwrap();
+    sched.last_small_break = now;
+    sched.last_big_break = now;
+    sched.last_water = now;
+    sched.last_eye = now;
     Ok(())
 }
 
@@ -109,13 +116,16 @@ pub fn get_scheduler_state(
 }
 
 #[tauri::command]
-pub fn toggle_pause(paused: bool, scheduler: State<SharedScheduler>) {
+pub fn toggle_pause(paused: bool, scheduler: State<SharedScheduler>, config: State<ConfigState>, app: tauri::AppHandle) {
     let mut sched = scheduler.lock().unwrap();
     if paused {
-        sched.pause(30);
+        sched.pause(24 * 60); // Effectively indefinite until user resumes
     } else {
         sched.resume();
     }
+    let cfg = config.0.lock().unwrap();
+    let state = sched.get_state(&cfg);
+    let _ = app.emit("scheduler:state-update", &state);
 }
 
 #[tauri::command]
@@ -142,15 +152,19 @@ pub fn stop_sound(audio: State<Arc<AudioEngine>>) {
 }
 
 #[tauri::command]
-pub fn set_sound_volume(volume: u32, audio: State<Arc<AudioEngine>>) {
+pub fn set_sound_volume(volume: u32, audio: State<Arc<AudioEngine>>, yt: State<Arc<YouTubePlayer>>) {
     audio.set_volume(volume);
+    yt.set_volume(volume);
 }
 
 #[tauri::command]
-pub fn get_audio_state(audio: State<Arc<AudioEngine>>) -> serde_json::Value {
+pub fn get_audio_state(audio: State<Arc<AudioEngine>>, yt: State<Arc<YouTubePlayer>>) -> serde_json::Value {
+    let rodio_playing = audio.is_playing();
+    let yt_playing = yt.is_playing();
     serde_json::json!({
-        "playing": audio.is_playing(),
+        "playing": rodio_playing || yt_playing,
         "current_type": audio.current_type(),
+        "source": if yt_playing { "youtube" } else { "rodio" },
     })
 }
 

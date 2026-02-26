@@ -280,6 +280,7 @@
     "pause": "Pauza",
     "to_break": "{time} do przerwy",
     "break_now": "przerwa!",
-    "already_running": "HealthDesk już działa!\nSprawdź ikonę w zasobniku systemowym (tray)."
+    "already_running": "HealthDesk już działa!\nSprawdź ikonę w zasobniku systemowym (tray).",
+    "outside_work_hours": "Poza godzinami pracy"
   }
 }

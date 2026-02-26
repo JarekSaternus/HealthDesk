@@ -27,6 +27,8 @@ pub fn preset_stations() -> Vec<YTStation> {
 pub struct YouTubePlayer {
     ffplay_process: Mutex<Option<Child>>,
     current_station: Mutex<Option<String>>,
+    current_url: Mutex<Option<String>>,
+    current_volume: Mutex<u32>,
 }
 
 impl YouTubePlayer {
@@ -34,6 +36,8 @@ impl YouTubePlayer {
         Self {
             ffplay_process: Mutex::new(None),
             current_station: Mutex::new(None),
+            current_url: Mutex::new(None),
+            current_volume: Mutex::new(50),
         }
     }
 
@@ -71,6 +75,8 @@ impl YouTubePlayer {
 
         *self.ffplay_process.lock().unwrap() = Some(child);
         *self.current_station.lock().unwrap() = Some(station_name.to_string());
+        *self.current_url.lock().unwrap() = Some(audio_url);
+        *self.current_volume.lock().unwrap() = volume;
         Ok(())
     }
 
@@ -87,6 +93,7 @@ impl YouTubePlayer {
         }
         *proc = None;
         *self.current_station.lock().unwrap() = None;
+        *self.current_url.lock().unwrap() = None;
     }
 
     pub fn is_playing(&self) -> bool {
@@ -109,9 +116,29 @@ impl YouTubePlayer {
     }
 
     pub fn set_volume(&self, volume: u32) {
-        // ffplay doesn't support runtime volume change, would need restart
-        // For now this is a no-op; frontend should restart playback
-        let _ = volume;
+        *self.current_volume.lock().unwrap() = volume;
+        let url = self.current_url.lock().unwrap().clone();
+        if let Some(audio_url) = url {
+            // Kill current ffplay
+            let mut proc = self.ffplay_process.lock().unwrap();
+            if let Some(ref mut child) = *proc {
+                let _ = child.kill();
+                let _ = child.wait();
+            }
+            // Restart with new volume
+            let vol = (volume as f32 / 100.0 * 256.0) as u32;
+            let mut ffcmd = Command::new("ffplay");
+            ffcmd.args([
+                "-nodisp", "-autoexit", "-loglevel", "quiet",
+                "-volume", &vol.to_string(),
+                &audio_url,
+            ]);
+            #[cfg(target_os = "windows")]
+            ffcmd.creation_flags(CREATE_NO_WINDOW);
+            if let Ok(child) = ffcmd.spawn() {
+                *proc = Some(child);
+            }
+        }
     }
 }
 

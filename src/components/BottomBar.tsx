@@ -19,13 +19,16 @@ export default function BottomBar() {
     : 0;
 
   const isPaused = schedulerState?.paused ?? false;
+  const outsideWorkHours = schedulerState?.outside_work_hours ?? false;
 
   return (
     <div className="h-10 bg-sidebar border-t border-card flex items-center px-4 text-xs text-text-muted gap-6">
       <span>
         {isPaused
           ? `⏸ ${t("status.pause")}`
-          : `⏱ ${t("status.to_break", { time: formatTime(nextBreak) })}`}
+          : outsideWorkHours
+            ? `🌙 ${t("status.outside_work_hours")}`
+            : `⏱ ${t("status.to_break", { time: formatTime(nextBreak) })}`}
       </span>
     </div>
   );
