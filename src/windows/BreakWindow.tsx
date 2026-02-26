@@ -30,19 +30,14 @@ export default function BreakWindow() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleAccept = async () => {
-    await invoke("log_break", { breakType, durationSec: duration, skipped: false });
-    await invoke("popup_closed");
-    const win = getCurrentWebviewWindow();
-    await win.close();
+  const closeWindow = async (skipped: boolean) => {
+    try { await invoke("log_break", { breakType, durationSec: duration, skipped }); } catch (e) { console.warn("log_break failed:", e); }
+    try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
+    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
   };
 
-  const handleSkip = async () => {
-    await invoke("log_break", { breakType, durationSec: duration, skipped: true });
-    await invoke("popup_closed");
-    const win = getCurrentWebviewWindow();
-    await win.close();
-  };
+  const handleAccept = () => closeWindow(false);
+  const handleSkip = () => closeWindow(true);
 
   const progress = ((duration - remaining) / duration) * 100;
   const minutes = Math.floor(remaining / 60);

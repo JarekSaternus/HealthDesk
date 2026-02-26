@@ -29,16 +29,14 @@ export default function WaterReminder() {
   }, []);
 
   const handleDrank = async () => {
-    await invoke("log_water", { glasses: 1 });
-    await invoke("popup_closed");
-    const win = getCurrentWebviewWindow();
-    await win.close();
+    try { await invoke("log_water", { glasses: 1 }); } catch (e) { console.warn("log_water failed:", e); }
+    try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
+    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
   };
 
   const handleLater = async () => {
-    await invoke("popup_closed");
-    const win = getCurrentWebviewWindow();
-    await win.close();
+    try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
+    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
   };
 
   const waterGoal = config?.water_daily_goal ?? 8;

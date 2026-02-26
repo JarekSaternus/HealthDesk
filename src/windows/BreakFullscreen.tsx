@@ -45,10 +45,9 @@ export default function BreakFullscreen() {
   }, []);
 
   const handleDone = async (skipped: boolean) => {
-    await invoke("log_break", { breakType, durationSec: duration, skipped });
-    await invoke("popup_closed");
-    const win = getCurrentWebviewWindow();
-    await win.close();
+    try { await invoke("log_break", { breakType, durationSec: duration, skipped }); } catch (e) { console.warn("log_break failed:", e); }
+    try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
+    try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
   };
 
   const handleClick = () => {
