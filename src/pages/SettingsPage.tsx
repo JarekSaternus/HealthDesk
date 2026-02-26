@@ -1,6 +1,8 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { open } from "@tauri-apps/plugin-shell";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
@@ -14,6 +16,10 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [methods, setMethods] = useState<Record<string, WorkMethodPreset>>({});
   const [form, setForm] = useState(config!);
+  const [updateStatus, setUpdateStatus] = useState<"idle" | "checking" | "available" | "downloading" | "installing" | "up_to_date" | "error">("idle");
+  const [updateVersion, setUpdateVersion] = useState("");
+  const [downloadProgress, setDownloadProgress] = useState(0);
+  const [updateObj, setUpdateObj] = useState<any>(null);
 
   useEffect(() => {
     invoke<Record<string, WorkMethodPreset>>("get_work_methods").then(setMethods);
@@ -241,21 +247,50 @@ export default function SettingsPage() {
             checked={form.autostart}
             onChange={(v) => update("autostart", v)}
           />
-          <div className="flex items-center gap-3">
-            <Checkbox
-              label={t("settings.auto_update")}
-              checked={form.auto_update}
-              onChange={(v) => update("auto_update", v)}
-            />
-            {!form.auto_update && (
-              <button
-                onClick={() => open("https://github.com/JarekSaternus/HealthDesk/releases/latest")}
-                className="text-xs text-accent hover:text-accent-hover underline cursor-pointer"
-              >
-                {t("settings.check_now")}
-              </button>
-            )}
-          </div>
+          <Checkbox
+            label={t("settings.auto_update")}
+            checked={form.auto_update}
+            onChange={(v) => update("auto_update", v)}
+          />
+          <UpdateChecker
+            status={updateStatus}
+            version={updateVersion}
+            progress={downloadProgress}
+            onCheck={async () => {
+              setUpdateStatus("checking");
+              try {
+                const update = await check();
+                if (update) {
+                  setUpdateVersion(update.version);
+                  setUpdateObj(update);
+                  setUpdateStatus("available");
+                } else {
+                  setUpdateStatus("up_to_date");
+                  setTimeout(() => setUpdateStatus("idle"), 3000);
+                }
+              } catch {
+                setUpdateStatus("error");
+                setTimeout(() => setUpdateStatus("idle"), 3000);
+              }
+            }}
+            onDownload={async () => {
+              if (!updateObj) return;
+              setUpdateStatus("downloading");
+              let downloaded = 0;
+              let total = 0;
+              await updateObj.downloadAndInstall((event: any) => {
+                if (event.event === "Started") {
+                  total = event.data.contentLength || 0;
+                } else if (event.event === "Progress") {
+                  downloaded += event.data.chunkLength || 0;
+                  if (total > 0) setDownloadProgress(Math.round((downloaded / total) * 100));
+                } else if (event.event === "Finished") {
+                  setUpdateStatus("installing");
+                }
+              });
+              await relaunch();
+            }}
+          />
           <div>
             <label className="text-xs text-text-muted">{t("settings.language")}</label>
             <select
@@ -329,4 +364,45 @@ function Checkbox({
       </div>
     </label>
   );
+}
+
+function UpdateChecker({
+  status, version, progress, onCheck, onDownload,
+}: {
+  status: string; version: string; progress: number;
+  onCheck: () => void; onDownload: () => void;
+}) {
+  if (status === "idle") {
+    return (
+      <button onClick={onCheck} className="text-xs text-accent hover:text-accent-hover underline cursor-pointer">
+        {t("settings.check_now")}
+      </button>
+    );
+  }
+  if (status === "checking") {
+    return <span className="text-xs text-text-muted">{t("update.checking")}</span>;
+  }
+  if (status === "available") {
+    return (
+      <div className="flex items-center gap-3">
+        <span className="text-xs text-accent">{t("update.available", { version })}</span>
+        <button onClick={onDownload} className="text-xs bg-accent hover:bg-accent-hover text-white rounded px-3 py-1">
+          {t("update.download")}
+        </button>
+      </div>
+    );
+  }
+  if (status === "downloading") {
+    return <span className="text-xs text-text-muted">{t("update.downloading", { percent: String(progress) })}</span>;
+  }
+  if (status === "installing") {
+    return <span className="text-xs text-accent">{t("update.installing")}</span>;
+  }
+  if (status === "up_to_date") {
+    return <span className="text-xs text-accent">{t("update.up_to_date", { version: APP_VERSION })}</span>;
+  }
+  if (status === "error") {
+    return <span className="text-xs text-danger">{t("update.error")}</span>;
+  }
+  return null;
 }

@@ -55,7 +55,10 @@ jobs:
       - name: Build frontend
         run: npm run build
 
-      - name: Build Tauri
+      - name: Build Tauri (signed)
+        env:
+          TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
+          TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ""
         run: npx tauri build --target ${{ matrix.target }}
 
       - name: Collect artifacts
@@ -63,20 +66,118 @@ jobs:
         shell: bash
         run: |
           mkdir -p dist-upload
-          # Try target-specific path first, then generic release/bundle/
           for base in "src-tauri/target/${{ matrix.target }}/release/bundle" "src-tauri/target/release/bundle"; do
             if [ -d "$base" ]; then
               echo "Found bundle at: $base"
+              # Installers for users
               find "$base" -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.deb" -o -name "*.AppImage" \) -exec cp {} dist-upload/ \;
+              # Update bundles + signatures for auto-updater
+              find "$base" -type f \( -name "*.nsis.zip" -o -name "*.nsis.zip.sig" -o -name "*.tar.gz" -o -name "*.tar.gz.sig" -o -name "*.AppImage.sig" \) -exec cp {} dist-upload/ \;
             fi
           done
           echo "=== Collected artifacts ==="
           ls -la dist-upload/
 
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: artifacts-${{ matrix.target }}
+          path: dist-upload/*
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: all-artifacts
+          merge-multiple: true
+
+      - name: List all artifacts
+        run: ls -la all-artifacts/
+
+      - name: Generate latest.json
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          DATE=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+
+          # Read signatures
+          WIN_SIG=""
+          MAC_AARCH64_SIG=""
+          MAC_X64_SIG=""
+          LINUX_SIG=""
+
+          for f in all-artifacts/*.nsis.zip.sig; do
+            [ -f "$f" ] && WIN_SIG=$(cat "$f")
+          done
+          for f in all-artifacts/*aarch64*.tar.gz.sig; do
+            [ -f "$f" ] && MAC_AARCH64_SIG=$(cat "$f")
+          done
+          for f in all-artifacts/*x64*.tar.gz.sig all-artifacts/*x86_64*.tar.gz.sig; do
+            [ -f "$f" ] && [ -z "$MAC_AARCH64_SIG" ] || MAC_X64_SIG=$(cat "$f")
+          done
+          # Fix: read mac x64 sig properly
+          for f in all-artifacts/*.tar.gz.sig; do
+            [ -f "$f" ] || continue
+            name=$(basename "$f")
+            if echo "$name" | grep -q "aarch64"; then
+              MAC_AARCH64_SIG=$(cat "$f")
+            else
+              MAC_X64_SIG=$(cat "$f")
+            fi
+          done
+          for f in all-artifacts/*.AppImage.sig; do
+            [ -f "$f" ] && LINUX_SIG=$(cat "$f")
+          done
+
+          # Find update bundle URLs
+          REPO="JarekSaternus/HealthDesk"
+          TAG="${GITHUB_REF_NAME}"
+          BASE="https://github.com/${REPO}/releases/download/${TAG}"
+
+          WIN_ZIP=$(ls all-artifacts/*.nsis.zip 2>/dev/null | head -1 | xargs -r basename)
+          MAC_AARCH64_TAR=$(ls all-artifacts/*aarch64*.tar.gz 2>/dev/null | grep -v '.sig' | head -1 | xargs -r basename)
+          MAC_X64_TAR=$(ls all-artifacts/*.tar.gz 2>/dev/null | grep -v '.sig' | grep -v 'aarch64' | head -1 | xargs -r basename)
+          LINUX_APPIMAGE=$(ls all-artifacts/*.AppImage 2>/dev/null | head -1 | xargs -r basename)
+
+          # Build latest.json
+          cat > all-artifacts/latest.json << ENDJSON
+          {
+            "version": "${VERSION}",
+            "notes": "HealthDesk ${TAG}",
+            "pub_date": "${DATE}",
+            "platforms": {
+              "windows-x86_64": {
+                "signature": "${WIN_SIG}",
+                "url": "${BASE}/${WIN_ZIP}"
+              },
+              "darwin-aarch64": {
+                "signature": "${MAC_AARCH64_SIG}",
+                "url": "${BASE}/${MAC_AARCH64_TAR}"
+              },
+              "darwin-x86_64": {
+                "signature": "${MAC_X64_SIG}",
+                "url": "${BASE}/${MAC_X64_TAR}"
+              },
+              "linux-x86_64": {
+                "signature": "${LINUX_SIG}",
+                "url": "${BASE}/${LINUX_APPIMAGE}"
+              }
+            }
+          }
+          ENDJSON
+
+          echo "=== latest.json ==="
+          cat all-artifacts/latest.json
+
       - name: Upload to Release
         uses: softprops/action-gh-release@v2
         with:
-          files: dist-upload/*
+          files: all-artifacts/*
           tag_name: ${{ github.ref_name }}
           name: 'HealthDesk ${{ github.ref_name }}'
           body: |

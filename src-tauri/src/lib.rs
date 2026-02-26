@@ -71,6 +71,8 @@ pub fn run() {
                 let _ = win.set_focus();
             }
         }))
+        .plugin(tauri_plugin_updater::Builder::new().build())
+        .plugin(tauri_plugin_process::init())
         .manage(ConfigState(config_state.clone()))
         .manage(db.clone())
         .manage(scheduler.clone())

@@ -14,6 +14,8 @@
     "notification:default",
     "autostart:default",
     "autostart:allow-enable",
-    "autostart:allow-disable"
+    "autostart:allow-disable",
+    "updater:default",
+    "process:default"
   ]
 }
