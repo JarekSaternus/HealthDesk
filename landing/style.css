@@ -1684,4 +1684,175 @@ img {
     padding: 0 1.25rem 1rem;
     font-size: 0.88rem;
   }
+
+  .dl-modal-card {
+    margin: 1rem;
+    padding: 2rem 1.25rem;
+    max-height: 90vh;
+  }
+
+  .dl-modal-card h2 {
+    font-size: 1.3rem;
+  }
+
+  .dl-modal-steps {
+    gap: 0.6rem;
+  }
+
+  .dl-modal-download {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* ===== Download Modal ===== */
+.dl-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+.dl-modal.dl-modal-open {
+  opacity: 1;
+  visibility: visible;
+}
+
+.dl-modal-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  padding: 2.5rem;
+  max-width: 520px;
+  width: 100%;
+  position: relative;
+  text-align: center;
+  animation: fadeInUp 0.3s ease;
+}
+
+.dl-modal-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  font-size: 1.5rem;
+  cursor: pointer;
+  transition: color 0.2s;
+  line-height: 1;
+}
+
+.dl-modal-close:hover {
+  color: var(--text-primary);
+}
+
+.dl-modal-card h2 {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  margin-bottom: 0.5rem;
+}
+
+.dl-modal-subtitle {
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  margin-bottom: 1.5rem;
+  line-height: 1.6;
+}
+
+.dl-modal-tabs {
+  display: flex;
+  justify-content: center;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.dl-modal-tab {
+  padding: 0.4rem 1.25rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.dl-modal-tab:hover {
+  border-color: var(--border-hover);
+  color: var(--text-primary);
+}
+
+.dl-modal-tab-active {
+  background: rgba(45, 200, 216, 0.1);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.dl-modal-content {
+  text-align: left;
+  margin-bottom: 1.5rem;
+}
+
+.dl-modal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.dl-modal-step {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.dl-modal-step-num {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(45, 200, 216, 0.1);
+  border: 1px solid rgba(45, 200, 216, 0.25);
+  color: var(--accent);
+  font-size: 0.8rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.dl-modal-step code {
+  background: rgba(255, 255, 255, 0.06);
+  padding: 0.15rem 0.4rem;
+  border-radius: 4px;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.dl-modal-note {
+  font-size: 0.78rem;
+  color: var(--text-dim);
+  margin-top: 1rem;
+  font-style: italic;
+  line-height: 1.5;
+}
+
+.dl-modal-download {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
 }

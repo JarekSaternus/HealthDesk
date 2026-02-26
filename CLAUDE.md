@@ -20,7 +20,7 @@ npm run tauri dev
 
 # Production build
 npm run tauri build
-# Output: src-tauri/target/release/bundle/nsis/HealthDesk_2.0.0_x64-setup.exe
+# Output: src-tauri/target/release/bundle/nsis/HealthDesk_<version>_x64-setup.exe
 
 # Frontend only
 npm run dev          # Vite dev server
@@ -70,6 +70,15 @@ No test suite exists yet.
 
 **Event flow:** Scheduler emits Tauri events → lib.rs listeners → PopupManager creates windows → React popup components → invoke() IPC back to Rust
 
+**Popup window routing** (separate Tauri webview windows):
+- `/break?type=big|small&duration=X` → BreakWindow
+- `/break-fullscreen` → BreakFullscreen (aggressive mode)
+- `/eye-exercise` → EyeExercise
+- `/stretch-exercise` → StretchExercise
+- `/water-reminder` → WaterReminder
+
+**Tauri plugins:** autostart, notification, shell (yt-dlp), single-instance, updater
+
 **Data compatibility:** Reads same `%APPDATA%/HealthDesk/` as the Python version (same SQLite schema, same config.json keys).
 
 ## Conventions
@@ -88,6 +97,19 @@ No test suite exists yet.
 1. `package.json` — pole `"version"`
 2. `src-tauri/Cargo.toml` — pole `version`
 3. `src-tauri/tauri.conf.json` — pole `"version"`
+
+## CI/CD
+
+GitHub Actions workflow (`.github/workflows/release.yml`) triggers on tag push `v*`:
+- Builds for Windows (MSVC x64), macOS (arm64 + x64), Linux (x64)
+- Uploads `.exe`, `.dmg`, `.deb`, `.AppImage` to GitHub Releases
+- To release: tag commit with `v<version>` and push
+
+## Landing Page
+
+Static site in `landing/` deployed to `healthdesk.site` via FTP.
+- Polish text, dark theme matching the app
+- Deploy: upload `landing/*` to FTP `public_html/`
 
 ## Build Requirements
 

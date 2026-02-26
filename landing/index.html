@@ -545,6 +545,97 @@
     </div>
   </section>
 
+  <!-- ===== Download Modal ===== -->
+  <div id="dl-modal" class="dl-modal" onclick="if(event.target===this)this.classList.remove('dl-modal-open')">
+    <div class="dl-modal-card">
+      <button class="dl-modal-close" onclick="this.closest('.dl-modal').classList.remove('dl-modal-open')">&times;</button>
+      <h2>Przed instalacją</h2>
+      <p class="dl-modal-subtitle">Aplikacja jest bezpieczna i <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>. System może wymagać dodatkowego kroku.</p>
+
+      <div class="dl-modal-tabs">
+        <button class="dl-modal-tab dl-modal-tab-active" onclick="showDlTab('windows',this)">Windows</button>
+        <button class="dl-modal-tab" onclick="showDlTab('macos',this)">macOS</button>
+        <button class="dl-modal-tab" onclick="showDlTab('linux',this)">Linux</button>
+      </div>
+
+      <div id="dl-tab-windows" class="dl-modal-content">
+        <div class="dl-modal-steps">
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">1</span>
+            <span>Pobierz i uruchom instalator <strong>.exe</strong></span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">2</span>
+            <span>Pojawi sie niebieski ekran <strong>Windows SmartScreen</strong></span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">3</span>
+            <span>Kliknij <strong>„Wiecej informacji"</strong> (More info)</span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">4</span>
+            <span>Kliknij <strong>„Uruchom mimo to"</strong> (Run anyway)</span>
+          </div>
+        </div>
+        <p class="dl-modal-note">SmartScreen pojawia sie przy kazdej nowej aplikacji bez komercyjnego certyfikatu. To normalne.</p>
+      </div>
+
+      <div id="dl-tab-macos" class="dl-modal-content" style="display:none">
+        <div class="dl-modal-steps">
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">1</span>
+            <span>Pobierz plik <strong>.dmg</strong> i otwórz go</span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">2</span>
+            <span>Przeciagnij HealthDesk do folderu <strong>Aplikacje</strong></span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">3</span>
+            <span>Przy pierwszym uruchomieniu: <strong>kliknij prawym</strong> > Otwórz</span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">4</span>
+            <span>Potwierdz klikajac <strong>„Otwórz"</strong> w oknie dialogowym</span>
+          </div>
+        </div>
+        <p class="dl-modal-note">macOS Gatekeeper blokuje aplikacje spoza App Store. Prawy klik > Otwórz omija to.</p>
+      </div>
+
+      <div id="dl-tab-linux" class="dl-modal-content" style="display:none">
+        <div class="dl-modal-steps">
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">1</span>
+            <span>Pobierz <strong>.AppImage</strong> lub <strong>.deb</strong></span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">2</span>
+            <span>AppImage: <code>chmod +x HealthDesk.AppImage</code> i uruchom</span>
+          </div>
+          <div class="dl-modal-step">
+            <span class="dl-modal-step-num">3</span>
+            <span>Deb: <code>sudo dpkg -i healthdesk.deb</code></span>
+          </div>
+        </div>
+        <p class="dl-modal-note">Linux nie ma odpowiednika SmartScreen — instalacja bez dodatkowych kroków.</p>
+      </div>
+
+      <a id="dl-modal-btn" href="#" class="btn btn-primary btn-lg dl-modal-download">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Pobierz teraz
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function showDlTab(tab, btn) {
+      document.querySelectorAll('.dl-modal-content').forEach(function(el) { el.style.display = 'none'; });
+      document.querySelectorAll('.dl-modal-tab').forEach(function(el) { el.classList.remove('dl-modal-tab-active'); });
+      document.getElementById('dl-tab-' + tab).style.display = 'block';
+      btn.classList.add('dl-modal-tab-active');
+    }
+  </script>
+
   <!-- ===== Footer ===== -->
   <footer class="footer">
     <div class="container">
@@ -662,11 +753,33 @@
               el.textContent = 'Wersja ' + tag;
             });
           }
-          // Track download clicks
+          // Store URLs for modal
+          window._dlUrls = urls;
+          window._dlBestUrl = bestUrl;
+          window._dlLinux = linux;
+
+          // Intercept download clicks — show modal instead
           document.querySelectorAll('[data-download], .platform-dl-btn').forEach(function(el) {
-            el.addEventListener('click', function() {
-              var count = parseInt(localStorage.getItem('hd_downloads') || '0', 10) + 1;
-              localStorage.setItem('hd_downloads', String(count));
+            el.addEventListener('click', function(e) {
+              e.preventDefault();
+              var modal = document.getElementById('dl-modal');
+              var modalBtn = document.getElementById('dl-modal-btn');
+              // Determine which URL this button targets
+              var url = el.href || bestUrl;
+              modalBtn.href = url;
+              // Auto-select tab based on detected OS
+              var tab = userOS;
+              if (el.closest('#dl-windows')) tab = 'windows';
+              else if (el.closest('#dl-macos')) tab = 'macos';
+              else if (el.closest('#dl-linux')) tab = 'linux';
+              var tabBtn = document.querySelector('.dl-modal-tab:nth-child(' + ({windows:1,macos:2,linux:3}[tab]) + ')');
+              if (tabBtn) showDlTab(tab, tabBtn);
+              modal.classList.add('dl-modal-open');
+              // Track download on actual download
+              modalBtn.onclick = function() {
+                var count = parseInt(localStorage.getItem('hd_downloads') || '0', 10) + 1;
+                localStorage.setItem('hd_downloads', String(count));
+              };
             });
           });
         });
