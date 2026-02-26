@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { invoke } from "@tauri-apps/api/core";
+import { check } from "@tauri-apps/plugin-updater";
+import { relaunch } from "@tauri-apps/plugin-process";
 import { useAppStore } from "./stores/appStore";
 import { loadTranslations } from "./i18n";
+import { t } from "./i18n";
 import Sidebar from "./components/Sidebar";
 import BottomBar from "./components/BottomBar";
 import HomePage from "./pages/HomePage";
@@ -15,6 +18,78 @@ import BreakFullscreen from "./windows/BreakFullscreen";
 import EyeExercise from "./windows/EyeExercise";
 import StretchExercise from "./windows/StretchExercise";
 import WaterReminder from "./windows/WaterReminder";
+
+function UpdateModal({ version, onClose }: { version: string; onClose: () => void }) {
+  const [status, setStatus] = useState<"prompt" | "downloading" | "installing">("prompt");
+  const [progress, setProgress] = useState(0);
+  const [updateObj, setUpdateObj] = useState<any>(null);
+
+  useEffect(() => {
+    check().then((update) => {
+      if (update) setUpdateObj(update);
+    }).catch(() => {});
+  }, []);
+
+  const handleDownload = async () => {
+    if (!updateObj) return;
+    setStatus("downloading");
+    let downloaded = 0;
+    let total = 0;
+    await updateObj.downloadAndInstall((event: any) => {
+      if (event.event === "Started") {
+        total = event.data.contentLength || 0;
+      } else if (event.event === "Progress") {
+        downloaded += event.data.chunkLength || 0;
+        if (total > 0) setProgress(Math.round((downloaded / total) * 100));
+      } else if (event.event === "Finished") {
+        setStatus("installing");
+      }
+    });
+    await relaunch();
+  };
+
+  return (
+    <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50">
+      <div className="bg-card rounded-xl p-6 max-w-sm w-full mx-4 shadow-2xl">
+        <h2 className="text-accent text-lg font-bold mb-2">{t("update.title")}</h2>
+
+        {status === "prompt" && (
+          <>
+            <p className="text-text text-sm mb-1">{t("update.available", { version })}</p>
+            <p className="text-text-muted text-xs mb-4">{t("update.restart_note")}</p>
+            <div className="flex gap-3">
+              <button
+                onClick={handleDownload}
+                className="bg-accent hover:bg-accent-hover text-white rounded px-4 py-2 text-sm font-medium flex-1"
+              >
+                {t("update.download")}
+              </button>
+              <button
+                onClick={onClose}
+                className="bg-card-hover hover:bg-content text-text-muted rounded px-4 py-2 text-sm flex-1"
+              >
+                {t("update.later")}
+              </button>
+            </div>
+          </>
+        )}
+
+        {status === "downloading" && (
+          <>
+            <p className="text-text-muted text-sm mb-3">{t("update.downloading", { percent: String(progress) })}</p>
+            <div className="w-full h-2 bg-card-hover rounded-full overflow-hidden">
+              <div className="h-full bg-accent rounded-full transition-all" style={{ width: `${progress}%` }} />
+            </div>
+          </>
+        )}
+
+        {status === "installing" && (
+          <p className="text-accent text-sm">{t("update.installing")}</p>
+        )}
+      </div>
+    </div>
+  );
+}
 
 function MainLayout() {
   const currentPage = useAppStore((s) => s.currentPage);
@@ -47,6 +122,7 @@ function MainLayout() {
 export default function App() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [updateAvailable, setUpdateAvailable] = useState<string | null>(null);
   const loadConfig = useAppStore((s) => s.loadConfig);
   const initListeners = useAppStore((s) => s.initListeners);
 
@@ -72,6 +148,19 @@ export default function App() {
           } catch (e) {
             console.warn("Auto-resume audio failed:", e);
           }
+          // Auto-check for updates after 3 seconds
+          setTimeout(async () => {
+            try {
+              const cfg = useAppStore.getState().config;
+              if (cfg?.auto_update === false) return;
+              const update = await check();
+              if (update) {
+                setUpdateAvailable(update.version);
+              }
+            } catch (e) {
+              console.warn("Update check failed:", e);
+            }
+          }, 3000);
         }
         setReady(true);
       } catch (err) {
@@ -106,5 +195,15 @@ export default function App() {
   if (path.startsWith("/stretch-exercise")) return <StretchExercise />;
   if (path.startsWith("/water-reminder")) return <WaterReminder />;
 
-  return <MainLayout />;
+  return (
+    <>
+      <MainLayout />
+      {updateAvailable && (
+        <UpdateModal
+          version={updateAvailable}
+          onClose={() => setUpdateAvailable(null)}
+        />
+      )}
+    </>
+  );
 }
