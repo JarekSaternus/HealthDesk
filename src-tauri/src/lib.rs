@@ -81,6 +81,12 @@ pub fn run() {
         .setup(move |app| {
             let app_handle = app.handle().clone();
 
+            // Sync autostart state from config
+            if cfg.autostart {
+                use tauri_plugin_autostart::ManagerExt;
+                let _ = app_handle.autolaunch().enable();
+            }
+
             // Setup tray
             let _ = tray::setup_tray(&app_handle, db_clone.clone(), scheduler_clone.clone(), config_clone.clone(), i18n.clone(), audio.clone(), yt_player.clone());
 
@@ -194,6 +200,7 @@ pub fn run() {
             commands::report_ad_click,
             commands::get_translations,
             commands::change_language,
+            commands::set_autostart,
         ])
         .on_window_event(|window, event| {
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {

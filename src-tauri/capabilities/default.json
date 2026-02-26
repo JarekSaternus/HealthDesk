@@ -10,6 +10,8 @@
     "core:event:allow-emit",
     "shell:allow-open",
     "notification:default",
-    "autostart:default"
+    "autostart:default",
+    "autostart:allow-enable",
+    "autostart:allow-disable"
   ]
 }

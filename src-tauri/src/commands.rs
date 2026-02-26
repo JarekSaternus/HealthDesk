@@ -18,6 +18,7 @@ pub fn get_config(config: State<ConfigState>) -> AppConfig {
 
 #[tauri::command]
 pub fn save_config(
+    app: tauri::AppHandle,
     new_config: AppConfig,
     config: State<ConfigState>,
     scheduler: State<SharedScheduler>,
@@ -31,6 +32,17 @@ pub fn save_config(
     let old_cfg = conf.clone();
     *conf = cfg.clone();
     drop(conf);
+
+    // Sync autostart when setting changes
+    if old_cfg.autostart != cfg.autostart {
+        use tauri_plugin_autostart::ManagerExt;
+        let autostart = app.autolaunch();
+        if cfg.autostart {
+            let _ = autostart.enable();
+        } else {
+            let _ = autostart.disable();
+        }
+    }
 
     // Only reset timers if break intervals actually changed
     let intervals_changed =
@@ -60,6 +72,17 @@ pub fn save_config(
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn set_autostart(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
+    use tauri_plugin_autostart::ManagerExt;
+    let autostart = app.autolaunch();
+    if enabled {
+        autostart.enable().map_err(|e| e.to_string())
+    } else {
+        autostart.disable().map_err(|e| e.to_string())
+    }
 }
 
 #[tauri::command]
