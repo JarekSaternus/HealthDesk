@@ -737,14 +737,31 @@
           if (!urls.macos) document.getElementById('dl-macos').classList.add('platform-unavailable');
           if (!linux) document.getElementById('dl-linux').classList.add('platform-unavailable');
 
-          // Download count from GitHub + offset for pre-GitHub downloads
+          // Download count from ALL GitHub releases + offset
           var DOWNLOAD_OFFSET = 501;
-          var totalDownloads = DOWNLOAD_OFFSET;
-          assets.forEach(function(a) { totalDownloads += (a.download_count || 0); });
-          var countEl = document.getElementById('download-count');
-          if (countEl) countEl.textContent = totalDownloads.toLocaleString('pl-PL');
-          var heroCount = document.getElementById('hero-download-count');
-          if (heroCount) heroCount.textContent = 'Pobrano ' + totalDownloads.toLocaleString('pl-PL') + ' razy';
+          (function updateDownloadCount() {
+            fetch('https://api.github.com/repos/JarekSaternus/HealthDesk/releases')
+              .then(function(r) { return r.json(); })
+              .then(function(allReleases) {
+                var total = DOWNLOAD_OFFSET;
+                (allReleases || []).forEach(function(rel) {
+                  (rel.assets || []).forEach(function(a) { total += (a.download_count || 0); });
+                });
+                var countEl = document.getElementById('download-count');
+                if (countEl) countEl.textContent = total.toLocaleString('pl-PL');
+                var heroCount = document.getElementById('hero-download-count');
+                if (heroCount) heroCount.textContent = 'Pobrano ' + total.toLocaleString('pl-PL') + ' razy';
+              })
+              .catch(function() {
+                // Fallback: use only latest release assets
+                var total = DOWNLOAD_OFFSET;
+                assets.forEach(function(a) { total += (a.download_count || 0); });
+                var countEl = document.getElementById('download-count');
+                if (countEl) countEl.textContent = total.toLocaleString('pl-PL');
+                var heroCount = document.getElementById('hero-download-count');
+                if (heroCount) heroCount.textContent = 'Pobrano ' + total.toLocaleString('pl-PL') + ' razy';
+              });
+          })();
 
           // Version badge
           var tag = (data.tag_name || '').replace(/^v/i, '');
