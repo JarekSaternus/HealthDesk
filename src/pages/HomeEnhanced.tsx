@@ -276,6 +276,11 @@ export default function HomeEnhanced() {
           ))}
         </div>
         <ProgressBar value={waterToday} max={waterGoal} color="#3498db" />
+        {schedulerState && schedulerState.time_to_water > 0 && (
+          <div className="text-xs text-text-muted mt-1">
+            {t("home.next_water")} {formatCountdown(schedulerState.time_to_water)}
+          </div>
+        )}
       </Card>
 
       {/* Breaks taken/skipped + Sound */}

@@ -130,6 +130,11 @@ export default function HomeCompact() {
             </span>
           ))}
         </div>
+        {schedulerState && schedulerState.time_to_water > 0 && (
+          <div className="text-xs text-text-muted mt-1">
+            {t("home.next_water")} {formatCountdown(schedulerState.time_to_water)}
+          </div>
+        )}
       </Card>
 
       {/* Sound */}

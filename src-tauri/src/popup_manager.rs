@@ -154,6 +154,7 @@ pub fn popup_closed(
     config: &crate::config::AppConfig,
 ) {
     let mut mgr = manager.lock().unwrap();
+    let closed_type = mgr.current_popup;
     mgr.current_popup = None;
 
     if let Some(next) = mgr.queue.pop() {
@@ -167,7 +168,7 @@ pub fn popup_closed(
         show_popup_window(app, next.popup_type, break_mode, duration);
     } else {
         drop(mgr);
-        scheduler.lock().unwrap().resume_after_popup();
+        scheduler.lock().unwrap().resume_after_popup(closed_type);
     }
 }
 

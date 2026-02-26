@@ -96,13 +96,34 @@ impl SchedulerInner {
         self.popup_paused = true;
     }
 
-    pub fn resume_after_popup(&mut self) {
+    pub fn resume_after_popup(&mut self, popup_type: Option<crate::popup_manager::PopupType>) {
         self.popup_paused = false;
         let now = Instant::now();
-        self.last_small_break = now;
-        self.last_big_break = now;
-        self.last_water = now;
-        self.last_eye = now;
+        match popup_type {
+            Some(crate::popup_manager::PopupType::SmallBreak) => {
+                self.last_small_break = now;
+            }
+            Some(crate::popup_manager::PopupType::BigBreak) => {
+                self.last_small_break = now;
+                self.last_big_break = now;
+            }
+            Some(crate::popup_manager::PopupType::WaterReminder) => {
+                self.last_water = now;
+            }
+            Some(crate::popup_manager::PopupType::EyeExercise) => {
+                self.last_eye = now;
+            }
+            Some(crate::popup_manager::PopupType::StretchExercise) => {
+                // stretch comes with big break, don't reset break timers
+            }
+            None => {
+                // fallback: reset all
+                self.last_small_break = now;
+                self.last_big_break = now;
+                self.last_water = now;
+                self.last_eye = now;
+            }
+        }
     }
 
     fn in_work_hours(&self, config: &AppConfig) -> bool {
