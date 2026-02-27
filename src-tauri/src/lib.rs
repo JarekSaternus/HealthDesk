@@ -227,12 +227,35 @@ pub fn run() {
             commands::set_autostart,
         ])
         .on_window_event(|window, event| {
-            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
-                if window.label() == "main" {
-                    // Hide to tray instead of closing
-                    api.prevent_close();
-                    let _ = window.hide();
+            match event {
+                tauri::WindowEvent::CloseRequested { api, .. } => {
+                    if window.label() == "main" {
+                        // Hide to tray instead of closing
+                        api.prevent_close();
+                        let _ = window.hide();
+                    }
                 }
+                tauri::WindowEvent::Destroyed => {
+                    let label = window.label();
+                    // If a popup window was destroyed (e.g. closed via X button)
+                    // without calling popup_closed, unblock the scheduler
+                    if label != "main" {
+                        let app = window.app_handle();
+                        let mgr = app.state::<popup_manager::SharedPopupManager>();
+                        let sched = app.state::<SharedScheduler>();
+                        let config = app.state::<ConfigState>();
+                        let inner = mgr.lock().unwrap();
+                        let is_current = inner.current_popup
+                            .map(|p| p.label() == label)
+                            .unwrap_or(false);
+                        drop(inner);
+                        if is_current {
+                            let cfg = config.0.lock().unwrap().clone();
+                            popup_manager::popup_closed(app, &mgr, &sched, &cfg.break_mode, &cfg);
+                        }
+                    }
+                }
+                _ => {}
             }
         })
         .build(tauri::generate_context!())

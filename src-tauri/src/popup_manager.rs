@@ -85,7 +85,7 @@ impl PartialOrd for QueuedPopup {
 pub struct PopupManagerInner {
     queue: BinaryHeap<QueuedPopup>,
     seq_counter: u64,
-    current_popup: Option<PopupType>,
+    pub current_popup: Option<PopupType>,
 }
 
 impl PopupManagerInner {
