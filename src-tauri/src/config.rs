@@ -58,6 +58,10 @@ pub struct AppConfig {
     pub breathing_exercise_interval_min: u32,
     #[serde(default = "default_true")]
     pub breathing_exercise_enabled: bool,
+    #[serde(default = "default_true")]
+    pub idle_detection_enabled: bool,
+    #[serde(default = "default_idle_threshold")]
+    pub idle_threshold_min: u32,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -76,6 +80,7 @@ fn default_volume() -> u32 { 10 }
 fn default_lang() -> String { "pl".into() }
 fn default_dashboard_layout() -> String { "enhanced".into() }
 fn default_breathing_interval() -> u32 { 45 }
+fn default_idle_threshold() -> u32 { 5 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct WorkMethodPreset {
@@ -209,6 +214,8 @@ impl Default for AppConfig {
             dashboard_layout: "enhanced".into(),
             breathing_exercise_interval_min: 45,
             breathing_exercise_enabled: true,
+            idle_detection_enabled: true,
+            idle_threshold_min: 5,
         }
     }
 }

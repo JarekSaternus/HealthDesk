@@ -208,6 +208,27 @@ export default function HomeEnhanced() {
         )}
       </Card>
 
+      {/* Idle / DND status badge */}
+      {(schedulerState?.idle || schedulerState?.dnd) && (
+        <Card>
+          <div className="flex items-center gap-2 py-1">
+            {schedulerState.idle && (
+              <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
+                {t("home.idle")}
+              </span>
+            )}
+            {schedulerState.dnd && (
+              <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
+                {t("home.dnd")}
+              </span>
+            )}
+            <span className="text-xs text-text-muted">
+              {schedulerState.idle ? t("settings.idle_enabled_desc") : ""}
+            </span>
+          </div>
+        </Card>
+      )}
+
       {/* Break timers side by side */}
       {schedulerState?.outside_work_hours ? (
         <Card>

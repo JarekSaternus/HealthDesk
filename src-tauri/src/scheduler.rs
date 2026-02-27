@@ -4,6 +4,50 @@ use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 use crate::config::AppConfig;
 
+#[cfg(windows)]
+fn get_system_idle_secs() -> u64 {
+    use windows::Win32::UI::Input::KeyboardAndMouse::{GetLastInputInfo, LASTINPUTINFO};
+    use windows::Win32::System::SystemInformation::GetTickCount;
+    unsafe {
+        let mut lii = LASTINPUTINFO {
+            cbSize: std::mem::size_of::<LASTINPUTINFO>() as u32,
+            dwTime: 0,
+        };
+        if GetLastInputInfo(&mut lii).as_bool() {
+            let now = GetTickCount();
+            let idle_ms = now.wrapping_sub(lii.dwTime);
+            (idle_ms / 1000) as u64
+        } else {
+            0
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn get_system_idle_secs() -> u64 {
+    0
+}
+
+#[cfg(windows)]
+fn is_dnd_active() -> bool {
+    use windows::Win32::UI::Shell::SHQueryUserNotificationState;
+    unsafe {
+        if let Ok(state) = SHQueryUserNotificationState() {
+            // QUNS_BUSY (2) = fullscreen app, QUNS_RUNNING_D3D_FULL_SCREEN (3),
+            // QUNS_PRESENTATION_MODE (4), QUNS_ACCEPTS_NOTIFICATIONS (5) = normal
+            // QUNS_QUIET_TIME (6) = quiet hours / focus assist
+            matches!(state.0, 2 | 3 | 4 | 6)
+        } else {
+            false
+        }
+    }
+}
+
+#[cfg(not(windows))]
+fn is_dnd_active() -> bool {
+    false
+}
+
 const PROTECTION_ZONE_SEC: f64 = 5.0 * 60.0;
 
 #[derive(Debug, Clone, Serialize)]
@@ -11,6 +55,8 @@ pub struct SchedulerState {
     pub paused: bool,
     pub popup_paused: bool,
     pub outside_work_hours: bool,
+    pub idle: bool,
+    pub dnd: bool,
     pub time_to_small_break: f64,
     pub time_to_big_break: f64,
     pub time_to_water: f64,
@@ -24,6 +70,7 @@ pub struct SchedulerInner {
     pub pause_until: Option<Instant>,
     pub pause_start: Option<Instant>,
     pub popup_paused: bool,
+    pub idle_since: Option<Instant>,
     pub last_small_break: Instant,
     pub last_big_break: Instant,
     pub last_water: Instant,
@@ -65,6 +112,7 @@ impl SchedulerInner {
             pause_until: None,
             pause_start: None,
             popup_paused: false,
+            idle_since: None,
             last_small_break: last_small,
             last_big_break: last_big,
             last_water: now,
@@ -187,8 +235,9 @@ impl SchedulerInner {
         let breathing_interval = config.breathing_exercise_interval_min as f64 * 60.0;
         let outside = !self.in_work_hours(config);
 
-        // When paused, show frozen timer values from pause_start moment
-        let (t_small, t_big, t_water, t_eye, t_breathing) = if let Some(frozen) = self.pause_start {
+        // When paused or idle, show frozen timer values
+        let frozen_at = self.pause_start.or(self.idle_since);
+        let (t_small, t_big, t_water, t_eye, t_breathing) = if let Some(frozen) = frozen_at {
             (
                 Self::time_to_next_frozen(self.last_small_break, small_interval, frozen),
                 Self::time_to_next_frozen(self.last_big_break, big_interval, frozen),
@@ -210,6 +259,8 @@ impl SchedulerInner {
             paused: self.paused,
             popup_paused: self.popup_paused,
             outside_work_hours: outside,
+            idle: self.idle_since.is_some(),
+            dnd: false, // set by scheduler loop
             time_to_small_break: t_small,
             time_to_big_break: t_big,
             time_to_water: t_water,
@@ -252,6 +303,44 @@ pub fn start_scheduler(
 
             if sched.popup_paused {
                 let state = sched.get_state(&cfg);
+                let _ = app.emit("scheduler:state-update", &state);
+                continue;
+            }
+
+            // Idle detection
+            if cfg.idle_detection_enabled {
+                let idle_secs = get_system_idle_secs();
+                let threshold_secs = cfg.idle_threshold_min as u64 * 60;
+
+                if idle_secs >= threshold_secs && sched.idle_since.is_none() {
+                    // User went idle — freeze timers
+                    sched.idle_since = Some(Instant::now());
+                    let _ = app.emit("scheduler:idle-detected", ());
+                } else if idle_secs < threshold_secs && sched.idle_since.is_some() {
+                    // User returned — reset timers (natural break happened)
+                    let idle_start = sched.idle_since.unwrap();
+                    let idle_duration = idle_start.elapsed();
+                    sched.last_small_break += idle_duration;
+                    sched.last_big_break += idle_duration;
+                    sched.last_water += idle_duration;
+                    sched.last_eye += idle_duration;
+                    sched.last_breathing += idle_duration;
+                    sched.idle_since = None;
+                    let _ = app.emit("scheduler:idle-resumed", ());
+                }
+
+                if sched.idle_since.is_some() {
+                    let state = sched.get_state(&cfg);
+                    let _ = app.emit("scheduler:state-update", &state);
+                    continue;
+                }
+            }
+
+            // DND / Focus Assist detection
+            let dnd = is_dnd_active();
+            if dnd {
+                let mut state = sched.get_state(&cfg);
+                state.dnd = true;
                 let _ = app.emit("scheduler:state-update", &state);
                 continue;
             }

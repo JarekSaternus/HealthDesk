@@ -194,6 +194,28 @@ export default function SettingsPage() {
         )}
       </Card>
 
+      {/* Idle detection */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.idle_section")}</h3>
+        <Checkbox
+          label={t("settings.idle_enabled")}
+          desc={t("settings.idle_enabled_desc")}
+          checked={form.idle_detection_enabled}
+          onChange={(v) => update("idle_detection_enabled", v)}
+        />
+        {form.idle_detection_enabled && (
+          <div className="mt-3">
+            <SliderField
+              label={t("settings.idle_threshold")}
+              value={form.idle_threshold_min}
+              min={1} max={30}
+              unit={t("settings.unit_min")}
+              onChange={(v) => update("idle_threshold_min", v)}
+            />
+          </div>
+        )}
+      </Card>
+
       {/* Work hours */}
       <Card>
         <h3 className="text-sm font-medium mb-3">{t("settings.work_hours_section")}</h3>

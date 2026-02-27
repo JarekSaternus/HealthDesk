@@ -34,7 +34,9 @@
     "show_more": "Show more",
     "show_less": "Show less",
     "no_results": "No results",
-    "searching": "Searching..."
+    "searching": "Searching...",
+    "idle": "Idle",
+    "dnd": "Do Not Disturb"
   },
 
   "stats": {
@@ -132,7 +134,11 @@
     "layout_compact": "Compact",
     "unit_min": "min",
     "unit_sec": "sec",
-    "unit_glasses": "glasses"
+    "unit_glasses": "glasses",
+    "idle_section": "Idle detection",
+    "idle_enabled": "Detect idle and freeze timers",
+    "idle_enabled_desc": "When you stop using mouse/keyboard for the set time, timers will freeze",
+    "idle_threshold": "Idle threshold"
   },
 
   "help": {

@@ -1076,6 +1076,72 @@ img {
   color: var(--text-dim);
 }
 
+/* ===== Breathing Popup ===== */
+.mockup-popup-breathing {
+  bottom: auto;
+  top: -20px;
+  right: -30px;
+  width: 220px;
+  border-color: rgba(46,204,113,0.3);
+  box-shadow: 0 16px 48px rgba(0,0,0,0.5), 0 0 40px rgba(46,204,113,0.1);
+  animation: popupFloat 3.5s ease-in-out infinite alternate-reverse;
+}
+
+.breathing-orb-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 0.4rem;
+}
+
+.breathing-orb {
+  position: absolute;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(46,204,113,0.3) 0%, rgba(46,204,113,0.08) 70%, transparent 100%);
+  transform: scale(0.6);
+  transition: transform 4s ease-in-out;
+}
+
+.breathing-orb-inner {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+}
+
+.breathing-phase-label {
+  font-size: 0.6rem;
+  color: #8892a6;
+  margin-bottom: 0.1rem;
+}
+
+.breathing-timer {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #2ecc71;
+  font-variant-numeric: tabular-nums;
+}
+
+.breathing-cycle-info {
+  font-size: 0.55rem;
+  color: #8892a6;
+  margin-bottom: 0.4rem;
+}
+
+.breathing-close-btn {
+  display: inline-block;
+  padding: 3px 14px;
+  border-radius: 6px;
+  font-size: 0.55rem;
+  background: rgba(255,255,255,0.06);
+  color: #8892a6;
+  cursor: default;
+}
+
 /* ===== How It Works ===== */
 .how-it-works {
   padding: 7rem 0;
@@ -1213,6 +1279,220 @@ img {
   font-size: 0.72rem;
   color: var(--text-dim);
   margin-top: 0.75rem;
+  font-style: italic;
+}
+
+/* ===== Comparison ===== */
+.comparison {
+  padding: 7rem 0;
+  background: linear-gradient(180deg, var(--bg-primary) 0%, #0f1923 50%, var(--bg-primary) 100%);
+}
+
+.comparison-table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  border-radius: var(--radius-lg);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #111827;
+  box-shadow: 0 8px 48px rgba(0, 0, 0, 0.4), 0 0 80px rgba(45, 200, 216, 0.04);
+  position: relative;
+}
+
+.comparison-table-wrapper::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 10%, rgba(45, 200, 216, 0.4) 50%, transparent 90%);
+  z-index: 1;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.comparison-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+  min-width: 740px;
+}
+
+/* Header */
+.comparison-table th {
+  padding: 1.4rem 1rem 1.2rem;
+  text-align: center;
+  font-weight: 600;
+  color: var(--text-muted);
+  background: #141821;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.06);
+  vertical-align: bottom;
+}
+
+.comparison-table th:first-child {
+  text-align: left;
+}
+
+.cmp-feature-col {
+  width: 180px;
+  min-width: 160px;
+}
+
+.cmp-app-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.cmp-app-icon {
+  width: 22px;
+  height: 22px;
+  border-radius: 5px;
+}
+
+.cmp-app-label {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.cmp-app-other {
+  color: var(--text-muted);
+  font-weight: 600;
+}
+
+/* Group headers */
+.cmp-group-header td {
+  padding: 0.6rem 1rem;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  background: rgba(45, 200, 216, 0.04);
+  border-bottom: 1px solid rgba(45, 200, 216, 0.1);
+  border-top: 1px solid rgba(45, 200, 216, 0.08);
+}
+
+/* Body cells */
+.comparison-table td {
+  padding: 0.7rem 1rem;
+  text-align: center;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  color: var(--text-muted);
+  vertical-align: middle;
+  font-size: 0.84rem;
+}
+
+.comparison-table tbody tr:hover:not(.cmp-group-header) {
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.comparison-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* Zebra striping for readability */
+.comparison-table tbody tr:nth-child(even):not(.cmp-group-header) {
+  background: rgba(255, 255, 255, 0.01);
+}
+
+.comparison-table tbody tr:nth-child(even):not(.cmp-group-header):hover {
+  background: rgba(255, 255, 255, 0.025);
+}
+
+/* Feature name column */
+.cmp-feat {
+  text-align: left !important;
+  font-weight: 600;
+  color: var(--text-secondary) !important;
+  white-space: nowrap;
+}
+
+/* Highlighted HealthDesk column */
+.cmp-col-hl {
+  background: rgba(45, 200, 216, 0.05) !important;
+  border-left: 1px solid rgba(45, 200, 216, 0.12);
+  border-right: 1px solid rgba(45, 200, 216, 0.12);
+}
+
+thead .cmp-col-hl {
+  background: rgba(45, 200, 216, 0.1) !important;
+  border-top: 3px solid var(--accent);
+}
+
+thead .cmp-col-hl .cmp-app-label {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+tbody tr:last-child .cmp-col-hl {
+  border-bottom: 2px solid rgba(45, 200, 216, 0.15);
+}
+
+/* Zebra override for highlighted column */
+.comparison-table tbody tr:nth-child(even):not(.cmp-group-header) .cmp-col-hl {
+  background: rgba(45, 200, 216, 0.06) !important;
+}
+
+/* Yes/No icons — real Unicode characters, not pseudo-elements */
+.cmp-yes {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(46, 204, 113, 0.15);
+  color: #2ecc71;
+  font-size: 0.75rem;
+  font-weight: 800;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.cmp-no {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.04);
+  color: #3b4252;
+  font-size: 0.7rem;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+/* Value styles */
+.cmp-val-good {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.cmp-val-mid {
+  color: var(--text-muted);
+}
+
+.cmp-val-weak {
+  color: var(--text-dim);
+  font-size: 0.78rem;
+}
+
+.cmp-val-accent {
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.92rem;
+}
+
+/* Footer */
+.comparison-footer {
+  text-align: center;
+  color: var(--text-dim);
+  font-size: 0.78rem;
+  margin-top: 1.25rem;
   font-style: italic;
 }
 
@@ -1616,6 +1896,22 @@ img {
     width: 180px;
   }
 
+  .mockup-popup-breathing {
+    width: 160px;
+    top: -10px;
+    right: 5px;
+  }
+
+  .breathing-orb-wrapper {
+    width: 70px;
+    height: 70px;
+  }
+
+  .breathing-orb {
+    width: 60px;
+    height: 60px;
+  }
+
   .mockup-popup-title {
     font-size: 0.85rem;
   }
@@ -1649,9 +1945,47 @@ img {
   .app-preview,
   .how-it-works,
   .stats-section,
+  .comparison,
   .download,
   .faq {
     padding: 4.5rem 0;
+  }
+
+  .comparison-table-wrapper {
+    margin: 0 -0.75rem;
+    border-radius: var(--radius-sm);
+  }
+
+  .comparison-table {
+    font-size: 0.76rem;
+  }
+
+  .comparison-table th {
+    padding: 1rem 0.5rem 0.75rem;
+  }
+
+  .comparison-table td {
+    padding: 0.5rem 0.5rem;
+  }
+
+  .cmp-feature-col {
+    width: 120px;
+    min-width: 110px;
+  }
+
+  .cmp-app-label {
+    font-size: 0.78rem;
+  }
+
+  .cmp-group-header td {
+    font-size: 0.6rem;
+    padding: 0.4rem 0.5rem;
+  }
+
+  .cmp-yes, .cmp-no {
+    width: 18px;
+    height: 18px;
+    font-size: 0.65rem;
   }
 
   .cta-strip {

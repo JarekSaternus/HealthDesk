@@ -25,12 +25,16 @@ export interface AppConfig {
   dashboard_layout: string;
   breathing_exercise_interval_min: number;
   breathing_exercise_enabled: boolean;
+  idle_detection_enabled: boolean;
+  idle_threshold_min: number;
 }
 
 export interface SchedulerState {
   paused: boolean;
   popup_paused: boolean;
   outside_work_hours: boolean;
+  idle: boolean;
+  dnd: boolean;
   time_to_small_break: number;
   time_to_big_break: number;
   time_to_water: number;

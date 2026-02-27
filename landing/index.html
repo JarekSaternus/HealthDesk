@@ -47,6 +47,7 @@
         <li><a href="#features" onclick="document.getElementById('nav-toggle').checked=false">Funkcje</a></li>
         <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false">Jak działa</a></li>
         <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false">Dlaczego</a></li>
+        <li><a href="#comparison" onclick="document.getElementById('nav-toggle').checked=false">Porównanie</a></li>
         <li><a href="#faq" onclick="document.getElementById('nav-toggle').checked=false">FAQ</a></li>
         <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">Pobierz</a></li>
       </ul>
@@ -132,7 +133,7 @@
   <section class="features" id="features">
     <div class="container">
       <h2 class="section-title animate-on-scroll">Co robi HealthDesk?</h2>
-      <p class="section-subtitle animate-on-scroll">Trzy kluczowe funkcje + bonusy, które zmienią Twoje codzienne siedzenie przy komputerze.</p>
+      <p class="section-subtitle animate-on-scroll">Kluczowe funkcje + jeszcze więcej — wszystko, czego potrzebujesz do zdrowej pracy przy komputerze.</p>
 
       <!-- Top 3 features -->
       <div class="features-grid features-main">
@@ -162,7 +163,7 @@
       </div>
 
       <!-- Bonus features -->
-      <h3 class="features-bonus-title animate-on-scroll">Bonus</h3>
+      <h3 class="features-bonus-title animate-on-scroll">I jeszcze więcej</h3>
       <div class="features-grid features-bonus">
         <div class="feature-card animate-on-scroll delay-4">
           <div class="feature-icon">
@@ -186,6 +187,30 @@
           </div>
           <h3>YouTube Radio</h3>
           <p><strong>5 stacji muzycznych</strong> — lo-fi, jazz, klasyka, ambient. Streaming w aplikacji.</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-4">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6"/><path d="M8 12h8"/><path d="M12 18v-6"/><path d="M16 12H8"/></svg>
+          </div>
+          <h3>Trening oddechowy</h3>
+          <p><strong>Box breathing 4-4-4-4</strong> z animowanym kołem. Zredukuj stres w 60 sekund.</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-5">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+          </div>
+          <h3>Rozciąganie</h3>
+          <p><strong>Prowadzone ćwiczenia</strong> na szyję, ramiona i plecy — krok po kroku z timerem.</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-6">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+          </div>
+          <h3>Smart Idle + DND</h3>
+          <p><strong>Wykrywa bezczynność i Focus Assist.</strong> Timery zamrażają się gdy odchodzisz. Zero popupów gdy Windows DND aktywny.</p>
         </div>
       </div>
     </div>
@@ -325,6 +350,26 @@
             </div>
           </div>
         </div>
+
+        <!-- Breathing exercise popup -->
+        <div class="mockup-popup mockup-popup-breathing">
+          <div class="mockup-popup-titlebar">
+            <span>HealthDesk — Oddychanie</span>
+            <span class="mockup-ctrl mockup-ctrl-close" style="font-size:0.55rem">&#10005;</span>
+          </div>
+          <div class="mockup-popup-body" style="text-align:center;padding:1rem 1.2rem">
+            <div style="font-size:0.85rem;font-weight:700;color:#2ecc71;margin-bottom:0.5rem">Trening oddechowy</div>
+            <div class="breathing-orb-wrapper">
+              <div class="breathing-orb" id="breathing-orb"></div>
+              <div class="breathing-orb-inner">
+                <div class="breathing-phase-label" id="breathing-phase">Wdech</div>
+                <div class="breathing-timer" id="breathing-timer">4</div>
+              </div>
+            </div>
+            <div class="breathing-cycle-info" id="breathing-cycle">Cykl 1 / 5</div>
+            <div class="breathing-close-btn">Zamknij</div>
+          </div>
+        </div>
       </div>
     </div>
   </section>
@@ -399,6 +444,182 @@
     </div>
   </section>
 
+  <!-- ===== Comparison ===== -->
+  <section class="comparison" id="comparison">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">Jak wypada HealthDesk?</h2>
+      <p class="section-subtitle animate-on-scroll delay-1">Szczere porównanie z popularnymi alternatywami.</p>
+
+      <div class="comparison-table-wrapper animate-on-scroll delay-2">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th class="cmp-feature-col"></th>
+              <th class="cmp-col-hl">
+                <div class="cmp-app-header">
+                  <img src="logo-color.svg" alt="HealthDesk" class="cmp-app-icon">
+                  <span class="cmp-app-label">HealthDesk</span>
+                </div>
+              </th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Stretchly</span></div></th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Time Out</span></div></th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Workrave</span></div></th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Pomy</span></div></th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Grupa: Podstawy -->
+            <tr class="cmp-group-header"><td colspan="6">Podstawy</td></tr>
+            <tr>
+              <td class="cmp-feat">Platformy</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good">Win / Mac / Linux</span></td>
+              <td><span class="cmp-val-good">Win / Mac / Linux</span></td>
+              <td><span class="cmp-val-weak">Tylko macOS</span></td>
+              <td><span class="cmp-val-mid">Win / Linux</span></td>
+              <td><span class="cmp-val-weak">Tylko macOS</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Cena</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good">Darmowy</span></td>
+              <td>Darmowy</td>
+              <td><span class="cmp-val-weak">Freemium</span></td>
+              <td>Darmowy</td>
+              <td>Darmowy</td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Open Source</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> GPL-3.0</td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+            </tr>
+
+            <!-- Grupa: Przerwy i metodyki -->
+            <tr class="cmp-group-header"><td colspan="6">Przerwy i metodyki</td></tr>
+            <tr>
+              <td class="cmp-feat">Typy przerw</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Duże + małe</td>
+              <td><span class="cmp-yes">&#10004;</span> Micro + long</td>
+              <td><span class="cmp-yes">&#10004;</span> Micro + normal</td>
+              <td><span class="cmp-yes">&#10004;</span> Micro + rest</td>
+              <td><span class="cmp-yes">&#10004;</span> Pomodoro</td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Metodyki pracy</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good">Presety: Pomodoro, 52/17, Custom</span></td>
+              <td><span class="cmp-val-mid">Ręczna konfiguracja</span></td>
+              <td><span class="cmp-val-mid">Ręczna konfiguracja</span></td>
+              <td><span class="cmp-val-mid">Ręczna konfiguracja</span></td>
+              <td><span class="cmp-val-weak">Tylko Pomodoro 25/5</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Auto-pauza (idle)</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Win32 idle + DND</td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Snooze / odłóż</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+
+            <!-- Grupa: Zdrowie -->
+            <tr class="cmp-group-header"><td colspan="6">Zdrowie i ćwiczenia</td></tr>
+            <tr>
+              <td class="cmp-feat">Przypomnienia o wodzie</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Ćwiczenia oczu</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Animowane</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Rozciąganie</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Animowane</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">Tylko tekst</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Trening oddechowy</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Box breathing</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+
+            <!-- Grupa: Produktywność -->
+            <tr class="cmp-group-header"><td colspan="6">Produktywność</td></tr>
+            <tr>
+              <td class="cmp-feat">Ambient audio</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> 6 dźwięków + YT Radio</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">Biały szum</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Śledzenie aktywności</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Automatyczne</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">Limit dzienny</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Statystyki</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Wielookresowe</td>
+              <td><span class="cmp-val-weak">Podstawowe</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">Podstawowe</span></td>
+              <td><span class="cmp-val-weak">Podstawowe</span></td>
+            </tr>
+
+            <!-- Grupa: Wydajność -->
+            <tr class="cmp-group-header"><td colspan="6">Wydajność aplikacji</td></tr>
+            <tr>
+              <td class="cmp-feat">Rozmiar instalatora</td>
+              <td class="cmp-col-hl"><span class="cmp-val-accent">~4 MB</span></td>
+              <td>~70 MB</td>
+              <td>~15 MB</td>
+              <td>~10 MB</td>
+              <td>~25 MB</td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Zużycie RAM</td>
+              <td class="cmp-col-hl"><span class="cmp-val-accent">~30 MB</span></td>
+              <td>~120 MB</td>
+              <td>~50 MB</td>
+              <td>~20 MB</td>
+              <td>~80 MB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="comparison-footer animate-on-scroll delay-3">
+        Dane na podstawie wersji dostępnych w lutym 2026. Rozmiar i RAM mogą się różnić w zależności od platformy.
+      </p>
+    </div>
+  </section>
+
   <!-- ===== CTA Download ===== -->
   <section class="cta-section" id="download">
     <div class="container">
@@ -426,7 +647,7 @@
           </span>
           <span class="cta-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
-            <span data-version>Wersja 2.0.7</span>
+            <span data-version>Wersja 2.0.23</span>
           </span>
           <span class="cta-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -958,6 +1179,52 @@
         updateWaterDots(mWater);
         mWaterProgress.style.width = Math.round((mWater / 8) * 100) + '%';
       }, 10000);
+
+      // Breathing exercise animation (matches app: pulsing orb)
+      (function() {
+        var phases = [
+          { name: 'Wdech', targetScale: 1.0 },
+          { name: 'Zatrzymaj', targetScale: 1.0 },
+          { name: 'Wydech', targetScale: 0.6 },
+          { name: 'Zatrzymaj', targetScale: 0.6 }
+        ];
+        var phaseIdx = 0, countdown = 4, cycle = 1, totalCycles = 5;
+        var phaseLabel = document.getElementById('breathing-phase');
+        var timerEl = document.getElementById('breathing-timer');
+        var orb = document.getElementById('breathing-orb');
+        var cycleInfo = document.getElementById('breathing-cycle');
+
+        function applyPhase() {
+          var phase = phases[phaseIdx];
+          phaseLabel.textContent = phase.name;
+          // Hold phases: no transition
+          if (phaseIdx === 1 || phaseIdx === 3) {
+            orb.style.transition = 'none';
+          } else {
+            orb.style.transition = 'transform 4s ease-in-out';
+          }
+          orb.style.transform = 'scale(' + phase.targetScale + ')';
+          cycleInfo.textContent = 'Cykl ' + cycle + ' / ' + totalCycles;
+        }
+
+        // Initial state
+        orb.style.transform = 'scale(0.6)';
+        setTimeout(function() { applyPhase(); }, 50);
+
+        setInterval(function() {
+          countdown--;
+          if (countdown <= 0) {
+            phaseIdx = (phaseIdx + 1) % 4;
+            if (phaseIdx === 0) {
+              cycle++;
+              if (cycle > totalCycles) cycle = 1;
+            }
+            countdown = 4;
+            applyPhase();
+          }
+          timerEl.textContent = countdown;
+        }, 1000);
+      })();
     })();
   </script>
 

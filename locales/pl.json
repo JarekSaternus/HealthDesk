@@ -34,7 +34,9 @@
     "show_more": "Pokaż więcej",
     "show_less": "Pokaż mniej",
     "no_results": "Brak wyników",
-    "searching": "Szukanie..."
+    "searching": "Szukanie...",
+    "idle": "Bezczynny",
+    "dnd": "Nie przeszkadzać"
   },
 
   "stats": {
@@ -132,7 +134,11 @@
     "layout_compact": "Kompaktowy",
     "unit_min": "min",
     "unit_sec": "sek",
-    "unit_glasses": "szklanek"
+    "unit_glasses": "szklanek",
+    "idle_section": "Wykrywanie bezczynności",
+    "idle_enabled": "Wykrywaj bezczynność i zamrażaj timery",
+    "idle_enabled_desc": "Gdy nie ruszasz myszą/klawiaturą przez ustawiony czas, timery się zatrzymają",
+    "idle_threshold": "Próg bezczynności"
   },
 
   "help": {

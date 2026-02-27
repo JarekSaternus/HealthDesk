@@ -134,10 +134,10 @@ pub fn start_tracker(db: Arc<Database>, config: Arc<Mutex<AppConfig>>, scheduler
         loop {
             tokio::time::sleep(Duration::from_secs(5)).await;
 
-            // Skip tracking when paused
+            // Skip tracking when paused or idle
             {
                 let sched = scheduler.lock().unwrap();
-                if sched.paused {
+                if sched.paused || sched.idle_since.is_some() {
                     continue;
                 }
             }
