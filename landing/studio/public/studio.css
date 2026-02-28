@@ -204,6 +204,9 @@ select.input { cursor: pointer; }
 }
 .idea-form .input { max-width: 300px; }
 
+.ai-outline-result { margin-bottom: 1rem; }
+.ai-outline-result.hidden { display: none; }
+
 .ideas-list { display: flex; flex-direction: column; gap: 0.5rem; }
 .idea-item {
   display: flex;

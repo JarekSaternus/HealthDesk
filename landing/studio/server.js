@@ -14,6 +14,68 @@ const { marked } = require('marked');
 const app = express();
 const PORT = 4000;
 
+// ─── Claude API ───
+function getApiKey() {
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (key) return key;
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'studio.json'), 'utf8'));
+    return data.anthropic_api_key || '';
+  } catch { return ''; }
+}
+
+async function callClaude(systemPrompt, userPrompt, maxTokens = 2000) {
+  const apiKey = getApiKey();
+  if (!apiKey) throw new Error('No ANTHROPIC_API_KEY configured');
+
+  console.log(`[AI] Calling Claude (max_tokens=${maxTokens})...`);
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), 90000); // 90s timeout
+
+  try {
+    const response = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: maxTokens,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userPrompt }]
+      }),
+      signal: controller.signal
+    });
+
+    clearTimeout(timeout);
+
+    if (!response.ok) {
+      const err = await response.text();
+      console.error(`[AI] Error ${response.status}: ${err}`);
+      throw new Error(`Claude API error ${response.status}: ${err}`);
+    }
+
+    const data = await response.json();
+    console.log(`[AI] Response received (${data.usage?.output_tokens || '?'} tokens)`);
+    return data.content[0].text;
+  } catch (err) {
+    clearTimeout(timeout);
+    if (err.name === 'AbortError') throw new Error('Claude API timeout (90s)');
+    throw err;
+  }
+}
+
+function parseJsonResponse(text) {
+  // Strip markdown fences if present
+  let cleaned = text.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+  }
+  return JSON.parse(cleaned);
+}
+
 // Paths
 const LANDING_ROOT = path.join(__dirname, '..');
 const BLOG_DIR = path.join(LANDING_ROOT, 'src', 'content', 'blog');
@@ -256,6 +318,8 @@ app.get('/api/preview/status', (req, res) => {
 
 // Serve dist for preview
 app.use('/preview', express.static(DIST_DIR));
+// Serve dist assets at root level too (HTML uses absolute paths like /style.css)
+app.use(express.static(DIST_DIR));
 
 // ─── API: Deploy ───
 app.post('/api/deploy', (req, res) => {
@@ -297,6 +361,216 @@ app.delete('/api/ideas/:id', (req, res) => {
   studio.ideas = (studio.ideas || []).filter(i => i.id !== req.params.id);
   saveStudioData(studio);
   res.json({ ok: true });
+});
+
+// ─── AI: Generate outline from keyword ───
+app.post('/api/ai/outline', async (req, res) => {
+  const { keyword, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  try {
+    const result = await callClaude(
+      `You are an SEO content strategist for HealthDesk, a desktop wellness app (break reminders, eye exercises, water tracking, activity monitoring). Generate blog article outlines optimized for search engines.`,
+      `Generate a blog article outline for the keyword: "${keyword}"
+Language: ${langName}
+Requirements:
+- Title (50-60 characters, include keyword)
+- Meta description (120-160 characters)
+- 5-7 H2 headings (at least 2 as questions for featured snippets)
+- 2-3 H3 subheadings under each H2
+- Suggested tags (3-5)
+- Naturally mention HealthDesk where relevant
+
+Return as JSON:
+{
+  "title": "...",
+  "description": "...",
+  "tags": ["..."],
+  "outline": [
+    { "h2": "...", "h3": ["...", "..."] }
+  ]
+}
+Return ONLY valid JSON, no markdown fences.`
+    );
+    res.json(parseJsonResponse(result));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Write full draft from outline ───
+app.post('/api/ai/draft', async (req, res) => {
+  const { title, description, outline, lang, keyword } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  const outlineText = outline.map(section => {
+    let s = `## ${section.h2}`;
+    if (section.h3) s += '\n' + section.h3.map(h => `### ${h}`).join('\n');
+    return s;
+  }).join('\n\n');
+
+  try {
+    const result = await callClaude(
+      `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write engaging, SEO-optimized articles in Markdown. Follow these rules:
+- Write in ${langName}
+- 800-1200 words
+- First paragraph after each H2 should be a concise answer (40-60 words) — optimized for featured snippets
+- Use short paragraphs (2-3 sentences)
+- Include relevant statistics with sources
+- Naturally mention HealthDesk features where relevant (link format: [HealthDesk](https://healthdesk.site/${lang}/))
+- Use **bold** for key terms
+- Include at least 2 internal links to healthdesk.site
+- End with a brief conclusion`,
+      `Write a full blog article in Markdown.
+Title: ${title}
+Keyword: ${keyword || title}
+Description: ${description}
+
+Outline:
+${outlineText}
+
+Write the full article body in Markdown (no frontmatter, start directly with ## heading). Make it informative, backed by data, and naturally promote HealthDesk where relevant.`,
+      4000
+    );
+    res.json({ markdown: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Suggest meta description ───
+app.post('/api/ai/description', async (req, res) => {
+  const { markdown, title, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  try {
+    const result = await callClaude(
+      'You are an SEO specialist. Generate meta descriptions that are compelling, include the main keyword, and drive clicks.',
+      `Generate a meta description (120-160 characters) in ${langName} for this article:
+Title: ${title}
+Content preview: ${markdown.slice(0, 500)}
+
+Return ONLY the description text, nothing else.`,
+      200
+    );
+    res.json({ description: result.trim() });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Fix grammar & readability ───
+app.post('/api/ai/fix-grammar', async (req, res) => {
+  const { markdown, issues, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  // Build actionable issue list — only include issues with concrete suggestions
+  const actionableIssues = (issues || []).filter(i => i.suggestion && i.suggestion.trim()).map((i, idx) =>
+    `${idx+1}. Find: "${i.context.trim()}" → Replace with suggestion: "${i.suggestion}". Reason: ${i.message}`
+  );
+  const otherIssues = (issues || []).filter(i => !i.suggestion || !i.suggestion.trim()).map((i, idx) =>
+    `${idx+1}. Issue near: "${i.context.trim()}" — ${i.message}`
+  );
+
+  const issueList = [...actionableIssues, ...otherIssues].join('\n');
+  console.log(`[AI Fix Grammar] ${issues?.length || 0} issues (${actionableIssues.length} actionable), markdown: ${markdown?.length || 0} chars`);
+  console.log(`[AI Fix Grammar] Issues:\n${issueList.slice(0, 800)}`);
+
+  try {
+    const result = await callClaude(
+      `You are a professional ${langName} text editor. You MUST fix the listed grammar/spelling issues in a Markdown article.
+
+CRITICAL RULES:
+- You MUST make changes. If you return the same text, you have failed.
+- Apply EVERY suggested replacement listed below.
+- Fix spelling errors even in proper nouns if a suggestion is given.
+- Add missing commas between clauses.
+- Add missing periods after abbreviations (Pon. Wt. Śr. Czw. Pt.).
+- Shorten sentences over 25 words by splitting into two sentences.
+- Break paragraphs longer than 3 sentences.
+- Preserve Markdown: ##, ###, **bold**, [links](url), lists, tables.
+- Do NOT remove or add content. Only fix grammar/spelling/punctuation.
+- Brand name "HealthDesk" stays capitalized (ignore any suggestion to lowercase it).`,
+      `Apply these fixes to the ${langName} article below:
+
+FIXES TO APPLY:
+${issueList}
+
+ARTICLE TO FIX:
+${markdown}
+
+Return the FIXED article. No markdown fences, no comments. Start with ## heading.`,
+      8000
+    );
+    // Strip markdown fences if AI wraps the response
+    let cleaned = result.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+    }
+    const changed = cleaned.trim() !== markdown.trim();
+    console.log(`[AI Fix Grammar] Result: ${cleaned.length} chars, changed: ${changed}`);
+    if (!changed) console.log(`[AI Fix Grammar] WARNING: AI returned identical text!`);
+    res.json({ markdown: cleaned });
+  } catch (err) {
+    console.error(`[AI Fix Grammar] Error: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Expand a section ───
+app.post('/api/ai/expand', async (req, res) => {
+  const { heading, context, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  try {
+    const result = await callClaude(
+      `You are a health & productivity blog writer. Write informative, engaging content in ${langName}. Use short paragraphs, bold key terms, include data where possible.`,
+      `Expand this section heading into 150-250 words of content:
+Heading: ${heading}
+Article context: ${context.slice(0, 300)}
+
+Write in Markdown. Start with an answer block (40-60 words concise answer), then expand with details. Include a relevant statistic if possible.`,
+      800
+    );
+    res.json({ markdown: result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Improve SEO ───
+app.post('/api/ai/improve-seo', async (req, res) => {
+  const { markdown, frontmatter, seoChecks, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  const failedChecks = (seoChecks || []).filter(c => !c.pass).map(c => `- ${c.label}: ${c.hint}`).join('\n');
+
+  try {
+    const result = await callClaude(
+      `You are an SEO optimizer for blog articles. Suggest specific, actionable improvements. Write in ${langName}.`,
+      `This article has SEO issues. Suggest fixes.
+
+Title: ${frontmatter.title}
+Description: ${frontmatter.description}
+Failed checks:
+${failedChecks}
+
+Current article (first 800 chars):
+${markdown.slice(0, 800)}
+
+For each failed check, provide a specific suggestion. If title/description needs changing, provide the new text. If content is too short, suggest which sections to expand. Return as JSON:
+{
+  "suggestions": [
+    { "check": "...", "action": "...", "newText": "..." }
+  ]
+}
+Return ONLY valid JSON.`,
+      1500
+    );
+    res.json(parseJsonResponse(result));
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // ─── Helpers ───

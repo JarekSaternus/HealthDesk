@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>HealthDesk Blog Studio</title>
   <link rel="icon" type="image/svg+xml" href="/logo-color.svg">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="studio.css">
 </head>
 <body>
   <!-- Sidebar -->
@@ -80,7 +80,9 @@
         </select>
         <input type="text" id="idea-notes" placeholder="Notes (optional)" class="input">
         <button class="btn btn-primary" onclick="addIdea()">Add Idea</button>
+        <button class="btn" onclick="aiOutlineFromInput()" id="btn-ai-outline">AI Outline</button>
       </div>
+      <div class="ai-outline-result hidden" id="ai-outline-result"></div>
       <div class="ideas-list" id="ideas-list"></div>
     </section>
 
@@ -89,9 +91,14 @@
       <div class="view-header">
         <h1 id="editor-title">Editor</h1>
         <div class="editor-actions">
+          <button class="btn btn-sm" onclick="aiSuggestDesc()">AI Description</button>
+          <button class="btn btn-sm" onclick="aiWriteDraft()">AI Draft</button>
+          <button class="btn btn-sm" onclick="aiImproveSEO()">AI Fix SEO</button>
           <button class="btn btn-sm" onclick="runSEOCheck()">SEO Check</button>
           <button class="btn btn-sm" onclick="switchView('checker')">Grammar</button>
           <button class="btn btn-primary btn-sm" onclick="saveArticle()">Save</button>
+          <button class="btn btn-sm" onclick="previewArticle()">Preview</button>
+          <button class="btn btn-danger btn-sm" onclick="currentArticle && deleteArticle(currentArticle.lang, currentArticle.slug)">Delete</button>
         </div>
       </div>
 
@@ -145,6 +152,8 @@
         <div class="editor-actions">
           <button class="btn btn-primary btn-sm" onclick="runGrammarCheck()">Check Grammar</button>
           <button class="btn btn-sm" onclick="runReadabilityCheck()">Readability</button>
+          <button class="btn btn-sm" onclick="aiFixGrammar()" id="btn-ai-fix-grammar">AI Auto-Fix</button>
+          <button class="btn btn-primary btn-sm" onclick="saveArticle()">Save</button>
         </div>
       </div>
       <div class="checker-content">
@@ -171,8 +180,10 @@
         <div class="build-card">
           <h3>Preview</h3>
           <p>Open built site in a new tab.</p>
-          <button class="btn" onclick="window.open('/preview/pl/','_blank')">Preview PL</button>
-          <button class="btn" onclick="window.open('/preview/en/','_blank')">Preview EN</button>
+          <button class="btn" onclick="window.open('/preview/pl/','_blank')">Landing PL</button>
+          <button class="btn" onclick="window.open('/preview/en/','_blank')">Landing EN</button>
+          <button class="btn btn-primary" onclick="window.open('/preview/pl/blog/','_blank')">Blog PL</button>
+          <button class="btn" onclick="window.open('/preview/en/blog/','_blank')">Blog EN</button>
         </div>
         <div class="build-card">
           <h3>Deploy</h3>
@@ -208,6 +219,6 @@
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="studio-app.js"></script>
 </body>
 </html>

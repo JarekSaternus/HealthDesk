@@ -71,7 +71,10 @@ async function loadDashboard() {
     <div class="article-card" onclick="openArticle('${a.lang}','${a.slug}')">
       <div class="article-card-header">
         <h3>${escHtml(a.title)}</h3>
-        <span class="badge badge-${a.status}">${a.status}</span>
+        <div style="display:flex;gap:0.4rem;align-items:center;">
+          <span class="badge badge-${a.status}">${a.status}</span>
+          <button class="btn-close" title="Delete" onclick="event.stopPropagation();deleteArticle('${a.lang}','${a.slug}')">&times;</button>
+        </div>
       </div>
       <div class="article-card-meta">
         <span class="lang-flag">${a.lang.toUpperCase()}</span>
@@ -468,6 +471,31 @@ async function runDeploy() {
   btn.textContent = 'Deploy to Production';
 }
 
+// ─── Preview article ───
+function previewArticle() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+  const slug = document.getElementById('fm-slug').value || currentArticle.slug;
+  const lang = currentArticle.lang;
+  window.open(`/preview/${lang}/blog/${slug}/`, '_blank');
+}
+
+// ─── Delete article ───
+async function deleteArticle(lang, slug) {
+  if (!confirm(`Delete article "${lang}/${slug}"? This cannot be undone.`)) return;
+
+  const res = await fetch(`/api/articles/${lang}/${slug}`, { method: 'DELETE' });
+  if (res.ok) {
+    showToast('Article deleted');
+    if (currentArticle && currentArticle.lang === lang && currentArticle.slug === slug) {
+      currentArticle = null;
+      currentMarkdown = '';
+    }
+    switchView('dashboard');
+  } else {
+    alert('Failed to delete article');
+  }
+}
+
 // ─── Article status ───
 async function setStatus(lang, slug, status) {
   await fetch(`/api/articles/${lang}/${slug}/status`, {
@@ -512,6 +540,377 @@ document.addEventListener('keydown', e => {
     if (currentArticle) saveArticle();
   }
 });
+
+// ─── AI: Outline from keyword ───
+async function aiOutlineFromInput() {
+  const keyword = document.getElementById('idea-keyword').value.trim();
+  if (!keyword) { alert('Enter a keyword first'); return; }
+  const lang = document.getElementById('idea-lang').value;
+
+  const btn = document.getElementById('btn-ai-outline');
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  const resultEl = document.getElementById('ai-outline-result');
+  resultEl.classList.remove('hidden');
+  resultEl.innerHTML = '<p style="color:var(--text-dim)">AI is generating outline...</p>';
+
+  try {
+    const res = await fetch('/api/ai/outline', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keyword, lang })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    window._lastOutline = data;
+
+    resultEl.innerHTML = `
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);padding:1rem 1.25rem;margin-bottom:1rem;">
+        <h3 style="margin-bottom:0.5rem;">${escHtml(data.title)}</h3>
+        <p style="font-size:0.8rem;color:var(--text-dim);margin-bottom:0.75rem;">${escHtml(data.description)}</p>
+        <p style="font-size:0.75rem;margin-bottom:0.75rem;">Tags: ${(data.tags||[]).map(t => '<span class="badge badge-draft">'+t+'</span>').join(' ')}</p>
+        <div style="font-size:0.85rem;">
+          ${(data.outline||[]).map(s => `
+            <p style="font-weight:600;margin:0.5rem 0 0.2rem;">H2: ${escHtml(s.h2)}</p>
+            ${(s.h3||[]).map(h => '<p style="color:var(--text-dim);margin-left:1rem;">H3: '+escHtml(h)+'</p>').join('')}
+          `).join('')}
+        </div>
+        <div style="margin-top:1rem;display:flex;gap:0.5rem;">
+          <button class="btn btn-primary btn-sm" onclick="createFromOutline('${lang}')">Create Article from Outline</button>
+          <button class="btn btn-sm" onclick="createAndDraftFromOutline('${lang}')">Create + AI Write Draft</button>
+        </div>
+      </div>
+    `;
+  } catch (err) {
+    resultEl.innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p>';
+  }
+
+  btn.disabled = false; btn.textContent = 'AI Outline';
+}
+
+async function createFromOutline(lang) {
+  const data = window._lastOutline;
+  if (!data) return;
+
+  const slug = slugify(data.title);
+  const res = await fetch('/api/articles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lang, slug, title: data.title })
+  });
+
+  if (res.ok) {
+    // Save with outline as skeleton
+    const outlineMd = (data.outline || []).map(s => {
+      let md = `## ${s.h2}\n\n`;
+      if (s.h3) md += s.h3.map(h => `### ${h}\n\n`).join('');
+      return md;
+    }).join('');
+
+    await fetch(`/api/articles/${lang}/${slug}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        frontmatter: { title: data.title, slug, description: data.description, tags: data.tags, date: new Date().toISOString().split('T')[0] },
+        markdown: outlineMd
+      })
+    });
+    openArticle(lang, slug);
+  }
+}
+
+async function createAndDraftFromOutline(lang) {
+  const data = window._lastOutline;
+  if (!data) return;
+
+  const slug = slugify(data.title);
+  const resultEl = document.getElementById('ai-outline-result');
+
+  // Step 1: Create article (ignore 409 if already exists)
+  resultEl.innerHTML = '<p style="color:var(--accent)">Creating article...</p>';
+  const res = await fetch('/api/articles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lang, slug, title: data.title })
+  });
+
+  if (!res.ok && res.status !== 409) {
+    const err = await res.json();
+    resultEl.innerHTML = '<p style="color:var(--red)">Failed to create: ' + escHtml(err.error || '') + '</p>';
+    return;
+  }
+
+  // Step 2: Save outline skeleton
+  const outlineMd = (data.outline || []).map(s => {
+    let md = `## ${s.h2}\n\n`;
+    if (s.h3) md += s.h3.map(h => `### ${h}\n\n`).join('');
+    return md;
+  }).join('');
+
+  const fm = { title: data.title, slug, description: data.description, tags: data.tags, date: new Date().toISOString().split('T')[0] };
+
+  await fetch(`/api/articles/${lang}/${slug}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frontmatter: fm, markdown: outlineMd })
+  });
+
+  // Step 3: Generate full draft via AI
+  resultEl.innerHTML = '<p style="color:var(--accent)">AI is writing the full article... (this takes 30-60 seconds)</p>';
+
+  try {
+    const draftRes = await fetch('/api/ai/draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        title: data.title,
+        description: data.description,
+        outline: data.outline,
+        lang,
+        keyword: document.getElementById('idea-keyword').value
+      })
+    });
+    const draftData = await draftRes.json();
+
+    if (draftData.error) {
+      resultEl.innerHTML = '<p style="color:var(--red)">AI error: ' + escHtml(draftData.error) + '</p><p style="color:var(--text-dim)">Outline saved — open article and click "AI Draft" in editor.</p><button class="btn btn-sm" onclick="openArticle(\'' + lang + '\',\'' + slug + '\')">Open Article</button>';
+      return;
+    }
+
+    // Step 4: Save draft content
+    await fetch(`/api/articles/${lang}/${slug}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frontmatter: fm, markdown: draftData.markdown })
+    });
+
+    resultEl.innerHTML = '<p style="color:var(--green)">Draft created! Opening editor...</p>';
+    setTimeout(() => openArticle(lang, slug), 500);
+    showToast('AI draft created!');
+  } catch (err) {
+    resultEl.innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p><button class="btn btn-sm" onclick="openArticle(\'' + lang + '\',\'' + slug + '\')">Open Outline</button>';
+  }
+}
+
+// ─── AI: Fix grammar & readability ───
+async function aiFixGrammar() {
+  if (!currentMarkdown) { alert('Open an article first'); return; }
+
+  const lang = currentArticle?.lang || 'pl';
+  const btn = document.getElementById('btn-ai-fix-grammar');
+  const sidebar = document.getElementById('checker-results');
+  btn.disabled = true; btn.textContent = 'Fixing...';
+  sidebar.innerHTML = '<p style="color:var(--accent);font-weight:600;">Step 1/2: Checking grammar via LanguageTool...</p>';
+
+  try {
+    // Step 1: Get grammar issues from LanguageTool
+    const plain = currentMarkdown
+      .replace(/^#{1,6}\s+/gm, '')
+      .replace(/\*\*([^*]+)\*\*/g, '$1')
+      .replace(/\*([^*]+)\*/g, '$1')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/`[^`]+`/g, '');
+
+    const grammarRes = await fetch('/api/check/grammar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: plain, lang })
+    });
+    const grammarData = await grammarRes.json();
+
+    const issues = (grammarData.matches || []).map(m => ({
+      message: m.message,
+      context: m.context.text.slice(Math.max(0, m.context.offset - 15), m.context.offset + m.context.length + 15),
+      suggestion: m.replacements?.slice(0, 2).map(r => r.value).join(' or ') || ''
+    }));
+
+    if (issues.length === 0) {
+      sidebar.innerHTML = '<p style="color:var(--green);font-weight:600;">No grammar issues found!</p>';
+      btn.disabled = false; btn.textContent = 'AI Auto-Fix';
+      return;
+    }
+
+    sidebar.innerHTML = '<p style="color:var(--accent);font-weight:600;">Step 2/2: AI is fixing ' + issues.length + ' issues... (30-60 sec)</p>';
+
+    // Step 2: Send to AI for fixing
+    const originalMd = currentMarkdown;
+    console.log('[AI Fix] Sending', issues.length, 'issues, markdown length:', originalMd.length);
+
+    const res = await fetch('/api/ai/fix-grammar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: currentMarkdown, issues, lang })
+    });
+    const data = await res.json();
+    console.log('[AI Fix] Response:', data.error ? 'ERROR: ' + data.error : 'OK, length: ' + (data.markdown || '').length);
+    if (data.error) throw new Error(data.error);
+
+    if (!data.markdown || data.markdown.trim() === originalMd.trim()) {
+      sidebar.innerHTML = '<p style="color:var(--yellow);font-weight:600;">AI returned identical text. Remaining issues may be false positives.</p>';
+      btn.disabled = false; btn.textContent = 'AI Auto-Fix';
+      return;
+    }
+
+    // Count changed lines
+    const origLines = originalMd.split('\n');
+    const newLines = data.markdown.split('\n');
+    let changedLines = 0;
+    for (let i = 0; i < Math.max(origLines.length, newLines.length); i++) {
+      if ((origLines[i] || '') !== (newLines[i] || '')) changedLines++;
+    }
+
+    // Update editor
+    document.getElementById('md-editor').value = data.markdown;
+    currentMarkdown = data.markdown;
+    onEditorInput();
+    showToast('Fixed! ' + changedLines + ' lines changed');
+
+    sidebar.innerHTML = '<p style="color:var(--green);font-weight:600;">AI changed ' + changedLines + ' lines (from ' + issues.length + ' issues). Run Check Grammar to verify.</p>';
+    renderCheckerText();
+  } catch (err) {
+    sidebar.innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p>';
+  }
+
+  btn.disabled = false; btn.textContent = 'AI Auto-Fix';
+}
+
+// ─── AI: Suggest description ───
+async function aiSuggestDesc() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+  const md = document.getElementById('md-editor').value;
+  const title = document.getElementById('fm-title').value;
+  const lang = currentArticle.lang;
+
+  showToast('Generating description...');
+  try {
+    const res = await fetch('/api/ai/description', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: md, title, lang })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    document.getElementById('fm-desc').value = data.description;
+    updateSEOLive();
+    showToast('Description updated!');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+// ─── AI: Write full draft ───
+async function aiWriteDraft() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+  const md = document.getElementById('md-editor').value;
+  const title = document.getElementById('fm-title').value;
+  const desc = document.getElementById('fm-desc').value;
+  const lang = currentArticle.lang;
+
+  // Parse existing outline from markdown
+  const headings = md.match(/^#{2,3}\s+.+$/gm) || [];
+  if (headings.length === 0) {
+    alert('Add at least some H2/H3 headings as an outline first');
+    return;
+  }
+
+  if (!confirm('AI will write a full draft based on the current headings. Existing content will be replaced. Continue?')) return;
+
+  showToast('AI is writing... (15-30 sec)');
+
+  const outline = [];
+  let currentH2 = null;
+  for (const h of headings) {
+    if (h.startsWith('## ')) {
+      if (currentH2) outline.push(currentH2);
+      currentH2 = { h2: h.replace('## ', ''), h3: [] };
+    } else if (h.startsWith('### ') && currentH2) {
+      currentH2.h3.push(h.replace('### ', ''));
+    }
+  }
+  if (currentH2) outline.push(currentH2);
+
+  try {
+    const res = await fetch('/api/ai/draft', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ title, description: desc, outline, lang, keyword: title })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    document.getElementById('md-editor').value = data.markdown;
+    currentMarkdown = data.markdown;
+    onEditorInput();
+    showToast('Draft generated!');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+// ─── AI: Improve SEO ───
+async function aiImproveSEO() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+
+  // First run SEO check to get current issues
+  const frontmatter = getFrontmatter();
+  const markdown = document.getElementById('md-editor').value;
+
+  showToast('Analyzing SEO issues...');
+
+  try {
+    const seoRes = await fetch('/api/seo/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frontmatter, markdown, lang: currentArticle.lang })
+    });
+    const seoData = await seoRes.json();
+
+    const failedChecks = seoData.checks.filter(c => !c.pass);
+    if (failedChecks.length === 0) {
+      showToast('SEO is already great!');
+      return;
+    }
+
+    const res = await fetch('/api/ai/improve-seo', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown, frontmatter, seoChecks: seoData.checks, lang: currentArticle.lang })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    // Show suggestions in SEO panel
+    const panel = document.getElementById('seo-panel');
+    panel.classList.remove('hidden');
+    document.getElementById('seo-score').textContent = seoData.score + '% → Fix:';
+    document.getElementById('seo-score').style.color = 'var(--accent)';
+    document.getElementById('seo-checks').innerHTML = (data.suggestions || []).map(s => `
+      <div class="seo-check" style="flex-direction:column;align-items:flex-start;gap:0.3rem;">
+        <span style="font-weight:600;color:var(--yellow);">${escHtml(s.check)}</span>
+        <span style="font-size:0.8rem;">${escHtml(s.action)}</span>
+        ${s.newText ? '<div style="margin-top:0.3rem;"><button class="btn btn-sm" onclick="applySEOFix(this)" data-field="' + escAttr(s.check) + '" data-text="' + escAttr(s.newText) + '">Apply: ' + escHtml(s.newText).slice(0,60) + '...</button></div>' : ''}
+      </div>
+    `).join('');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+function applySEOFix(btn) {
+  const field = btn.dataset.field;
+  const text = btn.dataset.text;
+  const lower = field.toLowerCase();
+
+  if (lower.includes('title')) {
+    document.getElementById('fm-title').value = text;
+  } else if (lower.includes('desc')) {
+    document.getElementById('fm-desc').value = text;
+  }
+  updateSEOLive();
+  showToast('Applied!');
+}
 
 // ─── Init ───
 loadDashboard();
