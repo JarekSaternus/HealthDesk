@@ -218,6 +218,8 @@ pub fn snooze_break(
 
 #[tauri::command]
 pub fn reset_timers(scheduler: State<SharedScheduler>, config: State<ConfigState>, app: tauri::AppHandle) {
+    // Lock config first, then scheduler — same order as scheduler loop to avoid deadlock
+    let cfg = config.0.lock().unwrap().clone();
     let now = std::time::Instant::now();
     let mut sched = scheduler.lock().unwrap();
     sched.last_small_break = now;
@@ -225,7 +227,6 @@ pub fn reset_timers(scheduler: State<SharedScheduler>, config: State<ConfigState
     sched.last_water = now;
     sched.last_eye = now;
     sched.pause_start = None;
-    let cfg = config.0.lock().unwrap();
     let state = sched.get_state(&cfg);
     let _ = app.emit("scheduler:state-update", &state);
 }
@@ -241,13 +242,14 @@ pub fn get_scheduler_state(
 
 #[tauri::command]
 pub fn toggle_pause(paused: bool, scheduler: State<SharedScheduler>, config: State<ConfigState>, app: tauri::AppHandle) {
+    // Lock config first, then scheduler — same order as scheduler loop to avoid deadlock
+    let cfg = config.0.lock().unwrap().clone();
     let mut sched = scheduler.lock().unwrap();
     if paused {
         sched.pause(24 * 60); // Effectively indefinite until user resumes
     } else {
         sched.resume();
     }
-    let cfg = config.0.lock().unwrap();
     let state = sched.get_state(&cfg);
     let _ = app.emit("scheduler:state-update", &state);
 }
