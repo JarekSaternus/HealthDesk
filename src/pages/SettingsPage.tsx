@@ -342,6 +342,16 @@ export default function SettingsPage() {
             >
               <option value="pl">Polski</option>
               <option value="en">English</option>
+              <option value="de">Deutsch</option>
+              <option value="es">Español</option>
+              <option value="fr">Français</option>
+              <option value="pt-BR">Português (Brasil)</option>
+              <option value="ja">日本語</option>
+              <option value="zh-CN">简体中文</option>
+              <option value="ko">한국어</option>
+              <option value="it">Italiano</option>
+              <option value="tr">Türkçe</option>
+              <option value="ru">Русский</option>
             </select>
             <span className="text-xs text-text-muted ml-2">{t("settings.language_restart")}</span>
           </div>

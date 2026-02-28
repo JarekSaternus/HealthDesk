@@ -1,0 +1,321 @@
+{
+  "_name": "Español",
+
+  "nav": {
+    "home": "Inicio",
+    "stats": "Estadísticas",
+    "music": "Audio",
+    "settings": "Ajustes",
+    "help": "Ayuda",
+    "water_plus": "+1 vaso de agua",
+    "pause": "Pausar",
+    "resume": "Reanudar"
+  },
+
+  "home": {
+    "work_time_today": "Tiempo de trabajo hoy",
+    "breaks": "Descansos",
+    "next_break": "Próximo descanso",
+    "small_break": "Descanso ocular",
+    "big_break": "Descanso de movimiento",
+    "next_water": "Recordatorio en",
+    "water": "Agua",
+    "sound": "Sonido",
+    "sound_off": "Apagado",
+    "play": "Reproducir",
+    "now": "¡ahora!",
+    "outside_work_hours": "Fuera del horario laboral",
+    "glasses_count": "{current} / {goal} vasos",
+    "day_progress": "del día",
+    "breaks_taken": "realizados",
+    "breaks_skipped": "omitidos",
+    "search_music": "Buscar música",
+    "search_placeholder": "Buscar en YouTube...",
+    "show_more": "Mostrar más",
+    "show_less": "Mostrar menos",
+    "no_results": "Sin resultados",
+    "searching": "Buscando...",
+    "idle": "Inactivo",
+    "dnd": "No molestar"
+  },
+
+  "stats": {
+    "title": "Estadísticas",
+    "today": "Hoy",
+    "week": "Semana",
+    "month": "Mes",
+    "year": "Año",
+    "work_time": "Tiempo de trabajo",
+    "breaks": "Descansos",
+    "water": "Agua",
+    "glasses": "vasos",
+    "hydration": "Hidratación",
+    "top_apps": "Aplicaciones principales",
+    "categories": "Categorías",
+    "taken_label": "Realizados",
+    "skipped_label": "Omitidos",
+    "work_time_chart": "Tiempo de trabajo",
+    "breaks_chart": "Descansos",
+    "water_chart": "Agua",
+    "no_data": "Sin datos",
+    "work_time_7days": "Tiempo de trabajo - últimos 7 días",
+    "breaks_7days": "Descansos - últimos 7 días",
+    "no_data_week": "Sin datos para esta semana"
+  },
+
+  "music": {
+    "focus_sounds": "Sonidos de concentración",
+    "native_desc": "Generados nativamente – no requiere internet",
+    "volume": "Volumen:",
+    "radio_fm": "Radio FM",
+    "yt_radio": "Radio YouTube",
+    "yt_requires": "Requisitos: pip install yt-dlp + ffmpeg en PATH",
+    "yt_install_hint": "Instala y reinicia la app para desbloquear la radio de YouTube",
+    "yt_desc": "Música instrumental sin letras – transmitida desde YouTube",
+    "custom_link_label": "Enlace de YouTube personalizado (música instrumental):",
+    "search": "Buscar",
+    "play": "Reproducir",
+    "stop_all": "Detener todo",
+    "connecting": "Conectando...",
+    "playing": "Reproduciendo: {name}",
+    "error": "Error: {msg}",
+    "custom_link_name": "Enlace personalizado"
+  },
+
+  "settings": {
+    "title": "Ajustes",
+    "work_method": "Método de trabajo",
+    "method_pomodoro": "Pomodoro",
+    "method_pomodoro_desc": "25 min de trabajo, 5 min de descanso, descanso largo de 15 min cada 4 ciclos. Ejercicios oculares cada 25 min. Ideal para trabajo concentrado e intenso en bloques.",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "Cada 20 min un descanso de 20 seg, descanso largo cada 60 min (5 min). Ejercicios oculares cada 30 min. Desarrollado por oftalmólogos — protege los ojos durante el trabajo prolongado frente a la pantalla.",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52 min de trabajo, 17 min de descanso. Ejercicios oculares cada 52 min. Investigación de DeskTime — así trabajan las personas más productivas.",
+    "method_90_min": "90 minutos",
+    "method_90_min_desc": "90 min de trabajo, 5 min de descanso, descanso largo de 20 min cada 3 ciclos. Ejercicios oculares cada 30 min. Basado en el ritmo ultradiano natural del cuerpo.",
+    "method_custom": "Personalizado",
+    "method_custom_desc": "Configura tus propios intervalos con los controles de abajo.",
+    "breaks_section": "Descansos",
+    "small_break_every": "Descanso corto cada",
+    "small_break_duration": "Duración del descanso corto",
+    "big_break_every": "Descanso largo cada",
+    "big_break_duration": "Duración del descanso largo",
+    "break_mode": "Modo de descanso",
+    "mode_moderate": "Moderado  (ventana emergente)",
+    "mode_aggressive": "Agresivo  (pantalla completa)",
+    "hydration_section": "Hidratación",
+    "reminder_every": "Recordatorio cada",
+    "daily_goal": "Meta diaria",
+    "eye_section": "Ejercicios oculares",
+    "breathing_section": "Ejercicio de respiración",
+    "breathing_enabled": "Activar ejercicio de respiración",
+    "breathing_every": "Ejercicio de respiración cada",
+    "work_hours_section": "Horario laboral",
+    "work_hours_only": "Recordar solo durante el horario laboral",
+    "from_hour": "Desde:",
+    "to_hour": "Hasta:",
+    "sound_section": "Notificaciones sonoras",
+    "sound_on_break": "Sonido al inicio y fin del descanso",
+    "audio_autoplay": "Reanudar música al iniciar la app",
+    "privacy_section": "Privacidad y datos",
+    "telemetry": "Estadísticas de uso anónimas",
+    "telemetry_desc": "Ayúdanos a mejorar la app. No se recopilan datos personales.",
+    "track_titles": "Guardar títulos de ventanas en estadísticas",
+    "track_titles_desc": "Desactivado = guarda solo nombres de programas (más privacidad)",
+    "system_section": "Sistema",
+    "autostart": "Iniciar con Windows",
+    "auto_update": "Buscar actualizaciones automáticamente",
+    "check_now": "Comprobar ahora",
+    "save": "Guardar ajustes",
+    "saved": "¡Guardado!",
+    "language": "Idioma",
+    "language_restart": "El cambio de idioma requiere reiniciar la app.",
+    "dashboard_layout": "Diseño del panel",
+    "layout_enhanced": "Mejorado",
+    "layout_compact": "Compacto",
+    "unit_min": "min",
+    "unit_sec": "seg",
+    "unit_glasses": "vasos",
+    "idle_section": "Detección de inactividad",
+    "idle_enabled": "Detectar inactividad y congelar temporizadores",
+    "idle_enabled_desc": "Cuando deje de usar el ratón/teclado durante el tiempo establecido, los temporizadores se congelarán",
+    "idle_threshold": "Umbral de inactividad"
+  },
+
+  "help": {
+    "title": "Ayuda",
+    "text": "HEALTHDESK - GUÍA DEL USUARIO\n\nICONO EN LA BANDEJA DEL SISTEMA\n  Haz clic derecho en el icono verde junto al reloj de Windows:\n  \u2022 Abrir             - abre la ventana principal de la app\n  \u2022 Bebí un vaso      - registra un vaso en el seguimiento de agua\n  \u2022 Pausar (30 min)   - pausa todos los recordatorios\n  \u2022 Salir             - cierra la aplicación\n\n  Doble clic en el icono también abre la ventana.\n\nNAVEGACIÓN DE VENTANAS\n  En el lado izquierdo encontrarás el panel de navegación:\n  \u2022 Inicio        - panel con resumen diario\n  \u2022 Estadísticas  - datos detallados diarios y semanales\n  \u2022 Audio         - sonidos de concentración (ruido marrón, lluvia, bosque...)\n  \u2022 Ajustes       - configurar intervalos, modos, horario laboral\n  \u2022 Ayuda         - esta ventana\n\nDESCANSOS\n  La app te recuerda tomar descansos en dos modos:\n\n  Modo moderado (por defecto):\n    Una pequeña ventana siempre visible con cuenta regresiva.\n    Puedes hacer clic en \"Omitir\" o \"¡Tomo un descanso!\".\n\n  Modo agresivo:\n    Bloqueo de pantalla completa con cuenta regresiva.\n    Salida de emergencia: haz clic 3 veces rápidamente (en 2 segundos).\n\n  Tipos de descanso:\n    \u2022 Descanso corto (20-20-20) - cada 20 min, mira 20 seg a lo lejos\n    \u2022 Descanso largo - cada 60 min, 5 min de reposo + ejercicios\n\nEJERCICIOS\n  Ojos: parpadeo, movimientos oculares, enfoque cerca/lejos, ochos.\n  Estiramientos: cuello, hombros, torso, muñecas, piernas, espalda.\n  Los ejercicios aparecen automáticamente durante los descansos.\n\nHIDRATACIÓN\n  La app te recuerda beber agua (por defecto: cada 30 min).\n  Meta diaria: 8 vasos (configurable en Ajustes).\n  Puedes añadir rápidamente un vaso desde el panel de navegación (+1 vaso de agua).\n\nSEGUIMIENTO DE ACTIVIDAD\n  La app comprueba la ventana activa cada 5 segundos y la categoriza:\n    \u2022 Trabajo        - IDE, Office, editores\n    \u2022 Entretenimiento - YouTube, juegos, medios\n    \u2022 Comunicación   - Teams, Slack, Zoom\n    \u2022 Navegador      - Chrome, Firefox, Edge\n    \u2022 Otros          - todo lo demás\n\n  Los datos son visibles en la pestaña de Estadísticas.\n\nSONIDOS DE CONCENTRACIÓN\n  La pestaña Audio ofrece sonidos generados nativamente (sin internet):\n    \u2022 Ruido marrón   - ruido profundo y relajante\n    \u2022 Lluvia         - lluvia con gotas\n    \u2022 Ruido blanco/rosa - ruido uniforme\n    \u2022 Drone ambiental - tono profundo con modulación\n    \u2022 Bosque         - viento en los árboles, pájaros\n\n  El sonido se reproduce en segundo plano incluso al cerrar la ventana.\n\nRADIO YOUTUBE\n  Música instrumental sin letras, transmitida desde YouTube:\n    \u2022 Lofi Girl - lofi hip hop beats\n    \u2022 Jazz Cafe - smooth jazz & bossa nova\n    \u2022 Classical Focus - música clásica\n    \u2022 Synthwave Radio - synthwave instrumental\n    \u2022 Piano & Ambient - piano relajante\n\n  También puedes pegar tu propio enlace de YouTube.\n  Requisitos: yt-dlp (pip install yt-dlp) + ffmpeg en PATH.\n\nHORARIO LABORAL\n  En Ajustes puedes establecer un horario laboral (ej. 8:00-18:00).\n  Fuera de estas horas, los recordatorios se pausan.\n\nINICIO AUTOMÁTICO\n  Ajustes > \"Iniciar con Windows\" - la app se iniciará\n  automáticamente tras iniciar sesión en el sistema.\n\nDATOS\n  La configuración y la base de datos se encuentran en:\n    %APPDATA%\\HealthDesk\\\n  Puedes eliminar esta carpeta para restablecer la aplicación."
+  },
+
+  "break": {
+    "window_title": "HealthDesk - ¡Descanso!",
+    "small_title": "Descanso 20-20-20",
+    "small_desc": "Aparta la vista de la pantalla y enfoca\nun objeto a unos 6 metros de distancia.",
+    "big_title": "¡Hora del descanso largo!",
+    "big_desc": "Levántate del escritorio durante {minutes} minutos.\n¡Estírate, bebe agua, muévete!",
+    "accept": "¡Tomo un descanso!",
+    "accepted_msg": "Descansa... la ventana se cerrará automáticamente",
+    "snooze": "Posponer 3 min",
+    "skip": "Omitir"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - Descanso",
+    "small_title": "Descanso 20-20-20",
+    "small_desc": "Aparta la vista de la pantalla.\nEnfoca algo lejano. Deja descansar tus ojos.",
+    "big_title": "¡Hora de un descanso!",
+    "big_desc": "Levántate del ordenador. Estírate.\n¡Bebe un poco de agua. Tu cuerpo te lo agradecerá!",
+    "exit_hint": "Salida de emergencia: haz clic 3 veces rápido (en 2 seg)",
+    "check": "Listo",
+    "msg_eyes": "Tus ojos te lo agradecen...",
+    "msg_health": "Cada descanso es una inversión en tu salud",
+    "msg_breathe": "Respira profundamente...",
+    "msg_relax": "Relaja los hombros y la mandíbula",
+    "msg_halfway": "¡Ya vas por la mitad!"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "Ejercicio ocular",
+      "exercises": [
+        {
+          "name": "Movimiento ocular",
+          "icon": "\u2195",
+          "steps": [
+            "Mira hacia arriba (3 seg)",
+            "Mira hacia abajo (3 seg)",
+            "Mira a la izquierda (3 seg)",
+            "Mira a la derecha (3 seg)",
+            "Repite 3 veces"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "Parpadeo",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "Parpadea rápidamente durante 15 segundos",
+            "Cierra los ojos durante 5 segundos",
+            "Repite 2 veces"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "Enfoque cerca / lejos",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "Mira tu pulgar (30 cm) durante 5 seg",
+            "Mira un objeto lejano durante 5 seg",
+            "Repite 5 veces"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "Figura de ocho",
+          "icon": "\u221e",
+          "steps": [
+            "Imagina un gran ocho en la pared",
+            "Sigue su forma lentamente con los ojos",
+            "Cambia de dirección después de 15 segundos"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "Cerrar"
+    },
+    "breathing": {
+      "title": "Ejercicio de respiración",
+      "inhale": "Inhala...",
+      "hold": "Mantén...",
+      "exhale": "Exhala...",
+      "cycle": "Ciclo {current}/{total}",
+      "close": "Cerrar"
+    },
+    "stretch": {
+      "title": "¡Hora de estirarse!",
+      "window_title": "Estiramientos",
+      "tip": "No fuerces demasiado — ¡los movimientos deben ser suaves!",
+      "done": "¡Listo!",
+      "exercises": [
+        {
+          "name": "Estiramiento de cuello",
+          "icon": "\ud83e\udd92",
+          "desc": "1. Inclina la cabeza a la derecha (15 seg)\n2. Inclina la cabeza a la izquierda (15 seg)\n3. Baja la barbilla al pecho (15 seg)\n4. Inclina la cabeza hacia atrás (15 seg)"
+        },
+        {
+          "name": "Estiramiento de hombros",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. Brazo derecho sobre la cabeza, doblado por el codo\n   La mano izquierda presiona el codo (15 seg)\n2. Repite en el otro lado\n3. Entrelaza las manos detrás de la espalda, saca pecho (15 seg)"
+        },
+        {
+          "name": "Giro de torso",
+          "icon": "\ud83d\udd04",
+          "desc": "1. Siéntate recto en la silla\n2. Coloca la mano derecha en la rodilla izquierda\n3. Gira suavemente hacia la izquierda (15 seg)\n4. Repite en el otro lado"
+        },
+        {
+          "name": "Muñecas y manos",
+          "icon": "\ud83e\udd32",
+          "desc": "1. Extiende el brazo hacia adelante, palma hacia arriba\n2. Con la otra mano tira suavemente de los dedos hacia abajo (15 seg)\n3. Repite con la palma hacia abajo\n4. Gira las muñecas — 10 veces en cada dirección"
+        },
+        {
+          "name": "Estiramiento de piernas",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. Extiende la pierna hacia adelante (15 seg)\n2. Cambia de pierna (15 seg)\n3. Levántate — 5 sentadillas\n4. Ponte de puntillas 10 veces"
+        },
+        {
+          "name": "Estiramiento de espalda",
+          "icon": "\ud83d\udc08",
+          "desc": "1. Siéntate en el borde de la silla\n2. Inclínate hacia adelante, las manos tocan el suelo (15 seg)\n3. Levántate, manos arriba, inclínate ligeramente hacia atrás (10 seg)\n4. Estiramiento de gato: arquea la espalda sentado (10 seg)"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "Recordatorio de agua",
+    "time_to_drink": "¡Hora de beber agua!",
+    "glasses_count": "{current} / {goal} vasos",
+    "goal_reached": "¡Meta alcanzada! ¡Buen trabajo!",
+    "drank": "¡Bebí!",
+    "later": "Más tarde"
+  },
+
+  "update": {
+    "checking": "Buscando actualizaciones...",
+    "available": "Nueva versión {version} disponible",
+    "up_to_date": "Tienes la última versión ({version})",
+    "download": "Descargar e instalar",
+    "later": "Más tarde",
+    "downloading": "Descargando... {percent}%",
+    "installing": "Instalando...",
+    "error": "No se pudieron buscar actualizaciones",
+    "restart_note": "La app se cerrará y se actualizará.",
+    "title": "Actualización"
+  },
+
+  "tray": {
+    "open": "Abrir",
+    "log_water": "Bebí un vaso de agua",
+    "pause": "Pausar (30 min)",
+    "resume": "Reanudar",
+    "check_updates": "Buscar actualizaciones",
+    "music_play": "▶ Reproducir música",
+    "music_stop": "⏹ Detener música",
+    "quit": "Salir",
+    "tooltip": "HealthDesk - Trabajo saludable",
+    "water_logged": "¡Registrado! Hoy: {total} vasos",
+    "water_title": "Agua"
+  },
+
+  "status": {
+    "pause": "En pausa",
+    "to_break": "{time} para el descanso",
+    "break_now": "¡descanso!",
+    "already_running": "¡HealthDesk ya está en ejecución!\nRevisa el icono en la bandeja del sistema.",
+    "outside_work_hours": "Fuera del horario laboral",
+    "reset_timers": "Restablecer temporizadores",
+    "reset_confirm": "¿Restablecer temporizadores?",
+    "reset_yes": "Sí",
+    "reset_no": "No"
+  }
+}

@@ -1,0 +1,321 @@
+{
+  "_name": "한국어",
+
+  "nav": {
+    "home": "홈",
+    "stats": "통계",
+    "music": "오디오",
+    "settings": "설정",
+    "help": "도움말",
+    "water_plus": "+1 물",
+    "pause": "일시정지",
+    "resume": "재개"
+  },
+
+  "home": {
+    "work_time_today": "오늘 근무 시간",
+    "breaks": "휴식",
+    "next_break": "다음 휴식",
+    "small_break": "눈 휴식",
+    "big_break": "활동 휴식",
+    "next_water": "알림까지",
+    "water": "물",
+    "sound": "소리",
+    "sound_off": "꺼짐",
+    "play": "재생",
+    "now": "지금!",
+    "outside_work_hours": "근무 시간 외",
+    "glasses_count": "{current} / {goal} 잔",
+    "day_progress": "하루 중",
+    "breaks_taken": "완료",
+    "breaks_skipped": "건너뜀",
+    "search_music": "음악 검색",
+    "search_placeholder": "YouTube 검색...",
+    "show_more": "더 보기",
+    "show_less": "접기",
+    "no_results": "결과 없음",
+    "searching": "검색 중...",
+    "idle": "유휴",
+    "dnd": "방해 금지"
+  },
+
+  "stats": {
+    "title": "통계",
+    "today": "오늘",
+    "week": "이번 주",
+    "month": "이번 달",
+    "year": "올해",
+    "work_time": "근무 시간",
+    "breaks": "휴식",
+    "water": "물",
+    "glasses": "잔",
+    "hydration": "수분 섭취",
+    "top_apps": "자주 사용한 앱",
+    "categories": "카테고리",
+    "taken_label": "완료",
+    "skipped_label": "건너뜀",
+    "work_time_chart": "근무 시간",
+    "breaks_chart": "휴식",
+    "water_chart": "물",
+    "no_data": "데이터 없음",
+    "work_time_7days": "근무 시간 - 최근 7일",
+    "breaks_7days": "휴식 - 최근 7일",
+    "no_data_week": "이번 주 데이터가 없습니다"
+  },
+
+  "music": {
+    "focus_sounds": "집중 사운드",
+    "native_desc": "자체 생성 — 인터넷 불필요",
+    "volume": "볼륨:",
+    "radio_fm": "FM 라디오",
+    "yt_radio": "YouTube 라디오",
+    "yt_requires": "필요: pip install yt-dlp + ffmpeg (PATH에 등록)",
+    "yt_install_hint": "설치 후 앱을 재시작하면 YouTube 라디오를 사용할 수 있습니다",
+    "yt_desc": "YouTube에서 스트리밍하는 가사 없는 인스트루멘탈 음악",
+    "custom_link_label": "사용자 지정 YouTube 링크 (인스트루멘탈 음악):",
+    "search": "검색",
+    "play": "재생",
+    "stop_all": "모두 정지",
+    "connecting": "연결 중...",
+    "playing": "재생 중: {name}",
+    "error": "오류: {msg}",
+    "custom_link_name": "사용자 지정 링크"
+  },
+
+  "settings": {
+    "title": "설정",
+    "work_method": "작업 방식",
+    "method_pomodoro": "포모도로",
+    "method_pomodoro_desc": "25분 작업, 5분 휴식, 4주기마다 15분 긴 휴식. 25분마다 눈 운동. 집중적인 블록 작업에 최적입니다.",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "20분마다 20초 휴식, 60분마다 5분 긴 휴식. 30분마다 눈 운동. 안과 전문의가 개발 — 장시간 화면 작업 시 눈을 보호합니다.",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52분 작업, 17분 휴식. 52분마다 눈 운동. DeskTime 연구 결과 — 가장 생산적인 직원들의 업무 패턴입니다.",
+    "method_90_min": "90분",
+    "method_90_min_desc": "90분 작업, 5분 휴식, 3주기마다 20분 긴 휴식. 30분마다 눈 운동. 인체의 자연적인 울트라디안 리듬에 기반합니다.",
+    "method_custom": "사용자 지정",
+    "method_custom_desc": "아래 슬라이더로 직접 간격을 설정하세요.",
+    "breaks_section": "휴식",
+    "small_break_every": "짧은 휴식 간격",
+    "small_break_duration": "짧은 휴식 시간",
+    "big_break_every": "긴 휴식 간격",
+    "big_break_duration": "긴 휴식 시간",
+    "break_mode": "휴식 모드",
+    "mode_moderate": "일반  (팝업)",
+    "mode_aggressive": "강제  (전체 화면)",
+    "hydration_section": "수분 섭취",
+    "reminder_every": "알림 간격",
+    "daily_goal": "일일 목표",
+    "eye_section": "눈 운동",
+    "breathing_section": "호흡 운동",
+    "breathing_enabled": "호흡 운동 활성화",
+    "breathing_every": "호흡 운동 간격",
+    "work_hours_section": "근무 시간",
+    "work_hours_only": "근무 시간에만 알림",
+    "from_hour": "시작:",
+    "to_hour": "종료:",
+    "sound_section": "소리 알림",
+    "sound_on_break": "휴식 시작/종료 시 소리",
+    "audio_autoplay": "앱 시작 시 음악 자동 재생",
+    "privacy_section": "개인정보 및 데이터",
+    "telemetry": "익명 사용 통계",
+    "telemetry_desc": "앱 개선에 도움을 줍니다. 개인 정보는 수집하지 않습니다.",
+    "track_titles": "통계에 창 제목 저장",
+    "track_titles_desc": "비활성화 = 프로그램 이름만 저장 (더 높은 개인정보 보호)",
+    "system_section": "시스템",
+    "autostart": "Windows 시작 시 자동 실행",
+    "auto_update": "자동 업데이트 확인",
+    "check_now": "지금 확인",
+    "save": "설정 저장",
+    "saved": "저장됨!",
+    "language": "언어",
+    "language_restart": "언어 변경은 앱 재시작이 필요합니다.",
+    "dashboard_layout": "대시보드 레이아웃",
+    "layout_enhanced": "향상됨",
+    "layout_compact": "간결함",
+    "unit_min": "분",
+    "unit_sec": "초",
+    "unit_glasses": "잔",
+    "idle_section": "유휴 감지",
+    "idle_enabled": "유휴 감지 및 타이머 정지",
+    "idle_enabled_desc": "마우스/키보드 사용이 설정된 시간 동안 없으면 타이머가 정지됩니다",
+    "idle_threshold": "유휴 기준 시간"
+  },
+
+  "help": {
+    "title": "도움말",
+    "text": "HEALTHDESK - 사용자 가이드\n\n시스템 트레이 아이콘\n  Windows 시계 옆의 초록색 아이콘을 우클릭하세요:\n  \u2022 열기             - 메인 앱 창을 엽니다\n  \u2022 물 한 잔 마심    - 물 추적기에 한 잔 기록\n  \u2022 일시정지 (30분)  - 모든 알림을 일시정지\n  \u2022 종료             - 앱을 종료합니다\n\n  아이콘을 더블클릭해도 창이 열립니다.\n\n창 내비게이션\n  왼쪽에 내비게이션 패널이 있습니다:\n  \u2022 홈        - 일일 요약 대시보드\n  \u2022 통계      - 상세한 일간/주간 데이터\n  \u2022 오디오    - 집중 사운드 (브라운 노이즈, 빗소리, 숲소리...)\n  \u2022 설정      - 간격, 모드, 근무 시간 설정\n  \u2022 도움말    - 이 창\n\n휴식\n  앱은 두 가지 모드로 휴식을 알려줍니다:\n\n  일반 모드 (기본값):\n    항상 위에 표시되는 작은 카운트다운 창.\n    \"건너뛰기\" 또는 \"휴식 중!\"을 클릭할 수 있습니다.\n\n  강제 모드:\n    전체 화면 차단과 카운트다운.\n    긴급 해제: 빠르게 3번 클릭 (2초 이내).\n\n  휴식 유형:\n    \u2022 짧은 휴식 (20-20-20) - 20분마다, 20초간 먼 곳 바라보기\n    \u2022 긴 휴식 - 60분마다, 5분 휴식 + 운동\n\n운동\n  눈: 깜빡이기, 눈 운동, 원근 초점, 8자 그리기.\n  스트레칭: 목, 어깨, 몸통, 손목, 다리, 등.\n  운동은 휴식 중 자동으로 나타납니다.\n\n수분 섭취\n  앱이 물 마시기를 알려줍니다 (기본: 30분마다).\n  일일 목표: 8잔 (설정에서 변경 가능).\n  내비게이션 패널에서 빠르게 한 잔을 추가할 수 있습니다 (+1 물).\n\n활동 추적\n  앱은 5초마다 활성 창을 확인하고 분류합니다:\n    \u2022 업무         - IDE, Office, 편집기\n    \u2022 엔터테인먼트 - YouTube, 게임, 미디어\n    \u2022 커뮤니케이션 - Teams, Slack, Zoom\n    \u2022 브라우저     - Chrome, Firefox, Edge\n    \u2022 기타         - 나머지\n\n  데이터는 통계 탭에서 확인할 수 있습니다.\n\n집중 사운드\n  오디오 탭에서 자체 생성 사운드를 제공합니다 (인터넷 불필요):\n    \u2022 브라운 노이즈 - 깊고 편안한 노이즈\n    \u2022 빗소리       - 빗방울 소리\n    \u2022 화이트/핑크 노이즈 - 균일한 노이즈\n    \u2022 앰비언트 드론 - 변조가 있는 깊은 톤\n    \u2022 숲소리       - 나무에 부는 바람, 새소리\n\n  창을 닫아도 소리는 백그라운드에서 계속 재생됩니다.\n\nYOUTUBE 라디오\n  YouTube에서 스트리밍하는 가사 없는 인스트루멘탈 음악:\n    \u2022 Lofi Girl - 로파이 힙합 비트\n    \u2022 Jazz Cafe - 스무스 재즈 & 보사노바\n    \u2022 Classical Focus - 클래식 음악\n    \u2022 Synthwave Radio - 신스웨이브 인스트루멘탈\n    \u2022 Piano & Ambient - 잔잔한 피아노\n\n  자신만의 YouTube 링크를 붙여넣을 수도 있습니다.\n  필요: yt-dlp (pip install yt-dlp) + ffmpeg (PATH에 등록).\n\n근무 시간\n  설정에서 근무 시간을 설정할 수 있습니다 (예: 8:00-18:00).\n  근무 시간 외에는 알림이 일시정지됩니다.\n\n자동 시작\n  설정 > \"Windows 시작 시 자동 실행\" - 시스템 로그인 후\n  앱이 자동으로 시작됩니다.\n\n데이터\n  설정 및 데이터베이스 위치:\n    %APPDATA%\\HealthDesk\\\n  이 폴더를 삭제하면 앱이 초기화됩니다."
+  },
+
+  "break": {
+    "window_title": "HealthDesk - 휴식!",
+    "small_title": "20-20-20 휴식",
+    "small_desc": "화면에서 눈을 떼고\n약 6미터 떨어진 물체를 바라보세요.",
+    "big_title": "긴 휴식 시간입니다!",
+    "big_desc": "자리에서 일어나 {minutes}분 동안 쉬세요.\n스트레칭하고, 물 마시고, 움직이세요!",
+    "accept": "휴식 중!",
+    "accepted_msg": "편히 쉬세요... 창이 자동으로 닫힙니다",
+    "snooze": "3분 미루기",
+    "skip": "건너뛰기"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - 휴식",
+    "small_title": "20-20-20 휴식",
+    "small_desc": "화면에서 눈을 떼세요.\n먼 곳을 바라보며 눈을 쉬게 하세요.",
+    "big_title": "휴식 시간입니다!",
+    "big_desc": "컴퓨터에서 일어나세요. 스트레칭하세요.\n물을 마시세요. 몸이 고마워할 거예요!",
+    "exit_hint": "긴급 해제: 빠르게 3번 클릭 (2초 이내)",
+    "check": "확인",
+    "msg_eyes": "눈이 고마워하고 있어요...",
+    "msg_health": "모든 휴식은 건강에 대한 투자입니다",
+    "msg_breathe": "깊게 숨을 쉬세요...",
+    "msg_relax": "어깨와 턱의 힘을 빼세요",
+    "msg_halfway": "절반 지났습니다!"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "눈 운동",
+      "exercises": [
+        {
+          "name": "눈 운동",
+          "icon": "\u2195",
+          "steps": [
+            "위를 봅니다 (3초)",
+            "아래를 봅니다 (3초)",
+            "왼쪽을 봅니다 (3초)",
+            "오른쪽을 봅니다 (3초)",
+            "3번 반복"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "깜빡이기",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "15초 동안 빠르게 깜빡입니다",
+            "5초 동안 눈을 감습니다",
+            "2번 반복"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "원근 초점",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "엄지 (30cm)를 5초간 봅니다",
+            "먼 물체를 5초간 봅니다",
+            "5번 반복"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "8자 그리기",
+          "icon": "\u221e",
+          "steps": [
+            "벽에 큰 8자를 상상하세요",
+            "눈으로 천천히 그 모양을 따라가세요",
+            "15초 후 방향을 바꾸세요"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "닫기"
+    },
+    "breathing": {
+      "title": "호흡 운동",
+      "inhale": "들이쉬기...",
+      "hold": "멈추기...",
+      "exhale": "내쉬기...",
+      "cycle": "사이클 {current}/{total}",
+      "close": "닫기"
+    },
+    "stretch": {
+      "title": "스트레칭 시간입니다!",
+      "window_title": "스트레칭",
+      "tip": "무리하지 마세요 - 부드럽게 움직이세요!",
+      "done": "완료!",
+      "exercises": [
+        {
+          "name": "목 스트레칭",
+          "icon": "\ud83e\udd92",
+          "desc": "1. 머리를 오른쪽으로 기울이기 (15초)\n2. 머리를 왼쪽으로 기울이기 (15초)\n3. 턱을 가슴 쪽으로 내리기 (15초)\n4. 머리를 뒤로 젖히기 (15초)"
+        },
+        {
+          "name": "어깨 스트레칭",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. 오른팔을 머리 위로, 팔꿈치 굽히기\n   왼손으로 팔꿈치 누르기 (15초)\n2. 반대쪽 반복\n3. 손을 등 뒤로 깍지 끼고 가슴 펴기 (15초)"
+        },
+        {
+          "name": "몸통 비틀기",
+          "icon": "\ud83d\udd04",
+          "desc": "1. 의자에 바르게 앉기\n2. 오른손을 왼쪽 무릎에 올리기\n3. 부드럽게 왼쪽으로 비틀기 (15초)\n4. 반대쪽 반복"
+        },
+        {
+          "name": "손목과 손",
+          "icon": "\ud83e\udd32",
+          "desc": "1. 팔을 앞으로 뻗고 손바닥을 위로\n2. 다른 손으로 손가락을 부드럽게 아래로 당기기 (15초)\n3. 손바닥을 아래로 하고 반복\n4. 손목 회전 - 각 방향 10회"
+        },
+        {
+          "name": "다리 스트레칭",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. 다리를 앞으로 뻗기 (15초)\n2. 다리 교체 (15초)\n3. 일어서서 스쿼트 5회\n4. 까치발 들기 10회"
+        },
+        {
+          "name": "등 스트레칭",
+          "icon": "\ud83d\udc08",
+          "desc": "1. 의자 끝에 앉기\n2. 앞으로 숙여서 손이 바닥에 닿기 (15초)\n3. 일어서서 손을 위로, 살짝 뒤로 젖히기 (10초)\n4. 고양이 자세: 앉은 채로 등 둥글게 하기 (10초)"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "물 마시기 알림",
+    "time_to_drink": "물 마실 시간입니다!",
+    "glasses_count": "{current} / {goal} 잔",
+    "goal_reached": "목표 달성! 잘하셨어요!",
+    "drank": "마셨어요!",
+    "later": "나중에"
+  },
+
+  "update": {
+    "checking": "업데이트 확인 중...",
+    "available": "새 버전 {version}을(를) 사용할 수 있습니다",
+    "up_to_date": "최신 버전입니다 ({version})",
+    "download": "다운로드 및 설치",
+    "later": "나중에",
+    "downloading": "다운로드 중... {percent}%",
+    "installing": "설치 중...",
+    "error": "업데이트를 확인할 수 없습니다",
+    "restart_note": "앱이 종료되고 업데이트됩니다.",
+    "title": "업데이트"
+  },
+
+  "tray": {
+    "open": "열기",
+    "log_water": "물 한 잔 마심",
+    "pause": "일시정지 (30분)",
+    "resume": "재개",
+    "check_updates": "업데이트 확인",
+    "music_play": "▶ 음악 재생",
+    "music_stop": "⏹ 음악 정지",
+    "quit": "종료",
+    "tooltip": "HealthDesk - 건강한 근무",
+    "water_logged": "기록 완료! 오늘: {total}잔",
+    "water_title": "물"
+  },
+
+  "status": {
+    "pause": "일시정지됨",
+    "to_break": "휴식까지 {time}",
+    "break_now": "휴식!",
+    "already_running": "HealthDesk가 이미 실행 중입니다!\n시스템 트레이 아이콘을 확인하세요.",
+    "outside_work_hours": "근무 시간 외",
+    "reset_timers": "타이머 초기화",
+    "reset_confirm": "타이머를 초기화할까요?",
+    "reset_yes": "예",
+    "reset_no": "아니오"
+  }
+}

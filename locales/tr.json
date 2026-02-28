@@ -1,0 +1,321 @@
+{
+  "_name": "Türkçe",
+
+  "nav": {
+    "home": "Ana Sayfa",
+    "stats": "İstatistikler",
+    "music": "Ses",
+    "settings": "Ayarlar",
+    "help": "Yardım",
+    "water_plus": "+1 su",
+    "pause": "Duraklat",
+    "resume": "Devam Et"
+  },
+
+  "home": {
+    "work_time_today": "Bugünkü çalışma süresi",
+    "breaks": "Molalar",
+    "next_break": "Sonraki mola",
+    "small_break": "Göz molası",
+    "big_break": "Hareket molası",
+    "next_water": "Hatırlatma:",
+    "water": "Su",
+    "sound": "Ses",
+    "sound_off": "Kapalı",
+    "play": "Oynat",
+    "now": "şimdi!",
+    "outside_work_hours": "Çalışma saatleri dışında",
+    "glasses_count": "{current} / {goal} bardak",
+    "day_progress": "günün",
+    "breaks_taken": "alınan",
+    "breaks_skipped": "atlanan",
+    "search_music": "Müzik ara",
+    "search_placeholder": "YouTube'da ara...",
+    "show_more": "Daha fazla göster",
+    "show_less": "Daha az göster",
+    "no_results": "Sonuç bulunamadı",
+    "searching": "Aranıyor...",
+    "idle": "Boşta",
+    "dnd": "Rahatsız Etmeyin"
+  },
+
+  "stats": {
+    "title": "İstatistikler",
+    "today": "Bugün",
+    "week": "Hafta",
+    "month": "Ay",
+    "year": "Yıl",
+    "work_time": "Çalışma süresi",
+    "breaks": "Molalar",
+    "water": "Su",
+    "glasses": "bardak",
+    "hydration": "Sıvı alımı",
+    "top_apps": "En çok kullanılan uygulamalar",
+    "categories": "Kategoriler",
+    "taken_label": "Alınan",
+    "skipped_label": "Atlanan",
+    "work_time_chart": "Çalışma süresi",
+    "breaks_chart": "Molalar",
+    "water_chart": "Su",
+    "no_data": "Veri yok",
+    "work_time_7days": "Çalışma süresi - son 7 gün",
+    "breaks_7days": "Molalar - son 7 gün",
+    "no_data_week": "Bu hafta için veri yok"
+  },
+
+  "music": {
+    "focus_sounds": "Odaklanma sesleri",
+    "native_desc": "Yerel olarak oluşturulur - internet gerekmez",
+    "volume": "Ses seviyesi:",
+    "radio_fm": "FM Radyo",
+    "yt_radio": "YouTube Radyo",
+    "yt_requires": "Gerekli: pip install yt-dlp + ffmpeg PATH'te",
+    "yt_install_hint": "YouTube radyoyu açmak için kurun ve uygulamayı yeniden başlatın",
+    "yt_desc": "Sözsüz enstrümantal müzik - YouTube'dan yayınlanır",
+    "custom_link_label": "Özel YouTube bağlantısı (enstrümantal müzik):",
+    "search": "Ara",
+    "play": "Oynat",
+    "stop_all": "Tümünü durdur",
+    "connecting": "Bağlanıyor...",
+    "playing": "Çalıyor: {name}",
+    "error": "Hata: {msg}",
+    "custom_link_name": "Özel bağlantı"
+  },
+
+  "settings": {
+    "title": "Ayarlar",
+    "work_method": "Çalışma yöntemi",
+    "method_pomodoro": "Pomodoro",
+    "method_pomodoro_desc": "25 dk çalışma, 5 dk mola, her 4 döngüde 15 dk büyük mola. Göz egzersizleri her 25 dk. Yoğun, bloklar halinde odaklanmış çalışma için idealdir.",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "Her 20 dk'da 20 sn mola, her 60 dk'da büyük mola (5 dk). Göz egzersizleri her 30 dk. Göz doktorları tarafından geliştirildi — uzun ekran süresinde gözleri korur.",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52 dk çalışma, 17 dk mola. Göz egzersizleri her 52 dk. DeskTime araştırması — en verimli çalışanlar bu şekilde çalışır.",
+    "method_90_min": "90 dakika",
+    "method_90_min_desc": "90 dk çalışma, 5 dk mola, her 3 döngüde 20 dk büyük mola. Göz egzersizleri her 30 dk. Vücudun doğal ultradian ritmine dayanır.",
+    "method_custom": "Özel",
+    "method_custom_desc": "Aşağıdaki kaydırıcılarla kendi aralıklarınızı belirleyin.",
+    "breaks_section": "Molalar",
+    "small_break_every": "Küçük mola her",
+    "small_break_duration": "Küçük mola süresi",
+    "big_break_every": "Büyük mola her",
+    "big_break_duration": "Büyük mola süresi",
+    "break_mode": "Mola modu",
+    "mode_moderate": "Ilımlı  (açılır pencere)",
+    "mode_aggressive": "Agresif  (tam ekran)",
+    "hydration_section": "Sıvı alımı",
+    "reminder_every": "Hatırlatma her",
+    "daily_goal": "Günlük hedef",
+    "eye_section": "Göz egzersizleri",
+    "breathing_section": "Nefes egzersizi",
+    "breathing_enabled": "Nefes egzersizini etkinleştir",
+    "breathing_every": "Nefes egzersizi her",
+    "work_hours_section": "Çalışma saatleri",
+    "work_hours_only": "Sadece çalışma saatlerinde hatırlat",
+    "from_hour": "Başlangıç:",
+    "to_hour": "Bitiş:",
+    "sound_section": "Sesli bildirimler",
+    "sound_on_break": "Mola başı ve sonu sesi",
+    "audio_autoplay": "Uygulama başlatıldığında müziği devam ettir",
+    "privacy_section": "Gizlilik ve veriler",
+    "telemetry": "Anonim kullanım istatistikleri",
+    "telemetry_desc": "Uygulamayı geliştirmemize yardımcı olun. Kişisel veri toplanmaz.",
+    "track_titles": "Pencere başlıklarını istatistiklere kaydet",
+    "track_titles_desc": "Devre dışı = sadece program adlarını kaydeder (daha fazla gizlilik)",
+    "system_section": "Sistem",
+    "autostart": "Windows ile başlat",
+    "auto_update": "Güncellemeleri otomatik kontrol et",
+    "check_now": "Şimdi kontrol et",
+    "save": "Ayarları kaydet",
+    "saved": "Kaydedildi!",
+    "language": "Dil",
+    "language_restart": "Dil değişikliği uygulamanın yeniden başlatılmasını gerektirir.",
+    "dashboard_layout": "Pano düzeni",
+    "layout_enhanced": "Gelişmiş",
+    "layout_compact": "Kompakt",
+    "unit_min": "dk",
+    "unit_sec": "sn",
+    "unit_glasses": "bardak",
+    "idle_section": "Boşta algılama",
+    "idle_enabled": "Boşta kalma algıla ve zamanlayıcıları dondur",
+    "idle_enabled_desc": "Fare/klavyeyi ayarlanan süre boyunca kullanmayı bıraktığınızda zamanlayıcılar donar",
+    "idle_threshold": "Boşta eşik süresi"
+  },
+
+  "help": {
+    "title": "Yardım",
+    "text": "HEALTHDESK - KULLANIM KILAVUZU\n\nSİSTEM TEPSİSİ SİMGESİ\n  Windows saatinin yanındaki yeşil simgeye sağ tıklayın:\n  \u2022 Aç               - ana uygulama penceresini açar\n  \u2022 Bir bardak içtim  - su takibine bir bardak ekler\n  \u2022 Duraklat (30 dk)  - tüm hatırlatmaları duraklatır\n  \u2022 Çıkış            - uygulamayı kapatır\n\n  Simgeye çift tıklamak da pencereyi açar.\n\nPENCERE GEZİNME\n  Sol tarafta gezinme panelini bulacaksınız:\n  \u2022 Ana Sayfa    - günlük özet panosu\n  \u2022 İstatistikler - ayrıntılı günlük ve haftalık veriler\n  \u2022 Ses          - odaklanma sesleri (kahverengi gürültü, yağmur, orman...)\n  \u2022 Ayarlar      - aralıkları, modları, çalışma saatlerini yapılandırın\n  \u2022 Yardım       - bu pencere\n\nMOLALAR\n  Uygulama iki modda mola hatırlatması yapar:\n\n  Ilımlı mod (varsayılan):\n    Geri sayımlı küçük bir her zaman üstte pencere.\n    \"Atla\" veya \"Mola alıyorum!\" tıklayabilirsiniz.\n\n  Agresif mod:\n    Geri sayımlı tam ekran engelleme.\n    Acil çıkış: 3 kez hızlıca tıklayın (2 saniye içinde).\n\n  Mola türleri:\n    \u2022 Küçük mola (20-20-20) - her 20 dk, 20 sn uzağa bakın\n    \u2022 Büyük mola - her 60 dk, 5 dk dinlenme + egzersiz\n\nEGZERSİZLER\n  Gözler: göz kırpma, göz hareketleri, yakın/uzak odaklama, sekiz çizme.\n  Esneme: boyun, omuzlar, gövde, bilekler, bacaklar, sırt.\n  Egzersizler molalar sırasında otomatik olarak görünür.\n\nSIVI ALIMI\n  Uygulama su içmenizi hatırlatır (varsayılan: her 30 dk).\n  Günlük hedef: 8 bardak (Ayarlar'dan yapılandırılabilir).\n  Gezinme panelinden hızlıca bir bardak ekleyebilirsiniz (+1 su).\n\nAKTİVİTE TAKİBİ\n  Uygulama her 5 saniyede aktif pencereyi kontrol eder ve kategorize eder:\n    \u2022 Çalışma      - IDE, Office, editörler\n    \u2022 Eğlence      - YouTube, oyunlar, medya\n    \u2022 İletişim     - Teams, Slack, Zoom\n    \u2022 Tarayıcı     - Chrome, Firefox, Edge\n    \u2022 Diğer        - diğer her şey\n\n  Veriler İstatistikler sekmesinde görünür.\n\nODAKLANMA SESLERİ\n  Ses sekmesi yerel olarak oluşturulmuş sesler sunar (internet gerekmez):\n    \u2022 Kahverengi Gürültü - derin, rahatlatıcı gürültü\n    \u2022 Yağmur            - yağmur damlaları\n    \u2022 Beyaz/Pembe Gürültü - düzgün gürültü\n    \u2022 Ortam Drone'u     - modülasyonlu derin ton\n    \u2022 Orman             - ağaçlarda rüzgar, kuşlar\n\n  Ses, pencere kapatıldıktan sonra bile arka planda çalar.\n\nYOUTUBE RADYO\n  Sözsüz enstrümantal müzik, YouTube'dan yayınlanır:\n    \u2022 Lofi Girl - lofi hip hop ritimler\n    \u2022 Jazz Cafe - smooth jazz & bossa nova\n    \u2022 Classical Focus - klasik müzik\n    \u2022 Synthwave Radio - synthwave enstrümantal\n    \u2022 Piano & Ambient - sakin piyano\n\n  Kendi YouTube bağlantınızı da yapıştırabilirsiniz.\n  Gerekli: yt-dlp (pip install yt-dlp) + ffmpeg PATH'te.\n\nÇALIŞMA SAATLERİ\n  Ayarlar'da çalışma saatlerini etkinleştirebilirsiniz (ör. 8:00-18:00).\n  Bu saatlerin dışında hatırlatmalar duraklatılır.\n\nOTOMATİK BAŞLATMA\n  Ayarlar > \"Windows ile başlat\" - uygulama sisteme giriş\n  yaptıktan sonra otomatik olarak başlayacaktır.\n\nVERİLER\n  Yapılandırma ve veritabanı şurada:\n    %APPDATA%\\HealthDesk\\\n  Uygulamayı sıfırlamak için bu klasörü silebilirsiniz."
+  },
+
+  "break": {
+    "window_title": "HealthDesk - Mola!",
+    "small_title": "20-20-20 Molası",
+    "small_desc": "Ekrandan uzağa bakın ve\nyaklaşık 6 metre uzaktaki bir nesneye odaklanın.",
+    "big_title": "Büyük mola zamanı!",
+    "big_desc": "Masanızdan {minutes} dakika için kalkın.\nEsneme yapın, su için, hareket edin!",
+    "accept": "Mola alıyorum!",
+    "accepted_msg": "Dinlenin... pencere otomatik kapanacak",
+    "snooze": "3 dk ertele",
+    "skip": "Atla"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - Mola",
+    "small_title": "20-20-20 Molası",
+    "small_desc": "Ekrandan uzağa bakın.\nUzaktaki bir şeye odaklanın. Gözlerinizi dinlendirin.",
+    "big_title": "Mola zamanı!",
+    "big_desc": "Bilgisayardan kalkın. Esneme yapın.\nBiraz su için. Vücudunuz size teşekkür edecek!",
+    "exit_hint": "Acil çıkış: 3 kez hızlıca tıklayın (2 sn içinde)",
+    "check": "Kontrol",
+    "msg_eyes": "Gözleriniz size teşekkür ediyor...",
+    "msg_health": "Her mola sağlığa yapılan bir yatırımdır",
+    "msg_breathe": "Derin nefes alın...",
+    "msg_relax": "Omuzlarınızı ve çenenizi gevşetin",
+    "msg_halfway": "Yarısına geldiniz!"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "Göz egzersizi",
+      "exercises": [
+        {
+          "name": "Göz hareketi",
+          "icon": "\u2195",
+          "steps": [
+            "Yukarı bakın (3 sn)",
+            "Aşağı bakın (3 sn)",
+            "Sola bakın (3 sn)",
+            "Sağa bakın (3 sn)",
+            "3 kez tekrarlayın"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "Göz kırpma",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "15 saniye hızlıca göz kırpın",
+            "Gözlerinizi 5 saniye kapatın",
+            "2 kez tekrarlayın"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "Yakın / uzak odaklama",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "Baş parmağınıza bakın (30 cm) 5 sn",
+            "Uzaktaki bir nesneye bakın 5 sn",
+            "5 kez tekrarlayın"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "Sekiz çizme",
+          "icon": "\u221e",
+          "steps": [
+            "Duvarda büyük bir sekiz hayal edin",
+            "Gözlerinizle yavaşça şeklini takip edin",
+            "15 saniye sonra yön değiştirin"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "Kapat"
+    },
+    "breathing": {
+      "title": "Nefes Egzersizi",
+      "inhale": "Nefes alın...",
+      "hold": "Tutun...",
+      "exhale": "Nefes verin...",
+      "cycle": "Döngü {current}/{total}",
+      "close": "Kapat"
+    },
+    "stretch": {
+      "title": "Esneme zamanı!",
+      "window_title": "Esneme",
+      "tip": "Çok zorlamayın - hareketler nazik olmalı!",
+      "done": "Tamam!",
+      "exercises": [
+        {
+          "name": "Boyun esneme",
+          "icon": "\ud83e\udd92",
+          "desc": "1. Başınızı sağa eğin (15 sn)\n2. Başınızı sola eğin (15 sn)\n3. Çenenizi göğsünüze indirin (15 sn)\n4. Başınızı geriye eğin (15 sn)"
+        },
+        {
+          "name": "Omuz esneme",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. Sağ kolu başın üstünden geçirin, dirsekten bükün\n   Sol elle dirsekten itin (15 sn)\n2. Diğer tarafta tekrarlayın\n3. Elleri arkada birleştirin, göğsü öne itin (15 sn)"
+        },
+        {
+          "name": "Gövde dönüşü",
+          "icon": "\ud83d\udd04",
+          "desc": "1. Sandalyede dik oturun\n2. Sağ elinizi sol dizinize koyun\n3. Nazikçe sola dönün (15 sn)\n4. Diğer tarafta tekrarlayın"
+        },
+        {
+          "name": "Bilekler ve eller",
+          "icon": "\ud83e\udd32",
+          "desc": "1. Kolunuzu öne uzatın, avuç yukarı\n2. Diğer elle parmakları nazikçe aşağı çekin (15 sn)\n3. Avuç aşağı ile tekrarlayın\n4. Bilekleri döndürün - her yöne 10 kez"
+        },
+        {
+          "name": "Bacak esneme",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. Bacağınızı öne uzatın (15 sn)\n2. Bacak değiştirin (15 sn)\n3. Ayağa kalkın - 5 squat yapın\n4. Parmak uclarına 10 kez yükselin"
+        },
+        {
+          "name": "Sırt esneme",
+          "icon": "\ud83d\udc08",
+          "desc": "1. Sandalyenin kenarına oturun\n2. Öne eğilin, elleriniz yere değsin (15 sn)\n3. Ayağa kalkın, elleri yukarı, hafifçe geriye eğilin (10 sn)\n4. Kedi esneme: otururken sırtınızı yuvarlayın (10 sn)"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "Su hatırlatması",
+    "time_to_drink": "Su içme zamanı!",
+    "glasses_count": "{current} / {goal} bardak",
+    "goal_reached": "Hedefe ulaşıldı! Harika!",
+    "drank": "İçtim!",
+    "later": "Sonra"
+  },
+
+  "update": {
+    "checking": "Güncellemeler kontrol ediliyor...",
+    "available": "Yeni sürüm {version} mevcut",
+    "up_to_date": "En son sürüme sahipsiniz ({version})",
+    "download": "İndir ve kur",
+    "later": "Sonra",
+    "downloading": "İndiriliyor... {percent}%",
+    "installing": "Kuruluyor...",
+    "error": "Güncellemeler kontrol edilemedi",
+    "restart_note": "Uygulama kapanacak ve güncellenecek.",
+    "title": "Güncelleme"
+  },
+
+  "tray": {
+    "open": "Aç",
+    "log_water": "Bir bardak su içtim",
+    "pause": "Duraklat (30 dk)",
+    "resume": "Devam Et",
+    "check_updates": "Güncellemeleri kontrol et",
+    "music_play": "▶ Müzik çal",
+    "music_stop": "⏹ Müziği durdur",
+    "quit": "Çıkış",
+    "tooltip": "HealthDesk - Sağlıklı çalışma",
+    "water_logged": "Kaydedildi! Bugün: {total} bardak",
+    "water_title": "Su"
+  },
+
+  "status": {
+    "pause": "Duraklatıldı",
+    "to_break": "Molaya {time}",
+    "break_now": "mola!",
+    "already_running": "HealthDesk zaten çalışıyor!\nSistem tepsisi simgesini kontrol edin.",
+    "outside_work_hours": "Çalışma saatleri dışında",
+    "reset_timers": "Zamanlayıcıları sıfırla",
+    "reset_confirm": "Zamanlayıcıları sıfırla?",
+    "reset_yes": "Evet",
+    "reset_no": "Hayır"
+  }
+}

@@ -209,6 +209,35 @@ img {
   width: 100%;
 }
 
+/* Language switch */
+.lang-switch {
+  display: flex;
+  gap: 2px;
+  margin-left: 1rem;
+  background: rgba(255,255,255,0.06);
+  border-radius: 6px;
+  padding: 2px;
+}
+.lang-btn {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  padding: 4px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.5px;
+}
+.lang-btn:hover {
+  color: var(--text-primary);
+}
+.lang-btn.lang-active {
+  background: var(--accent);
+  color: #fff;
+}
+
 /* Hamburger menu (CSS-only) */
 .nav-toggle {
   display: none;
@@ -1882,6 +1911,11 @@ tbody tr:last-child .cmp-col-hl {
 
   .navbar-links a {
     font-size: 1.2rem;
+  }
+
+  .lang-switch {
+    margin-left: auto;
+    margin-right: 0.75rem;
   }
 
   .nav-hamburger {

@@ -1,0 +1,321 @@
+{
+  "_name": "Français",
+
+  "nav": {
+    "home": "Accueil",
+    "stats": "Statistiques",
+    "music": "Audio",
+    "settings": "Paramètres",
+    "help": "Aide",
+    "water_plus": "+1 verre d'eau",
+    "pause": "Pause",
+    "resume": "Reprendre"
+  },
+
+  "home": {
+    "work_time_today": "Temps de travail aujourd'hui",
+    "breaks": "Pauses",
+    "next_break": "Prochaine pause",
+    "small_break": "Pause pour les yeux",
+    "big_break": "Pause mouvement",
+    "next_water": "Rappel dans",
+    "water": "Eau",
+    "sound": "Son",
+    "sound_off": "Désactivé",
+    "play": "Lecture",
+    "now": "maintenant !",
+    "outside_work_hours": "En dehors des heures de travail",
+    "glasses_count": "{current} / {goal} verres",
+    "day_progress": "de la journée",
+    "breaks_taken": "prises",
+    "breaks_skipped": "ignorées",
+    "search_music": "Rechercher de la musique",
+    "search_placeholder": "Rechercher sur YouTube...",
+    "show_more": "Voir plus",
+    "show_less": "Voir moins",
+    "no_results": "Aucun résultat",
+    "searching": "Recherche en cours...",
+    "idle": "Inactif",
+    "dnd": "Ne pas déranger"
+  },
+
+  "stats": {
+    "title": "Statistiques",
+    "today": "Aujourd'hui",
+    "week": "Semaine",
+    "month": "Mois",
+    "year": "Année",
+    "work_time": "Temps de travail",
+    "breaks": "Pauses",
+    "water": "Eau",
+    "glasses": "verres",
+    "hydration": "Hydratation",
+    "top_apps": "Applications les plus utilisées",
+    "categories": "Catégories",
+    "taken_label": "Prises",
+    "skipped_label": "Ignorées",
+    "work_time_chart": "Temps de travail",
+    "breaks_chart": "Pauses",
+    "water_chart": "Eau",
+    "no_data": "Aucune donnée",
+    "work_time_7days": "Temps de travail - 7 derniers jours",
+    "breaks_7days": "Pauses - 7 derniers jours",
+    "no_data_week": "Aucune donnée pour cette semaine"
+  },
+
+  "music": {
+    "focus_sounds": "Sons de concentration",
+    "native_desc": "Générés nativement - aucune connexion internet requise",
+    "volume": "Volume :",
+    "radio_fm": "Radio FM",
+    "yt_radio": "Radio YouTube",
+    "yt_requires": "Requis : pip install yt-dlp + ffmpeg dans le PATH",
+    "yt_install_hint": "Installez et redémarrez l'application pour débloquer la radio YouTube",
+    "yt_desc": "Musique instrumentale sans paroles - diffusée depuis YouTube",
+    "custom_link_label": "Lien YouTube personnalisé (musique instrumentale) :",
+    "search": "Rechercher",
+    "play": "Lecture",
+    "stop_all": "Tout arrêter",
+    "connecting": "Connexion...",
+    "playing": "En cours : {name}",
+    "error": "Erreur : {msg}",
+    "custom_link_name": "Lien personnalisé"
+  },
+
+  "settings": {
+    "title": "Paramètres",
+    "work_method": "Méthode de travail",
+    "method_pomodoro": "Pomodoro",
+    "method_pomodoro_desc": "25 min de travail, 5 min de pause, grande pause de 15 min tous les 4 cycles. Exercices oculaires toutes les 25 min. Idéal pour un travail intense et concentré par blocs.",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "Toutes les 20 min une pause de 20 sec, grande pause toutes les 60 min (5 min). Exercices oculaires toutes les 30 min. Développée par des ophtalmologues — protège les yeux lors d'un travail prolongé sur écran.",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52 min de travail, 17 min de pause. Exercices oculaires toutes les 52 min. Recherche DeskTime — c'est ainsi que travaillent les personnes les plus productives.",
+    "method_90_min": "90 minutes",
+    "method_90_min_desc": "90 min de travail, 5 min de pause, grande pause de 20 min tous les 3 cycles. Exercices oculaires toutes les 30 min. Basée sur le rythme ultradien naturel du corps.",
+    "method_custom": "Personnalisé",
+    "method_custom_desc": "Définissez vos propres intervalles avec les curseurs ci-dessous.",
+    "breaks_section": "Pauses",
+    "small_break_every": "Petite pause toutes les",
+    "small_break_duration": "Durée de la petite pause",
+    "big_break_every": "Grande pause toutes les",
+    "big_break_duration": "Durée de la grande pause",
+    "break_mode": "Mode de pause",
+    "mode_moderate": "Modéré  (popup)",
+    "mode_aggressive": "Agressif  (plein écran)",
+    "hydration_section": "Hydratation",
+    "reminder_every": "Rappel toutes les",
+    "daily_goal": "Objectif quotidien",
+    "eye_section": "Exercices oculaires",
+    "breathing_section": "Exercice de respiration",
+    "breathing_enabled": "Activer l'exercice de respiration",
+    "breathing_every": "Exercice de respiration toutes les",
+    "work_hours_section": "Heures de travail",
+    "work_hours_only": "Rappeler uniquement pendant les heures de travail",
+    "from_hour": "De :",
+    "to_hour": "À :",
+    "sound_section": "Notifications sonores",
+    "sound_on_break": "Son au début et à la fin de la pause",
+    "audio_autoplay": "Reprendre la musique au démarrage de l'application",
+    "privacy_section": "Confidentialité et données",
+    "telemetry": "Statistiques d'utilisation anonymes",
+    "telemetry_desc": "Aidez-nous à améliorer l'application. Aucune donnée personnelle collectée.",
+    "track_titles": "Enregistrer les titres de fenêtres dans les statistiques",
+    "track_titles_desc": "Désactivé = enregistre uniquement les noms de programmes (plus de confidentialité)",
+    "system_section": "Système",
+    "autostart": "Démarrer avec Windows",
+    "auto_update": "Vérifier automatiquement les mises à jour",
+    "check_now": "Vérifier maintenant",
+    "save": "Enregistrer les paramètres",
+    "saved": "Enregistré !",
+    "language": "Langue",
+    "language_restart": "Le changement de langue nécessite un redémarrage de l'application.",
+    "dashboard_layout": "Disposition du tableau de bord",
+    "layout_enhanced": "Amélioré",
+    "layout_compact": "Compact",
+    "unit_min": "min",
+    "unit_sec": "sec",
+    "unit_glasses": "verres",
+    "idle_section": "Détection d'inactivité",
+    "idle_enabled": "Détecter l'inactivité et geler les minuteurs",
+    "idle_enabled_desc": "Lorsque vous cessez d'utiliser la souris/le clavier pendant la durée définie, les minuteurs se figent",
+    "idle_threshold": "Seuil d'inactivité"
+  },
+
+  "help": {
+    "title": "Aide",
+    "text": "HEALTHDESK - GUIDE D'UTILISATION\n\nICÔNE DE LA BARRE DES TÂCHES\n  Cliquez droit sur l'icône verte à côté de l'horloge Windows :\n  \u2022 Ouvrir            - ouvre la fenêtre principale\n  \u2022 J'ai bu un verre  - enregistre un verre dans le suivi d'hydratation\n  \u2022 Pause (30 min)    - met en pause tous les rappels\n  \u2022 Quitter           - ferme l'application\n\n  Double-cliquez sur l'icône pour ouvrir la fenêtre.\n\nNAVIGATION\n  Sur le côté gauche se trouve le panneau de navigation :\n  \u2022 Accueil      - tableau de bord avec résumé quotidien\n  \u2022 Statistiques - données détaillées quotidiennes et hebdomadaires\n  \u2022 Audio        - sons de concentration (bruit brun, pluie, forêt...)\n  \u2022 Paramètres   - configurer les intervalles, modes, heures de travail\n  \u2022 Aide         - cette fenêtre\n\nPAUSES\n  L'application vous rappelle de faire des pauses selon deux modes :\n\n  Mode modéré (par défaut) :\n    Une petite fenêtre toujours au premier plan avec compte à rebours.\n    Vous pouvez cliquer sur « Ignorer » ou « Je fais une pause ! ».\n\n  Mode agressif :\n    Blocage plein écran avec compte à rebours.\n    Sortie d'urgence : cliquez 3 fois rapidement (en moins de 2 secondes).\n\n  Types de pauses :\n    \u2022 Petite pause (20-20-20) - toutes les 20 min, regardez à 6 mètres pendant 20 sec\n    \u2022 Grande pause - toutes les 60 min, 5 min de repos + exercice\n\nEXERCICES\n  Yeux : clignements, mouvements oculaires, mise au point proche/lointaine, figures en huit.\n  Étirements : cou, épaules, torse, poignets, jambes, dos.\n  Les exercices apparaissent automatiquement pendant les pauses.\n\nHYDRATATION\n  L'application vous rappelle de boire de l'eau (par défaut : toutes les 30 min).\n  Objectif quotidien : 8 verres (configurable dans les Paramètres).\n  Vous pouvez rapidement ajouter un verre depuis le panneau de navigation (+1 verre d'eau).\n\nSUIVI D'ACTIVITÉ\n  L'application vérifie la fenêtre active toutes les 5 secondes et catégorise :\n    \u2022 Travail        - IDE, Office, éditeurs\n    \u2022 Divertissement - YouTube, jeux, médias\n    \u2022 Communication  - Teams, Slack, Zoom\n    \u2022 Navigateur     - Chrome, Firefox, Edge\n    \u2022 Autre          - tout le reste\n\n  Les données sont visibles dans l'onglet Statistiques.\n\nSONS DE CONCENTRATION\n  L'onglet Audio propose des sons générés nativement (sans internet) :\n    \u2022 Bruit brun     - bruit profond et apaisant\n    \u2022 Pluie          - pluie avec gouttes\n    \u2022 Bruit blanc/rose - bruit uniforme\n    \u2022 Drone ambiant   - tonalité profonde avec modulation\n    \u2022 Forêt           - vent dans les arbres, oiseaux\n\n  Le son continue en arrière-plan même après la fermeture de la fenêtre.\n\nRADIO YOUTUBE\n  Musique instrumentale sans paroles, diffusée depuis YouTube :\n    \u2022 Lofi Girl - lofi hip hop beats\n    \u2022 Jazz Cafe - smooth jazz & bossa nova\n    \u2022 Classical Focus - musique classique\n    \u2022 Synthwave Radio - synthwave instrumental\n    \u2022 Piano & Ambient - piano calme\n\n  Vous pouvez aussi coller votre propre lien YouTube.\n  Requis : yt-dlp (pip install yt-dlp) + ffmpeg dans le PATH.\n\nHEURES DE TRAVAIL\n  Dans les Paramètres, vous pouvez activer les heures de travail (ex. 8h00-18h00).\n  En dehors de ces heures, les rappels sont mis en pause.\n\nDÉMARRAGE AUTOMATIQUE\n  Paramètres > « Démarrer avec Windows » - l'application démarrera\n  automatiquement après la connexion au système.\n\nDONNÉES\n  La configuration et la base de données sont dans :\n    %APPDATA%\\HealthDesk\\\n  Vous pouvez supprimer ce dossier pour réinitialiser l'application."
+  },
+
+  "break": {
+    "window_title": "HealthDesk - Pause !",
+    "small_title": "Pause 20-20-20",
+    "small_desc": "Détournez le regard de l'écran et fixez\nun objet situé à environ 6 mètres.",
+    "big_title": "C'est l'heure d'une grande pause !",
+    "big_desc": "Levez-vous de votre bureau pendant {minutes} minutes.\nÉtirez-vous, buvez de l'eau, bougez !",
+    "accept": "Je fais une pause !",
+    "accepted_msg": "Reposez-vous... la fenêtre se fermera automatiquement",
+    "snooze": "Reporter de 3 min",
+    "skip": "Ignorer"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - Pause",
+    "small_title": "Pause 20-20-20",
+    "small_desc": "Détournez le regard de l'écran.\nFixez un point éloigné. Laissez vos yeux se reposer.",
+    "big_title": "C'est l'heure de la pause !",
+    "big_desc": "Levez-vous de l'ordinateur. Étirez-vous.\nBuvez de l'eau. Votre corps vous remerciera !",
+    "exit_hint": "Sortie d'urgence : cliquez 3x rapidement (en moins de 2 sec)",
+    "check": "Vérifier",
+    "msg_eyes": "Vos yeux vous remercient...",
+    "msg_health": "Chaque pause est un investissement pour la santé",
+    "msg_breathe": "Respirez profondément...",
+    "msg_relax": "Relâchez vos épaules et votre mâchoire",
+    "msg_halfway": "Vous êtes à mi-chemin !"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "Exercice oculaire",
+      "exercises": [
+        {
+          "name": "Mouvements oculaires",
+          "icon": "\u2195",
+          "steps": [
+            "Regardez en haut (3 sec)",
+            "Regardez en bas (3 sec)",
+            "Regardez à gauche (3 sec)",
+            "Regardez à droite (3 sec)",
+            "Répétez 3 fois"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "Clignements",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "Clignez rapidement pendant 15 secondes",
+            "Fermez les yeux pendant 5 secondes",
+            "Répétez 2 fois"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "Mise au point proche / lointaine",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "Regardez votre pouce (30 cm) pendant 5 sec",
+            "Regardez un objet éloigné pendant 5 sec",
+            "Répétez 5 fois"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "Figure en huit",
+          "icon": "\u221e",
+          "steps": [
+            "Imaginez un grand huit sur le mur",
+            "Suivez lentement sa forme avec vos yeux",
+            "Changez de direction après 15 secondes"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "Fermer"
+    },
+    "breathing": {
+      "title": "Exercice de respiration",
+      "inhale": "Inspirez...",
+      "hold": "Retenez...",
+      "exhale": "Expirez...",
+      "cycle": "Cycle {current}/{total}",
+      "close": "Fermer"
+    },
+    "stretch": {
+      "title": "C'est l'heure de s'étirer !",
+      "window_title": "Étirements",
+      "tip": "N'y allez pas trop fort - les mouvements doivent être doux !",
+      "done": "Terminé !",
+      "exercises": [
+        {
+          "name": "Étirement du cou",
+          "icon": "\ud83e\udd92",
+          "desc": "1. Inclinez la tête à droite (15 sec)\n2. Inclinez la tête à gauche (15 sec)\n3. Abaissez le menton vers la poitrine (15 sec)\n4. Inclinez la tête en arrière (15 sec)"
+        },
+        {
+          "name": "Étirement des épaules",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. Bras droit au-dessus de la tête, plié au coude\n   La main gauche appuie sur le coude (15 sec)\n2. Répétez de l'autre côté\n3. Joignez les mains dans le dos, ouvrez la poitrine (15 sec)"
+        },
+        {
+          "name": "Rotation du torse",
+          "icon": "\ud83d\udd04",
+          "desc": "1. Asseyez-vous droit sur la chaise\n2. Placez la main droite sur le genou gauche\n3. Tournez doucement vers la gauche (15 sec)\n4. Répétez de l'autre côté"
+        },
+        {
+          "name": "Poignets et mains",
+          "icon": "\ud83e\udd32",
+          "desc": "1. Tendez le bras devant vous, paume vers le haut\n2. Avec l'autre main, tirez doucement les doigts vers le bas (15 sec)\n3. Répétez paume vers le bas\n4. Faites des rotations des poignets - 10 fois dans chaque sens"
+        },
+        {
+          "name": "Étirement des jambes",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. Tendez la jambe vers l'avant (15 sec)\n2. Changez de jambe (15 sec)\n3. Levez-vous - 5 squats\n4. Montez sur la pointe des pieds 10 fois"
+        },
+        {
+          "name": "Étirement du dos",
+          "icon": "\ud83d\udc08",
+          "desc": "1. Asseyez-vous au bord de la chaise\n2. Penchez-vous, les mains touchent le sol (15 sec)\n3. Levez-vous, mains en l'air, penchez-vous légèrement en arrière (10 sec)\n4. Dos de chat : arrondissez le dos en position assise (10 sec)"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "Rappel d'hydratation",
+    "time_to_drink": "C'est l'heure de boire de l'eau !",
+    "glasses_count": "{current} / {goal} verres",
+    "goal_reached": "Objectif atteint ! Bravo !",
+    "drank": "J'ai bu !",
+    "later": "Plus tard"
+  },
+
+  "update": {
+    "checking": "Vérification des mises à jour...",
+    "available": "Nouvelle version {version} disponible",
+    "up_to_date": "Vous avez la dernière version ({version})",
+    "download": "Télécharger et installer",
+    "later": "Plus tard",
+    "downloading": "Téléchargement... {percent}%",
+    "installing": "Installation...",
+    "error": "Impossible de vérifier les mises à jour",
+    "restart_note": "L'application va se fermer et se mettre à jour.",
+    "title": "Mise à jour"
+  },
+
+  "tray": {
+    "open": "Ouvrir",
+    "log_water": "J'ai bu un verre d'eau",
+    "pause": "Pause (30 min)",
+    "resume": "Reprendre",
+    "check_updates": "Vérifier les mises à jour",
+    "music_play": "▶ Lancer la musique",
+    "music_stop": "⏹ Arrêter la musique",
+    "quit": "Quitter",
+    "tooltip": "HealthDesk - Travail sain",
+    "water_logged": "Enregistré ! Aujourd'hui : {total} verres",
+    "water_title": "Eau"
+  },
+
+  "status": {
+    "pause": "En pause",
+    "to_break": "{time} avant la pause",
+    "break_now": "pause !",
+    "already_running": "HealthDesk est déjà en cours d'exécution !\nVérifiez l'icône dans la barre des tâches.",
+    "outside_work_hours": "En dehors des heures de travail",
+    "reset_timers": "Réinitialiser les minuteurs",
+    "reset_confirm": "Réinitialiser les minuteurs ?",
+    "reset_yes": "Oui",
+    "reset_no": "Non"
+  }
+}

@@ -1,0 +1,321 @@
+{
+  "_name": "简体中文",
+
+  "nav": {
+    "home": "首页",
+    "stats": "统计",
+    "music": "音频",
+    "settings": "设置",
+    "help": "帮助",
+    "water_plus": "+1 杯水",
+    "pause": "暂停",
+    "resume": "继续"
+  },
+
+  "home": {
+    "work_time_today": "今日工作时间",
+    "breaks": "休息",
+    "next_break": "下次休息",
+    "small_break": "护眼休息",
+    "big_break": "活动休息",
+    "next_water": "下次提醒",
+    "water": "饮水",
+    "sound": "声音",
+    "sound_off": "关闭",
+    "play": "播放",
+    "now": "现在！",
+    "outside_work_hours": "非工作时间",
+    "glasses_count": "{current} / {goal} 杯",
+    "day_progress": "今日进度",
+    "breaks_taken": "已休息",
+    "breaks_skipped": "已跳过",
+    "search_music": "搜索音乐",
+    "search_placeholder": "搜索YouTube...",
+    "show_more": "展开更多",
+    "show_less": "收起",
+    "no_results": "无结果",
+    "searching": "搜索中...",
+    "idle": "空闲",
+    "dnd": "请勿打扰"
+  },
+
+  "stats": {
+    "title": "统计",
+    "today": "今天",
+    "week": "本周",
+    "month": "本月",
+    "year": "本年",
+    "work_time": "工作时间",
+    "breaks": "休息",
+    "water": "饮水",
+    "glasses": "杯",
+    "hydration": "饮水量",
+    "top_apps": "常用应用",
+    "categories": "分类",
+    "taken_label": "已休息",
+    "skipped_label": "已跳过",
+    "work_time_chart": "工作时间",
+    "breaks_chart": "休息",
+    "water_chart": "饮水",
+    "no_data": "暂无数据",
+    "work_time_7days": "工作时间 - 最近7天",
+    "breaks_7days": "休息 - 最近7天",
+    "no_data_week": "本周暂无数据"
+  },
+
+  "music": {
+    "focus_sounds": "专注音效",
+    "native_desc": "本地生成 - 无需联网",
+    "volume": "音量：",
+    "radio_fm": "FM电台",
+    "yt_radio": "YouTube电台",
+    "yt_requires": "需要：pip install yt-dlp + ffmpeg（添加到PATH）",
+    "yt_install_hint": "安装后重启应用即可使用YouTube电台",
+    "yt_desc": "无歌词纯音乐 - 从YouTube串流",
+    "custom_link_label": "自定义YouTube链接（纯音乐）：",
+    "search": "搜索",
+    "play": "播放",
+    "stop_all": "全部停止",
+    "connecting": "连接中...",
+    "playing": "正在播放：{name}",
+    "error": "错误：{msg}",
+    "custom_link_name": "自定义链接"
+  },
+
+  "settings": {
+    "title": "设置",
+    "work_method": "工作方法",
+    "method_pomodoro": "番茄工作法",
+    "method_pomodoro_desc": "25分钟工作，5分钟休息，每4个周期15分钟长休息。每25分钟做眼保健操。适合高强度专注的分段工作。",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "每20分钟休息20秒，每60分钟长休息（5分钟）。每30分钟做眼保健操。由眼科医生研发——保护长时间看屏幕的眼睛。",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52分钟工作，17分钟休息。每52分钟做眼保健操。DeskTime研究表明——这是最高效工作者的节奏。",
+    "method_90_min": "90分钟",
+    "method_90_min_desc": "90分钟工作，5分钟休息，每3个周期20分钟长休息。每30分钟做眼保健操。基于人体自然的超日节律。",
+    "method_custom": "自定义",
+    "method_custom_desc": "使用下方滑块设置您自己的间隔时间。",
+    "breaks_section": "休息",
+    "small_break_every": "短休息间隔",
+    "small_break_duration": "短休息时长",
+    "big_break_every": "长休息间隔",
+    "big_break_duration": "长休息时长",
+    "break_mode": "休息模式",
+    "mode_moderate": "温和（弹窗）",
+    "mode_aggressive": "强制（全屏）",
+    "hydration_section": "饮水提醒",
+    "reminder_every": "提醒间隔",
+    "daily_goal": "每日目标",
+    "eye_section": "眼保健操",
+    "breathing_section": "呼吸练习",
+    "breathing_enabled": "启用呼吸练习",
+    "breathing_every": "呼吸练习间隔",
+    "work_hours_section": "工作时间",
+    "work_hours_only": "仅在工作时间内提醒",
+    "from_hour": "开始：",
+    "to_hour": "结束：",
+    "sound_section": "提示音",
+    "sound_on_break": "休息开始和结束时播放提示音",
+    "audio_autoplay": "应用启动时恢复播放音乐",
+    "privacy_section": "隐私与数据",
+    "telemetry": "匿名使用统计",
+    "telemetry_desc": "帮助我们改进应用。不收集任何个人数据。",
+    "track_titles": "在统计中保存窗口标题",
+    "track_titles_desc": "关闭 = 仅保存程序名（更加隐私）",
+    "system_section": "系统",
+    "autostart": "随Windows启动",
+    "auto_update": "自动检查更新",
+    "check_now": "立即检查",
+    "save": "保存设置",
+    "saved": "已保存！",
+    "language": "语言",
+    "language_restart": "更改语言需要重启应用。",
+    "dashboard_layout": "仪表盘布局",
+    "layout_enhanced": "详细",
+    "layout_compact": "紧凑",
+    "unit_min": "分钟",
+    "unit_sec": "秒",
+    "unit_glasses": "杯",
+    "idle_section": "空闲检测",
+    "idle_enabled": "检测空闲并冻结计时器",
+    "idle_enabled_desc": "当您停止使用鼠标/键盘超过设定时间后，计时器将自动冻结",
+    "idle_threshold": "空闲判定时间"
+  },
+
+  "help": {
+    "title": "帮助",
+    "text": "HEALTHDESK - 用户指南\n\n系统托盘图标\n  右键点击Windows时钟旁边的绿色图标：\n  \u2022 打开             - 打开主应用窗口\n  \u2022 喝了一杯水       - 在饮水追踪器中记录一杯\n  \u2022 暂停（30分钟）   - 暂停所有提醒\n  \u2022 退出             - 关闭应用程序\n\n  双击图标也可以打开窗口。\n\n窗口导航\n  左侧是导航面板：\n  \u2022 首页     - 每日摘要仪表盘\n  \u2022 统计     - 每日和每周的详细数据\n  \u2022 音频     - 专注音效（棕噪声、雨声、森林...）\n  \u2022 设置     - 配置间隔、模式、工作时间\n  \u2022 帮助     - 本窗口\n\n休息\n  应用通过两种模式提醒您休息：\n\n  温和模式（默认）：\n    带倒计时的小型置顶窗口。\n    您可以点击"跳过"或"开始休息！"。\n\n  强制模式：\n    全屏倒计时遮罩。\n    紧急退出：2秒内快速点击3次。\n\n  休息类型：\n    \u2022 短休息（20-20-20）- 每20分钟，看20秒远处\n    \u2022 长休息 - 每60分钟，5分钟休息+运动\n\n运动练习\n  眼部：眨眼、眼球运动、远近聚焦、八字运动。\n  拉伸：颈部、肩部、躯干、手腕、腿部、背部。\n  运动练习在休息时自动出现。\n\n饮水提醒\n  应用会定时提醒您喝水（默认：每30分钟）。\n  每日目标：8杯（可在设置中更改）。\n  您可以在导航栏快速添加一杯水（+1 杯水）。\n\n活动追踪\n  应用每5秒检查当前活动窗口并分类：\n    \u2022 工作         - IDE、Office、编辑器\n    \u2022 娱乐         - YouTube、游戏、媒体\n    \u2022 通讯         - Teams、Slack、Zoom\n    \u2022 浏览器       - Chrome、Firefox、Edge\n    \u2022 其他         - 其余所有\n\n  数据可在统计标签页查看。\n\n专注音效\n  音频标签页提供本地生成的音效（无需联网）：\n    \u2022 棕噪声       - 深沉舒缓的噪声\n    \u2022 雨声         - 雨声与水滴\n    \u2022 白/粉噪声    - 均匀的噪声\n    \u2022 环境低音     - 带有调制的深沉音调\n    \u2022 森林         - 树间风声与鸟鸣\n\n  关闭窗口后声音仍在后台播放。\n\nYOUTUBE电台\n  无歌词纯音乐，从YouTube串流：\n    \u2022 Lofi Girl - lofi hip hop 节拍\n    \u2022 Jazz Cafe - 爵士乐与波萨诺瓦\n    \u2022 Classical Focus - 古典音乐\n    \u2022 Synthwave Radio - 合成器波浪纯音乐\n    \u2022 Piano & Ambient - 舒缓钢琴曲\n\n  您也可以粘贴自己的YouTube链接。\n  需要：yt-dlp（pip install yt-dlp）+ ffmpeg（添加到PATH）。\n\n工作时间\n  在设置中可以启用工作时间（例如 8:00-18:00）。\n  工作时间之外，提醒将自动暂停。\n\n开机自启\n  设置 >"随Windows启动"- 登录系统后\n  应用将自动启动。\n\n数据\n  配置和数据库保存在：\n    %APPDATA%\\HealthDesk\\\n  删除该文件夹可重置应用程序。"
+  },
+
+  "break": {
+    "window_title": "HealthDesk - 休息！",
+    "small_title": "20-20-20 休息",
+    "small_desc": "将视线从屏幕上移开，\n注视约6米远的物体。",
+    "big_title": "该活动一下了！",
+    "big_desc": "离开桌子{minutes}分钟。\n伸展身体，喝口水，活动活动！",
+    "accept": "开始休息！",
+    "accepted_msg": "好好休息... 窗口将自动关闭",
+    "snooze": "3分钟后提醒",
+    "skip": "跳过"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - 休息",
+    "small_title": "20-20-20 休息",
+    "small_desc": "将视线从屏幕上移开。\n看看远处，让眼睛休息一下。",
+    "big_title": "休息时间到了！",
+    "big_desc": "离开电脑，伸展身体。\n喝杯水，您的身体会感谢您！",
+    "exit_hint": "紧急退出：2秒内快速点击3次",
+    "check": "确认",
+    "msg_eyes": "您的眼睛在感谢您...",
+    "msg_health": "每次休息都是对健康的投资",
+    "msg_breathe": "深呼吸...",
+    "msg_relax": "放松您的肩膀和下巴",
+    "msg_halfway": "已经过半了！"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "眼保健操",
+      "exercises": [
+        {
+          "name": "眼球运动",
+          "icon": "\u2195",
+          "steps": [
+            "向上看（3秒）",
+            "向下看（3秒）",
+            "向左看（3秒）",
+            "向右看（3秒）",
+            "重复3次"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "眨眼练习",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "快速眨眼15秒",
+            "闭眼5秒",
+            "重复2次"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "远近聚焦",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "注视拇指（30厘米处）5秒",
+            "注视远处物体5秒",
+            "重复5次"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "八字运动",
+          "icon": "\u221e",
+          "steps": [
+            "想象墙上有一个大大的八字",
+            "用眼睛慢慢描绘其形状",
+            "15秒后改变方向"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "关闭"
+    },
+    "breathing": {
+      "title": "呼吸练习",
+      "inhale": "吸气...",
+      "hold": "屏息...",
+      "exhale": "呼气...",
+      "cycle": "第 {current}/{total} 轮",
+      "close": "关闭"
+    },
+    "stretch": {
+      "title": "该伸展一下了！",
+      "window_title": "拉伸运动",
+      "tip": "不要用力过猛——动作要轻柔！",
+      "done": "完成！",
+      "exercises": [
+        {
+          "name": "颈部拉伸",
+          "icon": "\ud83e\udd92",
+          "desc": "1. 头向右倾斜（15秒）\n2. 头向左倾斜（15秒）\n3. 下巴靠近胸口（15秒）\n4. 头向后仰（15秒）"
+        },
+        {
+          "name": "肩部拉伸",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. 右臂举过头顶，弯曲肘部\n   左手按压肘部（15秒）\n2. 换另一侧重复\n3. 双手在背后交握，挺胸（15秒）"
+        },
+        {
+          "name": "躯干扭转",
+          "icon": "\ud83d\udd04",
+          "desc": "1. 在椅子上坐直\n2. 右手放在左膝上\n3. 轻轻向左扭转（15秒）\n4. 换另一侧重复"
+        },
+        {
+          "name": "手腕和手部",
+          "icon": "\ud83e\udd32",
+          "desc": "1. 手臂向前伸直，掌心朝上\n2. 用另一只手轻轻下压手指（15秒）\n3. 掌心朝下重复\n4. 转动手腕——每个方向10次"
+        },
+        {
+          "name": "腿部拉伸",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. 将腿向前伸直（15秒）\n2. 换腿（15秒）\n3. 站起来——做5个深蹲\n4. 踮脚10次"
+        },
+        {
+          "name": "背部拉伸",
+          "icon": "\ud83d\udc08",
+          "desc": "1. 坐在椅子边缘\n2. 弯腰向下，双手触地（15秒）\n3. 站起来，双手举高，稍微向后仰（10秒）\n4. 猫式伸展：坐着弓起背部（10秒）"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "饮水提醒",
+    "time_to_drink": "该喝水了！",
+    "glasses_count": "{current} / {goal} 杯",
+    "goal_reached": "目标达成！做得好！",
+    "drank": "喝了！",
+    "later": "稍后"
+  },
+
+  "update": {
+    "checking": "正在检查更新...",
+    "available": "新版本 {version} 可用",
+    "up_to_date": "当前已是最新版本（{version}）",
+    "download": "下载并安装",
+    "later": "稍后",
+    "downloading": "下载中... {percent}%",
+    "installing": "安装中...",
+    "error": "无法检查更新",
+    "restart_note": "应用将关闭并进行更新。",
+    "title": "更新"
+  },
+
+  "tray": {
+    "open": "打开",
+    "log_water": "喝了一杯水",
+    "pause": "暂停（30分钟）",
+    "resume": "继续",
+    "check_updates": "检查更新",
+    "music_play": "▶ 播放音乐",
+    "music_stop": "⏹ 停止音乐",
+    "quit": "退出",
+    "tooltip": "HealthDesk - 健康工作",
+    "water_logged": "已记录！今天：{total} 杯",
+    "water_title": "饮水"
+  },
+
+  "status": {
+    "pause": "已暂停",
+    "to_break": "距休息 {time}",
+    "break_now": "休息！",
+    "already_running": "HealthDesk 已在运行！\n请查看系统托盘图标。",
+    "outside_work_hours": "非工作时间",
+    "reset_timers": "重置计时器",
+    "reset_confirm": "确定重置计时器？",
+    "reset_yes": "是",
+    "reset_no": "否"
+  }
+}

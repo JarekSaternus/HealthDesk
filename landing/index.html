@@ -44,13 +44,17 @@
         <span></span>
       </label>
       <ul class="navbar-links">
-        <li><a href="#features" onclick="document.getElementById('nav-toggle').checked=false">Funkcje</a></li>
-        <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false">Jak działa</a></li>
-        <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false">Dlaczego</a></li>
-        <li><a href="#comparison" onclick="document.getElementById('nav-toggle').checked=false">Porównanie</a></li>
+        <li><a href="#features" onclick="document.getElementById('nav-toggle').checked=false" data-i18n="nav.features">Funkcje</a></li>
+        <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false" data-i18n="nav.how">Jak działa</a></li>
+        <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false" data-i18n="nav.why">Dlaczego</a></li>
+        <li><a href="#comparison" onclick="document.getElementById('nav-toggle').checked=false" data-i18n="nav.comparison">Porównanie</a></li>
         <li><a href="#faq" onclick="document.getElementById('nav-toggle').checked=false">FAQ</a></li>
-        <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">Pobierz</a></li>
+        <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;" data-i18n="nav.download">Pobierz</a></li>
       </ul>
+      <div class="lang-switch" id="lang-switch">
+        <button class="lang-btn lang-active" data-lang="pl">PL</button>
+        <button class="lang-btn" data-lang="en">EN</button>
+      </div>
     </div>
   </nav>
 
@@ -58,39 +62,39 @@
   <section class="hero">
     <div class="hero-split">
       <div class="hero-text">
-        <div class="hero-badge">
+        <div class="hero-badge" data-i18n="hero.badge">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           Darmowa aplikacja — Windows, macOS, Linux
         </div>
-        <h1>Twoje oczy, kręgosłup i głowa <span class="accent">Ci podziękują</span></h1>
-        <p>Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — wszystko w jednej lekkiej aplikacji, która działa w tle.</p>
+        <h1 data-i18n="hero.title">Twoje oczy, kręgosłup i głowa <span class="accent">Ci podziękują</span></h1>
+        <p data-i18n="hero.subtitle">Inteligentne przerwy, nawodnienie, ćwiczenia oczu i śledzenie aktywności — wszystko w jednej lekkiej aplikacji, która działa w tle.</p>
         <!-- Platform download cards -->
         <div class="hero-platforms">
           <div class="platform-card" id="dl-windows">
             <svg width="54" height="54" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
             <span class="platform-name">Windows</span>
-            <a href="#" class="btn btn-primary btn-sm platform-dl-btn" data-download="true">Pobierz</a>
+            <a href="#" class="btn btn-primary btn-sm platform-dl-btn" data-download="true" data-i18n="dl.btn">Pobierz</a>
           </div>
           <div class="platform-card" id="dl-macos">
             <svg width="54" height="54" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
             <span class="platform-name">macOS</span>
-            <a href="#" class="btn btn-primary btn-sm platform-dl-btn">Pobierz</a>
+            <a href="#" class="btn btn-primary btn-sm platform-dl-btn" data-i18n="dl.btn">Pobierz</a>
           </div>
           <div class="platform-card" id="dl-linux">
             <svg width="54" height="54" viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.455.788.074 1.568-.422 1.735-1.26.298-1.554-1.234-5.596-1.234-5.596-.022-.301.017-.591.158-.844.508-1.07.549-2.178.126-3.39-.19-.556-.47-1.086-.84-1.507l-.01-.009c-.09-.263-.065-.603.157-.881.205-.273.39-.425.467-.584.143-.3.163-.548-.03-.744-.18-.18-.404-.18-.621-.18-.212 0-.405.013-.621.01-1.121-.068-1.63-1.306-1.63-1.306s-.068-.137-.09-.137c-.136 0-.249-.067-.3-.34-.067-.349.13-.75.375-1.07.33-.389.54-.94.423-1.467-.075-.341-.25-.714-.502-1.04.25-.03.499-.097.699-.203a.832.832 0 00.395-.558c.09-.373-.065-.71-.247-.882-.091-.066-.155-.09-.229-.09-.082.002-.167.035-.258.068a3.6 3.6 0 01-.458.139c-.234.052-.497.082-.736.073-.164-.005-.32-.022-.452-.06-.145-.042-.285-.126-.335-.302-.067-.23-.058-.456.093-.625.215-.235.561-.356.866-.477.305-.12.601-.242.824-.456.222-.215.362-.507.277-.85-.032-.145-.128-.262-.237-.342a.63.63 0 00-.326-.125 2.082 2.082 0 00-.415-.007c-.276.02-.57.067-.856.12-.286.05-.56.1-.785.103-.45.015-.813-.188-1.127-.518-.264-.278-.444-.613-.621-.927-.177-.314-.351-.614-.544-.832a3.06 3.06 0 00-.49-.44c-.175-.126-.37-.222-.59-.249z"/></svg>
             <span class="platform-name">Linux</span>
-            <a href="#" class="btn btn-primary btn-sm platform-dl-btn">Pobierz</a>
+            <a href="#" class="btn btn-primary btn-sm platform-dl-btn" data-i18n="dl.btn">Pobierz</a>
           </div>
         </div>
 
         <div class="hero-trust">
           <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Bez konta, bez rejestracji
+            <span data-i18n="hero.no_account">Bez konta, bez rejestracji</span>
           </span>
           <span>
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
-            <span id="hero-download-count">Pobrano 500+ razy</span>
+            <span id="hero-download-count" data-i18n-dynamic="hero.downloads">Pobrano 500+ razy</span>
           </span>
         </div>
       </div>
@@ -107,20 +111,20 @@
             </div>
           </div>
           <div class="app-mini-body">
-            <div class="app-mini-timer-label">Następna przerwa za</div>
+            <div class="app-mini-timer-label" data-i18n="mini.next_break">Następna przerwa za</div>
             <div class="app-mini-timer" id="hero-timer">14:32</div>
             <div class="app-mini-stats">
               <div class="app-mini-stat">
                 <span class="app-mini-stat-val" id="hero-breaks">6</span>
-                <span class="app-mini-stat-lbl">Przerwy</span>
+                <span class="app-mini-stat-lbl" data-i18n="mini.breaks">Przerwy</span>
               </div>
               <div class="app-mini-stat">
                 <span class="app-mini-stat-val" style="color:#3b82f6;" id="hero-water">5/8</span>
-                <span class="app-mini-stat-lbl">Woda</span>
+                <span class="app-mini-stat-lbl" data-i18n="mini.water">Woda</span>
               </div>
               <div class="app-mini-stat">
                 <span class="app-mini-stat-val" style="color:#a78bfa;" id="hero-worktime">4h 23m</span>
-                <span class="app-mini-stat-lbl">Praca</span>
+                <span class="app-mini-stat-lbl" data-i18n="mini.work">Praca</span>
               </div>
             </div>
           </div>
@@ -132,8 +136,8 @@
   <!-- ===== Features ===== -->
   <section class="features" id="features">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Co robi HealthDesk?</h2>
-      <p class="section-subtitle animate-on-scroll">Kluczowe funkcje + jeszcze więcej — wszystko, czego potrzebujesz do zdrowej pracy przy komputerze.</p>
+      <h2 class="section-title animate-on-scroll" data-i18n="feat.title">Co robi HealthDesk?</h2>
+      <p class="section-subtitle animate-on-scroll" data-i18n="feat.subtitle">Kluczowe funkcje + jeszcze więcej — wszystko, czego potrzebujesz do zdrowej pracy przy komputerze.</p>
 
       <!-- Top 3 features -->
       <div class="features-grid features-main">
@@ -141,76 +145,76 @@
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
-          <h3>Inteligentne przerwy</h3>
-          <p><strong>4 metody pracy do wyboru:</strong> Pomodoro, 20-20-20, 52-17 i 90-minutowa. Inteligentna ochrona przerw — przypomnienia nigdy się nie nakładają.</p>
+          <h3 data-i18n="feat.breaks.t">Inteligentne przerwy</h3>
+          <p data-i18n="feat.breaks.d"><strong>4 metody pracy do wyboru:</strong> Pomodoro, 20-20-20, 52-17 i 90-minutowa. Inteligentna ochrona przerw — przypomnienia nigdy się nie nakładają.</p>
         </div>
 
         <div class="feature-card feature-card-primary animate-on-scroll delay-2">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           </div>
-          <h3>Przypomnienia o wodzie</h3>
-          <p><strong>Cel: 8 szklanek dziennie.</strong> Delikatne przypomnienia co 30 minut. Śledź postępy i buduj nawyk.</p>
+          <h3 data-i18n="feat.water.t">Przypomnienia o wodzie</h3>
+          <p data-i18n="feat.water.d"><strong>Cel: 8 szklanek dziennie.</strong> Delikatne przypomnienia co 30 minut. Śledź postępy i buduj nawyk.</p>
         </div>
 
         <div class="feature-card feature-card-primary animate-on-scroll delay-3">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </div>
-          <h3>Ćwiczenia oczu</h3>
-          <p><strong>Prowadzone sesje z timerem.</strong> Ruch gałkami, mruganie, zmiana fokusu — redukcja zmęczenia wzroku.</p>
+          <h3 data-i18n="feat.eyes.t">Ćwiczenia oczu</h3>
+          <p data-i18n="feat.eyes.d"><strong>Prowadzone sesje z timerem.</strong> Ruch gałkami, mruganie, zmiana fokusu — redukcja zmęczenia wzroku.</p>
         </div>
       </div>
 
       <!-- Bonus features -->
-      <h3 class="features-bonus-title animate-on-scroll">I jeszcze więcej</h3>
+      <h3 class="features-bonus-title animate-on-scroll" data-i18n="feat.more">I jeszcze więcej</h3>
       <div class="features-grid features-bonus">
         <div class="feature-card animate-on-scroll delay-4">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
           </div>
-          <h3>Śledzenie aktywności</h3>
-          <p><strong>Automatyczna kategoryzacja aplikacji</strong> na pracę, rozrywkę, komunikację i naukę.</p>
+          <h3 data-i18n="feat.track.t">Śledzenie aktywności</h3>
+          <p data-i18n="feat.track.d"><strong>Automatyczna kategoryzacja aplikacji</strong> na pracę, rozrywkę, komunikację i naukę.</p>
         </div>
 
         <div class="feature-card animate-on-scroll delay-5">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
           </div>
-          <h3>Dźwięki do skupienia</h3>
-          <p><strong>Brown noise, deszcz, las, ocean</strong> — generowane w czasie rzeczywistym.</p>
+          <h3 data-i18n="feat.audio.t">Dźwięki do skupienia</h3>
+          <p data-i18n="feat.audio.d"><strong>Brown noise, deszcz, las, ocean</strong> — generowane w czasie rzeczywistym.</p>
         </div>
 
         <div class="feature-card animate-on-scroll delay-6">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
           </div>
-          <h3>YouTube Radio + FM</h3>
-          <p><strong>6 stacji YT + 6 stacji FM</strong> (RMF, Antyradio, ZET, Eska). Pauza wstrzymuje muzykę razem z timerami.</p>
+          <h3 data-i18n="feat.radio.t">YouTube Radio + FM</h3>
+          <p data-i18n="feat.radio.d"><strong>6 stacji YT + 6 stacji FM</strong> (RMF, Antyradio, ZET, Eska). Pauza wstrzymuje muzykę razem z timerami.</p>
         </div>
 
         <div class="feature-card animate-on-scroll delay-4">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6"/><path d="M8 12h8"/><path d="M12 18v-6"/><path d="M16 12H8"/></svg>
           </div>
-          <h3>Trening oddechowy</h3>
-          <p><strong>Box breathing 4-4-4-4</strong> z animowanym kołem. Zredukuj stres w 60 sekund.</p>
+          <h3 data-i18n="feat.breath.t">Trening oddechowy</h3>
+          <p data-i18n="feat.breath.d"><strong>Box breathing 4-4-4-4</strong> z animowanym kołem. Zredukuj stres w 60 sekund.</p>
         </div>
 
         <div class="feature-card animate-on-scroll delay-5">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
           </div>
-          <h3>Rozciąganie</h3>
-          <p><strong>Prowadzone ćwiczenia</strong> na szyję, ramiona i plecy — krok po kroku z timerem.</p>
+          <h3 data-i18n="feat.stretch.t">Rozciąganie</h3>
+          <p data-i18n="feat.stretch.d"><strong>Prowadzone ćwiczenia</strong> na szyję, ramiona i plecy — krok po kroku z timerem.</p>
         </div>
 
         <div class="feature-card animate-on-scroll delay-6">
           <div class="feature-icon">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
           </div>
-          <h3>Smart Idle + DND</h3>
-          <p><strong>Wykrywa bezczynność i Focus Assist.</strong> Timery zamrażają się gdy odchodzisz. Zero popupów gdy Windows DND aktywny.</p>
+          <h3 data-i18n="feat.idle.t">Smart Idle + DND</h3>
+          <p data-i18n="feat.idle.d"><strong>Wykrywa bezczynność i Focus Assist.</strong> Timery zamrażają się gdy odchodzisz. Zero popupów gdy Windows DND aktywny.</p>
         </div>
       </div>
     </div>
@@ -219,8 +223,8 @@
   <!-- ===== App Preview (HTML mockup) ===== -->
   <section class="app-preview" id="preview">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Zobacz jak wygląda</h2>
-      <p class="section-subtitle animate-on-scroll">Ciemny, elegancki interfejs, który nie rozprasza — dostarcza informacje na pierwszy rzut oka.</p>
+      <h2 class="section-title animate-on-scroll" data-i18n="preview.title">Zobacz jak wygląda</h2>
+      <p class="section-subtitle animate-on-scroll" data-i18n="preview.subtitle">Ciemny, elegancki interfejs, który nie rozprasza — dostarcza informacje na pierwszy rzut oka.</p>
 
       <div class="mockup-wrapper animate-on-scroll">
         <!-- Main app window -->
@@ -341,12 +345,12 @@
           </div>
           <div class="mockup-popup-body">
             <div class="mockup-popup-icon">⏰</div>
-            <div class="mockup-popup-title">Mała przerwa</div>
-            <div class="mockup-popup-desc">Odwróć wzrok od ekranu i patrz<br>na obiekt oddalony o ~6 metrów.</div>
+            <div class="mockup-popup-title" data-i18n="mock.small_break">Mała przerwa</div>
+            <div class="mockup-popup-desc" data-i18n="mock.break_desc">Odwróć wzrok od ekranu i patrz<br>na obiekt oddalony o ~6 metrów.</div>
             <div class="mockup-popup-timer" id="mock-popup-timer">0:18</div>
             <div class="mockup-popup-buttons">
-              <span class="mockup-popup-btn mockup-popup-btn-accept">Robię przerwę!</span>
-              <span class="mockup-popup-btn mockup-popup-btn-skip">Pomiń</span>
+              <span class="mockup-popup-btn mockup-popup-btn-accept" data-i18n="mock.take_break">Robię przerwę!</span>
+              <span class="mockup-popup-btn mockup-popup-btn-skip" data-i18n="mock.skip">Pomiń</span>
             </div>
           </div>
         </div>
@@ -377,28 +381,28 @@
   <!-- ===== How it works ===== -->
   <section class="how-it-works" id="how-it-works">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Jak to działa?</h2>
-      <p class="section-subtitle animate-on-scroll">Trzy proste kroki do zdrowszej pracy przy komputerze.</p>
+      <h2 class="section-title animate-on-scroll" data-i18n="how.title">Jak to działa?</h2>
+      <p class="section-subtitle animate-on-scroll" data-i18n="how.subtitle">Trzy proste kroki do zdrowszej pracy przy komputerze.</p>
 
       <div class="steps">
         <div class="steps-line" aria-hidden="true"></div>
 
         <div class="step animate-on-scroll delay-1">
           <div class="step-number">1</div>
-          <h3>Zainstaluj</h3>
-          <p>Pobierz instalator, kliknij dalej i gotowe. Bez konta, bez rejestracji.</p>
+          <h3 data-i18n="how.s1.t">Zainstaluj</h3>
+          <p data-i18n="how.s1.d">Pobierz instalator, kliknij dalej i gotowe. Bez konta, bez rejestracji.</p>
         </div>
 
         <div class="step animate-on-scroll delay-2">
           <div class="step-number">2</div>
-          <h3>Pracuj normalnie</h3>
-          <p>HealthDesk działa w tle. Nie zauważysz go, dopóki nie nadejdzie pora na przerwę.</p>
+          <h3 data-i18n="how.s2.t">Pracuj normalnie</h3>
+          <p data-i18n="how.s2.d">HealthDesk działa w tle. Nie zauważysz go, dopóki nie nadejdzie pora na przerwę.</p>
         </div>
 
         <div class="step animate-on-scroll delay-3">
           <div class="step-number">3</div>
-          <h3>Odpoczywaj regularnie</h3>
-          <p>Reaguj na przypomnienia. Twoje oczy i kręgosłup będą Ci wdzięczne.</p>
+          <h3 data-i18n="how.s3.t">Odpoczywaj regularnie</h3>
+          <p data-i18n="how.s3.d">Reaguj na przypomnienia. Twoje oczy i kręgosłup będą Ci wdzięczne.</p>
         </div>
       </div>
     </div>
@@ -407,8 +411,8 @@
   <!-- ===== Stats / Social Proof ===== -->
   <section class="stats-section" id="why">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Dlaczego warto?</h2>
-      <p class="section-subtitle animate-on-scroll">Nawyki poparte badaniami naukowymi.</p>
+      <h2 class="section-title animate-on-scroll" data-i18n="why.title">Dlaczego warto?</h2>
+      <p class="section-subtitle animate-on-scroll" data-i18n="why.subtitle">Nawyki poparte badaniami naukowymi.</p>
 
       <div class="stats-grid">
         <div class="stat-card animate-on-scroll delay-1">
@@ -416,9 +420,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
           </div>
           <div class="stat-card-value">Co 25–52 min</div>
-          <div class="stat-card-title">Regularne przerwy</div>
-          <div class="stat-card-desc">Krótkie przerwy co 25–52 minuty zwiększają produktywność o 13% i zmniejszają zmęczenie psychiczne.</div>
-          <div class="stat-card-source">Źródło: DeskTime Productivity Research (2023)</div>
+          <div class="stat-card-title" data-i18n="why.s1.t">Regularne przerwy</div>
+          <div class="stat-card-desc" data-i18n="why.s1.d">Krótkie przerwy co 25–52 minuty zwiększają produktywność o 13% i zmniejszają zmęczenie psychiczne.</div>
+          <div class="stat-card-source" data-i18n="why.s1.src">Źródło: DeskTime Productivity Research (2023)</div>
         </div>
 
         <div class="stat-card animate-on-scroll delay-2">
@@ -426,9 +430,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           </div>
           <div class="stat-card-value">8 szklanek</div>
-          <div class="stat-card-title">Wody dziennie</div>
-          <div class="stat-card-desc">Regularne nawadnianie poprawia koncentrację i zmniejsza bóle głowy.</div>
-          <div class="stat-card-source">Źródło: European Food Safety Authority (EFSA)</div>
+          <div class="stat-card-title" data-i18n="why.s2.t">Wody dziennie</div>
+          <div class="stat-card-desc" data-i18n="why.s2.d">Regularne nawadnianie poprawia koncentrację i zmniejsza bóle głowy.</div>
+          <div class="stat-card-source" data-i18n="why.s2.src">Źródło: European Food Safety Authority (EFSA)</div>
         </div>
 
         <div class="stat-card animate-on-scroll delay-3">
@@ -436,9 +440,9 @@
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
           </div>
           <div class="stat-card-value">5 min / godz.</div>
-          <div class="stat-card-title">Ćwiczeń i rozciągania</div>
-          <div class="stat-card-desc">Krótkie przerwy na ruch zapobiegają bólom pleców i poprawiają krążenie.</div>
-          <div class="stat-card-source">Źródło: WHO Guidelines on Physical Activity (2020)</div>
+          <div class="stat-card-title" data-i18n="why.s3.t">Ćwiczeń i rozciągania</div>
+          <div class="stat-card-desc" data-i18n="why.s3.d">Krótkie przerwy na ruch zapobiegają bólom pleców i poprawiają krążenie.</div>
+          <div class="stat-card-source" data-i18n="why.s3.src">Źródło: WHO Guidelines on Physical Activity (2020)</div>
         </div>
       </div>
     </div>
@@ -447,8 +451,8 @@
   <!-- ===== Comparison ===== -->
   <section class="comparison" id="comparison">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Jak wypada HealthDesk?</h2>
-      <p class="section-subtitle animate-on-scroll delay-1">Szczere porównanie z popularnymi alternatywami.</p>
+      <h2 class="section-title animate-on-scroll" data-i18n="cmp.title">Jak wypada HealthDesk?</h2>
+      <p class="section-subtitle animate-on-scroll delay-1" data-i18n="cmp.subtitle">Szczere porównanie z popularnymi alternatywami.</p>
 
       <div class="comparison-table-wrapper animate-on-scroll delay-2">
         <table class="comparison-table">
@@ -469,9 +473,9 @@
           </thead>
           <tbody>
             <!-- Grupa: Podstawy -->
-            <tr class="cmp-group-header"><td colspan="6">Podstawy</td></tr>
+            <tr class="cmp-group-header"><td colspan="6" data-i18n="cmp.g.basics">Podstawy</td></tr>
             <tr>
-              <td class="cmp-feat">Platformy</td>
+              <td class="cmp-feat" data-i18n="cmp.platforms">Platformy</td>
               <td class="cmp-col-hl"><span class="cmp-val-good">Win / Mac / Linux</span></td>
               <td><span class="cmp-val-good">Win / Mac / Linux</span></td>
               <td><span class="cmp-val-weak">Tylko macOS</span></td>
@@ -479,9 +483,9 @@
               <td><span class="cmp-val-weak">Tylko macOS</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Cena</td>
-              <td class="cmp-col-hl"><span class="cmp-val-good">Darmowy</span></td>
-              <td>Darmowy</td>
+              <td class="cmp-feat" data-i18n="cmp.price">Cena</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good" data-i18n="cmp.free">Darmowy</span></td>
+              <td data-i18n="cmp.free">Darmowy</td>
               <td><span class="cmp-val-weak">Freemium</span></td>
               <td>Darmowy</td>
               <td>Darmowy</td>
@@ -496,22 +500,22 @@
             </tr>
 
             <!-- Grupa: Przerwy i metodyki -->
-            <tr class="cmp-group-header"><td colspan="6">Przerwy i metodyki</td></tr>
+            <tr class="cmp-group-header"><td colspan="6" data-i18n="cmp.g.breaks">Przerwy i metodyki</td></tr>
             <tr>
-              <td class="cmp-feat">Typy przerw</td>
-              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Duże + małe</td>
+              <td class="cmp-feat" data-i18n="cmp.break_types">Typy przerw</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> <span data-i18n="cmp.big_small">Duże + małe</span></td>
               <td><span class="cmp-yes">&#10004;</span> Micro + long</td>
               <td><span class="cmp-yes">&#10004;</span> Micro + normal</td>
               <td><span class="cmp-yes">&#10004;</span> Micro + rest</td>
               <td><span class="cmp-yes">&#10004;</span> Pomodoro</td>
             </tr>
             <tr>
-              <td class="cmp-feat">Metodyki pracy</td>
+              <td class="cmp-feat" data-i18n="cmp.methods">Metodyki pracy</td>
               <td class="cmp-col-hl"><span class="cmp-val-good">Pomodoro, 20-20-20, 52-17, 90-min, Custom</span></td>
-              <td><span class="cmp-val-mid">Ręczna konfiguracja</span></td>
-              <td><span class="cmp-val-mid">Ręczna konfiguracja</span></td>
-              <td><span class="cmp-val-mid">Ręczna konfiguracja</span></td>
-              <td><span class="cmp-val-weak">Tylko Pomodoro 25/5</span></td>
+              <td><span class="cmp-val-mid" data-i18n="cmp.manual">Ręczna konfiguracja</span></td>
+              <td><span class="cmp-val-mid" data-i18n="cmp.manual">Ręczna konfiguracja</span></td>
+              <td><span class="cmp-val-mid" data-i18n="cmp.manual">Ręczna konfiguracja</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.pom_only">Tylko Pomodoro 25/5</span></td>
             </tr>
             <tr>
               <td class="cmp-feat">Auto-pauza (idle)</td>
@@ -522,7 +526,7 @@
               <td><span class="cmp-no">&#10006;</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Snooze / odłóż</td>
+              <td class="cmp-feat" data-i18n="cmp.snooze">Snooze / odłóż</td>
               <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
               <td><span class="cmp-yes">&#10004;</span></td>
               <td><span class="cmp-yes">&#10004;</span></td>
@@ -531,9 +535,9 @@
             </tr>
 
             <!-- Grupa: Zdrowie -->
-            <tr class="cmp-group-header"><td colspan="6">Zdrowie i ćwiczenia</td></tr>
+            <tr class="cmp-group-header"><td colspan="6" data-i18n="cmp.g.health">Zdrowie i ćwiczenia</td></tr>
             <tr>
-              <td class="cmp-feat">Przypomnienia o wodzie</td>
+              <td class="cmp-feat" data-i18n="cmp.water">Przypomnienia o wodzie</td>
               <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
@@ -541,23 +545,23 @@
               <td><span class="cmp-no">&#10006;</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Ćwiczenia oczu</td>
-              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Animowane</td>
+              <td class="cmp-feat" data-i18n="cmp.eye_ex">Ćwiczenia oczu</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> <span data-i18n="cmp.animated">Animowane</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Rozciąganie</td>
-              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Animowane</td>
+              <td class="cmp-feat" data-i18n="cmp.stretch">Rozciąganie</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> <span data-i18n="cmp.animated">Animowane</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
-              <td><span class="cmp-val-weak">Tylko tekst</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.text_only">Tylko tekst</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Trening oddechowy</td>
+              <td class="cmp-feat" data-i18n="cmp.breathing">Trening oddechowy</td>
               <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Box breathing</td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
@@ -566,36 +570,36 @@
             </tr>
 
             <!-- Grupa: Produktywność -->
-            <tr class="cmp-group-header"><td colspan="6">Produktywność</td></tr>
+            <tr class="cmp-group-header"><td colspan="6" data-i18n="cmp.g.prod">Produktywność</td></tr>
             <tr>
               <td class="cmp-feat">Ambient audio</td>
-              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> 6 dźwięków + YT Radio</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> <span data-i18n="cmp.6sounds">6 dźwięków + YT Radio</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
-              <td><span class="cmp-val-weak">Biały szum</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.white_noise">Biały szum</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Śledzenie aktywności</td>
-              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Automatyczne</td>
+              <td class="cmp-feat" data-i18n="cmp.tracking">Śledzenie aktywności</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> <span data-i18n="cmp.auto">Automatyczne</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
-              <td><span class="cmp-val-weak">Limit dzienny</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.daily_limit">Limit dzienny</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
             </tr>
             <tr>
-              <td class="cmp-feat">Statystyki</td>
-              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Wielookresowe</td>
-              <td><span class="cmp-val-weak">Podstawowe</span></td>
+              <td class="cmp-feat" data-i18n="cmp.stats">Statystyki</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> <span data-i18n="cmp.multi_period">Wielookresowe</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.basic">Podstawowe</span></td>
               <td><span class="cmp-no">&#10006;</span></td>
-              <td><span class="cmp-val-weak">Podstawowe</span></td>
-              <td><span class="cmp-val-weak">Podstawowe</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.basic">Podstawowe</span></td>
+              <td><span class="cmp-val-weak" data-i18n="cmp.basic">Podstawowe</span></td>
             </tr>
 
             <!-- Grupa: Wydajność -->
-            <tr class="cmp-group-header"><td colspan="6">Wydajność aplikacji</td></tr>
+            <tr class="cmp-group-header"><td colspan="6" data-i18n="cmp.g.perf">Wydajność aplikacji</td></tr>
             <tr>
-              <td class="cmp-feat">Rozmiar instalatora</td>
+              <td class="cmp-feat" data-i18n="cmp.installer_size">Rozmiar instalatora</td>
               <td class="cmp-col-hl"><span class="cmp-val-accent">~4 MB</span></td>
               <td>~70 MB</td>
               <td>~15 MB</td>
@@ -603,7 +607,7 @@
               <td>~25 MB</td>
             </tr>
             <tr>
-              <td class="cmp-feat">Zużycie RAM</td>
+              <td class="cmp-feat" data-i18n="cmp.ram">Zużycie RAM</td>
               <td class="cmp-col-hl"><span class="cmp-val-accent">~30 MB</span></td>
               <td>~120 MB</td>
               <td>~50 MB</td>
@@ -614,7 +618,7 @@
         </table>
       </div>
 
-      <p class="comparison-footer animate-on-scroll delay-3">
+      <p class="comparison-footer animate-on-scroll delay-3" data-i18n="cmp.footer">
         Dane na podstawie wersji dostępnych w lutym 2026. Rozmiar i RAM mogą się różnić w zależności od platformy.
       </p>
     </div>
@@ -624,12 +628,12 @@
   <section class="cta-section" id="download">
     <div class="container">
       <div class="cta-card animate-on-scroll">
-        <h2>Gotowy na zdrowszą pracę?</h2>
-        <p>Zainstaluj za darmo i zacznij dbać o siebie — od pierwszej przerwy.</p>
+        <h2 data-i18n="cta.title">Gotowy na zdrowszą pracę?</h2>
+        <p data-i18n="cta.subtitle">Zainstaluj za darmo i zacznij dbać o siebie — od pierwszej przerwy.</p>
 
         <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="bottom-download" data-download="true" class="btn btn-primary btn-lg cta-btn">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span id="bottom-download-label">Pobierz za darmo</span>
+          <span id="bottom-download-label" data-i18n="cta.download">Pobierz za darmo</span>
         </a>
 
         <div class="cta-platforms">
@@ -647,11 +651,11 @@
           </span>
           <span class="cta-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
-            <span data-version>Wersja 2.0.24</span>
+            <span data-version data-i18n-dynamic="cta.version">Wersja 2.0.24</span>
           </span>
           <span class="cta-meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-            Bez reklam, bez konta
+            <span data-i18n="cta.no_ads">Bez reklam, bez konta</span>
           </span>
         </div>
       </div>
@@ -661,18 +665,18 @@
   <!-- ===== FAQ ===== -->
   <section class="faq" id="faq">
     <div class="container">
-      <h2 class="section-title animate-on-scroll">Często zadawane pytania</h2>
+      <h2 class="section-title animate-on-scroll" data-i18n="faq.title">Często zadawane pytania</h2>
 
       <div class="faq-list">
         <div class="faq-item animate-on-scroll delay-1">
           <input type="checkbox" id="faq-1" class="faq-toggle">
           <label for="faq-1" class="faq-question">
-            <h3>Czy HealthDesk jest darmowy?</h3>
+            <h3 data-i18n="faq.q1">Czy HealthDesk jest darmowy?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Tak, całkowicie darmowy. Bez ukrytych opłat, subskrypcji czy premium. Wszystkie funkcje dostępne od razu.
+              <span data-i18n="faq.a1">Tak, całkowicie darmowy. Bez ukrytych opłat, subskrypcji czy premium. Wszystkie funkcje dostępne od razu.</span>
             </div>
           </div>
         </div>
@@ -680,12 +684,12 @@
         <div class="faq-item animate-on-scroll delay-2">
           <input type="checkbox" id="faq-2" class="faq-toggle">
           <label for="faq-2" class="faq-question">
-            <h3>Czy aplikacja zbiera moje dane?</h3>
+            <h3 data-i18n="faq.q2">Czy aplikacja zbiera moje dane?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Statystyki, przerwy i nawodnienie przechowywane są lokalnie na Twoim komputerze. Aplikacja wysyła anonimowe dane telemetryczne (UUID instalacji, zdarzenia użytkowania, wersja systemu) w celu poprawy jakości produktu. Możesz to wyłączyć w Ustawieniach &gt; System &gt; Anonimowa telemetria. Nie zbieramy żadnych danych osobowych.
+              <span data-i18n="faq.a2">Statystyki, przerwy i nawodnienie przechowywane są lokalnie na Twoim komputerze. Aplikacja wysyła anonimowe dane telemetryczne (UUID instalacji, zdarzenia użytkowania, wersja systemu) w celu poprawy jakości produktu. Możesz to wyłączyć w Ustawieniach &gt; System &gt; Anonimowa telemetria. Nie zbieramy żadnych danych osobowych.</span>
             </div>
           </div>
         </div>
@@ -693,12 +697,12 @@
         <div class="faq-item animate-on-scroll delay-3">
           <input type="checkbox" id="faq-3" class="faq-toggle">
           <label for="faq-3" class="faq-question">
-            <h3>Czy HealthDesk działa offline?</h3>
+            <h3 data-i18n="faq.q3">Czy HealthDesk działa offline?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Tak — przerwy, ćwiczenia, woda, aktywność i dźwięki działają offline. Tylko YouTube Radio wymaga internetu.
+              <span data-i18n="faq.a3">Tak — przerwy, ćwiczenia, woda, aktywność i dźwięki działają offline. Tylko YouTube Radio wymaga internetu.</span>
             </div>
           </div>
         </div>
@@ -706,12 +710,12 @@
         <div class="faq-item animate-on-scroll delay-4">
           <input type="checkbox" id="faq-4" class="faq-toggle">
           <label for="faq-4" class="faq-question">
-            <h3>Czy mogę dostosować częstotliwość przerw?</h3>
+            <h3 data-i18n="faq.q4">Czy mogę dostosować częstotliwość przerw?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
             <div class="faq-answer-inner">
-              Tak. Wybierz gotową metodę pracy (Pomodoro, 20-20-20, 52-17, 90-minutowa) lub ustaw własne interwały. Częstotliwość przerw, przypomnienia o wodzie, godziny pracy — wszystko konfigurowalne w ustawieniach.
+              <span data-i18n="faq.a4">Tak. Wybierz gotową metodę pracy (Pomodoro, 20-20-20, 52-17, 90-minutowa) lub ustaw własne interwały. Częstotliwość przerw, przypomnienia o wodzie, godziny pracy — wszystko konfigurowalne w ustawieniach.</span>
             </div>
           </div>
         </div>
@@ -719,7 +723,7 @@
         <div class="faq-item animate-on-scroll delay-5">
           <input type="checkbox" id="faq-5" class="faq-toggle">
           <label for="faq-5" class="faq-question">
-            <h3>Jak odinstalować aplikację?</h3>
+            <h3 data-i18n="faq.q5">Jak odinstalować aplikację?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
@@ -735,7 +739,7 @@
         <div class="faq-item animate-on-scroll delay-6">
           <input type="checkbox" id="faq-6" class="faq-toggle">
           <label for="faq-6" class="faq-question">
-            <h3>Ile waży instalator?</h3>
+            <h3 data-i18n="faq.q6">Ile waży instalator?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
@@ -747,7 +751,7 @@
         <div class="faq-item animate-on-scroll delay-6">
           <input type="checkbox" id="faq-7" class="faq-toggle">
           <label for="faq-7" class="faq-question">
-            <h3>Windows pokazuje niebieski ekran przy instalacji?</h3>
+            <h3 data-i18n="faq.q7">Windows pokazuje niebieski ekran przy instalacji?</h3>
             <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
           </label>
           <div class="faq-answer">
@@ -770,8 +774,8 @@
   <div id="dl-modal" class="dl-modal" onclick="if(event.target===this)this.classList.remove('dl-modal-open')">
     <div class="dl-modal-card">
       <button class="dl-modal-close" onclick="this.closest('.dl-modal').classList.remove('dl-modal-open')">&times;</button>
-      <h2>Przed instalacją</h2>
-      <p class="dl-modal-subtitle">Aplikacja jest bezpieczna i <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>. System może wymagać dodatkowego kroku.</p>
+      <h2 data-i18n="modal.title">Przed instalacją</h2>
+      <p class="dl-modal-subtitle" data-i18n="modal.subtitle">Aplikacja jest bezpieczna i <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>. System może wymagać dodatkowego kroku.</p>
 
       <div class="dl-modal-tabs">
         <button class="dl-modal-tab dl-modal-tab-active" onclick="showDlTab('windows',this)">Windows</button>
@@ -843,7 +847,7 @@
 
       <a id="dl-modal-btn" href="#" class="btn btn-primary btn-lg dl-modal-download">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-        Pobierz teraz
+        <span data-i18n="modal.dl_now">Pobierz teraz</span>
       </a>
     </div>
   </div>
@@ -866,10 +870,10 @@
           HealthDesk
         </div>
         <ul class="footer-links">
-          <li><a href="privacy.html">Polityka prywatności</a></li>
+          <li><a href="privacy.html" data-i18n="footer.privacy">Polityka prywatności</a></li>
           <li><a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></li>
         </ul>
-        <p class="footer-copy">&copy; 2026 HealthDesk. Wszelkie prawa zastrzeżone.</p>
+        <p class="footer-copy" data-i18n="footer.copy">&copy; 2026 HealthDesk. Wszelkie prawa zastrzeżone.</p>
       </div>
     </div>
   </footer>
@@ -906,18 +910,19 @@
       else if (ua.indexOf('linux') !== -1) userOS = 'linux';
 
       var osLabels = {
-        windows: 'Pobierz dla Windows',
-        macos: 'Pobierz dla macOS',
-        linux: 'Pobierz dla Linux'
+        pl: { windows: 'Pobierz dla Windows', macos: 'Pobierz dla macOS', linux: 'Pobierz dla Linux' },
+        en: { windows: 'Download for Windows', macos: 'Download for macOS', linux: 'Download for Linux' }
       };
 
       // Highlight current platform card
       var currentCard = document.getElementById('dl-' + userOS);
       if (currentCard) currentCard.classList.add('platform-active');
 
-      // Set bottom button label to detected OS
+      // Set bottom button label to detected OS (respects language)
       var bottomLabel = document.getElementById('bottom-download-label');
-      if (bottomLabel) bottomLabel.textContent = osLabels[userOS] || 'Pobierz za darmo';
+      var lang = (window._hdLang || 'pl');
+      var labels = osLabels[lang] || osLabels.pl;
+      if (bottomLabel) bottomLabel.textContent = labels[userOS] || labels.windows;
 
       // Fetch release assets
       try {
@@ -969,18 +974,22 @@
                   (rel.assets || []).forEach(function(a) { total += (a.download_count || 0); });
                 });
                 var countEl = document.getElementById('download-count');
-                if (countEl) countEl.textContent = total.toLocaleString('pl-PL');
+                var fmtTotal = total.toLocaleString('pl-PL');
+                if (countEl) countEl.textContent = fmtTotal;
                 var heroCount = document.getElementById('hero-download-count');
-                if (heroCount) heroCount.textContent = 'Pobrano ' + total.toLocaleString('pl-PL') + ' razy';
+                var dlLang = window._hdLang || 'pl';
+                if (heroCount) heroCount.textContent = dlLang === 'en' ? 'Downloaded ' + fmtTotal + ' times' : 'Pobrano ' + fmtTotal + ' razy';
               })
               .catch(function() {
                 // Fallback: use only latest release assets
                 var total = DOWNLOAD_OFFSET;
                 assets.forEach(function(a) { total += (a.download_count || 0); });
                 var countEl = document.getElementById('download-count');
-                if (countEl) countEl.textContent = total.toLocaleString('pl-PL');
+                var fmtTotal = total.toLocaleString('pl-PL');
+                if (countEl) countEl.textContent = fmtTotal;
                 var heroCount = document.getElementById('hero-download-count');
-                if (heroCount) heroCount.textContent = 'Pobrano ' + total.toLocaleString('pl-PL') + ' razy';
+                var dlLang = window._hdLang || 'pl';
+                if (heroCount) heroCount.textContent = dlLang === 'en' ? 'Downloaded ' + fmtTotal + ' times' : 'Pobrano ' + fmtTotal + ' razy';
               });
           })();
 
@@ -988,7 +997,8 @@
           var tag = (data.tag_name || '').replace(/^v/i, '');
           if (tag) {
             document.querySelectorAll('[data-version]').forEach(function(el) {
-              el.textContent = 'Wersja ' + tag;
+              var vLang = window._hdLang || 'pl';
+              el.textContent = (vLang === 'en' ? 'Version ' : 'Wersja ') + tag;
             });
           }
           // Store URLs for modal
@@ -1023,6 +1033,214 @@
         });
       } catch(e) {}
     })();
+  </script>
+
+  <!-- ===== i18n Language Switch ===== -->
+  <script>
+  (function() {
+    var T = {
+      en: {
+        // Navbar
+        'nav.features': 'Features',
+        'nav.how': 'How it works',
+        'nav.why': 'Why',
+        'nav.comparison': 'Comparison',
+        'nav.download': 'Download',
+        // Hero
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Free app \u2014 Windows, macOS, Linux',
+        'hero.title': 'Your eyes, spine and mind <span class="accent">will thank you</span>',
+        'hero.subtitle': 'Smart breaks, hydration reminders, eye exercises and activity tracking \u2014 all in one lightweight app that runs in the background.',
+        'dl.btn': 'Download',
+        'hero.no_account': 'No account, no sign-up',
+        // Hero mini
+        'mini.next_break': 'Next break in',
+        'mini.breaks': 'Breaks',
+        'mini.water': 'Water',
+        'mini.work': 'Work',
+        // Features
+        'feat.title': 'What does HealthDesk do?',
+        'feat.subtitle': 'Key features + more \u2014 everything you need for healthy computer work.',
+        'feat.breaks.t': 'Smart Breaks',
+        'feat.breaks.d': '<strong>4 work methods to choose from:</strong> Pomodoro, 20-20-20, 52-17 and 90-minute. Smart break protection \u2014 reminders never overlap.',
+        'feat.water.t': 'Water Reminders',
+        'feat.water.d': '<strong>Goal: 8 glasses a day.</strong> Gentle reminders every 30 minutes. Track progress and build a habit.',
+        'feat.eyes.t': 'Eye Exercises',
+        'feat.eyes.d': '<strong>Guided sessions with a timer.</strong> Eye movements, blinking, focus changes \u2014 reduce eye strain.',
+        'feat.more': 'And more',
+        'feat.track.t': 'Activity Tracking',
+        'feat.track.d': '<strong>Automatic app categorization</strong> into work, entertainment, communication and learning.',
+        'feat.audio.t': 'Focus Sounds',
+        'feat.audio.d': '<strong>Brown noise, rain, forest, ocean</strong> \u2014 generated in real time.',
+        'feat.radio.t': 'YouTube Radio + FM',
+        'feat.radio.d': '<strong>6 YT stations + 6 FM stations</strong> (RMF, Antyradio, ZET, Eska). Pause stops music together with timers.',
+        'feat.breath.t': 'Breathing Exercise',
+        'feat.breath.d': '<strong>Box breathing 4-4-4-4</strong> with an animated circle. Reduce stress in 60 seconds.',
+        'feat.stretch.t': 'Stretching',
+        'feat.stretch.d': '<strong>Guided exercises</strong> for neck, shoulders and back \u2014 step by step with a timer.',
+        'feat.idle.t': 'Smart Idle + DND',
+        'feat.idle.d': '<strong>Detects inactivity and Focus Assist.</strong> Timers freeze when you step away. Zero popups when Windows DND is active.',
+        // App Preview
+        'preview.title': 'See how it looks',
+        'preview.subtitle': 'Dark, elegant interface that doesn\'t distract \u2014 delivers information at a glance.',
+        // How it works
+        'how.title': 'How does it work?',
+        'how.subtitle': 'Three simple steps to healthier computer work.',
+        'how.s1.t': 'Install',
+        'how.s1.d': 'Download the installer, click next and you\'re done. No account, no sign-up.',
+        'how.s2.t': 'Work normally',
+        'how.s2.d': 'HealthDesk runs in the background. You won\'t notice it until it\'s time for a break.',
+        'how.s3.t': 'Rest regularly',
+        'how.s3.d': 'Respond to reminders. Your eyes and spine will thank you.',
+        // Why
+        'why.title': 'Why is it worth it?',
+        'why.subtitle': 'Habits backed by scientific research.',
+        'why.s1.t': 'Regular breaks',
+        'why.s1.d': 'Short breaks every 25\u201352 minutes increase productivity by 13% and reduce mental fatigue.',
+        'why.s1.src': 'Source: DeskTime Productivity Research (2023)',
+        'why.s2.t': 'Of water daily',
+        'why.s2.d': 'Regular hydration improves focus and reduces headaches.',
+        'why.s2.src': 'Source: European Food Safety Authority (EFSA)',
+        'why.s3.t': 'Exercise & stretching',
+        'why.s3.d': 'Short movement breaks prevent back pain and improve circulation.',
+        'why.s3.src': 'Source: WHO Guidelines on Physical Activity (2020)',
+        // Comparison
+        'cmp.title': 'How does HealthDesk compare?',
+        'cmp.subtitle': 'Honest comparison with popular alternatives.',
+        'cmp.g.basics': 'Basics',
+        'cmp.platforms': 'Platforms',
+        'cmp.price': 'Price',
+        'cmp.free': 'Free',
+        'cmp.g.breaks': 'Breaks & methods',
+        'cmp.break_types': 'Break types',
+        'cmp.big_small': 'Big + small',
+        'cmp.methods': 'Work methods',
+        'cmp.manual': 'Manual config',
+        'cmp.pom_only': 'Pomodoro 25/5 only',
+        'cmp.snooze': 'Snooze / postpone',
+        'cmp.g.health': 'Health & exercises',
+        'cmp.water': 'Water reminders',
+        'cmp.eye_ex': 'Eye exercises',
+        'cmp.animated': 'Animated',
+        'cmp.stretch': 'Stretching',
+        'cmp.text_only': 'Text only',
+        'cmp.breathing': 'Breathing exercise',
+        'cmp.g.prod': 'Productivity',
+        'cmp.6sounds': '6 sounds + YT Radio',
+        'cmp.white_noise': 'White noise',
+        'cmp.tracking': 'Activity tracking',
+        'cmp.auto': 'Automatic',
+        'cmp.daily_limit': 'Daily limit',
+        'cmp.stats': 'Statistics',
+        'cmp.multi_period': 'Multi-period',
+        'cmp.basic': 'Basic',
+        'cmp.g.perf': 'App performance',
+        'cmp.installer_size': 'Installer size',
+        'cmp.ram': 'RAM usage',
+        'cmp.footer': 'Data based on versions available in February 2026. Size and RAM may vary by platform.',
+        // CTA
+        'cta.title': 'Ready for healthier work?',
+        'cta.subtitle': 'Install for free and start taking care of yourself \u2014 from the very first break.',
+        'cta.download': 'Download for free',
+        'cta.no_ads': 'No ads, no account',
+        // FAQ
+        'faq.title': 'Frequently Asked Questions',
+        'faq.q1': 'Is HealthDesk free?',
+        'faq.a1': 'Yes, completely free. No hidden fees, subscriptions or premium. All features available right away.',
+        'faq.q2': 'Does the app collect my data?',
+        'faq.a2': 'Statistics, breaks and hydration are stored locally on your computer. The app sends anonymous telemetry (installation UUID, usage events, system version) to improve the product. You can disable this in Settings > System > Anonymous telemetry. We do not collect any personal data.',
+        'faq.q3': 'Does HealthDesk work offline?',
+        'faq.a3': 'Yes \u2014 breaks, exercises, water, activity and sounds work offline. Only YouTube Radio requires internet.',
+        'faq.q4': 'Can I customize break frequency?',
+        'faq.a4': 'Yes. Choose a preset work method (Pomodoro, 20-20-20, 52-17, 90-minute) or set custom intervals. Break frequency, water reminders, work hours \u2014 all configurable in settings.',
+        'faq.q5': 'How do I uninstall the app?',
+        'faq.q6': 'How big is the installer?',
+        'faq.q7': 'Windows shows a blue screen during installation?',
+        // Modal
+        'modal.title': 'Before installing',
+        'modal.subtitle': 'The app is safe and <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>. Your system may require an extra step.',
+        'modal.dl_now': 'Download now',
+        // Mockup
+        'mock.small_break': 'Small break',
+        'mock.break_desc': 'Look away from the screen and focus<br>on an object about 6 meters away.',
+        'mock.take_break': 'Taking a break!',
+        'mock.skip': 'Skip',
+        // Footer
+        'footer.privacy': 'Privacy Policy',
+        'footer.copy': '\u00a9 2026 HealthDesk. All rights reserved.'
+      }
+    };
+
+    // Store original PL content
+    var originals = {};
+
+    function savePL() {
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (!originals[key]) originals[key] = el.innerHTML;
+      });
+    }
+
+    function applyLang(lang) {
+      document.querySelectorAll('[data-i18n]').forEach(function(el) {
+        var key = el.getAttribute('data-i18n');
+        if (lang === 'en' && T.en[key]) {
+          el.innerHTML = T.en[key];
+        } else if (lang === 'pl' && originals[key]) {
+          el.innerHTML = originals[key];
+        }
+      });
+      // Update html lang and meta
+      document.documentElement.lang = lang;
+      if (lang === 'en') {
+        document.title = 'HealthDesk \u2014 Your eyes, spine and mind will thank you';
+        var metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.content = 'HealthDesk is a free app for Windows, macOS and Linux that reminds you about breaks, hydration and eye exercises. Runs in the background and takes care of your health at the computer.';
+      } else {
+        document.title = 'HealthDesk \u2014 Twoje oczy, kr\u0119gos\u0142up i g\u0142owa Ci podzi\u0119kuj\u0105';
+        var metaDesc = document.querySelector('meta[name="description"]');
+        if (metaDesc) metaDesc.content = 'HealthDesk to darmowa aplikacja na Windows, macOS i Linux, kt\u00f3ra przypomina o przerwach, nawodnieniu i \u0107wiczeniach oczu. Dzia\u0142a w tle i dba o Twoje zdrowie przy komputerze.';
+      }
+      // Update active button
+      document.querySelectorAll('.lang-btn').forEach(function(btn) {
+        btn.classList.toggle('lang-active', btn.getAttribute('data-lang') === lang);
+      });
+      // Update download button labels (from download script)
+      var osLabelsMap = {
+        pl: { windows: 'Pobierz dla Windows', macos: 'Pobierz dla macOS', linux: 'Pobierz dla Linux' },
+        en: { windows: 'Download for Windows', macos: 'Download for macOS', linux: 'Download for Linux' }
+      };
+      var labels = osLabelsMap[lang] || osLabelsMap.pl;
+      var bottomLabel = document.getElementById('bottom-download-label');
+      if (bottomLabel && bottomLabel.getAttribute('data-i18n')) {
+        // Already handled by data-i18n
+      } else if (bottomLabel) {
+        var ua = navigator.userAgent.toLowerCase();
+        var os = ua.indexOf('mac') !== -1 ? 'macos' : ua.indexOf('linux') !== -1 ? 'linux' : 'windows';
+        bottomLabel.textContent = labels[os] || labels.windows;
+      }
+      // Save preference
+      try { localStorage.setItem('hd_lang', lang); } catch(e) {}
+      window._hdLang = lang;
+    }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', function() {
+      savePL();
+      // Detect language: localStorage > navigator.language > default PL
+      var saved = null;
+      try { saved = localStorage.getItem('hd_lang'); } catch(e) {}
+      var lang = saved || (navigator.language && navigator.language.substring(0,2) !== 'pl' ? 'en' : 'pl');
+      if (lang !== 'pl') applyLang(lang);
+      // Click handlers
+      document.querySelectorAll('.lang-btn').forEach(function(btn) {
+        btn.addEventListener('click', function() {
+          applyLang(btn.getAttribute('data-lang'));
+        });
+      });
+    });
+
+    window._hdApplyLang = applyLang;
+  })();
   </script>
 
   <!-- Hero animations: live timer, stats, logo -->

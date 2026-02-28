@@ -1,0 +1,321 @@
+{
+  "_name": "日本語",
+
+  "nav": {
+    "home": "ホーム",
+    "stats": "統計",
+    "music": "オーディオ",
+    "settings": "設定",
+    "help": "ヘルプ",
+    "water_plus": "+1 水",
+    "pause": "一時停止",
+    "resume": "再開"
+  },
+
+  "home": {
+    "work_time_today": "今日の作業時間",
+    "breaks": "休憩",
+    "next_break": "次の休憩",
+    "small_break": "目の休憩",
+    "big_break": "体の休憩",
+    "next_water": "次のリマインド",
+    "water": "水分補給",
+    "sound": "サウンド",
+    "sound_off": "オフ",
+    "play": "再生",
+    "now": "今すぐ！",
+    "outside_work_hours": "勤務時間外",
+    "glasses_count": "{current} / {goal} 杯",
+    "day_progress": "一日の進捗",
+    "breaks_taken": "取得済み",
+    "breaks_skipped": "スキップ",
+    "search_music": "音楽を検索",
+    "search_placeholder": "YouTubeで検索...",
+    "show_more": "もっと見る",
+    "show_less": "閉じる",
+    "no_results": "結果なし",
+    "searching": "検索中...",
+    "idle": "待機中",
+    "dnd": "おやすみモード"
+  },
+
+  "stats": {
+    "title": "統計",
+    "today": "今日",
+    "week": "週間",
+    "month": "月間",
+    "year": "年間",
+    "work_time": "作業時間",
+    "breaks": "休憩",
+    "water": "水分補給",
+    "glasses": "杯",
+    "hydration": "水分摂取量",
+    "top_apps": "よく使うアプリ",
+    "categories": "カテゴリー",
+    "taken_label": "取得",
+    "skipped_label": "スキップ",
+    "work_time_chart": "作業時間",
+    "breaks_chart": "休憩",
+    "water_chart": "水分補給",
+    "no_data": "データなし",
+    "work_time_7days": "作業時間 - 過去7日間",
+    "breaks_7days": "休憩 - 過去7日間",
+    "no_data_week": "今週のデータはありません"
+  },
+
+  "music": {
+    "focus_sounds": "集中サウンド",
+    "native_desc": "ネイティブ生成 - インターネット不要",
+    "volume": "音量：",
+    "radio_fm": "FMラジオ",
+    "yt_radio": "YouTubeラジオ",
+    "yt_requires": "必要：pip install yt-dlp + ffmpeg（PATHに設定）",
+    "yt_install_hint": "インストール後、アプリを再起動するとYouTubeラジオが利用可能になります",
+    "yt_desc": "歌詞なしのインストゥルメンタル音楽 - YouTubeからストリーミング",
+    "custom_link_label": "カスタムYouTubeリンク（インストゥルメンタル音楽）：",
+    "search": "検索",
+    "play": "再生",
+    "stop_all": "すべて停止",
+    "connecting": "接続中...",
+    "playing": "再生中：{name}",
+    "error": "エラー：{msg}",
+    "custom_link_name": "カスタムリンク"
+  },
+
+  "settings": {
+    "title": "設定",
+    "work_method": "作業方法",
+    "method_pomodoro": "ポモドーロ",
+    "method_pomodoro_desc": "25分作業、5分休憩、4サイクルごとに15分の大休憩。25分ごとに目の体操。集中的なブロック作業に最適。",
+    "method_20_20_20": "20-20-20",
+    "method_20_20_20_desc": "20分ごとに20秒の休憩、60分ごとに大休憩（5分）。30分ごとに目の体操。眼科医が開発 — 長時間のPC作業から目を守ります。",
+    "method_52_17": "52-17",
+    "method_52_17_desc": "52分作業、17分休憩。52分ごとに目の体操。DeskTimeの研究 — 最も生産性の高い人々の働き方です。",
+    "method_90_min": "90分",
+    "method_90_min_desc": "90分作業、5分休憩、3サイクルごとに20分の大休憩。30分ごとに目の体操。体の自然なウルトラディアンリズムに基づいています。",
+    "method_custom": "カスタム",
+    "method_custom_desc": "下のスライダーで独自の間隔を設定できます。",
+    "breaks_section": "休憩",
+    "small_break_every": "小休憩の間隔",
+    "small_break_duration": "小休憩の長さ",
+    "big_break_every": "大休憩の間隔",
+    "big_break_duration": "大休憩の長さ",
+    "break_mode": "休憩モード",
+    "mode_moderate": "穏やか（ポップアップ）",
+    "mode_aggressive": "強制（フルスクリーン）",
+    "hydration_section": "水分補給",
+    "reminder_every": "リマインド間隔",
+    "daily_goal": "一日の目標",
+    "eye_section": "目の体操",
+    "breathing_section": "呼吸エクササイズ",
+    "breathing_enabled": "呼吸エクササイズを有効にする",
+    "breathing_every": "呼吸エクササイズの間隔",
+    "work_hours_section": "勤務時間",
+    "work_hours_only": "勤務時間中のみリマインドする",
+    "from_hour": "開始：",
+    "to_hour": "終了：",
+    "sound_section": "通知音",
+    "sound_on_break": "休憩の開始・終了時にサウンドを鳴らす",
+    "audio_autoplay": "アプリ起動時に音楽を再開する",
+    "privacy_section": "プライバシーとデータ",
+    "telemetry": "匿名の使用統計",
+    "telemetry_desc": "アプリの改善にご協力ください。個人データは収集しません。",
+    "track_titles": "統計にウィンドウタイトルを保存する",
+    "track_titles_desc": "無効 = プログラム名のみ保存（プライバシー強化）",
+    "system_section": "システム",
+    "autostart": "Windows起動時に開始",
+    "auto_update": "自動でアップデートを確認",
+    "check_now": "今すぐ確認",
+    "save": "設定を保存",
+    "saved": "保存しました！",
+    "language": "言語",
+    "language_restart": "言語の変更にはアプリの再起動が必要です。",
+    "dashboard_layout": "ダッシュボードレイアウト",
+    "layout_enhanced": "詳細表示",
+    "layout_compact": "コンパクト",
+    "unit_min": "分",
+    "unit_sec": "秒",
+    "unit_glasses": "杯",
+    "idle_section": "待機検出",
+    "idle_enabled": "待機を検出してタイマーを停止する",
+    "idle_enabled_desc": "マウス・キーボードの操作が一定時間ない場合、タイマーが停止します",
+    "idle_threshold": "待機判定時間"
+  },
+
+  "help": {
+    "title": "ヘルプ",
+    "text": "HEALTHDESK - ユーザーガイド\n\nシステムトレイアイコン\n  Windowsの時計の横にある緑色のアイコンを右クリック：\n  \u2022 開く             - メインウィンドウを開きます\n  \u2022 水を飲んだ       - 水分トラッカーにコップ1杯を記録\n  \u2022 一時停止（30分） - すべてのリマインドを一時停止\n  \u2022 終了             - アプリケーションを閉じます\n\n  アイコンをダブルクリックしてもウィンドウが開きます。\n\nウィンドウナビゲーション\n  左側にナビゲーションパネルがあります：\n  \u2022 ホーム   - 日々のサマリーダッシュボード\n  \u2022 統計     - 日別・週別の詳細データ\n  \u2022 オーディオ - 集中サウンド（ブラウンノイズ、雨、森林...）\n  \u2022 設定     - 間隔、モード、勤務時間の設定\n  \u2022 ヘルプ   - このウィンドウ\n\n休憩\n  アプリは2つのモードで休憩を通知します：\n\n  穏やかモード（デフォルト）：\n    カウントダウン付きの小さな常に前面表示ウィンドウ。\n    「スキップ」または「休憩する！」をクリックできます。\n\n  強制モード：\n    フルスクリーンのカウントダウンブロック。\n    緊急終了：2秒以内に3回素早くクリック。\n\n  休憩の種類：\n    \u2022 小休憩（20-20-20） - 20分ごと、20秒間遠くを見る\n    \u2022 大休憩 - 60分ごと、5分間の休息＋エクササイズ\n\nエクササイズ\n  目：まばたき、眼球運動、近く/遠くのフォーカス、8の字運動。\n  ストレッチ：首、肩、胴体、手首、脚、背中。\n  エクササイズは休憩中に自動的に表示されます。\n\n水分補給\n  アプリは定期的に水分補給を通知します（デフォルト：30分ごと）。\n  一日の目標：コップ8杯（設定で変更可能）。\n  ナビゲーションパネルから素早くコップ1杯を追加できます（+1 水）。\n\nアクティビティ追跡\n  アプリは5秒ごとにアクティブウィンドウを確認し、分類します：\n    \u2022 仕事         - IDE、Office、エディター\n    \u2022 娯楽         - YouTube、ゲーム、メディア\n    \u2022 コミュニケーション - Teams、Slack、Zoom\n    \u2022 ブラウザ     - Chrome、Firefox、Edge\n    \u2022 その他       - それ以外すべて\n\n  データは統計タブで確認できます。\n\n集中サウンド\n  オーディオタブではネイティブ生成のサウンドを利用できます（インターネット不要）：\n    \u2022 ブラウンノイズ - 深く落ち着くノイズ\n    \u2022 雨           - 雨音と水滴\n    \u2022 ホワイト/ピンクノイズ - 均一なノイズ\n    \u2022 アンビエントドローン - 変調を伴う深い音\n    \u2022 森林         - 木々の風と鳥のさえずり\n\n  サウンドはウィンドウを閉じてもバックグラウンドで再生されます。\n\nYOUTUBEラジオ\n  歌詞なしのインストゥルメンタル音楽、YouTubeからストリーミング：\n    \u2022 Lofi Girl - lofi hip hop ビーツ\n    \u2022 Jazz Cafe - スムースジャズ＆ボサノバ\n    \u2022 Classical Focus - クラシック音楽\n    \u2022 Synthwave Radio - シンセウェーブインストゥルメンタル\n    \u2022 Piano & Ambient - 穏やかなピアノ\n\n  独自のYouTubeリンクを貼り付けることもできます。\n  必要：yt-dlp（pip install yt-dlp）+ ffmpeg（PATHに設定）。\n\n勤務時間\n  設定で勤務時間を有効にできます（例：8:00-18:00）。\n  勤務時間外はリマインドが一時停止されます。\n\n自動起動\n  設定 >「Windows起動時に開始」- システムログイン後に\n  アプリが自動的に起動します。\n\nデータ\n  設定とデータベースの保存場所：\n    %APPDATA%\\HealthDesk\\\n  このフォルダを削除するとアプリがリセットされます。"
+  },
+
+  "break": {
+    "window_title": "HealthDesk - 休憩！",
+    "small_title": "20-20-20 休憩",
+    "small_desc": "画面から目を離して\n約6メートル先の物を見てください。",
+    "big_title": "大休憩の時間です！",
+    "big_desc": "デスクから{minutes}分間離れましょう。\nストレッチ、水分補給、体を動かしましょう！",
+    "accept": "休憩する！",
+    "accepted_msg": "ゆっくり休んでください... ウィンドウは自動で閉じます",
+    "snooze": "3分後に再通知",
+    "skip": "スキップ"
+  },
+
+  "break_fs": {
+    "window_title": "HealthDesk - 休憩",
+    "small_title": "20-20-20 休憩",
+    "small_desc": "画面から目を離してください。\n遠くを見て、目を休ませましょう。",
+    "big_title": "休憩の時間です！",
+    "big_desc": "パソコンから離れましょう。ストレッチをしてください。\n水を飲みましょう。体が喜びます！",
+    "exit_hint": "緊急終了：2秒以内に3回素早くクリック",
+    "check": "確認",
+    "msg_eyes": "目が喜んでいます...",
+    "msg_health": "すべての休憩は健康への投資です",
+    "msg_breathe": "深呼吸しましょう...",
+    "msg_relax": "肩と顎の力を抜きましょう",
+    "msg_halfway": "半分が経過しました！"
+  },
+
+  "exercise": {
+    "eye": {
+      "title": "目の体操",
+      "exercises": [
+        {
+          "name": "眼球運動",
+          "icon": "\u2195",
+          "steps": [
+            "上を見る（3秒）",
+            "下を見る（3秒）",
+            "左を見る（3秒）",
+            "右を見る（3秒）",
+            "3回繰り返す"
+          ],
+          "duration": 30
+        },
+        {
+          "name": "まばたき",
+          "icon": "\ud83d\ude0c",
+          "steps": [
+            "15秒間素早くまばたきする",
+            "5秒間目を閉じる",
+            "2回繰り返す"
+          ],
+          "duration": 40
+        },
+        {
+          "name": "近く/遠くフォーカス",
+          "icon": "\ud83d\udd0d",
+          "steps": [
+            "親指（30cm先）を5秒間見る",
+            "遠くの物を5秒間見る",
+            "5回繰り返す"
+          ],
+          "duration": 50
+        },
+        {
+          "name": "8の字運動",
+          "icon": "\u221e",
+          "steps": [
+            "壁に大きな8の字をイメージする",
+            "その形をゆっくり目で追う",
+            "15秒後に方向を変える"
+          ],
+          "duration": 30
+        }
+      ],
+      "close": "閉じる"
+    },
+    "breathing": {
+      "title": "呼吸エクササイズ",
+      "inhale": "吸って...",
+      "hold": "止めて...",
+      "exhale": "吐いて...",
+      "cycle": "サイクル {current}/{total}",
+      "close": "閉じる"
+    },
+    "stretch": {
+      "title": "ストレッチの時間です！",
+      "window_title": "ストレッチ",
+      "tip": "無理をしないでください — 動きは優しく！",
+      "done": "完了！",
+      "exercises": [
+        {
+          "name": "首のストレッチ",
+          "icon": "\ud83e\udd92",
+          "desc": "1. 頭を右に傾ける（15秒）\n2. 頭を左に傾ける（15秒）\n3. あごを胸に近づける（15秒）\n4. 頭を後ろに傾ける（15秒）"
+        },
+        {
+          "name": "肩のストレッチ",
+          "icon": "\ud83d\udcaa",
+          "desc": "1. 右腕を頭の上に上げ、ひじを曲げる\n   左手でひじを押す（15秒）\n2. 反対側も同様に行う\n3. 両手を背中の後ろで組み、胸を張る（15秒）"
+        },
+        {
+          "name": "体幹のひねり",
+          "icon": "\ud83d\udd04",
+          "desc": "1. 椅子にまっすぐ座る\n2. 右手を左ひざに置く\n3. ゆっくり左にひねる（15秒）\n4. 反対側も同様に行う"
+        },
+        {
+          "name": "手首と手",
+          "icon": "\ud83e\udd32",
+          "desc": "1. 腕を前に伸ばし、手のひらを上に向ける\n2. もう片方の手で指をゆっくり下に引く（15秒）\n3. 手のひらを下に向けて繰り返す\n4. 手首を回す — 各方向10回ずつ"
+        },
+        {
+          "name": "脚のストレッチ",
+          "icon": "\ud83e\uddb5",
+          "desc": "1. 脚を前に伸ばす（15秒）\n2. 脚を交替する（15秒）\n3. 立ち上がる — スクワット5回\n4. つま先立ち10回"
+        },
+        {
+          "name": "背中のストレッチ",
+          "icon": "\ud83d\udc08",
+          "desc": "1. 椅子の端に座る\n2. 前屈して手を床につける（15秒）\n3. 立ち上がり、手を上げてやや後ろに反る（10秒）\n4. 猫のポーズ：座ったまま背中を丸める（10秒）"
+        }
+      ]
+    }
+  },
+
+  "water": {
+    "window_title": "水分補給リマインド",
+    "time_to_drink": "水を飲む時間です！",
+    "glasses_count": "{current} / {goal} 杯",
+    "goal_reached": "目標達成！お疲れさまでした！",
+    "drank": "飲みました！",
+    "later": "後で"
+  },
+
+  "update": {
+    "checking": "アップデートを確認中...",
+    "available": "新しいバージョン {version} が利用可能です",
+    "up_to_date": "最新バージョンです（{version}）",
+    "download": "ダウンロードしてインストール",
+    "later": "後で",
+    "downloading": "ダウンロード中... {percent}%",
+    "installing": "インストール中...",
+    "error": "アップデートを確認できませんでした",
+    "restart_note": "アプリを閉じてアップデートします。",
+    "title": "アップデート"
+  },
+
+  "tray": {
+    "open": "開く",
+    "log_water": "水をコップ1杯飲んだ",
+    "pause": "一時停止（30分）",
+    "resume": "再開",
+    "check_updates": "アップデートを確認",
+    "music_play": "▶ 音楽を再生",
+    "music_stop": "⏹ 音楽を停止",
+    "quit": "終了",
+    "tooltip": "HealthDesk - 健康的な仕事",
+    "water_logged": "記録しました！今日：{total} 杯",
+    "water_title": "水分補給"
+  },
+
+  "status": {
+    "pause": "一時停止中",
+    "to_break": "休憩まで {time}",
+    "break_now": "休憩！",
+    "already_running": "HealthDeskは既に実行中です！\nシステムトレイアイコンを確認してください。",
+    "outside_work_hours": "勤務時間外",
+    "reset_timers": "タイマーをリセット",
+    "reset_confirm": "タイマーをリセットしますか？",
+    "reset_yes": "はい",
+    "reset_no": "いいえ"
+  }
+}

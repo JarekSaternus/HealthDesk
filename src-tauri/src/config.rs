@@ -223,13 +223,32 @@ impl Default for AppConfig {
     }
 }
 
+const SUPPORTED_LANGS: &[&str] = &["pl", "en", "de", "es", "fr", "it", "ja", "ko", "ru", "tr"];
+
+fn match_supported_lang(code: &str) -> Option<String> {
+    let lower = code.to_lowercase();
+    // Exact match for compound codes
+    if lower.starts_with("pt") && (lower.contains("br") || lower.starts_with("pt-br") || lower.starts_with("pt_br")) {
+        return Some("pt-BR".into());
+    }
+    if lower.starts_with("zh") {
+        return Some("zh-CN".into());
+    }
+    for &lang in SUPPORTED_LANGS {
+        if lower.starts_with(lang) {
+            return Some(lang.into());
+        }
+    }
+    None
+}
+
 fn detect_system_language() -> String {
     // Check LANG, LC_ALL, LC_MESSAGES env vars first (cross-platform)
     for var in &["LC_ALL", "LC_MESSAGES", "LANG"] {
         if let Ok(val) = std::env::var(var) {
-            let lower = val.to_lowercase();
-            if lower.starts_with("pl") { return "pl".into(); }
-            if lower.starts_with("en") { return "en".into(); }
+            if let Some(lang) = match_supported_lang(&val) {
+                return lang;
+            }
         }
     }
     // On Windows, check via system locale name
@@ -242,11 +261,11 @@ fn detect_system_language() -> String {
             use std::os::windows::process::CommandExt;
             cmd.creation_flags(0x08000000);
         }
-        if let Ok(output) = cmd.output()
-        {
-            let lang = String::from_utf8_lossy(&output.stdout).trim().to_lowercase();
-            if lang == "pl" { return "pl".into(); }
-            if lang == "en" { return "en".into(); }
+        if let Ok(output) = cmd.output() {
+            let code = String::from_utf8_lossy(&output.stdout).trim().to_string();
+            if let Some(lang) = match_supported_lang(&code) {
+                return lang;
+            }
         }
     }
     "en".into()

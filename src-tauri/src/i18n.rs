@@ -57,6 +57,16 @@ impl I18n {
         let embedded = match lang {
             "pl" => include_str!("../../locales/pl.json"),
             "en" => include_str!("../../locales/en.json"),
+            "de" => include_str!("../../locales/de.json"),
+            "es" => include_str!("../../locales/es.json"),
+            "fr" => include_str!("../../locales/fr.json"),
+            "pt-BR" => include_str!("../../locales/pt-BR.json"),
+            "ja" => include_str!("../../locales/ja.json"),
+            "zh-CN" => include_str!("../../locales/zh-CN.json"),
+            "ko" => include_str!("../../locales/ko.json"),
+            "it" => include_str!("../../locales/it.json"),
+            "tr" => include_str!("../../locales/tr.json"),
+            "ru" => include_str!("../../locales/ru.json"),
             _ => include_str!("../../locales/en.json"),
         };
         serde_json::from_str(embedded).ok()
