@@ -67,6 +67,7 @@
     "focus_sounds": "Focus sounds",
     "native_desc": "Generated natively - no internet required",
     "volume": "Volume:",
+    "radio_fm": "FM Radio",
     "yt_radio": "YouTube Radio",
     "yt_requires": "Requires: pip install yt-dlp + ffmpeg on PATH",
     "yt_install_hint": "Install and restart the app to unlock YouTube radio",

@@ -18,6 +18,9 @@ use config::ConfigState;
 use database::Database;
 use i18n::I18n;
 use scheduler::{SharedScheduler, SchedulerInner};
+use telemetry::TelemetryEngine;
+
+pub type SharedTelemetry = Arc<TelemetryEngine>;
 
 pub fn run() {
     let cfg = config::load_config();
@@ -108,10 +111,12 @@ pub fn run() {
             tracker::start_tracker(db_clone.clone(), config_clone.clone(), scheduler_clone.clone());
 
             // Start telemetry
-            let _telemetry = telemetry::TelemetryEngine::new(
+            let telemetry = Arc::new(TelemetryEngine::new(
                 client_uuid.clone(),
                 cfg.telemetry_enabled,
-            );
+            ));
+            app.manage(telemetry.clone());
+            telemetry.track("app_start", None);
 
             // Setup scheduler event listeners for popup creation
             let app2 = app_handle.clone();
@@ -220,6 +225,12 @@ pub fn run() {
             commands::get_youtube_stations,
             commands::search_youtube_cmd,
             commands::get_youtube_state,
+            commands::pause_youtube,
+            commands::resume_youtube,
+            commands::pause_audio,
+            commands::resume_audio,
+            commands::get_radio_stations,
+            commands::play_radio,
             commands::get_ad,
             commands::report_ad_click,
             commands::get_translations,

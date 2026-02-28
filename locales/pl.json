@@ -67,6 +67,7 @@
     "focus_sounds": "Dźwięki do skupienia",
     "native_desc": "Generowane natywnie — bez internetu",
     "volume": "Głośność:",
+    "radio_fm": "Radio FM",
     "yt_radio": "YouTube Radio",
     "yt_requires": "Wymaga: pip install yt-dlp + ffmpeg na PATH",
     "yt_install_hint": "Zainstaluj i zrestartuj aplikację aby odblokować radio YouTube",

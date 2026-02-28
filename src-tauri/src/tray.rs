@@ -49,6 +49,7 @@ pub fn setup_tray(
     let config_clone = config.clone();
     let audio_clone = audio.clone();
     let yt_clone = yt_player.clone();
+    let i18n_clone = i18n.clone();
 
     TrayIconBuilder::with_id("main-tray")
         .icon(app.default_window_icon().cloned().unwrap())
@@ -80,20 +81,31 @@ pub fn setup_tray(
 
                         if !last_type.is_empty() && NATIVE_SOUNDS.contains(&last_type) {
                             audio_clone.play(last_type, vol);
+                        } else if last_source == "radio" && !last_type.is_empty() {
+                            let _ = yt_clone.play_stream(last_type, "Radio", vol);
                         } else if last_source == "youtube" && !last_type.is_empty() {
                             let _ = yt_clone.play_search(last_type, vol);
                         }
                     }
                     let _ = app.emit("audio:changed", ());
+                    refresh_tray_menu(app, &i18n_clone, &audio_clone, &yt_clone);
                 }
                 "pause" => {
                     let mut sched = scheduler_clone.lock().unwrap();
                     if sched.paused {
                         sched.resume();
+                        drop(sched);
+                        audio_clone.unmute();
+                        let _ = yt_clone.resume_playback();
                     } else {
                         sched.pause(30);
+                        drop(sched);
+                        audio_clone.mute();
+                        yt_clone.pause_playback();
                     }
-                    let _ = app.emit("scheduler:pause-toggled", sched.paused);
+                    let paused = scheduler_clone.lock().unwrap().paused;
+                    let _ = app.emit("scheduler:pause-toggled", paused);
+                    refresh_tray_menu(app, &i18n_clone, &audio_clone, &yt_clone);
                 }
                 "quit" => {
                     audio.stop();
@@ -122,12 +134,34 @@ pub fn setup_tray(
     Ok(())
 }
 
+/// Refresh tray menu labels (call after audio state changes)
+pub fn refresh_tray(app: &AppHandle) {
+    let i18n = app.state::<Arc<I18n>>();
+    let audio = app.state::<Arc<AudioEngine>>();
+    let yt = app.state::<Arc<YouTubePlayer>>();
+    refresh_tray_menu(app, &i18n, &audio, &yt);
+}
+
+fn refresh_tray_menu(app: &AppHandle, i18n: &I18n, audio: &AudioEngine, yt: &YouTubePlayer) {
+    let tray = match app.tray_by_id("main-tray") {
+        Some(t) => t,
+        None => return,
+    };
+    let ml = music_label(i18n, audio, yt);
+    let Ok(open) = MenuItem::with_id(app, "open", &i18n.t("tray.open"), true, None::<&str>) else { return };
+    let Ok(water) = MenuItem::with_id(app, "log_water", &i18n.t("tray.log_water"), true, None::<&str>) else { return };
+    let Ok(music) = MenuItem::with_id(app, "toggle_music", &ml, true, None::<&str>) else { return };
+    let Ok(pause) = MenuItem::with_id(app, "pause", &i18n.t("tray.pause"), true, None::<&str>) else { return };
+    let Ok(quit) = MenuItem::with_id(app, "quit", &i18n.t("tray.quit"), true, None::<&str>) else { return };
+    let Ok(menu) = Menu::with_items(app, &[&open, &water, &music, &pause, &quit]) else { return };
+    let _ = tray.set_menu(Some(menu));
+}
+
 pub fn update_tray_language(app: &AppHandle, i18n: &I18n) -> Result<(), String> {
     let tray = app.tray_by_id("main-tray").ok_or("Tray not found")?;
 
     let open = MenuItem::with_id(app, "open", &i18n.t("tray.open"), true, None::<&str>).map_err(|e| e.to_string())?;
     let water = MenuItem::with_id(app, "log_water", &i18n.t("tray.log_water"), true, None::<&str>).map_err(|e| e.to_string())?;
-    // For language update, default to "play" label (actual state checked on click)
     let music = MenuItem::with_id(app, "toggle_music", &i18n.t("tray.music_play"), true, None::<&str>).map_err(|e| e.to_string())?;
     let pause = MenuItem::with_id(app, "pause", &i18n.t("tray.pause"), true, None::<&str>).map_err(|e| e.to_string())?;
     let quit = MenuItem::with_id(app, "quit", &i18n.t("tray.quit"), true, None::<&str>).map_err(|e| e.to_string())?;

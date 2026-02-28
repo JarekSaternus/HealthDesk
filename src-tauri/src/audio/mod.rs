@@ -10,6 +10,8 @@ pub struct AudioEngine {
     volume: Arc<AtomicU32>,
     current_type: std::sync::Mutex<Option<String>>,
     stop_signal: Arc<AtomicBool>,
+    muted: Arc<AtomicBool>,
+    saved_volume: AtomicU32,
 }
 
 impl AudioEngine {
@@ -19,6 +21,8 @@ impl AudioEngine {
             volume: Arc::new(AtomicU32::new(10)),
             current_type: std::sync::Mutex::new(None),
             stop_signal: Arc::new(AtomicBool::new(false)),
+            muted: Arc::new(AtomicBool::new(false)),
+            saved_volume: AtomicU32::new(10),
         }
     }
 
@@ -32,6 +36,7 @@ impl AudioEngine {
         let playing = self.playing.clone();
         let vol = self.volume.clone();
         let stop = self.stop_signal.clone();
+        let muted = self.muted.clone();
         let stype = sound_type.to_string();
 
         thread::spawn(move || {
@@ -64,7 +69,11 @@ impl AudioEngine {
                     sink.stop();
                     break;
                 }
-                let v = vol.load(Ordering::Relaxed) as f32 / 100.0;
+                let v = if muted.load(Ordering::Relaxed) {
+                    0.0
+                } else {
+                    vol.load(Ordering::Relaxed) as f32 / 100.0
+                };
                 sink.set_volume(v);
                 thread::sleep(std::time::Duration::from_millis(100));
             }
@@ -88,6 +97,19 @@ impl AudioEngine {
 
     pub fn current_type(&self) -> Option<String> {
         self.current_type.lock().unwrap().clone()
+    }
+
+    pub fn mute(&self) {
+        if !self.muted.load(Ordering::Relaxed) {
+            self.saved_volume.store(self.volume.load(Ordering::Relaxed), Ordering::Relaxed);
+            self.muted.store(true, Ordering::Relaxed);
+        }
+    }
+
+    pub fn unmute(&self) {
+        if self.muted.load(Ordering::Relaxed) {
+            self.muted.store(false, Ordering::Relaxed);
+        }
     }
 
     pub fn play_chime(&self) {

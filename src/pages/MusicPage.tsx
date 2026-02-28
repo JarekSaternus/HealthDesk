@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { t } from "../i18n";
 import Card from "../components/Card";
 import { useAppStore } from "../stores/appStore";
-import type { YTStation, YTSearchResult } from "../types";
+import type { YTStation, YTSearchResult, RadioStation } from "../types";
 
 const NATIVE_SOUNDS = [
   { key: "brown_noise", name: "Brown Noise", icon: "🟤" },
@@ -14,6 +14,17 @@ const NATIVE_SOUNDS = [
   { key: "forest", name: "Forest", icon: "🌲" },
 ];
 
+type NowPlaying = {
+  source: "native" | "radio" | "youtube" | "custom";
+  name: string;
+  icon: string;
+} | null;
+
+function nowPlayingLabel(np: NowPlaying): string {
+  if (!np) return "";
+  return `${np.icon} ${np.name}`;
+}
+
 export default function MusicPage() {
   const config = useAppStore((s) => s.config);
   const saveConfig = useAppStore((s) => s.saveConfig);
@@ -21,52 +32,88 @@ export default function MusicPage() {
   const [ytPlaying, setYtPlaying] = useState<string | null>(null);
   const [volume, setVolume] = useState(config?.audio_last_volume ?? 10);
   const [ytStations, setYtStations] = useState<YTStation[]>([]);
+  const [radioStations, setRadioStations] = useState<RadioStation[]>([]);
   const [customUrl, setCustomUrl] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<YTSearchResult[]>([]);
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState("");
+  const [nowPlaying, setNowPlaying] = useState<NowPlaying>(null);
+  const [error, setError] = useState("");
 
   useEffect(() => {
     invoke<YTStation[]>("get_youtube_stations").then(setYtStations);
+    invoke<RadioStation[]>("get_radio_stations").then(setRadioStations);
     // Check current audio state
     invoke<{ playing: boolean; current_type: string | null }>("get_audio_state").then((s) => {
-      if (s.playing && s.current_type) setNativePlaying(s.current_type);
+      if (s.playing && s.current_type) {
+        setNativePlaying(s.current_type);
+        const sound = NATIVE_SOUNDS.find((ns) => ns.key === s.current_type);
+        if (sound) setNowPlaying({ source: "native", name: sound.name, icon: sound.icon });
+      }
     });
     invoke<{ playing: boolean; current_station: string | null }>("get_youtube_state").then((s) => {
-      if (s.playing && s.current_station) setYtPlaying(s.current_station);
+      if (s.playing && s.current_station) {
+        setYtPlaying(s.current_station);
+        setNowPlaying({ source: "youtube", name: s.current_station, icon: "🎵" });
+      }
     });
   }, []);
 
   const playNative = async (key: string) => {
     await invoke("stop_youtube");
     setYtPlaying(null);
+    setError("");
     if (nativePlaying === key) {
       await invoke("stop_sound");
       setNativePlaying(null);
+      setNowPlaying(null);
     } else {
       await invoke("play_sound", { soundType: key, volume });
       setNativePlaying(key);
+      const sound = NATIVE_SOUNDS.find((s) => s.key === key);
+      setNowPlaying({ source: "native", name: sound?.name ?? key, icon: sound?.icon ?? "🔊" });
       if (config) {
         saveConfig({ ...config, audio_last_type: key, audio_last_source: "native", audio_last_volume: volume });
       }
     }
   };
 
+  const playRadio = async (station: RadioStation) => {
+    await invoke("stop_sound");
+    setNativePlaying(null);
+    setError("");
+    setLoading(true);
+    setNowPlaying({ source: "radio", name: `${station.name} — ${t("music.connecting")}`, icon: "📻" });
+    try {
+      await invoke("play_radio", { url: station.url, name: station.name, volume });
+      setYtPlaying(station.name);
+      setNowPlaying({ source: "radio", name: station.name, icon: "📻" });
+      if (config) {
+        saveConfig({ ...config, audio_last_type: station.url, audio_last_source: "radio", audio_last_volume: volume });
+      }
+    } catch (e: any) {
+      setError(String(e));
+      setNowPlaying(null);
+    }
+    setLoading(false);
+  };
+
   const playYt = async (query: string, name: string) => {
     await invoke("stop_sound");
     setNativePlaying(null);
+    setError("");
     setLoading(true);
-    setStatus(t("music.connecting"));
+    setNowPlaying({ source: "youtube", name: `${name} — ${t("music.connecting")}`, icon: "🎵" });
     try {
       await invoke("play_youtube_search", { query, volume });
       setYtPlaying(name);
-      setStatus(t("music.playing", { name }));
+      setNowPlaying({ source: "youtube", name, icon: "🎵" });
       if (config) {
         saveConfig({ ...config, audio_last_type: query, audio_last_source: "youtube", audio_last_volume: volume });
       }
     } catch (e: any) {
-      setStatus(t("music.error", { msg: String(e) }));
+      setError(String(e));
+      setNowPlaying(null);
     }
     setLoading(false);
   };
@@ -75,17 +122,20 @@ export default function MusicPage() {
     if (!customUrl) return;
     await invoke("stop_sound");
     setNativePlaying(null);
+    setError("");
     setLoading(true);
-    setStatus(t("music.connecting"));
+    const label = t("music.custom_link_name");
+    setNowPlaying({ source: "custom", name: `${label} — ${t("music.connecting")}`, icon: "🔗" });
     try {
-      await invoke("play_youtube", { url: customUrl, name: t("music.custom_link_name"), volume });
-      setYtPlaying(t("music.custom_link_name"));
-      setStatus(t("music.playing", { name: t("music.custom_link_name") }));
+      await invoke("play_youtube", { url: customUrl, name: label, volume });
+      setYtPlaying(label);
+      setNowPlaying({ source: "custom", name: label, icon: "🔗" });
       if (config) {
         saveConfig({ ...config, audio_last_type: customUrl, audio_last_source: "youtube", audio_last_volume: volume });
       }
     } catch (e: any) {
-      setStatus(t("music.error", { msg: String(e) }));
+      setError(String(e));
+      setNowPlaying(null);
     }
     setLoading(false);
   };
@@ -95,7 +145,8 @@ export default function MusicPage() {
     await invoke("stop_youtube");
     setNativePlaying(null);
     setYtPlaying(null);
-    setStatus("");
+    setNowPlaying(null);
+    setError("");
   };
 
   const handleVolumeChange = async (v: number) => {
@@ -142,24 +193,55 @@ export default function MusicPage() {
         </div>
       </div>
 
-      {/* Volume */}
-      <Card className="flex items-center gap-3">
-        <span className="text-sm text-text-muted">{t("music.volume")}</span>
-        <input
-          type="range"
-          min={0}
-          max={100}
-          value={volume}
-          onChange={(e) => handleVolumeChange(Number(e.target.value))}
-          className="flex-1"
-        />
-        <span className="text-sm text-text-muted w-8">{volume}</span>
-        <button
-          onClick={stopAll}
-          className="bg-danger/20 text-danger hover:bg-danger/30 rounded px-3 py-1 text-sm"
-        >
-          {t("music.stop_all")}
-        </button>
+      {/* Radio FM */}
+      <div>
+        <h2 className="text-sm text-text-muted mb-2">{t("music.radio_fm")}</h2>
+        <div className="grid grid-cols-3 gap-3">
+          {radioStations.map((station) => (
+            <button
+              key={station.key}
+              onClick={() => playRadio(station)}
+              disabled={loading}
+              className={`p-3 rounded-lg text-sm transition-colors ${
+                ytPlaying === station.name
+                  ? "bg-accent/20 border border-accent"
+                  : "bg-card hover:bg-card-hover"
+              }`}
+            >
+              {station.name}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Now playing + Volume */}
+      <Card>
+        {nowPlaying && (
+          <div className="text-sm text-accent mb-2 truncate">
+            {nowPlayingLabel(nowPlaying)}
+          </div>
+        )}
+        {error && (
+          <div className="text-xs text-danger mb-2">{error}</div>
+        )}
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-text-muted">{t("music.volume")}</span>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={volume}
+            onChange={(e) => handleVolumeChange(Number(e.target.value))}
+            className="flex-1"
+          />
+          <span className="text-sm text-text-muted w-8">{volume}</span>
+          <button
+            onClick={stopAll}
+            className="bg-danger/20 text-danger hover:bg-danger/30 rounded px-3 py-1 text-sm"
+          >
+            {t("music.stop_all")}
+          </button>
+        </div>
       </Card>
 
       {/* YouTube Radio */}
@@ -232,16 +314,21 @@ export default function MusicPage() {
                 onClick={() => {
                   invoke("stop_sound");
                   setNativePlaying(null);
+                  setError("");
                   setLoading(true);
+                  setNowPlaying({ source: "youtube", name: `${r.title} — ${t("music.connecting")}`, icon: "🎵" });
                   invoke("play_youtube", { url: r.url, name: r.title, volume })
                     .then(() => {
                       setYtPlaying(r.title);
-                      setStatus(t("music.playing", { name: r.title }));
+                      setNowPlaying({ source: "youtube", name: r.title, icon: "🎵" });
                       if (config) {
                         saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_volume: volume });
                       }
                     })
-                    .catch((e) => setStatus(t("music.error", { msg: String(e) })))
+                    .catch((e) => {
+                      setError(String(e));
+                      setNowPlaying(null);
+                    })
                     .finally(() => setLoading(false));
                 }}
                 className="w-full text-left p-2 rounded hover:bg-card-hover text-sm flex justify-between"
@@ -253,8 +340,6 @@ export default function MusicPage() {
           </div>
         )}
       </Card>
-
-      {status && <div className="text-xs text-text-muted">{status}</div>}
     </div>
   );
 }

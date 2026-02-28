@@ -1,3 +1,4 @@
+use rand::Rng;
 use serde::Serialize;
 use std::process::{Child, Command};
 use std::sync::Mutex;
@@ -25,11 +26,31 @@ pub fn preset_stations() -> Vec<YTStation> {
     ]
 }
 
+#[derive(Debug, Clone, Serialize)]
+pub struct RadioStation {
+    pub key: String,
+    pub name: String,
+    pub url: String,
+}
+
+pub fn preset_radio_stations() -> Vec<RadioStation> {
+    vec![
+        RadioStation { key: "rmf_fm".into(), name: "RMF FM".into(), url: "https://rs6-krk2.rmfstream.pl/RMFFM48".into() },
+        RadioStation { key: "rmf_maxx".into(), name: "RMF MAXX".into(), url: "https://rs6-krk2.rmfstream.pl/rmf_maxxx".into() },
+        RadioStation { key: "antyradio".into(), name: "Antyradio".into(), url: "http://an.cdn.eurozet.pl/ant-web.mp3".into() },
+        RadioStation { key: "radio_zet".into(), name: "Radio ZET".into(), url: "http://zt.cdn.eurozet.pl/zet-net.mp3".into() },
+        RadioStation { key: "eska".into(), name: "Radio Eska".into(), url: "https://ic2.smcdn.pl/6140-1.mp3".into() },
+        RadioStation { key: "chillizet".into(), name: "Chillizet".into(), url: "http://ch.cdn.eurozet.pl/chi-net.mp3".into() },
+    ]
+}
+
 pub struct YouTubePlayer {
     ffplay_process: Mutex<Option<Child>>,
     current_station: Mutex<Option<String>>,
     current_url: Mutex<Option<String>>,
     current_volume: Mutex<u32>,
+    paused_station: Mutex<Option<String>>,
+    paused_url: Mutex<Option<String>>,
 }
 
 impl YouTubePlayer {
@@ -39,6 +60,8 @@ impl YouTubePlayer {
             current_station: Mutex::new(None),
             current_url: Mutex::new(None),
             current_volume: Mutex::new(50),
+            paused_station: Mutex::new(None),
+            paused_url: Mutex::new(None),
         }
     }
 
@@ -81,9 +104,36 @@ impl YouTubePlayer {
         Ok(())
     }
 
+    pub fn play_stream(&self, url: &str, station_name: &str, volume: u32) -> Result<(), String> {
+        self.stop();
+
+        let vol = (volume as f32 / 100.0 * 256.0) as u32;
+        let mut ffcmd = Command::new("ffplay");
+        ffcmd.args([
+            "-nodisp", "-autoexit", "-loglevel", "quiet",
+            "-volume", &vol.to_string(),
+            url,
+        ]);
+        #[cfg(target_os = "windows")]
+        ffcmd.creation_flags(CREATE_NO_WINDOW);
+        let child = ffcmd.spawn()
+            .map_err(|e| format!("ffplay not found: {}", e))?;
+
+        *self.ffplay_process.lock().unwrap() = Some(child);
+        *self.current_station.lock().unwrap() = Some(station_name.to_string());
+        *self.current_url.lock().unwrap() = Some(url.to_string());
+        *self.current_volume.lock().unwrap() = volume;
+        Ok(())
+    }
+
     pub fn play_search(&self, query: &str, volume: u32) -> Result<(), String> {
-        let search_url = format!("ytsearch1:{}", query);
-        self.play_url(&search_url, query, volume)
+        let results = search_youtube(query)?;
+        if results.is_empty() {
+            return Err("No results found".into());
+        }
+        let pick = rand::rng().random_range(0..results.len().min(5));
+        let chosen = &results[pick];
+        self.play_url(&chosen.url, &chosen.title, volume)
     }
 
     pub fn stop(&self) {
@@ -95,6 +145,54 @@ impl YouTubePlayer {
         *proc = None;
         *self.current_station.lock().unwrap() = None;
         *self.current_url.lock().unwrap() = None;
+        *self.paused_station.lock().unwrap() = None;
+        *self.paused_url.lock().unwrap() = None;
+    }
+
+    pub fn pause_playback(&self) {
+        if !self.is_playing() {
+            return;
+        }
+        let station = self.current_station.lock().unwrap().clone();
+        let url = self.current_url.lock().unwrap().clone();
+        *self.paused_station.lock().unwrap() = station;
+        *self.paused_url.lock().unwrap() = url;
+        // Kill ffplay but keep paused state
+        let mut proc = self.ffplay_process.lock().unwrap();
+        if let Some(ref mut child) = *proc {
+            let _ = child.kill();
+            let _ = child.wait();
+        }
+        *proc = None;
+        *self.current_station.lock().unwrap() = None;
+        *self.current_url.lock().unwrap() = None;
+    }
+
+    pub fn resume_playback(&self) -> Result<(), String> {
+        let station = self.paused_station.lock().unwrap().take();
+        let url = self.paused_url.lock().unwrap().take();
+        if let (Some(audio_url), Some(station_name)) = (url, station) {
+            let volume = *self.current_volume.lock().unwrap();
+            let vol = (volume as f32 / 100.0 * 256.0) as u32;
+            let mut ffcmd = Command::new("ffplay");
+            ffcmd.args([
+                "-nodisp", "-autoexit", "-loglevel", "quiet",
+                "-volume", &vol.to_string(),
+                &audio_url,
+            ]);
+            #[cfg(target_os = "windows")]
+            ffcmd.creation_flags(CREATE_NO_WINDOW);
+            let child = ffcmd.spawn()
+                .map_err(|e| format!("ffplay not found: {}", e))?;
+            *self.ffplay_process.lock().unwrap() = Some(child);
+            *self.current_station.lock().unwrap() = Some(station_name);
+            *self.current_url.lock().unwrap() = Some(audio_url);
+        }
+        Ok(())
+    }
+
+    pub fn is_paused(&self) -> bool {
+        self.paused_url.lock().unwrap().is_some()
     }
 
     pub fn is_playing(&self) -> bool {

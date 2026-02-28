@@ -109,6 +109,12 @@ export interface YTStation {
   query: string;
 }
 
+export interface RadioStation {
+  key: string;
+  name: string;
+  url: string;
+}
+
 export interface YTSearchResult {
   title: string;
   url: string;

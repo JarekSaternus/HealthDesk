@@ -2,7 +2,7 @@ use serde::Serialize;
 use std::sync::Arc;
 use tokio::sync::mpsc;
 
-const API_HOST: &str = "https://api.healthdesk.app";
+const API_HOST: &str = "https://api.healthdesk.site";
 const BATCH_SIZE: usize = 10;
 const FLUSH_INTERVAL_SEC: u64 = 30;
 
@@ -91,7 +91,7 @@ async fn send_batch(
     let url = format!("{}/api/telemetry/batch", API_HOST);
     let body = serde_json::json!({
         "client_id": client_uuid,
-        "app_version": "2.0.0",
+        "app_version": env!("CARGO_PKG_VERSION"),
         "platform": std::env::consts::OS,
         "events": batch,
     });

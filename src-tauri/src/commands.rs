@@ -7,7 +7,8 @@ use crate::database::{self, Database};
 use crate::i18n::I18n;
 use crate::popup_manager::{self, SharedPopupManager};
 use crate::scheduler::{SharedScheduler, SchedulerState};
-use crate::youtube::{self, YouTubePlayer, YTSearchResult, YTStation};
+use crate::youtube::{self, YouTubePlayer, YTSearchResult, YTStation, RadioStation};
+use crate::SharedTelemetry;
 
 // ---- Config ----
 
@@ -98,8 +99,14 @@ pub fn log_break(
     duration_sec: i64,
     skipped: bool,
     db: State<Arc<Database>>,
+    telemetry: State<SharedTelemetry>,
 ) -> Result<(), String> {
     let conn = db.0.lock().unwrap();
+    let event = if skipped { "break_skipped" } else { "break_taken" };
+    telemetry.track(event, Some(serde_json::json!({
+        "break_type": break_type,
+        "duration_sec": duration_sec,
+    })));
     database::log_break(&conn, &break_type, duration_sec, skipped)
 }
 
@@ -112,7 +119,8 @@ pub fn get_breaks_today(db: State<Arc<Database>>) -> Result<Vec<database::BreakR
 // ---- Database: Water ----
 
 #[tauri::command]
-pub fn log_water(glasses: i32, db: State<Arc<Database>>) -> Result<(), String> {
+pub fn log_water(glasses: i32, db: State<Arc<Database>>, telemetry: State<SharedTelemetry>) -> Result<(), String> {
+    telemetry.track("water_logged", Some(serde_json::json!({"glasses": glasses})));
     let conn = db.0.lock().unwrap();
     database::log_water(&conn, glasses)
 }
@@ -250,7 +258,21 @@ pub fn popup_closed(
     manager: State<SharedPopupManager>,
     scheduler: State<SharedScheduler>,
     config: State<ConfigState>,
+    telemetry: State<SharedTelemetry>,
 ) {
+    // Track what popup was completed
+    let current = manager.lock().unwrap().current_popup;
+    if let Some(popup_type) = current {
+        let event = match popup_type {
+            crate::popup_manager::PopupType::EyeExercise
+            | crate::popup_manager::PopupType::StretchExercise
+            | crate::popup_manager::PopupType::BreathingExercise => Some("exercise_done"),
+            _ => None,
+        };
+        if let Some(event) = event {
+            telemetry.track(event, Some(serde_json::json!({"type": popup_type.label()})));
+        }
+    }
     let cfg = config.0.lock().unwrap().clone();
     popup_manager::popup_closed(&app, &manager, &scheduler, &cfg.break_mode, &cfg);
 }
@@ -258,13 +280,16 @@ pub fn popup_closed(
 // ---- Audio ----
 
 #[tauri::command]
-pub fn play_sound(sound_type: String, volume: u32, audio: State<Arc<AudioEngine>>) {
+pub fn play_sound(app: tauri::AppHandle, sound_type: String, volume: u32, audio: State<Arc<AudioEngine>>, telemetry: State<SharedTelemetry>) {
+    telemetry.track("audio_play", Some(serde_json::json!({"sound_type": sound_type})));
     audio.play(&sound_type, volume);
+    crate::tray::refresh_tray(&app);
 }
 
 #[tauri::command]
-pub fn stop_sound(audio: State<Arc<AudioEngine>>) {
+pub fn stop_sound(app: tauri::AppHandle, audio: State<Arc<AudioEngine>>) {
     audio.stop();
+    crate::tray::refresh_tray(&app);
 }
 
 #[tauri::command]
@@ -292,18 +317,24 @@ pub fn play_chime(audio: State<Arc<AudioEngine>>) {
 // ---- YouTube ----
 
 #[tauri::command]
-pub fn play_youtube(url: String, name: String, volume: u32, yt: State<Arc<YouTubePlayer>>) -> Result<(), String> {
-    yt.play_url(&url, &name, volume)
+pub fn play_youtube(app: tauri::AppHandle, url: String, name: String, volume: u32, yt: State<Arc<YouTubePlayer>>, telemetry: State<SharedTelemetry>) -> Result<(), String> {
+    telemetry.track("audio_play", Some(serde_json::json!({"sound_type": "youtube", "name": name})));
+    let result = yt.play_url(&url, &name, volume);
+    crate::tray::refresh_tray(&app);
+    result
 }
 
 #[tauri::command]
-pub fn play_youtube_search(query: String, volume: u32, yt: State<Arc<YouTubePlayer>>) -> Result<(), String> {
-    yt.play_search(&query, volume)
+pub fn play_youtube_search(app: tauri::AppHandle, query: String, volume: u32, yt: State<Arc<YouTubePlayer>>) -> Result<(), String> {
+    let result = yt.play_search(&query, volume);
+    crate::tray::refresh_tray(&app);
+    result
 }
 
 #[tauri::command]
-pub fn stop_youtube(yt: State<Arc<YouTubePlayer>>) {
+pub fn stop_youtube(app: tauri::AppHandle, yt: State<Arc<YouTubePlayer>>) {
     yt.stop();
+    crate::tray::refresh_tray(&app);
 }
 
 #[tauri::command]
@@ -321,7 +352,44 @@ pub fn get_youtube_state(yt: State<Arc<YouTubePlayer>>) -> serde_json::Value {
     serde_json::json!({
         "playing": yt.is_playing(),
         "current_station": yt.current_station(),
+        "paused": yt.is_paused(),
     })
+}
+
+#[tauri::command]
+pub fn pause_youtube(yt: State<Arc<YouTubePlayer>>) {
+    yt.pause_playback();
+}
+
+#[tauri::command]
+pub fn resume_youtube(yt: State<Arc<YouTubePlayer>>) -> Result<(), String> {
+    yt.resume_playback()
+}
+
+#[tauri::command]
+pub fn pause_audio(audio: State<Arc<AudioEngine>>) {
+    audio.mute();
+}
+
+#[tauri::command]
+pub fn resume_audio(audio: State<Arc<AudioEngine>>) {
+    audio.unmute();
+}
+
+// ---- Radio ----
+
+#[tauri::command]
+pub fn get_radio_stations() -> Vec<RadioStation> {
+    youtube::preset_radio_stations()
+}
+
+#[tauri::command]
+pub fn play_radio(app: tauri::AppHandle, url: String, name: String, volume: u32, yt: State<Arc<YouTubePlayer>>, audio: State<Arc<AudioEngine>>, telemetry: State<SharedTelemetry>) -> Result<(), String> {
+    audio.stop();
+    telemetry.track("audio_play", Some(serde_json::json!({"sound_type": "radio", "name": name})));
+    let result = yt.play_stream(&url, &name, volume);
+    crate::tray::refresh_tray(&app);
+    result
 }
 
 // ---- Ads ----
