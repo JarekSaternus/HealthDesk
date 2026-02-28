@@ -54,7 +54,10 @@ export default function MusicPage() {
     invoke<{ playing: boolean; current_station: string | null }>("get_youtube_state").then((s) => {
       if (s.playing && s.current_station) {
         setYtPlaying(s.current_station);
-        setNowPlaying({ source: "youtube", name: s.current_station, icon: "🎵" });
+        const lastSource = config?.audio_last_source;
+        const icon = lastSource === "radio" ? "📻" : "🎵";
+        const source = lastSource === "radio" ? "radio" as const : "youtube" as const;
+        setNowPlaying({ source, name: s.current_station, icon });
       }
     });
   }, []);
