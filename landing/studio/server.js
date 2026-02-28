@@ -30,7 +30,7 @@ async function callClaude(systemPrompt, userPrompt, maxTokens = 2000) {
 
   console.log(`[AI] Calling Claude (max_tokens=${maxTokens})...`);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 90000); // 90s timeout
+  const timeout = setTimeout(() => controller.abort(), 180000); // 180s timeout
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -62,7 +62,7 @@ async function callClaude(systemPrompt, userPrompt, maxTokens = 2000) {
     return data.content[0].text;
   } catch (err) {
     clearTimeout(timeout);
-    if (err.name === 'AbortError') throw new Error('Claude API timeout (90s)');
+    if (err.name === 'AbortError') throw new Error('Claude API timeout (180s)');
     throw err;
   }
 }
@@ -411,6 +411,12 @@ app.post('/api/keywords/search', async (req, res) => {
       serperRequest('autocomplete', { q: query, gl: locale.gl, hl: locale.hl })
     ]);
 
+    console.log('[Keywords] Raw search keys:', Object.keys(searchData));
+    if (searchData.peopleAlsoAsk) console.log('[Keywords] PAA sample:', JSON.stringify(searchData.peopleAlsoAsk[0]));
+    if (searchData.relatedSearches) console.log('[Keywords] Related sample:', JSON.stringify(searchData.relatedSearches[0]));
+    console.log('[Keywords] Autocomplete keys:', Object.keys(autocompleteData));
+    if (autocompleteData.suggestions) console.log('[Keywords] AC sample:', JSON.stringify(autocompleteData.suggestions[0]));
+
     const result = {
       organic: (searchData.organic || []).slice(0, 5).map(r => ({
         title: r.title,
@@ -420,7 +426,7 @@ app.post('/api/keywords/search', async (req, res) => {
       })),
       peopleAlsoAsk: (searchData.peopleAlsoAsk || []).map(p => p.question),
       relatedSearches: (searchData.relatedSearches || []).map(r => r.query),
-      autocomplete: (autocompleteData.suggestions || []).slice(0, 8)
+      autocomplete: (autocompleteData.suggestions || []).slice(0, 8).map(s => typeof s === 'string' ? s : s.value || s.text || String(s))
     };
 
     console.log(`[Keywords] Found: ${result.organic.length} organic, ${result.peopleAlsoAsk.length} PAA, ${result.relatedSearches.length} related, ${result.autocomplete.length} autocomplete`);
@@ -911,9 +917,11 @@ function countSyllables(word, lang) {
 }
 
 // ─── Start ───
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`\n  Blog Studio running at http://localhost:${PORT}\n`);
   console.log(`  Blog dir:  ${BLOG_DIR}`);
   console.log(`  Dist dir:  ${DIST_DIR}`);
   console.log(`  Studio DB: ${STUDIO_DATA}\n`);
 });
+server.timeout = 300000;       // 5 min
+server.keepAliveTimeout = 300000;

@@ -347,6 +347,7 @@ async function loadIdeas() {
         ${i.notes ? '<span class="idea-notes">' + escHtml(i.notes) + '</span>' : ''}
       </div>
       <div class="idea-actions">
+        <button class="btn btn-sm" onclick="ideaOutline('${escAttr(i.keyword)}','${i.lang}')">AI Outline</button>
         <button class="btn btn-sm" onclick="ideaToArticle('${i.id}','${escAttr(i.keyword)}','${i.lang}')">Create Article</button>
         <button class="btn btn-sm" onclick="deleteIdea('${i.id}')">&times;</button>
       </div>
@@ -376,6 +377,12 @@ async function addIdea() {
 async function deleteIdea(id) {
   await fetch(`/api/ideas/${id}`, { method: 'DELETE' });
   loadIdeas();
+}
+
+function ideaOutline(keyword, lang) {
+  document.getElementById('idea-keyword').value = keyword;
+  document.getElementById('idea-lang').value = lang;
+  aiOutlineFromInput();
 }
 
 function ideaToArticle(id, keyword, lang) {
