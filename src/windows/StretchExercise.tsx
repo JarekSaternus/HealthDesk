@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { t, tRaw } from "../i18n";
@@ -16,6 +16,12 @@ export default function StretchExercise() {
       ? exercises[Math.floor(Math.random() * exercises.length)]
       : null
   );
+
+  useEffect(() => {
+    invoke("get_config").then((cfg: any) => {
+      if (cfg?.sound_notifications) invoke("play_chime").catch(() => {});
+    }).catch(() => {});
+  }, []);
 
   const handleDone = async () => {
     await invoke("popup_closed");

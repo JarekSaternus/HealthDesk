@@ -24,7 +24,9 @@ export default function WaterReminder() {
       });
     }, 1000);
 
-    invoke("play_chime").catch(() => {});
+    invoke("get_config").then((cfg: any) => {
+      if (cfg?.sound_notifications) invoke("play_chime").catch(() => {});
+    }).catch(() => {});
     return () => clearInterval(timer);
   }, []);
 

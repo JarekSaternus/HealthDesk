@@ -18,6 +18,7 @@ export default function BreakFullscreen() {
   const [remaining, setRemaining] = useState(duration);
   const [msgIdx, setMsgIdx] = useState(0);
   const clickTimes = useRef<number[]>([]);
+  const soundRef = useRef(false);
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -31,7 +32,12 @@ export default function BreakFullscreen() {
       });
     }, 1000);
 
-    invoke("play_chime").catch(() => {});
+    invoke("get_config").then((cfg: any) => {
+      if (cfg?.sound_notifications) {
+        soundRef.current = true;
+        invoke("play_chime").catch(() => {});
+      }
+    }).catch(() => {});
 
     // Rotate messages every 10 seconds
     const msgTimer = setInterval(() => {
@@ -45,6 +51,7 @@ export default function BreakFullscreen() {
   }, []);
 
   const handleDone = async (skipped: boolean) => {
+    if (!skipped && soundRef.current) invoke("play_chime").catch(() => {});
     try { await invoke("log_break", { breakType, durationSec: duration, skipped }); } catch (e) { console.warn("log_break failed:", e); }
     try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
     try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }

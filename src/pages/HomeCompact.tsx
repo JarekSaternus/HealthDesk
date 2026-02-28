@@ -60,6 +60,13 @@ export default function HomeCompact() {
       if (lastType && NATIVE_SOUNDS.includes(lastType)) {
         await invoke("play_sound", { soundType: lastType, volume: vol });
         setAudioPlaying(true);
+      } else if (lastSource === "radio" && lastType) {
+        try {
+          await invoke("play_radio", { url: lastType, name: config?.audio_last_name ?? "Radio", volume: vol });
+          setAudioPlaying(true);
+        } catch {
+          setPage("music");
+        }
       } else if (lastSource === "youtube" && lastType) {
         try {
           await invoke("play_youtube_search", { query: lastType, volume: vol });

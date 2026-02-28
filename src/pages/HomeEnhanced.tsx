@@ -135,7 +135,7 @@ export default function HomeEnhanced() {
       await invoke("play_youtube", { url: r.url, name: r.title, volume: config?.audio_last_volume ?? 10 });
       setAudioPlaying(true);
       if (config) {
-        useAppStore.getState().saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_volume: config.audio_last_volume });
+        useAppStore.getState().saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_name: r.title, audio_last_volume: config.audio_last_volume });
       }
       setShowSearch(false);
     } catch { /* ignore */ }
@@ -155,6 +155,13 @@ export default function HomeEnhanced() {
       if (lastType && NATIVE_SOUNDS.includes(lastType)) {
         await invoke("play_sound", { soundType: lastType, volume: vol });
         setAudioPlaying(true);
+      } else if (lastSource === "radio" && lastType) {
+        try {
+          await invoke("play_radio", { url: lastType, name: config?.audio_last_name ?? "Radio", volume: vol });
+          setAudioPlaying(true);
+        } catch {
+          setPage("music");
+        }
       } else if (lastSource === "youtube" && lastType) {
         try {
           await invoke("play_youtube_search", { query: lastType, volume: vol });

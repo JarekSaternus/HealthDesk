@@ -34,6 +34,7 @@ export default function BreathingExercise() {
   const [countdown, setCountdown] = useState(PHASE_DURATION);
   const [scale, setScale] = useState(0.6);
   const closingRef = useRef(false);
+  const soundRef = useRef(false);
 
   const phase = PHASES[phaseIndex];
 
@@ -42,6 +43,12 @@ export default function BreathingExercise() {
     requestAnimationFrame(() => {
       setScale(phaseScale(PHASES[0]));
     });
+    invoke("get_config").then((cfg: any) => {
+      if (cfg?.sound_notifications) {
+        soundRef.current = true;
+        invoke("play_chime").catch(() => {});
+      }
+    }).catch(() => {});
   }, []);
 
   useEffect(() => {
@@ -58,7 +65,7 @@ export default function BreathingExercise() {
                   clearInterval(timer);
                   if (!closingRef.current) {
                     closingRef.current = true;
-                    handleClose();
+                    handleClose(true);
                   }
                   return c;
                 }
@@ -79,7 +86,8 @@ export default function BreathingExercise() {
     return () => clearInterval(timer);
   }, []);
 
-  const handleClose = async () => {
+  const handleClose = async (playEndChime = false) => {
+    if (playEndChime && soundRef.current) invoke("play_chime").catch(() => {});
     await invoke("popup_closed");
     const win = getCurrentWebviewWindow();
     await win.close();
@@ -113,7 +121,7 @@ export default function BreathingExercise() {
       </div>
 
       <button
-        onClick={handleClose}
+        onClick={() => handleClose()}
         className="bg-card hover:bg-card-hover text-text-muted rounded px-6 py-2 text-sm"
       >
         {t("exercise.breathing.close")}

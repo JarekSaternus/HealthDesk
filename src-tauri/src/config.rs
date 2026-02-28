@@ -46,6 +46,8 @@ pub struct AppConfig {
     pub audio_last_source: Option<String>,
     #[serde(default)]
     pub audio_last_type: Option<String>,
+    #[serde(default)]
+    pub audio_last_name: Option<String>,
     #[serde(default = "default_volume")]
     pub audio_last_volume: u32,
     #[serde(default = "default_lang")]
@@ -208,6 +210,7 @@ impl Default for AppConfig {
             audio_autoplay: true,
             audio_last_source: None,
             audio_last_type: None,
+            audio_last_name: None,
             audio_last_volume: 10,
             language: "pl".into(),
             auto_update: true,

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
 import { t, tRaw } from "../i18n";
@@ -18,14 +18,21 @@ export default function EyeExercise() {
       : null
   );
   const [remaining, setRemaining] = useState(exercise?.duration ?? 30);
+  const soundRef = useRef(false);
 
   useEffect(() => {
     if (!exercise) return;
+    invoke("get_config").then((cfg: any) => {
+      if (cfg?.sound_notifications) {
+        soundRef.current = true;
+        invoke("play_chime").catch(() => {});
+      }
+    }).catch(() => {});
     const timer = setInterval(() => {
       setRemaining((prev) => {
         if (prev <= 1) {
           clearInterval(timer);
-          handleClose();
+          handleClose(false);
           return 0;
         }
         return prev - 1;
@@ -34,7 +41,8 @@ export default function EyeExercise() {
     return () => clearInterval(timer);
   }, [exercise]);
 
-  const handleClose = async () => {
+  const handleClose = async (playEndChime = false) => {
+    if (playEndChime && soundRef.current) invoke("play_chime").catch(() => {});
     await invoke("popup_closed");
     const win = getCurrentWebviewWindow();
     await win.close();
@@ -66,7 +74,7 @@ export default function EyeExercise() {
       <div className="text-2xl font-mono text-text mb-4">{remaining}s</div>
 
       <button
-        onClick={handleClose}
+        onClick={() => handleClose()}
         className="bg-card hover:bg-card-hover text-text-muted rounded px-6 py-2 text-sm"
       >
         {t("exercise.eye.close")}

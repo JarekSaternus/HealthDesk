@@ -19,6 +19,7 @@ export interface AppConfig {
   audio_autoplay: boolean;
   audio_last_source: string | null;
   audio_last_type: string | null;
+  audio_last_name: string | null;
   audio_last_volume: number;
   language: string;
   auto_update: boolean;

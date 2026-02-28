@@ -12,9 +12,12 @@ export default function BreakWindow() {
   const [ad, setAd] = useState<any>(null);
   const closedRef = useRef(false);
 
+  const soundRef = useRef(false);
+
   const closeWindow = async (skipped: boolean) => {
     if (closedRef.current) return;
     closedRef.current = true;
+    if (!skipped && soundRef.current) invoke("play_chime").catch(() => {});
     try { await invoke("log_break", { breakType, durationSec: duration, skipped }); } catch (e) { console.warn("log_break failed:", e); }
     try { await invoke("popup_closed"); } catch (e) { console.warn("popup_closed failed:", e); }
     try { await getCurrentWebviewWindow().close(); } catch (e) { console.warn("close failed:", e); }
@@ -33,7 +36,12 @@ export default function BreakWindow() {
     }, 1000);
 
     invoke("get_ad", { clientUuid: "" }).then(setAd).catch(() => {});
-    invoke("play_chime").catch(() => {});
+    invoke("get_config").then((cfg: any) => {
+      if (cfg?.sound_notifications) {
+        soundRef.current = true;
+        invoke("play_chime").catch(() => {});
+      }
+    }).catch(() => {});
 
     return () => clearInterval(timer);
   }, []);

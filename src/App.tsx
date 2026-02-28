@@ -142,6 +142,8 @@ export default function App() {
               const vol = cfg.audio_last_volume ?? 10;
               if (cfg.audio_last_source === "youtube") {
                 await invoke("play_youtube_search", { query: cfg.audio_last_type, volume: vol });
+              } else if (cfg.audio_last_source === "radio") {
+                await invoke("play_radio", { url: cfg.audio_last_type, name: cfg.audio_last_name ?? "Radio", volume: vol });
               } else {
                 await invoke("play_sound", { soundType: cfg.audio_last_type, volume: vol });
               }

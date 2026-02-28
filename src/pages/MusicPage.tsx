@@ -76,7 +76,7 @@ export default function MusicPage() {
       const sound = NATIVE_SOUNDS.find((s) => s.key === key);
       setNowPlaying({ source: "native", name: sound?.name ?? key, icon: sound?.icon ?? "🔊" });
       if (config) {
-        saveConfig({ ...config, audio_last_type: key, audio_last_source: "native", audio_last_volume: volume });
+        saveConfig({ ...config, audio_last_type: key, audio_last_source: "native", audio_last_name: sound?.name ?? key, audio_last_volume: volume });
       }
     }
   };
@@ -92,7 +92,7 @@ export default function MusicPage() {
       setYtPlaying(station.name);
       setNowPlaying({ source: "radio", name: station.name, icon: "📻" });
       if (config) {
-        saveConfig({ ...config, audio_last_type: station.url, audio_last_source: "radio", audio_last_volume: volume });
+        saveConfig({ ...config, audio_last_type: station.url, audio_last_source: "radio", audio_last_name: station.name, audio_last_volume: volume });
       }
     } catch (e: any) {
       setError(String(e));
@@ -112,7 +112,7 @@ export default function MusicPage() {
       setYtPlaying(name);
       setNowPlaying({ source: "youtube", name, icon: "🎵" });
       if (config) {
-        saveConfig({ ...config, audio_last_type: query, audio_last_source: "youtube", audio_last_volume: volume });
+        saveConfig({ ...config, audio_last_type: query, audio_last_source: "youtube", audio_last_name: name, audio_last_volume: volume });
       }
     } catch (e: any) {
       setError(String(e));
@@ -134,7 +134,7 @@ export default function MusicPage() {
       setYtPlaying(label);
       setNowPlaying({ source: "custom", name: label, icon: "🔗" });
       if (config) {
-        saveConfig({ ...config, audio_last_type: customUrl, audio_last_source: "youtube", audio_last_volume: volume });
+        saveConfig({ ...config, audio_last_type: customUrl, audio_last_source: "youtube", audio_last_name: label, audio_last_volume: volume });
       }
     } catch (e: any) {
       setError(String(e));
@@ -325,7 +325,7 @@ export default function MusicPage() {
                       setYtPlaying(r.title);
                       setNowPlaying({ source: "youtube", name: r.title, icon: "🎵" });
                       if (config) {
-                        saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_volume: volume });
+                        saveConfig({ ...config, audio_last_type: r.url, audio_last_source: "youtube", audio_last_name: r.title, audio_last_volume: volume });
                       }
                     })
                     .catch((e) => {
