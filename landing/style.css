@@ -211,31 +211,85 @@ img {
 
 /* Language switch */
 .lang-switch {
-  display: flex;
-  gap: 2px;
-  margin-left: 1rem;
-  background: rgba(255,255,255,0.06);
-  border-radius: 6px;
-  padding: 2px;
+  position: relative;
+  margin-left: 0.75rem;
 }
-.lang-btn {
+.lang-current {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.08);
+  color: var(--text-muted);
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 6px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  letter-spacing: 0.3px;
+}
+.lang-current svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0.6;
+  flex-shrink: 0;
+}
+.lang-current:hover {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(255,255,255,0.18);
+  color: var(--text-primary);
+}
+.lang-current:hover svg { opacity: 0.9; }
+.lang-switch.open .lang-current {
+  background: rgba(255,255,255,0.1);
+  border-color: rgba(46,204,113,0.4);
+  color: var(--text-primary);
+}
+.lang-dropdown {
+  display: none;
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: var(--bg-card);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 10px;
+  padding: 6px;
+  min-width: 160px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.5);
+  z-index: 1000;
+  animation: langDrop 0.15s ease-out;
+}
+@keyframes langDrop {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.lang-switch.open .lang-dropdown {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 2px;
+}
+.lang-opt {
   background: none;
   border: none;
   color: var(--text-muted);
-  font-size: 0.75rem;
-  font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 7px 6px;
+  border-radius: 6px;
   cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.5px;
+  transition: all 0.15s ease;
+  text-align: center;
+  letter-spacing: 0.3px;
 }
-.lang-btn:hover {
+.lang-opt:hover {
+  background: rgba(255,255,255,0.07);
   color: var(--text-primary);
 }
-.lang-btn.lang-active {
-  background: var(--accent);
-  color: #fff;
+.lang-opt.lang-active {
+  background: rgba(46,204,113,0.15);
+  color: var(--accent);
+  font-weight: 600;
 }
 
 /* Hamburger menu (CSS-only) */
@@ -1915,7 +1969,11 @@ tbody tr:last-child .cmp-col-hl {
 
   .lang-switch {
     margin-left: auto;
-    margin-right: 0.75rem;
+    margin-right: 0.5rem;
+  }
+  .lang-dropdown {
+    right: -0.5rem;
+    left: auto;
   }
 
   .nav-hamburger {

@@ -52,8 +52,21 @@
         <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;" data-i18n="nav.download">Pobierz</a></li>
       </ul>
       <div class="lang-switch" id="lang-switch">
-        <button class="lang-btn lang-active" data-lang="pl">PL</button>
-        <button class="lang-btn" data-lang="en">EN</button>
+        <button class="lang-current" id="lang-current"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg><span id="lang-current-label">PL</span></button>
+        <div class="lang-dropdown" id="lang-dropdown">
+          <button class="lang-opt lang-active" data-lang="pl">PL</button>
+          <button class="lang-opt" data-lang="en">EN</button>
+          <button class="lang-opt" data-lang="de">DE</button>
+          <button class="lang-opt" data-lang="es">ES</button>
+          <button class="lang-opt" data-lang="fr">FR</button>
+          <button class="lang-opt" data-lang="pt-BR">PT</button>
+          <button class="lang-opt" data-lang="ja">JA</button>
+          <button class="lang-opt" data-lang="zh-CN">ZH</button>
+          <button class="lang-opt" data-lang="ko">KO</button>
+          <button class="lang-opt" data-lang="it">IT</button>
+          <button class="lang-opt" data-lang="tr">TR</button>
+          <button class="lang-opt" data-lang="ru">RU</button>
+        </div>
       </div>
     </div>
   </nav>
@@ -911,7 +924,17 @@
 
       var osLabels = {
         pl: { windows: 'Pobierz dla Windows', macos: 'Pobierz dla macOS', linux: 'Pobierz dla Linux' },
-        en: { windows: 'Download for Windows', macos: 'Download for macOS', linux: 'Download for Linux' }
+        en: { windows: 'Download for Windows', macos: 'Download for macOS', linux: 'Download for Linux' },
+        de: { windows: 'Download f\u00fcr Windows', macos: 'Download f\u00fcr macOS', linux: 'Download f\u00fcr Linux' },
+        es: { windows: 'Descargar para Windows', macos: 'Descargar para macOS', linux: 'Descargar para Linux' },
+        fr: { windows: 'T\u00e9l\u00e9charger pour Windows', macos: 'T\u00e9l\u00e9charger pour macOS', linux: 'T\u00e9l\u00e9charger pour Linux' },
+        'pt-BR': { windows: 'Baixar para Windows', macos: 'Baixar para macOS', linux: 'Baixar para Linux' },
+        ja: { windows: 'Windows\u7248\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9', macos: 'macOS\u7248\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9', linux: 'Linux\u7248\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9' },
+        'zh-CN': { windows: '\u4e0b\u8f7d Windows \u7248', macos: '\u4e0b\u8f7d macOS \u7248', linux: '\u4e0b\u8f7d Linux \u7248' },
+        ko: { windows: 'Windows \ub2e4\uc6b4\ub85c\ub4dc', macos: 'macOS \ub2e4\uc6b4\ub85c\ub4dc', linux: 'Linux \ub2e4\uc6b4\ub85c\ub4dc' },
+        it: { windows: 'Scarica per Windows', macos: 'Scarica per macOS', linux: 'Scarica per Linux' },
+        tr: { windows: 'Windows i\u00e7in indir', macos: 'macOS i\u00e7in indir', linux: 'Linux i\u00e7in indir' },
+        ru: { windows: '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0434\u043b\u044f Windows', macos: '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0434\u043b\u044f macOS', linux: '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0434\u043b\u044f Linux' }
       };
 
       // Highlight current platform card
@@ -978,7 +1001,7 @@
                 if (countEl) countEl.textContent = fmtTotal;
                 var heroCount = document.getElementById('hero-download-count');
                 var dlLang = window._hdLang || 'pl';
-                if (heroCount) heroCount.textContent = dlLang === 'en' ? 'Downloaded ' + fmtTotal + ' times' : 'Pobrano ' + fmtTotal + ' razy';
+                if (heroCount) { var dlTexts = {pl:'Pobrano '+fmtTotal+' razy',en:'Downloaded '+fmtTotal+' times',de:fmtTotal+' Downloads',es:'Descargado '+fmtTotal+' veces',fr:'T\u00e9l\u00e9charg\u00e9 '+fmtTotal+' fois','pt-BR':'Baixado '+fmtTotal+' vezes',ja:fmtTotal+'\u56de\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9','zh-CN':'\u5df2\u4e0b\u8f7d '+fmtTotal+' \u6b21',ko:fmtTotal+'\ud68c \ub2e4\uc6b4\ub85c\ub4dc',it:'Scaricato '+fmtTotal+' volte',tr:fmtTotal+' kez indirildi',ru:'\u0421\u043a\u0430\u0447\u0430\u043d\u043e '+fmtTotal+' \u0440\u0430\u0437'}; heroCount.textContent = dlTexts[dlLang] || dlTexts.en; }
               })
               .catch(function() {
                 // Fallback: use only latest release assets
@@ -989,7 +1012,7 @@
                 if (countEl) countEl.textContent = fmtTotal;
                 var heroCount = document.getElementById('hero-download-count');
                 var dlLang = window._hdLang || 'pl';
-                if (heroCount) heroCount.textContent = dlLang === 'en' ? 'Downloaded ' + fmtTotal + ' times' : 'Pobrano ' + fmtTotal + ' razy';
+                if (heroCount) { var dlTexts = {pl:'Pobrano '+fmtTotal+' razy',en:'Downloaded '+fmtTotal+' times',de:fmtTotal+' Downloads',es:'Descargado '+fmtTotal+' veces',fr:'T\u00e9l\u00e9charg\u00e9 '+fmtTotal+' fois','pt-BR':'Baixado '+fmtTotal+' vezes',ja:fmtTotal+'\u56de\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9','zh-CN':'\u5df2\u4e0b\u8f7d '+fmtTotal+' \u6b21',ko:fmtTotal+'\ud68c \ub2e4\uc6b4\ub85c\ub4dc',it:'Scaricato '+fmtTotal+' volte',tr:fmtTotal+' kez indirildi',ru:'\u0421\u043a\u0430\u0447\u0430\u043d\u043e '+fmtTotal+' \u0440\u0430\u0437'}; heroCount.textContent = dlTexts[dlLang] || dlTexts.en; }
               });
           })();
 
@@ -998,7 +1021,8 @@
           if (tag) {
             document.querySelectorAll('[data-version]').forEach(function(el) {
               var vLang = window._hdLang || 'pl';
-              el.textContent = (vLang === 'en' ? 'Version ' : 'Wersja ') + tag;
+              var vLabels = {pl:'Wersja',en:'Version',de:'Version',es:'Versi\u00f3n',fr:'Version','pt-BR':'Vers\u00e3o',ja:'\u30d0\u30fc\u30b8\u30e7\u30f3','zh-CN':'\u7248\u672c',ko:'\ubc84\uc804',it:'Versione',tr:'S\u00fcr\u00fcm',ru:'\u0412\u0435\u0440\u0441\u0438\u044f'};
+              el.textContent = (vLabels[vLang] || 'Version') + ' ' + tag;
             });
           }
           // Store URLs for modal
@@ -1167,6 +1191,296 @@
         // Footer
         'footer.privacy': 'Privacy Policy',
         'footer.copy': '\u00a9 2026 HealthDesk. All rights reserved.'
+      },
+      de: {
+        'nav.features': 'Funktionen', 'nav.how': 'So funktioniert\u2019s', 'nav.why': 'Warum', 'nav.comparison': 'Vergleich', 'nav.download': 'Download',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Kostenlose App \u2014 Windows, macOS, Linux',
+        'hero.title': 'Ihre Augen, Ihr R\u00fccken und Ihr Kopf <span class="accent">werden es Ihnen danken</span>',
+        'hero.subtitle': 'Intelligente Pausen, Trinkerinnerungen, Augen\u00fcbungen und Aktivit\u00e4tstracking \u2014 alles in einer leichtgewichtigen App.',
+        'dl.btn': 'Download', 'hero.no_account': 'Kein Konto, keine Registrierung',
+        'mini.next_break': 'N\u00e4chste Pause in', 'mini.breaks': 'Pausen', 'mini.water': 'Wasser', 'mini.work': 'Arbeit',
+        'feat.title': 'Was macht HealthDesk?', 'feat.subtitle': 'Kernfunktionen + mehr \u2014 alles f\u00fcr gesundes Arbeiten am Computer.',
+        'feat.breaks.t': 'Intelligente Pausen', 'feat.breaks.d': '<strong>4 Arbeitsmethoden:</strong> Pomodoro, 20-20-20, 52-17 und 90-Minuten. Intelligenter Pausenschutz \u2014 Erinnerungen \u00fcberlappen nie.',
+        'feat.water.t': 'Trinkerinnerungen', 'feat.water.d': '<strong>Ziel: 8 Gl\u00e4ser am Tag.</strong> Sanfte Erinnerungen alle 30 Minuten.',
+        'feat.eyes.t': 'Augen\u00fcbungen', 'feat.eyes.d': '<strong>Gef\u00fchrte Sitzungen mit Timer.</strong> Augenbewegungen, Blinzeln, Fokuswechsel.',
+        'feat.more': 'Und mehr',
+        'feat.track.t': 'Aktivit\u00e4tstracking', 'feat.track.d': '<strong>Automatische App-Kategorisierung</strong> in Arbeit, Unterhaltung, Kommunikation und Lernen.',
+        'feat.audio.t': 'Fokus-Kl\u00e4nge', 'feat.audio.d': '<strong>Brown Noise, Regen, Wald, Ozean</strong> \u2014 in Echtzeit generiert.',
+        'feat.radio.t': 'YouTube Radio + FM', 'feat.radio.d': '<strong>6 YT-Sender + 6 FM-Sender.</strong> Pause stoppt Musik zusammen mit Timern.',
+        'feat.breath.t': 'Atem\u00fcbung', 'feat.breath.d': '<strong>Box Breathing 4-4-4-4</strong> mit animiertem Kreis. Stress in 60 Sekunden reduzieren.',
+        'feat.stretch.t': 'Dehn\u00fcbungen', 'feat.stretch.d': '<strong>Gef\u00fchrte \u00dcbungen</strong> f\u00fcr Nacken, Schultern und R\u00fccken.',
+        'feat.idle.t': 'Smart Idle + DND', 'feat.idle.d': '<strong>Erkennt Inaktivit\u00e4t und Fokus-Assistent.</strong> Timer frieren ein, wenn Sie weggehen.',
+        'preview.title': 'So sieht es aus', 'preview.subtitle': 'Dunkle, elegante Oberfl\u00e4che, die nicht ablenkt.',
+        'how.title': 'Wie funktioniert es?', 'how.subtitle': 'Drei einfache Schritte zu ges\u00fcnderem Arbeiten.',
+        'how.s1.t': 'Installieren', 'how.s1.d': 'Installer herunterladen, Weiter klicken, fertig. Kein Konto.',
+        'how.s2.t': 'Normal arbeiten', 'how.s2.d': 'HealthDesk l\u00e4uft im Hintergrund. Sie bemerken es erst, wenn eine Pause ansteht.',
+        'how.s3.t': 'Regelm\u00e4\u00dfig pausieren', 'how.s3.d': 'Reagieren Sie auf Erinnerungen. Ihre Augen und Ihr R\u00fccken danken es Ihnen.',
+        'why.title': 'Warum lohnt es sich?', 'why.subtitle': 'Gewohnheiten gest\u00fctzt auf wissenschaftliche Forschung.',
+        'why.s1.t': 'Regelm\u00e4\u00dfige Pausen', 'why.s1.d': 'Kurze Pausen alle 25\u201352 Minuten steigern die Produktivit\u00e4t um 13%.',
+        'why.s1.src': 'Quelle: DeskTime Productivity Research (2023)',
+        'why.s2.t': 'Wasser t\u00e4glich', 'why.s2.d': 'Regelm\u00e4\u00dfige Fl\u00fcssigkeitszufuhr verbessert die Konzentration.',
+        'why.s2.src': 'Quelle: European Food Safety Authority (EFSA)',
+        'why.s3.t': 'Bewegung & Dehnung', 'why.s3.d': 'Kurze Bewegungspausen beugen R\u00fcckenschmerzen vor.',
+        'why.s3.src': 'Quelle: WHO Guidelines on Physical Activity (2020)',
+        'cmp.title': 'Wie schl\u00e4gt sich HealthDesk?', 'cmp.subtitle': 'Ehrlicher Vergleich mit beliebten Alternativen.',
+        'cmp.g.basics': 'Grundlagen', 'cmp.platforms': 'Plattformen', 'cmp.price': 'Preis', 'cmp.free': 'Kostenlos',
+        'cmp.g.breaks': 'Pausen & Methoden', 'cmp.break_types': 'Pausentypen', 'cmp.big_small': 'Gro\u00df + klein',
+        'cmp.methods': 'Arbeitsmethoden', 'cmp.manual': 'Manuelle Konfiguration', 'cmp.pom_only': 'Nur Pomodoro 25/5',
+        'cmp.snooze': 'Snooze / verschieben',
+        'cmp.g.health': 'Gesundheit & \u00dcbungen', 'cmp.water': 'Trinkerinnerungen', 'cmp.eye_ex': 'Augen\u00fcbungen',
+        'cmp.animated': 'Animiert', 'cmp.stretch': 'Dehn\u00fcbungen', 'cmp.text_only': 'Nur Text', 'cmp.breathing': 'Atem\u00fcbung',
+        'cmp.g.prod': 'Produktivit\u00e4t', 'cmp.6sounds': '6 Kl\u00e4nge + YT Radio', 'cmp.white_noise': 'Wei\u00dfes Rauschen',
+        'cmp.tracking': 'Aktivit\u00e4tstracking', 'cmp.auto': 'Automatisch', 'cmp.daily_limit': 'Tageslimit',
+        'cmp.stats': 'Statistiken', 'cmp.multi_period': 'Mehrere Zeitr\u00e4ume', 'cmp.basic': 'Basis',
+        'cmp.g.perf': 'App-Leistung', 'cmp.installer_size': 'Installergr\u00f6\u00dfe', 'cmp.ram': 'RAM-Verbrauch',
+        'cmp.footer': 'Daten basierend auf Versionen von Februar 2026.',
+        'cta.title': 'Bereit f\u00fcr ges\u00fcnderes Arbeiten?', 'cta.subtitle': 'Kostenlos installieren und ab der ersten Pause auf sich achten.',
+        'cta.download': 'Kostenlos herunterladen', 'cta.no_ads': 'Keine Werbung, kein Konto',
+        'faq.title': 'H\u00e4ufig gestellte Fragen',
+        'faq.q1': 'Ist HealthDesk kostenlos?', 'faq.a1': 'Ja, v\u00f6llig kostenlos. Keine versteckten Geb\u00fchren oder Abonnements.',
+        'faq.q2': 'Sammelt die App meine Daten?', 'faq.a2': 'Statistiken werden lokal gespeichert. Anonyme Telemetrie kann in den Einstellungen deaktiviert werden.',
+        'faq.q3': 'Funktioniert HealthDesk offline?', 'faq.a3': 'Ja \u2014 nur YouTube Radio ben\u00f6tigt Internet.',
+        'faq.q4': 'Kann ich die Pausenfrequenz anpassen?', 'faq.a4': 'Ja. W\u00e4hlen Sie eine Methode oder stellen Sie eigene Intervalle ein.',
+        'faq.q5': 'Wie deinstalliere ich die App?', 'faq.q6': 'Wie gro\u00df ist der Installer?', 'faq.q7': 'Windows zeigt bei der Installation einen blauen Bildschirm?',
+        'modal.title': 'Vor der Installation', 'modal.subtitle': 'Die App ist sicher und <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">Open Source</a>.',
+        'modal.dl_now': 'Jetzt herunterladen',
+        'mock.small_break': 'Kleine Pause', 'mock.break_desc': 'Schauen Sie vom Bildschirm weg auf<br>ein Objekt in ca. 6 Meter Entfernung.',
+        'mock.take_break': 'Pause machen!', 'mock.skip': '\u00dcberspringen',
+        'footer.privacy': 'Datenschutzrichtlinie', 'footer.copy': '\u00a9 2026 HealthDesk. Alle Rechte vorbehalten.'
+      },
+      es: {
+        'nav.features': 'Funciones', 'nav.how': 'C\u00f3mo funciona', 'nav.why': 'Por qu\u00e9', 'nav.comparison': 'Comparaci\u00f3n', 'nav.download': 'Descargar',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> App gratuita \u2014 Windows, macOS, Linux',
+        'hero.title': 'Tus ojos, espalda y mente <span class="accent">te lo agradecer\u00e1n</span>',
+        'hero.subtitle': 'Pausas inteligentes, recordatorios de hidrataci\u00f3n, ejercicios oculares y seguimiento de actividad \u2014 todo en una app ligera.',
+        'dl.btn': 'Descargar', 'hero.no_account': 'Sin cuenta, sin registro',
+        'mini.next_break': 'Pr\u00f3xima pausa en', 'mini.breaks': 'Pausas', 'mini.water': 'Agua', 'mini.work': 'Trabajo',
+        'feat.title': '\u00bfQu\u00e9 hace HealthDesk?', 'feat.subtitle': 'Funciones clave + m\u00e1s \u2014 todo lo que necesitas para trabajar sano.',
+        'feat.breaks.t': 'Pausas inteligentes', 'feat.breaks.d': '<strong>4 m\u00e9todos de trabajo:</strong> Pomodoro, 20-20-20, 52-17 y 90 minutos. Los recordatorios nunca se superponen.',
+        'feat.water.t': 'Recordatorios de agua', 'feat.water.d': '<strong>Meta: 8 vasos al d\u00eda.</strong> Recordatorios suaves cada 30 minutos.',
+        'feat.eyes.t': 'Ejercicios oculares', 'feat.eyes.d': '<strong>Sesiones guiadas con temporizador.</strong> Movimientos oculares, parpadeo, cambio de enfoque.',
+        'feat.more': 'Y m\u00e1s',
+        'feat.track.t': 'Seguimiento de actividad', 'feat.track.d': '<strong>Categorizaci\u00f3n autom\u00e1tica</strong> en trabajo, entretenimiento, comunicaci\u00f3n y aprendizaje.',
+        'feat.audio.t': 'Sonidos de concentraci\u00f3n', 'feat.audio.d': '<strong>Brown noise, lluvia, bosque, oc\u00e9ano</strong> \u2014 generados en tiempo real.',
+        'feat.radio.t': 'YouTube Radio + FM', 'feat.radio.d': '<strong>6 emisoras YT + 6 FM.</strong> La pausa detiene la m\u00fasica junto con los temporizadores.',
+        'feat.breath.t': 'Ejercicio respiratorio', 'feat.breath.d': '<strong>Box breathing 4-4-4-4</strong> con c\u00edrculo animado. Reduce el estr\u00e9s en 60 segundos.',
+        'feat.stretch.t': 'Estiramientos', 'feat.stretch.d': '<strong>Ejercicios guiados</strong> para cuello, hombros y espalda.',
+        'feat.idle.t': 'Smart Idle + DND', 'feat.idle.d': '<strong>Detecta inactividad y Focus Assist.</strong> Los temporizadores se congelan al alejarte.',
+        'preview.title': 'Mira c\u00f3mo se ve', 'preview.subtitle': 'Interfaz oscura y elegante que no distrae.',
+        'how.title': '\u00bfC\u00f3mo funciona?', 'how.subtitle': 'Tres pasos simples para trabajar m\u00e1s sano.',
+        'how.s1.t': 'Instala', 'how.s1.d': 'Descarga el instalador, haz clic en siguiente y listo. Sin cuenta.',
+        'how.s2.t': 'Trabaja normalmente', 'how.s2.d': 'HealthDesk se ejecuta en segundo plano. No lo notar\u00e1s hasta que sea hora de pausar.',
+        'how.s3.t': 'Descansa regularmente', 'how.s3.d': 'Responde a los recordatorios. Tus ojos y espalda lo agradecer\u00e1n.',
+        'why.title': '\u00bfPor qu\u00e9 vale la pena?', 'why.subtitle': 'H\u00e1bitos respaldados por investigaci\u00f3n cient\u00edfica.',
+        'why.s1.t': 'Pausas regulares', 'why.s1.d': 'Pausas cortas cada 25\u201352 minutos aumentan la productividad un 13%.', 'why.s1.src': 'Fuente: DeskTime Productivity Research (2023)',
+        'why.s2.t': 'Agua diaria', 'why.s2.d': 'La hidrataci\u00f3n regular mejora la concentraci\u00f3n.', 'why.s2.src': 'Fuente: European Food Safety Authority (EFSA)',
+        'why.s3.t': 'Ejercicio y estiramientos', 'why.s3.d': 'Pausas de movimiento previenen el dolor de espalda.', 'why.s3.src': 'Fuente: WHO Guidelines on Physical Activity (2020)',
+        'cmp.title': '\u00bfC\u00f3mo se compara HealthDesk?', 'cmp.subtitle': 'Comparaci\u00f3n honesta con alternativas populares.',
+        'cmp.g.basics': 'B\u00e1sicos', 'cmp.platforms': 'Plataformas', 'cmp.price': 'Precio', 'cmp.free': 'Gratis',
+        'cmp.g.breaks': 'Pausas y m\u00e9todos', 'cmp.break_types': 'Tipos de pausa', 'cmp.big_small': 'Grandes + peque\u00f1as',
+        'cmp.methods': 'M\u00e9todos de trabajo', 'cmp.manual': 'Config. manual', 'cmp.pom_only': 'Solo Pomodoro 25/5', 'cmp.snooze': 'Posponer',
+        'cmp.g.health': 'Salud y ejercicios', 'cmp.water': 'Recordatorios de agua', 'cmp.eye_ex': 'Ejercicios oculares',
+        'cmp.animated': 'Animados', 'cmp.stretch': 'Estiramientos', 'cmp.text_only': 'Solo texto', 'cmp.breathing': 'Ejercicio respiratorio',
+        'cmp.g.prod': 'Productividad', 'cmp.6sounds': '6 sonidos + YT Radio', 'cmp.white_noise': 'Ruido blanco',
+        'cmp.tracking': 'Seguimiento', 'cmp.auto': 'Autom\u00e1tico', 'cmp.daily_limit': 'L\u00edmite diario',
+        'cmp.stats': 'Estad\u00edsticas', 'cmp.multi_period': 'Multiper\u00edodo', 'cmp.basic': 'B\u00e1sicas',
+        'cmp.g.perf': 'Rendimiento', 'cmp.installer_size': 'Tama\u00f1o del instalador', 'cmp.ram': 'Uso de RAM',
+        'cmp.footer': 'Datos basados en versiones de febrero de 2026.',
+        'cta.title': '\u00bfListo para trabajar m\u00e1s sano?', 'cta.subtitle': 'Instala gratis y empieza a cuidarte \u2014 desde la primera pausa.',
+        'cta.download': 'Descargar gratis', 'cta.no_ads': 'Sin anuncios, sin cuenta',
+        'faq.title': 'Preguntas frecuentes',
+        'faq.q1': '\u00bfHealthDesk es gratis?', 'faq.a1': 'S\u00ed, completamente gratis. Sin cargos ocultos ni suscripciones.',
+        'faq.q2': '\u00bfLa app recopila mis datos?', 'faq.a2': 'Las estad\u00edsticas se almacenan localmente. La telemetr\u00eda an\u00f3nima se puede desactivar en Configuraci\u00f3n.',
+        'faq.q3': '\u00bfFunciona offline?', 'faq.a3': 'S\u00ed \u2014 solo YouTube Radio requiere internet.',
+        'faq.q4': '\u00bfPuedo personalizar la frecuencia?', 'faq.a4': 'S\u00ed. Elige un m\u00e9todo o configura intervalos personalizados.',
+        'faq.q5': '\u00bfC\u00f3mo desinstalo la app?', 'faq.q6': '\u00bfCu\u00e1nto pesa el instalador?', 'faq.q7': '\u00bfWindows muestra una pantalla azul al instalar?',
+        'modal.title': 'Antes de instalar', 'modal.subtitle': 'La app es segura y <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>.', 'modal.dl_now': 'Descargar ahora',
+        'mock.small_break': 'Pausa corta', 'mock.break_desc': 'Mira lejos de la pantalla hacia<br>un objeto a unos 6 metros.', 'mock.take_break': '\u00a1Hago una pausa!', 'mock.skip': 'Omitir',
+        'footer.privacy': 'Pol\u00edtica de privacidad', 'footer.copy': '\u00a9 2026 HealthDesk. Todos los derechos reservados.'
+      },
+      fr: {
+        'nav.features': 'Fonctions', 'nav.how': 'Comment \u00e7a marche', 'nav.why': 'Pourquoi', 'nav.comparison': 'Comparaison', 'nav.download': 'T\u00e9l\u00e9charger',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> Appli gratuite \u2014 Windows, macOS, Linux',
+        'hero.title': 'Vos yeux, votre dos et votre t\u00eate <span class="accent">vous remercieront</span>',
+        'hero.subtitle': 'Pauses intelligentes, hydratation, exercices oculaires et suivi d\u2019activit\u00e9 \u2014 tout dans une appli l\u00e9g\u00e8re.',
+        'dl.btn': 'T\u00e9l\u00e9charger', 'hero.no_account': 'Sans compte, sans inscription',
+        'mini.next_break': 'Prochaine pause dans', 'mini.breaks': 'Pauses', 'mini.water': 'Eau', 'mini.work': 'Travail',
+        'feat.title': 'Que fait HealthDesk ?', 'feat.subtitle': 'Fonctions cl\u00e9s + encore plus \u2014 tout pour travailler sainement.',
+        'feat.breaks.t': 'Pauses intelligentes', 'feat.breaks.d': '<strong>4 m\u00e9thodes de travail :</strong> Pomodoro, 20-20-20, 52-17 et 90 minutes. Les rappels ne se chevauchent jamais.',
+        'feat.water.t': 'Rappels d\u2019hydratation', 'feat.water.d': '<strong>Objectif : 8 verres par jour.</strong> Rappels doux toutes les 30 minutes.',
+        'feat.eyes.t': 'Exercices oculaires', 'feat.eyes.d': '<strong>S\u00e9ances guid\u00e9es avec minuterie.</strong> Mouvements oculaires, clignements, changements de focus.',
+        'feat.more': 'Et plus encore',
+        'feat.track.t': 'Suivi d\u2019activit\u00e9', 'feat.track.d': '<strong>Cat\u00e9gorisation automatique</strong> : travail, divertissement, communication, apprentissage.',
+        'feat.audio.t': 'Sons de concentration', 'feat.audio.d': '<strong>Brown noise, pluie, for\u00eat, oc\u00e9an</strong> \u2014 g\u00e9n\u00e9r\u00e9s en temps r\u00e9el.',
+        'feat.radio.t': 'YouTube Radio + FM', 'feat.radio.d': '<strong>6 stations YT + 6 FM.</strong> La pause arr\u00eate la musique avec les minuteries.',
+        'feat.breath.t': 'Exercice respiratoire', 'feat.breath.d': '<strong>Box breathing 4-4-4-4</strong> avec cercle anim\u00e9. R\u00e9duisez le stress en 60 secondes.',
+        'feat.stretch.t': '\u00c9tirements', 'feat.stretch.d': '<strong>Exercices guid\u00e9s</strong> pour le cou, les \u00e9paules et le dos.',
+        'feat.idle.t': 'Smart Idle + DND', 'feat.idle.d': '<strong>D\u00e9tecte l\u2019inactivit\u00e9 et Focus Assist.</strong> Les minuteries se figent quand vous partez.',
+        'preview.title': 'Aper\u00e7u de l\u2019interface', 'preview.subtitle': 'Interface sombre et \u00e9l\u00e9gante qui ne distrait pas.',
+        'how.title': 'Comment \u00e7a marche ?', 'how.subtitle': 'Trois \u00e9tapes simples pour travailler plus sainement.',
+        'how.s1.t': 'Installez', 'how.s1.d': 'T\u00e9l\u00e9chargez, cliquez suivant, c\u2019est fait. Sans compte.',
+        'how.s2.t': 'Travaillez normalement', 'how.s2.d': 'HealthDesk tourne en arri\u00e8re-plan.',
+        'how.s3.t': 'Reposez-vous r\u00e9guli\u00e8rement', 'how.s3.d': 'R\u00e9agissez aux rappels. Vos yeux et votre dos vous remercieront.',
+        'why.title': 'Pourquoi \u00e7a vaut le coup ?', 'why.subtitle': 'Des habitudes fond\u00e9es sur la science.',
+        'why.s1.t': 'Pauses r\u00e9guli\u00e8res', 'why.s1.d': 'Des pauses toutes les 25\u201352 min augmentent la productivit\u00e9 de 13%.', 'why.s1.src': 'Source : DeskTime Productivity Research (2023)',
+        'why.s2.t': 'Eau quotidienne', 'why.s2.d': 'L\u2019hydratation am\u00e9liore la concentration.', 'why.s2.src': 'Source : European Food Safety Authority (EFSA)',
+        'why.s3.t': 'Exercice & \u00e9tirements', 'why.s3.d': 'Les pauses mouvement pr\u00e9viennent le mal de dos.', 'why.s3.src': 'Source : WHO Guidelines on Physical Activity (2020)',
+        'cmp.title': 'Comment se compare HealthDesk ?', 'cmp.subtitle': 'Comparaison honn\u00eate avec les alternatives populaires.',
+        'cmp.g.basics': 'Bases', 'cmp.platforms': 'Plateformes', 'cmp.price': 'Prix', 'cmp.free': 'Gratuit',
+        'cmp.g.breaks': 'Pauses & m\u00e9thodes', 'cmp.break_types': 'Types de pauses', 'cmp.big_small': 'Grandes + petites',
+        'cmp.methods': 'M\u00e9thodes de travail', 'cmp.manual': 'Config. manuelle', 'cmp.pom_only': 'Pomodoro 25/5 uniquement', 'cmp.snooze': 'Reporter',
+        'cmp.g.health': 'Sant\u00e9 & exercices', 'cmp.water': 'Rappels d\u2019eau', 'cmp.eye_ex': 'Exercices oculaires',
+        'cmp.animated': 'Anim\u00e9s', 'cmp.stretch': '\u00c9tirements', 'cmp.text_only': 'Texte seul', 'cmp.breathing': 'Exercice respiratoire',
+        'cmp.g.prod': 'Productivit\u00e9', 'cmp.6sounds': '6 sons + YT Radio', 'cmp.white_noise': 'Bruit blanc',
+        'cmp.tracking': 'Suivi d\u2019activit\u00e9', 'cmp.auto': 'Automatique', 'cmp.daily_limit': 'Limite quotidienne',
+        'cmp.stats': 'Statistiques', 'cmp.multi_period': 'Multi-p\u00e9riode', 'cmp.basic': 'Basiques',
+        'cmp.g.perf': 'Performance', 'cmp.installer_size': 'Taille installateur', 'cmp.ram': 'Utilisation RAM',
+        'cmp.footer': 'Donn\u00e9es bas\u00e9es sur les versions de f\u00e9vrier 2026.',
+        'cta.title': 'Pr\u00eat pour un travail plus sain ?', 'cta.subtitle': 'Installez gratuitement et prenez soin de vous d\u00e8s la premi\u00e8re pause.',
+        'cta.download': 'T\u00e9l\u00e9charger gratuitement', 'cta.no_ads': 'Sans pubs, sans compte',
+        'faq.title': 'Questions fr\u00e9quentes',
+        'faq.q1': 'HealthDesk est-il gratuit ?', 'faq.a1': 'Oui, enti\u00e8rement gratuit. Sans frais cach\u00e9s ni abonnements.',
+        'faq.q2': 'L\u2019appli collecte-t-elle mes donn\u00e9es ?', 'faq.a2': 'Les statistiques sont stock\u00e9es localement. La t\u00e9l\u00e9m\u00e9trie anonyme peut \u00eatre d\u00e9sactiv\u00e9e.',
+        'faq.q3': 'Fonctionne hors ligne ?', 'faq.a3': 'Oui \u2014 seul YouTube Radio n\u00e9cessite internet.',
+        'faq.q4': 'Puis-je personnaliser la fr\u00e9quence ?', 'faq.a4': 'Oui. Choisissez une m\u00e9thode ou d\u00e9finissez vos intervalles.',
+        'faq.q5': 'Comment d\u00e9sinstaller ?', 'faq.q6': 'Quelle taille fait l\u2019installateur ?', 'faq.q7': 'Windows affiche un \u00e9cran bleu \u00e0 l\u2019installation ?',
+        'modal.title': 'Avant l\u2019installation', 'modal.subtitle': 'L\u2019appli est s\u00fbre et <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>.', 'modal.dl_now': 'T\u00e9l\u00e9charger maintenant',
+        'mock.small_break': 'Petite pause', 'mock.break_desc': 'Regardez loin de l\u2019\u00e9cran vers<br>un objet \u00e0 environ 6 m\u00e8tres.', 'mock.take_break': 'Je fais une pause !', 'mock.skip': 'Passer',
+        'footer.privacy': 'Politique de confidentialit\u00e9', 'footer.copy': '\u00a9 2026 HealthDesk. Tous droits r\u00e9serv\u00e9s.'
+      },
+      'pt-BR': {
+        'nav.features': 'Recursos', 'nav.how': 'Como funciona', 'nav.why': 'Por qu\u00ea', 'nav.comparison': 'Compara\u00e7\u00e3o', 'nav.download': 'Baixar',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> App gratuito \u2014 Windows, macOS, Linux',
+        'hero.title': 'Seus olhos, costas e mente <span class="accent">v\u00e3o agradecer</span>',
+        'hero.subtitle': 'Pausas inteligentes, hidrata\u00e7\u00e3o, exerc\u00edcios oculares e rastreamento de atividade \u2014 tudo em um app leve.',
+        'dl.btn': 'Baixar', 'hero.no_account': 'Sem conta, sem cadastro',
+        'mini.next_break': 'Pr\u00f3xima pausa em', 'mini.breaks': 'Pausas', 'mini.water': '\u00c1gua', 'mini.work': 'Trabalho',
+        'feat.title': 'O que o HealthDesk faz?', 'feat.subtitle': 'Recursos principais + mais \u2014 tudo para trabalhar com sa\u00fade.',
+        'feat.breaks.t': 'Pausas inteligentes', 'feat.water.t': 'Lembretes de \u00e1gua', 'feat.eyes.t': 'Exerc\u00edcios oculares', 'feat.more': 'E mais',
+        'feat.track.t': 'Rastreamento de atividade', 'feat.audio.t': 'Sons de foco', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': 'Exerc\u00edcio respirat\u00f3rio', 'feat.stretch.t': 'Alongamentos', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': 'Veja como \u00e9', 'how.title': 'Como funciona?', 'how.subtitle': 'Tr\u00eas passos simples para trabalhar melhor.',
+        'how.s1.t': 'Instale', 'how.s2.t': 'Trabalhe normalmente', 'how.s3.t': 'Descanse regularmente',
+        'why.title': 'Por que vale a pena?', 'cmp.title': 'Como o HealthDesk se compara?',
+        'cta.title': 'Pronto para trabalhar melhor?', 'cta.download': 'Baixar gr\u00e1tis', 'cta.no_ads': 'Sem an\u00fancios, sem conta',
+        'faq.title': 'Perguntas frequentes', 'faq.q1': 'O HealthDesk \u00e9 gr\u00e1tis?', 'faq.a1': 'Sim, totalmente gr\u00e1tis.',
+        'modal.title': 'Antes de instalar', 'modal.dl_now': 'Baixar agora',
+        'mock.small_break': 'Pausa curta', 'mock.take_break': 'Fazendo pausa!', 'mock.skip': 'Pular',
+        'footer.privacy': 'Pol\u00edtica de Privacidade', 'footer.copy': '\u00a9 2026 HealthDesk. Todos os direitos reservados.'
+      },
+      ja: {
+        'nav.features': '\u6a5f\u80fd', 'nav.how': '\u4f7f\u3044\u65b9', 'nav.why': '\u306a\u305c', 'nav.comparison': '\u6bd4\u8f03', 'nav.download': '\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> \u7121\u6599\u30a2\u30d7\u30ea \u2014 Windows, macOS, Linux',
+        'hero.title': '\u3042\u306a\u305f\u306e\u76ee\u3001\u80cc\u4e2d\u3001\u982d\u304c <span class="accent">\u611f\u8b1d\u3057\u307e\u3059</span>',
+        'hero.subtitle': '\u30b9\u30de\u30fc\u30c8\u306a\u4f11\u61a9\u3001\u6c34\u5206\u88dc\u7d66\u3001\u76ee\u306e\u904b\u52d5\u3001\u6d3b\u52d5\u8ffd\u8de1 \u2014 \u8efd\u91cf\u30a2\u30d7\u30ea\u3067\u5168\u3066\u3092\u3002',
+        'dl.btn': '\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9', 'hero.no_account': '\u30a2\u30ab\u30a6\u30f3\u30c8\u4e0d\u8981',
+        'mini.next_break': '\u6b21\u306e\u4f11\u61a9\u307e\u3067', 'mini.breaks': '\u4f11\u61a9', 'mini.water': '\u6c34', 'mini.work': '\u4ed5\u4e8b',
+        'feat.title': 'HealthDesk\u306e\u6a5f\u80fd', 'feat.breaks.t': '\u30b9\u30de\u30fc\u30c8\u4f11\u61a9', 'feat.water.t': '\u6c34\u5206\u30ea\u30de\u30a4\u30f3\u30c0\u30fc',
+        'feat.eyes.t': '\u76ee\u306e\u904b\u52d5', 'feat.more': '\u305d\u306e\u4ed6\u306e\u6a5f\u80fd',
+        'feat.track.t': '\u6d3b\u52d5\u8ffd\u8de1', 'feat.audio.t': '\u96c6\u4e2d\u30b5\u30a6\u30f3\u30c9', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': '\u547c\u5438\u30a8\u30af\u30b5\u30b5\u30a4\u30ba', 'feat.stretch.t': '\u30b9\u30c8\u30ec\u30c3\u30c1', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': '\u30a4\u30f3\u30bf\u30fc\u30d5\u30a7\u30fc\u30b9', 'how.title': '\u4f7f\u3044\u65b9', 'how.s1.t': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb', 'how.s2.t': '\u666e\u901a\u306b\u4ed5\u4e8b', 'how.s3.t': '\u5b9a\u671f\u7684\u306b\u4f11\u61a9',
+        'why.title': '\u306a\u305c\u304a\u3059\u3059\u3081\uff1f', 'cmp.title': 'HealthDesk\u306e\u6bd4\u8f03',
+        'cta.title': '\u3088\u308a\u5065\u5eb7\u7684\u306b\u50cd\u304f\u6e96\u5099\u306f\uff1f', 'cta.download': '\u7121\u6599\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9', 'cta.no_ads': '\u5e83\u544a\u306a\u3057\u3001\u30a2\u30ab\u30a6\u30f3\u30c8\u4e0d\u8981',
+        'faq.title': '\u3088\u304f\u3042\u308b\u8cea\u554f', 'faq.q1': 'HealthDesk\u306f\u7121\u6599\uff1f', 'faq.a1': '\u306f\u3044\u3001\u5b8c\u5168\u7121\u6599\u3067\u3059\u3002',
+        'modal.title': '\u30a4\u30f3\u30b9\u30c8\u30fc\u30eb\u524d\u306b', 'modal.dl_now': '\u4eca\u3059\u3050\u30c0\u30a6\u30f3\u30ed\u30fc\u30c9',
+        'mock.small_break': '\u5c0f\u4f11\u61a9', 'mock.take_break': '\u4f11\u61a9\u3057\u307e\u3059\uff01', 'mock.skip': '\u30b9\u30ad\u30c3\u30d7',
+        'footer.privacy': '\u30d7\u30e9\u30a4\u30d0\u30b7\u30fc\u30dd\u30ea\u30b7\u30fc', 'footer.copy': '\u00a9 2026 HealthDesk'
+      },
+      'zh-CN': {
+        'nav.features': '\u529f\u80fd', 'nav.how': '\u5982\u4f55\u4f7f\u7528', 'nav.why': '\u4e3a\u4ec0\u4e48', 'nav.comparison': '\u5bf9\u6bd4', 'nav.download': '\u4e0b\u8f7d',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> \u514d\u8d39\u5e94\u7528 \u2014 Windows, macOS, Linux',
+        'hero.title': '\u4f60\u7684\u773c\u775b\u3001\u810a\u690e\u548c\u5927\u8111 <span class="accent">\u4f1a\u611f\u8c22\u4f60</span>',
+        'hero.subtitle': '\u667a\u80fd\u4f11\u606f\u3001\u996e\u6c34\u63d0\u9192\u3001\u62a4\u773c\u8fd0\u52a8\u548c\u6d3b\u52a8\u8ffd\u8e2a \u2014 \u8f7b\u91cf\u5e94\u7528\u4e00\u7ad9\u5f0f\u89e3\u51b3\u3002',
+        'dl.btn': '\u4e0b\u8f7d', 'hero.no_account': '\u65e0\u9700\u8d26\u6237\u3001\u65e0\u9700\u6ce8\u518c',
+        'mini.next_break': '\u4e0b\u6b21\u4f11\u606f', 'mini.breaks': '\u4f11\u606f', 'mini.water': '\u6c34', 'mini.work': '\u5de5\u4f5c',
+        'feat.title': 'HealthDesk \u80fd\u505a\u4ec0\u4e48\uff1f', 'feat.breaks.t': '\u667a\u80fd\u4f11\u606f', 'feat.water.t': '\u996e\u6c34\u63d0\u9192',
+        'feat.eyes.t': '\u62a4\u773c\u8fd0\u52a8', 'feat.more': '\u66f4\u591a\u529f\u80fd',
+        'feat.track.t': '\u6d3b\u52a8\u8ffd\u8e2a', 'feat.audio.t': '\u4e13\u6ce8\u58f0\u97f3', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': '\u547c\u5438\u7ec3\u4e60', 'feat.stretch.t': '\u62c9\u4f38\u8fd0\u52a8', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': '\u754c\u9762\u9884\u89c8', 'how.title': '\u5982\u4f55\u4f7f\u7528\uff1f', 'how.s1.t': '\u5b89\u88c5', 'how.s2.t': '\u6b63\u5e38\u5de5\u4f5c', 'how.s3.t': '\u5b9a\u671f\u4f11\u606f',
+        'why.title': '\u4e3a\u4ec0\u4e48\u503c\u5f97\uff1f', 'cmp.title': 'HealthDesk \u5bf9\u6bd4',
+        'cta.title': '\u51c6\u5907\u597d\u66f4\u5065\u5eb7\u5730\u5de5\u4f5c\uff1f', 'cta.download': '\u514d\u8d39\u4e0b\u8f7d', 'cta.no_ads': '\u65e0\u5e7f\u544a\u3001\u65e0\u8d26\u6237',
+        'faq.title': '\u5e38\u89c1\u95ee\u9898', 'faq.q1': 'HealthDesk \u514d\u8d39\u5417\uff1f', 'faq.a1': '\u662f\u7684\uff0c\u5b8c\u5168\u514d\u8d39\u3002',
+        'modal.title': '\u5b89\u88c5\u524d', 'modal.dl_now': '\u7acb\u5373\u4e0b\u8f7d',
+        'mock.small_break': '\u5c0f\u4f11\u606f', 'mock.take_break': '\u5f00\u59cb\u4f11\u606f\uff01', 'mock.skip': '\u8df3\u8fc7',
+        'footer.privacy': '\u9690\u79c1\u653f\u7b56', 'footer.copy': '\u00a9 2026 HealthDesk'
+      },
+      ko: {
+        'nav.features': '\uae30\ub2a5', 'nav.how': '\uc0ac\uc6a9\ubc95', 'nav.why': '\uc774\uc720', 'nav.comparison': '\ube44\uad50', 'nav.download': '\ub2e4\uc6b4\ub85c\ub4dc',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> \ubb34\ub8cc \uc571 \u2014 Windows, macOS, Linux',
+        'hero.title': '\ub2f9\uc2e0\uc758 \ub208, \ud5c8\ub9ac, \uba38\ub9ac\uac00 <span class="accent">\uac10\uc0ac\ud560 \uac83\uc785\ub2c8\ub2e4</span>',
+        'hero.subtitle': '\uc2a4\ub9c8\ud2b8 \ud734\uc2dd, \uc218\ubd84 \ubcf4\ucda9, \ub208 \uc6b4\ub3d9, \ud65c\ub3d9 \ucd94\uc801 \u2014 \uac00\ubcbc\uc6b4 \uc571\uc73c\ub85c \ubaa8\ub450.',
+        'dl.btn': '\ub2e4\uc6b4\ub85c\ub4dc', 'hero.no_account': '\uacc4\uc815 \ubd88\ud544\uc694',
+        'mini.next_break': '\ub2e4\uc74c \ud734\uc2dd', 'mini.breaks': '\ud734\uc2dd', 'mini.water': '\ubb3c', 'mini.work': '\uc791\uc5c5',
+        'feat.title': 'HealthDesk\ub294 \ubb34\uc5c7\uc744 \ud558\ub098\uc694?', 'feat.breaks.t': '\uc2a4\ub9c8\ud2b8 \ud734\uc2dd', 'feat.water.t': '\uc218\ubd84 \ub9ac\ub9c8\uc778\ub354',
+        'feat.eyes.t': '\ub208 \uc6b4\ub3d9', 'feat.more': '\uadf8 \uc678',
+        'feat.track.t': '\ud65c\ub3d9 \ucd94\uc801', 'feat.audio.t': '\uc9d1\uc911 \uc0ac\uc6b4\ub4dc', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': '\ud638\ud761 \uc6b4\ub3d9', 'feat.stretch.t': '\uc2a4\ud2b8\ub808\uce6d', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': '\uc778\ud130\ud398\uc774\uc2a4', 'how.title': '\uc0ac\uc6a9 \ubc29\ubc95', 'how.s1.t': '\uc124\uce58', 'how.s2.t': '\uc815\uc0c1 \uc791\uc5c5', 'how.s3.t': '\uc815\uae30 \ud734\uc2dd',
+        'why.title': '\uc65c \uac00\uce58\uac00 \uc788\ub098\uc694?', 'cmp.title': 'HealthDesk \ube44\uad50',
+        'cta.title': '\ub354 \uac74\uac15\ud558\uac8c \uc77c\ud560 \uc900\ube44?', 'cta.download': '\ubb34\ub8cc \ub2e4\uc6b4\ub85c\ub4dc', 'cta.no_ads': '\uad11\uace0 \uc5c6\uc74c',
+        'faq.title': '\uc790\uc8fc \ubb3b\ub294 \uc9c8\ubb38', 'faq.q1': 'HealthDesk\ub294 \ubb34\ub8cc\uc778\uac00\uc694?', 'faq.a1': '\ub124, \uc644\uc804 \ubb34\ub8cc\uc785\ub2c8\ub2e4.',
+        'modal.title': '\uc124\uce58 \uc804', 'modal.dl_now': '\uc9c0\uae08 \ub2e4\uc6b4\ub85c\ub4dc',
+        'mock.small_break': '\uc9e7\uc740 \ud734\uc2dd', 'mock.take_break': '\ud734\uc2dd\ud569\ub2c8\ub2e4!', 'mock.skip': '\uac74\ub108\ub6f0\uae30',
+        'footer.privacy': '\uac1c\uc778\uc815\ubcf4\ucc98\ub9ac\ubc29\uce68', 'footer.copy': '\u00a9 2026 HealthDesk'
+      },
+      it: {
+        'nav.features': 'Funzioni', 'nav.how': 'Come funziona', 'nav.why': 'Perch\u00e9', 'nav.comparison': 'Confronto', 'nav.download': 'Scarica',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> App gratuita \u2014 Windows, macOS, Linux',
+        'hero.title': 'I tuoi occhi, la schiena e la mente <span class="accent">ti ringrazieranno</span>',
+        'hero.subtitle': 'Pause intelligenti, idratazione, esercizi per gli occhi e monitoraggio attivit\u00e0 \u2014 tutto in un\u2019app leggera.',
+        'dl.btn': 'Scarica', 'hero.no_account': 'Senza account, senza registrazione',
+        'mini.next_break': 'Prossima pausa tra', 'mini.breaks': 'Pause', 'mini.water': 'Acqua', 'mini.work': 'Lavoro',
+        'feat.title': 'Cosa fa HealthDesk?', 'feat.breaks.t': 'Pause intelligenti', 'feat.water.t': 'Promemoria acqua',
+        'feat.eyes.t': 'Esercizi oculari', 'feat.more': 'E altro ancora',
+        'feat.track.t': 'Monitoraggio attivit\u00e0', 'feat.audio.t': 'Suoni per la concentrazione', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': 'Esercizio respiratorio', 'feat.stretch.t': 'Stretching', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': 'Guarda come appare', 'how.title': 'Come funziona?', 'how.s1.t': 'Installa', 'how.s2.t': 'Lavora normalmente', 'how.s3.t': 'Riposa regolarmente',
+        'why.title': 'Perch\u00e9 ne vale la pena?', 'cmp.title': 'Come si confronta HealthDesk?',
+        'cta.title': 'Pronto per lavorare meglio?', 'cta.download': 'Scarica gratis', 'cta.no_ads': 'Senza pubblicit\u00e0, senza account',
+        'faq.title': 'Domande frequenti', 'faq.q1': 'HealthDesk \u00e8 gratuito?', 'faq.a1': 'S\u00ec, completamente gratuito.',
+        'modal.title': 'Prima dell\u2019installazione', 'modal.dl_now': 'Scarica ora',
+        'mock.small_break': 'Pausa breve', 'mock.take_break': 'Faccio una pausa!', 'mock.skip': 'Salta',
+        'footer.privacy': 'Informativa sulla privacy', 'footer.copy': '\u00a9 2026 HealthDesk. Tutti i diritti riservati.'
+      },
+      tr: {
+        'nav.features': '\u00d6zellikler', 'nav.how': 'Nas\u0131l \u00e7al\u0131\u015f\u0131r', 'nav.why': 'Neden', 'nav.comparison': 'Kar\u015f\u0131la\u015ft\u0131rma', 'nav.download': '\u0130ndir',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> \u00dccretsiz uygulama \u2014 Windows, macOS, Linux',
+        'hero.title': 'G\u00f6zleriniz, s\u0131rt\u0131n\u0131z ve zihniniz <span class="accent">size te\u015fekk\u00fcr edecek</span>',
+        'hero.subtitle': 'Ak\u0131ll\u0131 molalar, su hat\u0131rlatmalar\u0131, g\u00f6z egzersizleri ve aktivite takibi \u2014 hepsi hafif bir uygulamada.',
+        'dl.btn': '\u0130ndir', 'hero.no_account': 'Hesap gerektirmez',
+        'mini.next_break': 'Sonraki mola', 'mini.breaks': 'Molalar', 'mini.water': 'Su', 'mini.work': '\u00c7al\u0131\u015fma',
+        'feat.title': 'HealthDesk ne yapar?', 'feat.breaks.t': 'Ak\u0131ll\u0131 molalar', 'feat.water.t': 'Su hat\u0131rlatmalar\u0131',
+        'feat.eyes.t': 'G\u00f6z egzersizleri', 'feat.more': 'Ve daha fazlas\u0131',
+        'feat.track.t': 'Aktivite takibi', 'feat.audio.t': 'Odaklanma sesleri', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': 'Nefes egzersizi', 'feat.stretch.t': 'Esneme', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': 'Nas\u0131l g\u00f6r\u00fcn\u00fcyor', 'how.title': 'Nas\u0131l \u00e7al\u0131\u015f\u0131r?', 'how.s1.t': 'Y\u00fckle', 'how.s2.t': 'Normal \u00e7al\u0131\u015f', 'how.s3.t': 'D\u00fczenli dinlen',
+        'why.title': 'Neden buna de\u011fer?', 'cmp.title': 'HealthDesk kar\u015f\u0131la\u015ft\u0131rmas\u0131',
+        'cta.title': 'Daha sa\u011fl\u0131kl\u0131 \u00e7al\u0131\u015fmaya haz\u0131r m\u0131s\u0131n\u0131z?', 'cta.download': '\u00dccretsiz indir', 'cta.no_ads': 'Reklams\u0131z, hesaps\u0131z',
+        'faq.title': 'S\u0131k sorulan sorular', 'faq.q1': 'HealthDesk \u00fccretsiz mi?', 'faq.a1': 'Evet, tamamen \u00fccretsiz.',
+        'modal.title': 'Y\u00fcklemeden \u00f6nce', 'modal.dl_now': '\u015eimdi indir',
+        'mock.small_break': 'K\u0131sa mola', 'mock.take_break': 'Mola veriyorum!', 'mock.skip': 'Ge\u00e7',
+        'footer.privacy': 'Gizlilik Politikas\u0131', 'footer.copy': '\u00a9 2026 HealthDesk. T\u00fcm haklar\u0131 sakl\u0131d\u0131r.'
+      },
+      ru: {
+        'nav.features': '\u0424\u0443\u043d\u043a\u0446\u0438\u0438', 'nav.how': '\u041a\u0430\u043a \u044d\u0442\u043e \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442', 'nav.why': '\u041f\u043e\u0447\u0435\u043c\u0443', 'nav.comparison': '\u0421\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0435', 'nav.download': '\u0421\u043a\u0430\u0447\u0430\u0442\u044c',
+        'hero.badge': '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg> \u0411\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e\u0435 \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0435 \u2014 Windows, macOS, Linux',
+        'hero.title': '\u0412\u0430\u0448\u0438 \u0433\u043b\u0430\u0437\u0430, \u0441\u043f\u0438\u043d\u0430 \u0438 \u0433\u043e\u043b\u043e\u0432\u0430 <span class="accent">\u0441\u043a\u0430\u0436\u0443\u0442 \u0441\u043f\u0430\u0441\u0438\u0431\u043e</span>',
+        'hero.subtitle': '\u0423\u043c\u043d\u044b\u0435 \u043f\u0435\u0440\u0435\u0440\u044b\u0432\u044b, \u043d\u0430\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f \u043e \u0432\u043e\u0434\u0435, \u0443\u043f\u0440\u0430\u0436\u043d\u0435\u043d\u0438\u044f \u0434\u043b\u044f \u0433\u043b\u0430\u0437 \u0438 \u043e\u0442\u0441\u043b\u0435\u0436\u0438\u0432\u0430\u043d\u0438\u0435 \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u0438 \u2014 \u0432\u0441\u0451 \u0432 \u043e\u0434\u043d\u043e\u043c \u043b\u0451\u0433\u043a\u043e\u043c \u043f\u0440\u0438\u043b\u043e\u0436\u0435\u043d\u0438\u0438.',
+        'dl.btn': '\u0421\u043a\u0430\u0447\u0430\u0442\u044c', 'hero.no_account': '\u0411\u0435\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430, \u0431\u0435\u0437 \u0440\u0435\u0433\u0438\u0441\u0442\u0440\u0430\u0446\u0438\u0438',
+        'mini.next_break': '\u0421\u043b\u0435\u0434\u0443\u044e\u0449\u0438\u0439 \u043f\u0435\u0440\u0435\u0440\u044b\u0432 \u0447\u0435\u0440\u0435\u0437', 'mini.breaks': '\u041f\u0435\u0440\u0435\u0440\u044b\u0432\u044b', 'mini.water': '\u0412\u043e\u0434\u0430', 'mini.work': '\u0420\u0430\u0431\u043e\u0442\u0430',
+        'feat.title': '\u0427\u0442\u043e \u0434\u0435\u043b\u0430\u0435\u0442 HealthDesk?', 'feat.breaks.t': '\u0423\u043c\u043d\u044b\u0435 \u043f\u0435\u0440\u0435\u0440\u044b\u0432\u044b', 'feat.water.t': '\u041d\u0430\u043f\u043e\u043c\u0438\u043d\u0430\u043d\u0438\u044f \u043e \u0432\u043e\u0434\u0435',
+        'feat.eyes.t': '\u0423\u043f\u0440\u0430\u0436\u043d\u0435\u043d\u0438\u044f \u0434\u043b\u044f \u0433\u043b\u0430\u0437', 'feat.more': '\u0418 \u0435\u0449\u0451',
+        'feat.track.t': '\u041e\u0442\u0441\u043b\u0435\u0436\u0438\u0432\u0430\u043d\u0438\u0435 \u0430\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u0438', 'feat.audio.t': '\u0417\u0432\u0443\u043a\u0438 \u0434\u043b\u044f \u043a\u043e\u043d\u0446\u0435\u043d\u0442\u0440\u0430\u0446\u0438\u0438', 'feat.radio.t': 'YouTube Radio + FM',
+        'feat.breath.t': '\u0414\u044b\u0445\u0430\u0442\u0435\u043b\u044c\u043d\u043e\u0435 \u0443\u043f\u0440\u0430\u0436\u043d\u0435\u043d\u0438\u0435', 'feat.stretch.t': '\u0420\u0430\u0441\u0442\u044f\u0436\u043a\u0430', 'feat.idle.t': 'Smart Idle + DND',
+        'preview.title': '\u0418\u043d\u0442\u0435\u0440\u0444\u0435\u0439\u0441', 'how.title': '\u041a\u0430\u043a \u044d\u0442\u043e \u0440\u0430\u0431\u043e\u0442\u0430\u0435\u0442?', 'how.s1.t': '\u0423\u0441\u0442\u0430\u043d\u043e\u0432\u0438\u0442\u0435', 'how.s2.t': '\u0420\u0430\u0431\u043e\u0442\u0430\u0439\u0442\u0435 \u043a\u0430\u043a \u043e\u0431\u044b\u0447\u043d\u043e', 'how.s3.t': '\u041e\u0442\u0434\u044b\u0445\u0430\u0439\u0442\u0435 \u0440\u0435\u0433\u0443\u043b\u044f\u0440\u043d\u043e',
+        'why.title': '\u041f\u043e\u0447\u0435\u043c\u0443 \u044d\u0442\u043e \u0432\u0430\u0436\u043d\u043e?', 'cmp.title': '\u0421\u0440\u0430\u0432\u043d\u0435\u043d\u0438\u0435 HealthDesk',
+        'cta.title': '\u0413\u043e\u0442\u043e\u0432\u044b \u0440\u0430\u0431\u043e\u0442\u0430\u0442\u044c \u0437\u0434\u043e\u0440\u043e\u0432\u0435\u0435?', 'cta.download': '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u043e', 'cta.no_ads': '\u0411\u0435\u0437 \u0440\u0435\u043a\u043b\u0430\u043c\u044b, \u0431\u0435\u0437 \u0430\u043a\u043a\u0430\u0443\u043d\u0442\u0430',
+        'faq.title': '\u0427\u0430\u0441\u0442\u043e \u0437\u0430\u0434\u0430\u0432\u0430\u0435\u043c\u044b\u0435 \u0432\u043e\u043f\u0440\u043e\u0441\u044b', 'faq.q1': 'HealthDesk \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u044b\u0439?', 'faq.a1': '\u0414\u0430, \u043f\u043e\u043b\u043d\u043e\u0441\u0442\u044c\u044e \u0431\u0435\u0441\u043f\u043b\u0430\u0442\u043d\u044b\u0439.',
+        'modal.title': '\u041f\u0435\u0440\u0435\u0434 \u0443\u0441\u0442\u0430\u043d\u043e\u0432\u043a\u043e\u0439', 'modal.dl_now': '\u0421\u043a\u0430\u0447\u0430\u0442\u044c \u0441\u0435\u0439\u0447\u0430\u0441',
+        'mock.small_break': '\u041a\u043e\u0440\u043e\u0442\u043a\u0438\u0439 \u043f\u0435\u0440\u0435\u0440\u044b\u0432', 'mock.take_break': '\u0414\u0435\u043b\u0430\u044e \u043f\u0435\u0440\u0435\u0440\u044b\u0432!', 'mock.skip': '\u041f\u0440\u043e\u043f\u0443\u0441\u0442\u0438\u0442\u044c',
+        'footer.privacy': '\u041f\u043e\u043b\u0438\u0442\u0438\u043a\u0430 \u043a\u043e\u043d\u0444\u0438\u0434\u0435\u043d\u0446\u0438\u0430\u043b\u044c\u043d\u043e\u0441\u0442\u0438', 'footer.copy': '\u00a9 2026 HealthDesk. \u0412\u0441\u0435 \u043f\u0440\u0430\u0432\u0430 \u0437\u0430\u0449\u0438\u0449\u0435\u043d\u044b.'
       }
     };
 
@@ -1180,59 +1494,85 @@
       });
     }
 
+    var SUPPORTED = ['pl','en','de','es','fr','pt-BR','ja','zh-CN','ko','it','tr','ru'];
+    var LABELS = {pl:'PL',en:'EN',de:'DE',es:'ES',fr:'FR','pt-BR':'PT',ja:'JA','zh-CN':'ZH',ko:'KO',it:'IT',tr:'TR',ru:'RU'};
+
     function applyLang(lang) {
+      if (SUPPORTED.indexOf(lang) === -1) lang = 'en';
       document.querySelectorAll('[data-i18n]').forEach(function(el) {
         var key = el.getAttribute('data-i18n');
-        if (lang === 'en' && T.en[key]) {
+        if (lang === 'pl') {
+          if (originals[key]) el.innerHTML = originals[key];
+        } else if (T[lang] && T[lang][key]) {
+          el.innerHTML = T[lang][key];
+        } else if (T.en[key]) {
           el.innerHTML = T.en[key];
-        } else if (lang === 'pl' && originals[key]) {
-          el.innerHTML = originals[key];
         }
       });
-      // Update html lang and meta
-      document.documentElement.lang = lang;
-      if (lang === 'en') {
-        document.title = 'HealthDesk \u2014 Your eyes, spine and mind will thank you';
-        var metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.content = 'HealthDesk is a free app for Windows, macOS and Linux that reminds you about breaks, hydration and eye exercises. Runs in the background and takes care of your health at the computer.';
-      } else {
-        document.title = 'HealthDesk \u2014 Twoje oczy, kr\u0119gos\u0142up i g\u0142owa Ci podzi\u0119kuj\u0105';
-        var metaDesc = document.querySelector('meta[name="description"]');
-        if (metaDesc) metaDesc.content = 'HealthDesk to darmowa aplikacja na Windows, macOS i Linux, kt\u00f3ra przypomina o przerwach, nawodnieniu i \u0107wiczeniach oczu. Dzia\u0142a w tle i dba o Twoje zdrowie przy komputerze.';
+      // Update html lang
+      document.documentElement.lang = lang === 'zh-CN' ? 'zh' : lang === 'pt-BR' ? 'pt' : lang;
+      // Update page title & meta
+      var titleKey = 'hero.title';
+      var descKey = 'hero.subtitle';
+      var titleText = (lang === 'pl' ? originals[titleKey] : (T[lang] && T[lang][titleKey]) || T.en[titleKey]) || '';
+      document.title = 'HealthDesk \u2014 ' + titleText.replace(/<[^>]*>/g, '');
+      var metaDesc = document.querySelector('meta[name="description"]');
+      if (metaDesc) {
+        var descText = (lang === 'pl' ? originals[descKey] : (T[lang] && T[lang][descKey]) || T.en[descKey]) || '';
+        metaDesc.content = descText.replace(/<[^>]*>/g, '');
       }
-      // Update active button
-      document.querySelectorAll('.lang-btn').forEach(function(btn) {
+      // Update dropdown active state + current button
+      document.querySelectorAll('.lang-opt').forEach(function(btn) {
         btn.classList.toggle('lang-active', btn.getAttribute('data-lang') === lang);
       });
-      // Update download button labels (from download script)
-      var osLabelsMap = {
-        pl: { windows: 'Pobierz dla Windows', macos: 'Pobierz dla macOS', linux: 'Pobierz dla Linux' },
-        en: { windows: 'Download for Windows', macos: 'Download for macOS', linux: 'Download for Linux' }
-      };
-      var labels = osLabelsMap[lang] || osLabelsMap.pl;
-      var bottomLabel = document.getElementById('bottom-download-label');
-      if (bottomLabel && bottomLabel.getAttribute('data-i18n')) {
-        // Already handled by data-i18n
-      } else if (bottomLabel) {
-        var ua = navigator.userAgent.toLowerCase();
-        var os = ua.indexOf('mac') !== -1 ? 'macos' : ua.indexOf('linux') !== -1 ? 'linux' : 'windows';
-        bottomLabel.textContent = labels[os] || labels.windows;
-      }
+      var curLabel = document.getElementById('lang-current-label');
+      if (curLabel) curLabel.textContent = LABELS[lang] || lang.toUpperCase();
+      // Close dropdown
+      var sw = document.getElementById('lang-switch');
+      if (sw) sw.classList.remove('open');
       // Save preference
       try { localStorage.setItem('hd_lang', lang); } catch(e) {}
       window._hdLang = lang;
     }
 
+    function detectLang() {
+      var saved = null;
+      try { saved = localStorage.getItem('hd_lang'); } catch(e) {}
+      if (saved && SUPPORTED.indexOf(saved) !== -1) return saved;
+      var nav = (navigator.language || '').toLowerCase();
+      // Exact matches first
+      for (var i = 0; i < SUPPORTED.length; i++) {
+        if (nav === SUPPORTED[i].toLowerCase()) return SUPPORTED[i];
+      }
+      // Prefix match (e.g. pt-PT → pt-BR, zh-TW → zh-CN)
+      var prefix = nav.substring(0, 2);
+      var prefixMap = {pt:'pt-BR', zh:'zh-CN', ja:'ja', ko:'ko', de:'de', es:'es', fr:'fr', it:'it', tr:'tr', ru:'ru', en:'en', pl:'pl'};
+      return prefixMap[prefix] || 'en';
+    }
+
     // Init
     document.addEventListener('DOMContentLoaded', function() {
       savePL();
-      // Detect language: localStorage > navigator.language > default PL
-      var saved = null;
-      try { saved = localStorage.getItem('hd_lang'); } catch(e) {}
-      var lang = saved || (navigator.language && navigator.language.substring(0,2) !== 'pl' ? 'en' : 'pl');
+      var lang = detectLang();
       if (lang !== 'pl') applyLang(lang);
-      // Click handlers
-      document.querySelectorAll('.lang-btn').forEach(function(btn) {
+      else { window._hdLang = 'pl'; }
+
+      // Dropdown toggle
+      var cur = document.getElementById('lang-current');
+      var sw = document.getElementById('lang-switch');
+      if (cur && sw) {
+        cur.addEventListener('click', function(e) {
+          e.stopPropagation();
+          sw.classList.toggle('open');
+        });
+        document.addEventListener('click', function() {
+          sw.classList.remove('open');
+        });
+        sw.addEventListener('click', function(e) { e.stopPropagation(); });
+      }
+
+      // Language option click handlers
+      document.querySelectorAll('.lang-opt').forEach(function(btn) {
         btn.addEventListener('click', function() {
           applyLang(btn.getAttribute('data-lang'));
         });
