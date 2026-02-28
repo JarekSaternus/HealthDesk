@@ -1,0 +1,14 @@
+{
+  "name": "healthdesk-blog-studio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.0",
+    "marked": "^15.0.0",
+    "front-matter": "^4.0.2"
+  }
+}

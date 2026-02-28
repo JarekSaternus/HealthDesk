@@ -1,0 +1,1038 @@
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/{{lang}}/" class="navbar-brand">
+        <img src="/logo-color.svg" alt="HealthDesk logo" class="navbar-logo">
+        HealthDesk
+      </a>
+      <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+      <label for="nav-toggle" class="nav-hamburger" aria-label="Menu">
+        <span></span>
+        <span></span>
+        <span></span>
+      </label>
+      <ul class="navbar-links">
+        <li><a href="#features" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.features}}</a></li>
+        <li><a href="#how-it-works" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.how}}</a></li>
+        <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.why}}</a></li>
+        <li><a href="#comparison" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.comparison}}</a></li>
+        <li><a href="#faq" onclick="document.getElementById('nav-toggle').checked=false">FAQ</a></li>
+        <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">{{t.nav.download}}</a></li>
+      </ul>
+      {{lang_links}}
+    </div>
+  </nav>
+
+  <!-- ===== Hero (2-column layout) ===== -->
+  <section class="hero">
+    <div class="hero-split">
+      <div class="hero-text">
+        <div class="hero-badge">
+          {{t.hero.badge}}
+        </div>
+        <h1>{{t.hero.title}}</h1>
+        <p>{{t.hero.subtitle}}</p>
+        <!-- Platform download cards -->
+        <div class="hero-platforms">
+          <div class="platform-card" id="dl-windows">
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+            <span class="platform-name">Windows</span>
+            <a href="#" class="btn btn-primary btn-sm platform-dl-btn" data-download="true">{{t.dl.btn}}</a>
+          </div>
+          <div class="platform-card" id="dl-macos">
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+            <span class="platform-name">macOS</span>
+            <a href="#" class="btn btn-primary btn-sm platform-dl-btn">{{t.dl.btn}}</a>
+          </div>
+          <div class="platform-card" id="dl-linux">
+            <svg width="54" height="54" viewBox="0 0 24 24" fill="currentColor"><path d="M12.504 0c-.155 0-.315.008-.48.021-4.226.333-3.105 4.807-3.17 6.298-.076 1.092-.3 1.953-1.05 3.02-.885 1.051-2.127 2.75-2.716 4.521-.278.832-.41 1.684-.287 2.489a.424.424 0 00-.11.135c-.26.268-.45.6-.663.839-.199.199-.485.267-.797.4-.313.136-.658.269-.864.68-.09.189-.136.394-.132.602 0 .199.027.4.055.536.058.399.116.728.04.97-.249.68-.28 1.145-.106 1.484.174.334.535.47.94.601.81.2 1.91.135 2.774.6.926.466 1.866.67 2.616.47.526-.116.97-.464 1.208-.946.587-.003 1.23-.269 2.26-.334.699-.058 1.574.267 2.577.2.025.134.063.198.114.333l.003.003c.391.778 1.113 1.368 1.884 1.455.788.074 1.568-.422 1.735-1.26.298-1.554-1.234-5.596-1.234-5.596-.022-.301.017-.591.158-.844.508-1.07.549-2.178.126-3.39-.19-.556-.47-1.086-.84-1.507l-.01-.009c-.09-.263-.065-.603.157-.881.205-.273.39-.425.467-.584.143-.3.163-.548-.03-.744-.18-.18-.404-.18-.621-.18-.212 0-.405.013-.621.01-1.121-.068-1.63-1.306-1.63-1.306s-.068-.137-.09-.137c-.136 0-.249-.067-.3-.34-.067-.349.13-.75.375-1.07.33-.389.54-.94.423-1.467-.075-.341-.25-.714-.502-1.04.25-.03.499-.097.699-.203a.832.832 0 00.395-.558c.09-.373-.065-.71-.247-.882-.091-.066-.155-.09-.229-.09-.082.002-.167.035-.258.068a3.6 3.6 0 01-.458.139c-.234.052-.497.082-.736.073-.164-.005-.32-.022-.452-.06-.145-.042-.285-.126-.335-.302-.067-.23-.058-.456.093-.625.215-.235.561-.356.866-.477.305-.12.601-.242.824-.456.222-.215.362-.507.277-.85-.032-.145-.128-.262-.237-.342a.63.63 0 00-.326-.125 2.082 2.082 0 00-.415-.007c-.276.02-.57.067-.856.12-.286.05-.56.1-.785.103-.45.015-.813-.188-1.127-.518-.264-.278-.444-.613-.621-.927-.177-.314-.351-.614-.544-.832a3.06 3.06 0 00-.49-.44c-.175-.126-.37-.222-.59-.249z"/></svg>
+            <span class="platform-name">Linux</span>
+            <a href="#" class="btn btn-primary btn-sm platform-dl-btn">{{t.dl.btn}}</a>
+          </div>
+        </div>
+
+        <div class="hero-trust">
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>{{t.hero.no_account}}</span>
+          </span>
+          <span>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/></svg>
+            <span id="hero-download-count">{{t.hero.downloads_fallback}}</span>
+          </span>
+        </div>
+      </div>
+      <div class="hero-visual">
+        <img src="/logo-color.svg" alt="HealthDesk" class="hero-logo" id="hero-logo">
+        <!-- App mini-preview in hero -->
+        <div class="hero-app-mini">
+          <div class="app-mini-header">
+            <span class="app-mini-title">HealthDesk</span>
+            <div class="app-mini-controls">
+              <span class="app-mini-ctrl">&#8212;</span>
+              <span class="app-mini-ctrl">&#9633;</span>
+              <span class="app-mini-ctrl">&#10005;</span>
+            </div>
+          </div>
+          <div class="app-mini-body">
+            <div class="app-mini-timer-label">{{t.mini.next_break}}</div>
+            <div class="app-mini-timer" id="hero-timer">14:32</div>
+            <div class="app-mini-stats">
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" id="hero-breaks">6</span>
+                <span class="app-mini-stat-lbl">{{t.mini.breaks}}</span>
+              </div>
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" style="color:#3b82f6;" id="hero-water">5/8</span>
+                <span class="app-mini-stat-lbl">{{t.mini.water}}</span>
+              </div>
+              <div class="app-mini-stat">
+                <span class="app-mini-stat-val" style="color:#a78bfa;" id="hero-worktime">4h 23m</span>
+                <span class="app-mini-stat-lbl">{{t.mini.work}}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Features ===== -->
+  <section class="features" id="features">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">{{t.feat.title}}</h2>
+      <p class="section-subtitle animate-on-scroll">{{t.feat.subtitle}}</p>
+
+      <!-- Top 3 features -->
+      <div class="features-grid features-main">
+        <div class="feature-card feature-card-primary animate-on-scroll delay-1">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <h3>{{t.feat.breaks.t}}</h3>
+          <p>{{t.feat.breaks.d}}</p>
+        </div>
+
+        <div class="feature-card feature-card-primary animate-on-scroll delay-2">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <h3>{{t.feat.water.t}}</h3>
+          <p>{{t.feat.water.d}}</p>
+        </div>
+
+        <div class="feature-card feature-card-primary animate-on-scroll delay-3">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <h3>{{t.feat.eyes.t}}</h3>
+          <p>{{t.feat.eyes.d}}</p>
+        </div>
+      </div>
+
+      <!-- Bonus features -->
+      <h3 class="features-bonus-title animate-on-scroll">{{t.feat.more}}</h3>
+      <div class="features-grid features-bonus">
+        <div class="feature-card animate-on-scroll delay-4">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+          </div>
+          <h3>{{t.feat.track.t}}</h3>
+          <p>{{t.feat.track.d}}</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-5">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </div>
+          <h3>{{t.feat.audio.t}}</h3>
+          <p>{{t.feat.audio.d}}</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-6">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/></svg>
+          </div>
+          <h3>{{t.feat.radio.t}}</h3>
+          <p>{{t.feat.radio.d}}</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-4">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6"/><path d="M8 12h8"/><path d="M12 18v-6"/><path d="M16 12H8"/></svg>
+          </div>
+          <h3>{{t.feat.breath.t}}</h3>
+          <p>{{t.feat.breath.d}}</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-5">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="8.5" cy="7" r="4"/><path d="M20 8v6"/><path d="M23 11h-6"/></svg>
+          </div>
+          <h3>{{t.feat.stretch.t}}</h3>
+          <p>{{t.feat.stretch.d}}</p>
+        </div>
+
+        <div class="feature-card animate-on-scroll delay-6">
+          <div class="feature-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18.36 6.64a9 9 0 1 1-12.73 0"/><line x1="12" y1="2" x2="12" y2="12"/></svg>
+          </div>
+          <h3>{{t.feat.idle.t}}</h3>
+          <p>{{t.feat.idle.d}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== App Preview (HTML mockup) ===== -->
+  <section class="app-preview" id="preview">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">{{t.preview.title}}</h2>
+      <p class="section-subtitle animate-on-scroll">{{t.preview.subtitle}}</p>
+
+      <div class="mockup-wrapper animate-on-scroll">
+        <!-- Main app window -->
+        <div class="mockup-window">
+          <div class="mockup-titlebar">
+            <div class="mockup-titlebar-left">
+              <img src="/logo-color.svg" alt="" class="mockup-icon">
+              <span>HealthDesk</span>
+            </div>
+            <div class="mockup-titlebar-controls">
+              <span class="mockup-ctrl">&#8212;</span>
+              <span class="mockup-ctrl">&#9633;</span>
+              <span class="mockup-ctrl mockup-ctrl-close">&#10005;</span>
+            </div>
+          </div>
+          <div class="mockup-body">
+            <!-- Sidebar -->
+            <div class="mockup-sidebar">
+              <div class="mockup-nav-item mockup-nav-active">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+                Home
+              </div>
+              <div class="mockup-nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 20V10"/><path d="M12 20V4"/><path d="M6 20v-6"/></svg>
+                Statystyki
+              </div>
+              <div class="mockup-nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/></svg>
+                Audio
+              </div>
+              <div class="mockup-nav-item">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                Ustawienia
+              </div>
+              <div class="mockup-sidebar-spacer"></div>
+              <div class="mockup-sidebar-bottom">
+                <div class="mockup-nav-btn">+1 woda</div>
+                <div class="mockup-nav-btn mockup-nav-pause">⏸ Pauza</div>
+              </div>
+            </div>
+            <!-- Content -->
+            <div class="mockup-content">
+              <!-- Work time card -->
+              <div class="mockup-card">
+                <div class="mockup-card-row">
+                  <span class="mockup-label">Czas pracy dzisiaj</span>
+                  <span class="mockup-badge">Pomodoro ▾</span>
+                </div>
+                <div class="mockup-big-value" style="color:#2ecc71" id="mock-worktime">4h 23m</div>
+                <div class="mockup-progress-row">
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:58%;background:#2ecc71" id="mock-work-progress"></div></div>
+                  <span class="mockup-label-sm" id="mock-work-pct">58% dnia (8:00–18:00)</span>
+                </div>
+              </div>
+              <!-- Break timers -->
+              <div class="mockup-grid-2">
+                <div class="mockup-card">
+                  <div class="mockup-card-row">
+                    <span class="mockup-label-xs">Mała</span>
+                    <span class="mockup-label-xs">25 min</span>
+                  </div>
+                  <div class="mockup-timer" style="color:#3498db" id="mock-small-timer">14:32</div>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:42%;background:#3498db" id="mock-small-progress"></div></div>
+                </div>
+                <div class="mockup-card">
+                  <div class="mockup-card-row">
+                    <span class="mockup-label-xs">Duża</span>
+                    <span class="mockup-label-xs">100 min</span>
+                  </div>
+                  <div class="mockup-timer" style="color:#e67e22" id="mock-big-timer">1:02:15</div>
+                  <div class="mockup-progress"><div class="mockup-progress-fill" style="width:38%;background:#e67e22" id="mock-big-progress"></div></div>
+                </div>
+              </div>
+              <!-- Water -->
+              <div class="mockup-card">
+                <div class="mockup-card-row">
+                  <div class="mockup-card-row" style="gap:0.4rem">
+                    <span class="mockup-label-xs">Woda</span>
+                    <span style="color:#3498db;font-weight:700;font-size:0.8rem" id="mock-water-num">5</span>
+                    <span class="mockup-label-xs">/ 8</span>
+                  </div>
+                  <span class="mockup-water-btn">+1</span>
+                </div>
+                <div class="mockup-dots" id="mock-water-dots">
+                  <span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#3498db">●</span><span style="color:#394561">○</span><span style="color:#394561">○</span><span style="color:#394561">○</span>
+                </div>
+                <div class="mockup-progress"><div class="mockup-progress-fill" style="width:62.5%;background:#3498db" id="mock-water-progress"></div></div>
+              </div>
+              <!-- Breaks + Sound -->
+              <div class="mockup-grid-2">
+                <div class="mockup-card">
+                  <span class="mockup-label-xs">Przerwy</span>
+                  <div class="mockup-card-row" style="margin-top:0.35rem">
+                    <div><span style="font-size:1.1rem;font-weight:700;color:#2ecc71" id="mock-breaks-done">6</span> <span class="mockup-label-xs">wykonane</span></div>
+                    <div><span style="font-size:1.1rem;font-weight:700;color:#e74c3c">1</span> <span class="mockup-label-xs">pominięte</span></div>
+                  </div>
+                </div>
+                <div class="mockup-card">
+                  <span class="mockup-label-xs">Dźwięk</span>
+                  <div style="color:#2ecc71;font-size:0.7rem;margin-top:0.25rem">Brown Noise</div>
+                  <div class="mockup-card-row" style="margin-top:0.3rem;gap:0.3rem">
+                    <span class="mockup-sound-btn">⏹</span>
+                    <div class="mockup-progress" style="flex:1"><div class="mockup-progress-fill" style="width:30%;background:#2ecc71"></div></div>
+                    <span class="mockup-sound-btn">🔍</span>
+                    <span class="mockup-sound-btn">♫</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Break popup (small, overlapping) -->
+        <div class="mockup-popup">
+          <div class="mockup-popup-titlebar">
+            <span>HealthDesk — Przerwa!</span>
+            <span class="mockup-ctrl mockup-ctrl-close" style="font-size:0.55rem">&#10005;</span>
+          </div>
+          <div class="mockup-popup-body">
+            <div class="mockup-popup-icon">⏰</div>
+            <div class="mockup-popup-title">{{t.mock.small_break}}</div>
+            <div class="mockup-popup-desc">{{t.mock.break_desc}}</div>
+            <div class="mockup-popup-timer" id="mock-popup-timer">0:18</div>
+            <div class="mockup-popup-buttons">
+              <span class="mockup-popup-btn mockup-popup-btn-accept">{{t.mock.take_break}}</span>
+              <span class="mockup-popup-btn mockup-popup-btn-skip">{{t.mock.skip}}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Breathing exercise popup -->
+        <div class="mockup-popup mockup-popup-breathing">
+          <div class="mockup-popup-titlebar">
+            <span>HealthDesk — Oddychanie</span>
+            <span class="mockup-ctrl mockup-ctrl-close" style="font-size:0.55rem">&#10005;</span>
+          </div>
+          <div class="mockup-popup-body" style="text-align:center;padding:1rem 1.2rem">
+            <div style="font-size:0.85rem;font-weight:700;color:#2ecc71;margin-bottom:0.5rem">{{t.feat.breath.t}}</div>
+            <div class="breathing-orb-wrapper">
+              <div class="breathing-orb" id="breathing-orb"></div>
+              <div class="breathing-orb-inner">
+                <div class="breathing-phase-label" id="breathing-phase">{{t.breathing.inhale}}</div>
+                <div class="breathing-timer" id="breathing-timer">4</div>
+              </div>
+            </div>
+            <div class="breathing-cycle-info" id="breathing-cycle">{{t.breathing.cycle_initial}}</div>
+            <div class="breathing-close-btn">{{t.mock.skip}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== How it works ===== -->
+  <section class="how-it-works" id="how-it-works">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">{{t.how.title}}</h2>
+      <p class="section-subtitle animate-on-scroll">{{t.how.subtitle}}</p>
+
+      <div class="steps">
+        <div class="steps-line" aria-hidden="true"></div>
+
+        <div class="step animate-on-scroll delay-1">
+          <div class="step-number">1</div>
+          <h3>{{t.how.s1.t}}</h3>
+          <p>{{t.how.s1.d}}</p>
+        </div>
+
+        <div class="step animate-on-scroll delay-2">
+          <div class="step-number">2</div>
+          <h3>{{t.how.s2.t}}</h3>
+          <p>{{t.how.s2.d}}</p>
+        </div>
+
+        <div class="step animate-on-scroll delay-3">
+          <div class="step-number">3</div>
+          <h3>{{t.how.s3.t}}</h3>
+          <p>{{t.how.s3.d}}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Stats / Social Proof ===== -->
+  <section class="stats-section" id="why">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">{{t.why.title}}</h2>
+      <p class="section-subtitle animate-on-scroll">{{t.why.subtitle}}</p>
+
+      <div class="stats-grid">
+        <div class="stat-card animate-on-scroll delay-1">
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="stat-card-value">Co 25–52 min</div>
+          <div class="stat-card-title">{{t.why.s1.t}}</div>
+          <div class="stat-card-desc">{{t.why.s1.d}}</div>
+          <div class="stat-card-source">{{t.why.s1.src}}</div>
+        </div>
+
+        <div class="stat-card animate-on-scroll delay-2">
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+          </div>
+          <div class="stat-card-value">8 szklanek</div>
+          <div class="stat-card-title">{{t.why.s2.t}}</div>
+          <div class="stat-card-desc">{{t.why.s2.d}}</div>
+          <div class="stat-card-source">{{t.why.s2.src}}</div>
+        </div>
+
+        <div class="stat-card animate-on-scroll delay-3">
+          <div class="stat-card-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+          </div>
+          <div class="stat-card-value">5 min / godz.</div>
+          <div class="stat-card-title">{{t.why.s3.t}}</div>
+          <div class="stat-card-desc">{{t.why.s3.d}}</div>
+          <div class="stat-card-source">{{t.why.s3.src}}</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Comparison ===== -->
+  <section class="comparison" id="comparison">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">{{t.cmp.title}}</h2>
+      <p class="section-subtitle animate-on-scroll delay-1">{{t.cmp.subtitle}}</p>
+
+      <div class="comparison-table-wrapper animate-on-scroll delay-2">
+        <table class="comparison-table">
+          <thead>
+            <tr>
+              <th class="cmp-feature-col"></th>
+              <th class="cmp-col-hl">
+                <div class="cmp-app-header">
+                  <img src="/logo-color.svg" alt="HealthDesk" class="cmp-app-icon">
+                  <span class="cmp-app-label">HealthDesk</span>
+                </div>
+              </th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Stretchly</span></div></th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Time Out</span></div></th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Workrave</span></div></th>
+              <th><div class="cmp-app-header"><span class="cmp-app-label cmp-app-other">Pomy</span></div></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="cmp-group-header"><td colspan="6">{{t.cmp.g.basics}}</td></tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.platforms}}</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good">Win / Mac / Linux</span></td>
+              <td><span class="cmp-val-good">Win / Mac / Linux</span></td>
+              <td><span class="cmp-val-weak">Tylko macOS</span></td>
+              <td><span class="cmp-val-mid">Win / Linux</span></td>
+              <td><span class="cmp-val-weak">Tylko macOS</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.price}}</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good">{{t.cmp.free}}</span></td>
+              <td>{{t.cmp.free}}</td>
+              <td><span class="cmp-val-weak">Freemium</span></td>
+              <td>{{t.cmp.free}}</td>
+              <td>{{t.cmp.free}}</td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Open Source</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+            </tr>
+
+            <tr class="cmp-group-header"><td colspan="6">{{t.cmp.g.breaks}}</td></tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.break_types}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> {{t.cmp.big_small}}</td>
+              <td><span class="cmp-yes">&#10004;</span> Micro + long</td>
+              <td><span class="cmp-yes">&#10004;</span> Micro + normal</td>
+              <td><span class="cmp-yes">&#10004;</span> Micro + rest</td>
+              <td><span class="cmp-yes">&#10004;</span> Pomodoro</td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.methods}}</td>
+              <td class="cmp-col-hl"><span class="cmp-val-good">Pomodoro, 20-20-20, 52-17, 90-min, Custom</span></td>
+              <td><span class="cmp-val-mid">{{t.cmp.manual}}</span></td>
+              <td><span class="cmp-val-mid">{{t.cmp.manual}}</span></td>
+              <td><span class="cmp-val-mid">{{t.cmp.manual}}</span></td>
+              <td><span class="cmp-val-weak">{{t.cmp.pom_only}}</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">Auto-pauza (idle)</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.snooze}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+
+            <tr class="cmp-group-header"><td colspan="6">{{t.cmp.g.health}}</td></tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.water}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.eye_ex}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> {{t.cmp.animated}}</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.stretch}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> {{t.cmp.animated}}</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">{{t.cmp.text_only}}</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.breathing}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> Box breathing</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+
+            <tr class="cmp-group-header"><td colspan="6">{{t.cmp.g.prod}}</td></tr>
+            <tr>
+              <td class="cmp-feat">Ambient audio</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> {{t.cmp.6sounds}}</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">{{t.cmp.white_noise}}</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.tracking}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> {{t.cmp.auto}}</td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">{{t.cmp.daily_limit}}</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.stats}}</td>
+              <td class="cmp-col-hl"><span class="cmp-yes">&#10004;</span> {{t.cmp.multi_period}}</td>
+              <td><span class="cmp-val-weak">{{t.cmp.basic}}</span></td>
+              <td><span class="cmp-no">&#10006;</span></td>
+              <td><span class="cmp-val-weak">{{t.cmp.basic}}</span></td>
+              <td><span class="cmp-val-weak">{{t.cmp.basic}}</span></td>
+            </tr>
+
+            <tr class="cmp-group-header"><td colspan="6">{{t.cmp.g.perf}}</td></tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.installer_size}}</td>
+              <td class="cmp-col-hl"><span class="cmp-val-accent">~4 MB</span></td>
+              <td>~70 MB</td>
+              <td>~15 MB</td>
+              <td>~10 MB</td>
+              <td>~25 MB</td>
+            </tr>
+            <tr>
+              <td class="cmp-feat">{{t.cmp.ram}}</td>
+              <td class="cmp-col-hl"><span class="cmp-val-accent">~30 MB</span></td>
+              <td>~120 MB</td>
+              <td>~50 MB</td>
+              <td>~20 MB</td>
+              <td>~80 MB</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="comparison-footer animate-on-scroll delay-3">
+        {{t.cmp.footer}}
+      </p>
+    </div>
+  </section>
+
+  <!-- ===== CTA Download ===== -->
+  <section class="cta-section" id="download">
+    <div class="container">
+      <div class="cta-card animate-on-scroll">
+        <h2>{{t.cta.title}}</h2>
+        <p>{{t.cta.subtitle}}</p>
+
+        <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="bottom-download" data-download="true" class="btn btn-primary btn-lg cta-btn">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span id="bottom-download-label">{{t.cta.download}}</span>
+        </a>
+
+        <div class="cta-platforms">
+          <span class="cta-platform">⊞ Windows</span>
+          <span class="cta-divider">·</span>
+          <span class="cta-platform">⌘ macOS</span>
+          <span class="cta-divider">·</span>
+          <span class="cta-platform">🐧 Linux</span>
+        </div>
+
+        <div class="cta-meta">
+          <span class="cta-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="download-count">500+</span> pobrań
+          </span>
+          <span class="cta-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"/></svg>
+            <span data-version>{{t.cta.version_fallback}}</span>
+          </span>
+          <span class="cta-meta-item">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            <span>{{t.cta.no_ads}}</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== FAQ ===== -->
+  <section class="faq" id="faq">
+    <div class="container">
+      <h2 class="section-title animate-on-scroll">{{t.faq.title}}</h2>
+
+      <div class="faq-list">
+        <div class="faq-item animate-on-scroll delay-1">
+          <input type="checkbox" id="faq-1" class="faq-toggle">
+          <label for="faq-1" class="faq-question">
+            <h3>{{t.faq.q1}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer"><div class="faq-answer-inner"><span>{{t.faq.a1}}</span></div></div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-2">
+          <input type="checkbox" id="faq-2" class="faq-toggle">
+          <label for="faq-2" class="faq-question">
+            <h3>{{t.faq.q2}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer"><div class="faq-answer-inner"><span>{{t.faq.a2}}</span></div></div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-3">
+          <input type="checkbox" id="faq-3" class="faq-toggle">
+          <label for="faq-3" class="faq-question">
+            <h3>{{t.faq.q3}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer"><div class="faq-answer-inner"><span>{{t.faq.a3}}</span></div></div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-4">
+          <input type="checkbox" id="faq-4" class="faq-toggle">
+          <label for="faq-4" class="faq-question">
+            <h3>{{t.faq.q4}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer"><div class="faq-answer-inner"><span>{{t.faq.a4}}</span></div></div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-5">
+          <input type="checkbox" id="faq-5" class="faq-toggle">
+          <label for="faq-5" class="faq-question">
+            <h3>{{t.faq.q5}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              <strong>Windows:</strong> Ustawienia > Aplikacje > HealthDesk > Odinstaluj.<br>
+              <strong>macOS:</strong> Przenieś HealthDesk z folderu Aplikacje do Kosza. Dane: ~/Library/Application Support/HealthDesk/.<br>
+              <strong>Linux:</strong> <code>sudo apt remove healthdesk</code> (dla .deb) lub usuń plik .AppImage. Dane: ~/.config/HealthDesk/.<br>
+              <br>Dane użytkownika (ustawienia, statystyki) pozostają po odinstalowaniu — możesz je usunąć ręcznie.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-6">
+          <input type="checkbox" id="faq-6" class="faq-toggle">
+          <label for="faq-6" class="faq-question">
+            <h3>{{t.faq.q6}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              Instalator Windows to tylko ~4 MB, a aplikacja po zainstalowaniu zajmuje ~16 MB RAM. HealthDesk 2.0 został przepisany w technologii Tauri (Rust + React), co zapewnia natywną wydajność i minimalny rozmiar. Generator dźwięków działa w czasie rzeczywistym bez dodatkowych zależności.
+            </div>
+          </div>
+        </div>
+
+        <div class="faq-item animate-on-scroll delay-6">
+          <input type="checkbox" id="faq-7" class="faq-toggle">
+          <label for="faq-7" class="faq-question">
+            <h3>{{t.faq.q7}}</h3>
+            <svg class="faq-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>
+          </label>
+          <div class="faq-answer">
+            <div class="faq-answer-inner">
+              To <strong>Windows SmartScreen</strong> — pojawia się przy każdej nowej aplikacji bez komercyjnego certyfikatu podpisu cyfrowego. HealthDesk jest w 100% bezpieczny i <a href="https://github.com/JarekSaternus/HealthDesk" target="_blank">open source</a>.<br><br>
+              <strong>Jak zainstalować:</strong><br>
+              1. Kliknij <strong>„Więcej informacji"</strong> (lub „More info")<br>
+              2. Kliknij <strong>„Uruchom mimo to"</strong> (lub „Run anyway")<br>
+              3. Gotowe — instalacja ruszy normalnie<br><br>
+              <em>Komunikat zniknie automatycznie, gdy aplikacja zdobędzie wystarczającą liczbę pobrań i reputację w systemie Microsoft.</em>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== Download Modal ===== -->
+  <div id="dl-modal" class="dl-modal" onclick="if(event.target===this)this.classList.remove('dl-modal-open')">
+    <div class="dl-modal-card">
+      <button class="dl-modal-close" onclick="this.closest('.dl-modal').classList.remove('dl-modal-open')">&times;</button>
+      <h2>{{t.modal.title}}</h2>
+      <p class="dl-modal-subtitle">{{t.modal.subtitle}}</p>
+
+      <div class="dl-modal-tabs">
+        <button class="dl-modal-tab dl-modal-tab-active" onclick="showDlTab('windows',this)">Windows</button>
+        <button class="dl-modal-tab" onclick="showDlTab('macos',this)">macOS</button>
+        <button class="dl-modal-tab" onclick="showDlTab('linux',this)">Linux</button>
+      </div>
+
+      <div id="dl-tab-windows" class="dl-modal-content">
+        <div class="dl-modal-steps">
+          <div class="dl-modal-step"><span class="dl-modal-step-num">1</span><span>Pobierz i uruchom instalator <strong>.exe</strong></span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">2</span><span>Pojawi sie niebieski ekran <strong>Windows SmartScreen</strong></span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">3</span><span>Kliknij <strong>„Wiecej informacji"</strong> (More info)</span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">4</span><span>Kliknij <strong>„Uruchom mimo to"</strong> (Run anyway)</span></div>
+        </div>
+        <p class="dl-modal-note">SmartScreen pojawia sie przy kazdej nowej aplikacji bez komercyjnego certyfikatu. To normalne.</p>
+      </div>
+
+      <div id="dl-tab-macos" class="dl-modal-content" style="display:none">
+        <div class="dl-modal-steps">
+          <div class="dl-modal-step"><span class="dl-modal-step-num">1</span><span>Pobierz plik <strong>.dmg</strong> i otwórz go</span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">2</span><span>Przeciagnij HealthDesk do folderu <strong>Aplikacje</strong></span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">3</span><span>Przy pierwszym uruchomieniu: <strong>kliknij prawym</strong> > Otwórz</span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">4</span><span>Potwierdz klikajac <strong>„Otwórz"</strong> w oknie dialogowym</span></div>
+        </div>
+        <p class="dl-modal-note">macOS Gatekeeper blokuje aplikacje spoza App Store. Prawy klik > Otwórz omija to.</p>
+      </div>
+
+      <div id="dl-tab-linux" class="dl-modal-content" style="display:none">
+        <div class="dl-modal-steps">
+          <div class="dl-modal-step"><span class="dl-modal-step-num">1</span><span>Pobierz <strong>.AppImage</strong> lub <strong>.deb</strong></span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">2</span><span>AppImage: <code>chmod +x HealthDesk.AppImage</code> i uruchom</span></div>
+          <div class="dl-modal-step"><span class="dl-modal-step-num">3</span><span>Deb: <code>sudo dpkg -i healthdesk.deb</code></span></div>
+        </div>
+        <p class="dl-modal-note">Linux nie ma odpowiednika SmartScreen — instalacja bez dodatkowych kroków.</p>
+      </div>
+
+      <a id="dl-modal-btn" href="#" class="btn btn-primary btn-lg dl-modal-download">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span>{{t.modal.dl_now}}</span>
+      </a>
+    </div>
+  </div>
+
+  <script>
+    function showDlTab(tab, btn) {
+      document.querySelectorAll('.dl-modal-content').forEach(function(el) { el.style.display = 'none'; });
+      document.querySelectorAll('.dl-modal-tab').forEach(function(el) { el.classList.remove('dl-modal-tab-active'); });
+      document.getElementById('dl-tab-' + tab).style.display = 'block';
+      btn.classList.add('dl-modal-tab-active');
+    }
+  </script>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="/logo-white.svg" alt="HealthDesk" class="footer-logo">
+          HealthDesk
+        </div>
+        <ul class="footer-links">
+          <li><a href="/{{lang}}/privacy/">{{t.footer.privacy}}</a></li>
+          <li><a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></li>
+          {{blog_link}}
+        </ul>
+        <p class="footer-copy">{{t.footer.copy}}</p>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ===== Scroll Animation Script ===== -->
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      var elements = document.querySelectorAll('.animate-on-scroll');
+      if ('IntersectionObserver' in window) {
+        var observer = new IntersectionObserver(function (entries) {
+          entries.forEach(function (entry) {
+            if (entry.isIntersecting) {
+              entry.target.classList.add('visible');
+              observer.unobserve(entry.target);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+        elements.forEach(function (el) { observer.observe(el); });
+      } else {
+        elements.forEach(function (el) { el.classList.add('visible'); });
+      }
+    });
+  </script>
+
+  <script>
+    (function() {
+      var API = 'https://api.github.com/repos/JarekSaternus/HealthDesk/releases/latest';
+      var RELEASES = 'https://github.com/JarekSaternus/HealthDesk/releases/latest';
+      var LANG = '{{lang}}';
+
+      var ua = navigator.userAgent.toLowerCase();
+      var userOS = 'windows';
+      if (ua.indexOf('mac') !== -1) userOS = 'macos';
+      else if (ua.indexOf('linux') !== -1) userOS = 'linux';
+
+      var currentCard = document.getElementById('dl-' + userOS);
+      if (currentCard) currentCard.classList.add('platform-active');
+
+      try {
+        fetch(API).then(function(r) { return r.json(); }).then(function(data) {
+          var assets = data.assets || [];
+          var urls = { windows: '', macos: '', linux_deb: '', linux_appimage: '' };
+
+          assets.forEach(function(a) {
+            var name = (a.name || '').toLowerCase();
+            if (name.endsWith('.exe') || name.endsWith('.msi')) urls.windows = a.browser_download_url;
+            else if (name.endsWith('.dmg')) urls.macos = a.browser_download_url;
+            else if (name.endsWith('.deb')) urls.linux_deb = a.browser_download_url;
+            else if (name.endsWith('.appimage')) urls.linux_appimage = a.browser_download_url;
+          });
+
+          var linux = urls.linux_appimage || urls.linux_deb;
+          var bestUrl = '';
+          if (userOS === 'windows' && urls.windows) bestUrl = urls.windows;
+          else if (userOS === 'macos' && urls.macos) bestUrl = urls.macos;
+          else if (userOS === 'linux' && linux) bestUrl = linux;
+          else bestUrl = urls.windows || RELEASES;
+
+          document.querySelectorAll('[data-download]').forEach(function(el) { el.href = bestUrl; });
+
+          var winBtn = document.querySelector('#dl-windows .platform-dl-btn');
+          var macBtn = document.querySelector('#dl-macos .platform-dl-btn');
+          var linBtn = document.querySelector('#dl-linux .platform-dl-btn');
+          if (winBtn) winBtn.href = urls.windows || RELEASES;
+          if (macBtn) macBtn.href = urls.macos || RELEASES;
+          if (linBtn) linBtn.href = linux || RELEASES;
+
+          if (!urls.windows) document.getElementById('dl-windows').classList.add('platform-unavailable');
+          if (!urls.macos) document.getElementById('dl-macos').classList.add('platform-unavailable');
+          if (!linux) document.getElementById('dl-linux').classList.add('platform-unavailable');
+
+          var DOWNLOAD_OFFSET = 501;
+          fetch('https://api.github.com/repos/JarekSaternus/HealthDesk/releases')
+            .then(function(r) { return r.json(); })
+            .then(function(allReleases) {
+              var total = DOWNLOAD_OFFSET;
+              (allReleases || []).forEach(function(rel) {
+                (rel.assets || []).forEach(function(a) { total += (a.download_count || 0); });
+              });
+              var countEl = document.getElementById('download-count');
+              if (countEl) countEl.textContent = total.toLocaleString();
+              var heroCount = document.getElementById('hero-download-count');
+              if (heroCount) heroCount.textContent = '{{t.hero.downloads_prefix}}' + total.toLocaleString() + '{{t.hero.downloads_suffix}}';
+            });
+
+          var tag = (data.tag_name || '').replace(/^v/i, '');
+          if (tag) {
+            document.querySelectorAll('[data-version]').forEach(function(el) {
+              el.textContent = '{{t.cta.version_label}}' + ' ' + tag;
+            });
+          }
+
+          window._dlUrls = urls;
+          window._dlBestUrl = bestUrl;
+          window._dlLinux = linux;
+
+          document.querySelectorAll('[data-download], .platform-dl-btn').forEach(function(el) {
+            el.addEventListener('click', function(e) {
+              e.preventDefault();
+              var modal = document.getElementById('dl-modal');
+              var modalBtn = document.getElementById('dl-modal-btn');
+              var url = el.href || bestUrl;
+              modalBtn.href = url;
+              var tab = userOS;
+              if (el.closest('#dl-windows')) tab = 'windows';
+              else if (el.closest('#dl-macos')) tab = 'macos';
+              else if (el.closest('#dl-linux')) tab = 'linux';
+              var tabBtn = document.querySelector('.dl-modal-tab:nth-child(' + ({windows:1,macos:2,linux:3}[tab]) + ')');
+              if (tabBtn) showDlTab(tab, tabBtn);
+              modal.classList.add('dl-modal-open');
+            });
+          });
+        });
+      } catch(e) {}
+    })();
+  </script>
+
+  <!-- Hero animations: live timer, stats, logo -->
+  <script>
+    (function() {
+      var timerEl = document.getElementById('hero-timer');
+      var breaksEl = document.getElementById('hero-breaks');
+      var waterEl = document.getElementById('hero-water');
+      var worktimeEl = document.getElementById('hero-worktime');
+
+      var timerMinutes = 14, timerSeconds = 32;
+      var breaks = 6, water = 5, workHours = 4, workMinutes = 23, workSecondAcc = 0;
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+      function popStat(el) { el.classList.remove('hero-stat-pop'); void el.offsetWidth; el.classList.add('hero-stat-pop'); }
+
+      setInterval(function() {
+        timerSeconds--;
+        if (timerSeconds < 0) { timerSeconds = 59; timerMinutes--; }
+        if (timerMinutes < 0) { timerMinutes = 24; timerSeconds = 59; breaks++; breaksEl.textContent = breaks; popStat(breaksEl); }
+        timerEl.textContent = timerMinutes + ':' + pad(timerSeconds);
+        workSecondAcc++;
+        if (workSecondAcc >= 60) { workSecondAcc = 0; workMinutes++; if (workMinutes >= 60) { workMinutes = 0; workHours++; } worktimeEl.textContent = workHours + 'h ' + workMinutes + 'm'; popStat(worktimeEl); }
+      }, 1000);
+
+      setInterval(function() { water++; if (water > 8) water = 1; waterEl.textContent = water + '/8'; popStat(waterEl); }, 8000);
+    })();
+  </script>
+
+  <!-- Mockup preview animations -->
+  <script>
+    (function() {
+      var mWorktime = document.getElementById('mock-worktime');
+      var mWorkProgress = document.getElementById('mock-work-progress');
+      var mWorkPct = document.getElementById('mock-work-pct');
+      var mSmallTimer = document.getElementById('mock-small-timer');
+      var mSmallProgress = document.getElementById('mock-small-progress');
+      var mBigTimer = document.getElementById('mock-big-timer');
+      var mBigProgress = document.getElementById('mock-big-progress');
+      var mWaterNum = document.getElementById('mock-water-num');
+      var mWaterDots = document.getElementById('mock-water-dots');
+      var mWaterProgress = document.getElementById('mock-water-progress');
+      var mBreaksDone = document.getElementById('mock-breaks-done');
+      var mPopupTimer = document.getElementById('mock-popup-timer');
+
+      var workH = 4, workM = 23, workSecAcc = 0;
+      var smallMin = 14, smallSec = 32, smallTotal = 25 * 60;
+      var bigMin = 62, bigSec = 15, bigTotal = 100 * 60;
+      var mWater = 5, mBreaks = 6, popupSec = 18;
+
+      function pad(n) { return n < 10 ? '0' + n : '' + n; }
+
+      function updateWaterDots(count) {
+        var html = '';
+        for (var i = 0; i < 8; i++) html += i < count ? '<span style="color:#3498db">\u25CF</span>' : '<span style="color:#394561">\u25CB</span>';
+        mWaterDots.innerHTML = html;
+      }
+
+      setInterval(function() {
+        smallSec--;
+        if (smallSec < 0) { smallSec = 59; smallMin--; }
+        if (smallMin < 0) { smallMin = 24; smallSec = 59; mBreaks++; mBreaksDone.textContent = mBreaks; }
+        var smallElapsed = smallTotal - (smallMin * 60 + smallSec);
+        mSmallTimer.textContent = smallMin + ':' + pad(smallSec);
+        mSmallProgress.style.width = Math.round((smallElapsed / smallTotal) * 100) + '%';
+
+        bigSec--;
+        if (bigSec < 0) { bigSec = 59; bigMin--; }
+        if (bigMin < 0) { bigMin = 99; bigSec = 59; }
+        var bigElapsed = bigTotal - (bigMin * 60 + bigSec);
+        var bh = Math.floor(bigMin / 60);
+        var bm = bigMin % 60;
+        mBigTimer.textContent = bh + ':' + pad(bm) + ':' + pad(bigSec);
+        mBigProgress.style.width = Math.round((bigElapsed / bigTotal) * 100) + '%';
+
+        popupSec--;
+        if (popupSec < 0) popupSec = 20;
+        mPopupTimer.textContent = '0:' + pad(popupSec);
+
+        workSecAcc++;
+        if (workSecAcc >= 60) {
+          workSecAcc = 0; workM++; if (workM >= 60) { workM = 0; workH++; }
+          mWorktime.textContent = workH + 'h ' + workM + 'm';
+          var totalMin = workH * 60 + workM;
+          var pct = Math.min(Math.round((totalMin / 600) * 100), 100);
+          mWorkProgress.style.width = pct + '%';
+          mWorkPct.textContent = pct + '% dnia (8:00\u201318:00)';
+        }
+      }, 1000);
+
+      setInterval(function() {
+        mWater++; if (mWater > 8) mWater = 1;
+        mWaterNum.textContent = mWater;
+        updateWaterDots(mWater);
+        mWaterProgress.style.width = Math.round((mWater / 8) * 100) + '%';
+      }, 10000);
+
+      // Breathing animation
+      (function() {
+        var phases = [
+          { name: '{{t.breathing.inhale}}', targetScale: 1.0 },
+          { name: '{{t.breathing.hold}}', targetScale: 1.0 },
+          { name: '{{t.breathing.exhale}}', targetScale: 0.6 },
+          { name: '{{t.breathing.hold}}', targetScale: 0.6 }
+        ];
+        var phaseIdx = 0, countdown = 4, cycle = 1, totalCycles = 5;
+        var phaseLabel = document.getElementById('breathing-phase');
+        var timerEl = document.getElementById('breathing-timer');
+        var orb = document.getElementById('breathing-orb');
+        var cycleInfo = document.getElementById('breathing-cycle');
+
+        function applyPhase() {
+          var phase = phases[phaseIdx];
+          phaseLabel.textContent = phase.name;
+          if (phaseIdx === 1 || phaseIdx === 3) { orb.style.transition = 'none'; }
+          else { orb.style.transition = 'transform 4s ease-in-out'; }
+          orb.style.transform = 'scale(' + phase.targetScale + ')';
+          cycleInfo.textContent = '{{t.breathing.cycle_prefix}}' + cycle + ' / ' + totalCycles;
+        }
+
+        orb.style.transform = 'scale(0.6)';
+        setTimeout(function() { applyPhase(); }, 50);
+
+        setInterval(function() {
+          countdown--;
+          if (countdown <= 0) {
+            phaseIdx = (phaseIdx + 1) % 4;
+            if (phaseIdx === 0) { cycle++; if (cycle > totalCycles) cycle = 1; }
+            countdown = 4;
+            applyPhase();
+          }
+          timerEl.textContent = countdown;
+        }, 1000);
+      })();
+    })();
+  </script>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HealthDesk Blog Studio</title>
+  <link rel="icon" type="image/svg+xml" href="/logo-color.svg">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <nav class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-icon">S</span>
+      <span>Blog Studio</span>
+    </div>
+    <ul class="sidebar-nav">
+      <li><a href="#" data-view="dashboard" class="active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        Dashboard
+      </a></li>
+      <li><a href="#" data-view="ideas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a2 2 0 0 1-2 2H10a2 2 0 0 1-2-2v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7z"/><line x1="9" y1="22" x2="15" y2="22"/></svg>
+        Idea Board
+      </a></li>
+      <li><a href="#" data-view="editor" id="nav-editor">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Editor
+      </a></li>
+      <li><a href="#" data-view="checker" id="nav-checker">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Checker
+      </a></li>
+      <li><a href="#" data-view="build">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
+        Build & Deploy
+      </a></li>
+    </ul>
+  </nav>
+
+  <!-- Main content -->
+  <main class="main">
+
+    <!-- ===== Dashboard ===== -->
+    <section class="view" id="view-dashboard">
+      <div class="view-header">
+        <h1>Dashboard</h1>
+        <button class="btn btn-primary" onclick="showNewArticleModal()">+ New Article</button>
+      </div>
+      <div class="stats-bar" id="stats-bar"></div>
+      <div class="filter-bar">
+        <select id="filter-lang" onchange="loadDashboard()">
+          <option value="">All languages</option>
+        </select>
+        <select id="filter-status" onchange="loadDashboard()">
+          <option value="">All statuses</option>
+          <option value="idea">Idea</option>
+          <option value="draft">Draft</option>
+          <option value="review">Review</option>
+          <option value="ready">Ready</option>
+          <option value="published">Published</option>
+        </select>
+      </div>
+      <div class="articles-grid" id="articles-grid"></div>
+    </section>
+
+    <!-- ===== Idea Board ===== -->
+    <section class="view hidden" id="view-ideas">
+      <div class="view-header">
+        <h1>Idea Board</h1>
+      </div>
+      <div class="idea-form">
+        <input type="text" id="idea-keyword" placeholder="Keyword / topic..." class="input">
+        <select id="idea-lang" class="input input-sm">
+          <option value="pl">PL</option>
+          <option value="en">EN</option>
+          <option value="de">DE</option>
+          <option value="es">ES</option>
+          <option value="fr">FR</option>
+        </select>
+        <input type="text" id="idea-notes" placeholder="Notes (optional)" class="input">
+        <button class="btn btn-primary" onclick="addIdea()">Add Idea</button>
+      </div>
+      <div class="ideas-list" id="ideas-list"></div>
+    </section>
+
+    <!-- ===== Editor ===== -->
+    <section class="view hidden" id="view-editor">
+      <div class="view-header">
+        <h1 id="editor-title">Editor</h1>
+        <div class="editor-actions">
+          <button class="btn btn-sm" onclick="runSEOCheck()">SEO Check</button>
+          <button class="btn btn-sm" onclick="switchView('checker')">Grammar</button>
+          <button class="btn btn-primary btn-sm" onclick="saveArticle()">Save</button>
+        </div>
+      </div>
+
+      <!-- Frontmatter form -->
+      <div class="fm-bar" id="fm-bar">
+        <div class="fm-row">
+          <label>Title</label>
+          <input type="text" id="fm-title" class="input" oninput="updateSEOLive()">
+          <span class="fm-counter" id="fm-title-count">0</span>
+        </div>
+        <div class="fm-row">
+          <label>Slug</label>
+          <input type="text" id="fm-slug" class="input input-sm">
+        </div>
+        <div class="fm-row">
+          <label>Description</label>
+          <textarea id="fm-desc" class="input" rows="2" oninput="updateSEOLive()"></textarea>
+          <span class="fm-counter" id="fm-desc-count">0</span>
+        </div>
+        <div class="fm-row fm-row-inline">
+          <div><label>Date</label><input type="date" id="fm-date" class="input input-sm"></div>
+          <div><label>Tags</label><input type="text" id="fm-tags" class="input" placeholder="comma-separated"></div>
+          <div><label>Lang</label><input type="text" id="fm-lang" class="input input-sm" readonly></div>
+        </div>
+      </div>
+
+      <!-- Split editor -->
+      <div class="editor-split">
+        <div class="editor-pane">
+          <textarea id="md-editor" class="md-editor" placeholder="Write your article in Markdown..." oninput="onEditorInput()"></textarea>
+        </div>
+        <div class="preview-pane">
+          <div class="preview-content" id="md-preview"></div>
+        </div>
+      </div>
+
+      <!-- SEO Score panel -->
+      <div class="seo-panel hidden" id="seo-panel">
+        <div class="seo-header">
+          <h3>SEO Score: <span id="seo-score">—</span></h3>
+          <button class="btn-close" onclick="document.getElementById('seo-panel').classList.add('hidden')">&times;</button>
+        </div>
+        <div id="seo-checks"></div>
+      </div>
+    </section>
+
+    <!-- ===== Checker ===== -->
+    <section class="view hidden" id="view-checker">
+      <div class="view-header">
+        <h1>Grammar & Readability</h1>
+        <div class="editor-actions">
+          <button class="btn btn-primary btn-sm" onclick="runGrammarCheck()">Check Grammar</button>
+          <button class="btn btn-sm" onclick="runReadabilityCheck()">Readability</button>
+        </div>
+      </div>
+      <div class="checker-content">
+        <div class="checker-text" id="checker-text">
+          <p class="checker-placeholder">Open an article in the Editor first, then switch to Checker.</p>
+        </div>
+        <div class="checker-sidebar" id="checker-sidebar">
+          <div id="checker-results"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Build & Deploy ===== -->
+    <section class="view hidden" id="view-build">
+      <div class="view-header">
+        <h1>Build & Deploy</h1>
+      </div>
+      <div class="build-cards">
+        <div class="build-card">
+          <h3>Build</h3>
+          <p>Generate static HTML from templates + Markdown.</p>
+          <button class="btn btn-primary" id="btn-build" onclick="runBuild()">Build</button>
+        </div>
+        <div class="build-card">
+          <h3>Preview</h3>
+          <p>Open built site in a new tab.</p>
+          <button class="btn" onclick="window.open('/preview/pl/','_blank')">Preview PL</button>
+          <button class="btn" onclick="window.open('/preview/en/','_blank')">Preview EN</button>
+        </div>
+        <div class="build-card">
+          <h3>Deploy</h3>
+          <p>Upload dist/ to healthdesk.site via FTP.</p>
+          <button class="btn btn-danger" id="btn-deploy" onclick="runDeploy()">Deploy to Production</button>
+        </div>
+      </div>
+      <div class="build-log hidden" id="build-log">
+        <h3>Log</h3>
+        <pre id="build-log-content"></pre>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- New Article Modal -->
+  <div class="modal-overlay hidden" id="modal-new">
+    <div class="modal">
+      <h2>New Article</h2>
+      <div class="fm-row"><label>Language</label>
+        <select id="new-lang" class="input input-sm">
+          <option value="pl">PL</option><option value="en">EN</option>
+          <option value="de">DE</option><option value="es">ES</option>
+          <option value="fr">FR</option>
+        </select>
+      </div>
+      <div class="fm-row"><label>Title</label><input type="text" id="new-title" class="input"></div>
+      <div class="fm-row"><label>Slug</label><input type="text" id="new-slug" class="input" placeholder="auto-generated from title"></div>
+      <div class="modal-actions">
+        <button class="btn" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-primary" onclick="createArticle()">Create</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

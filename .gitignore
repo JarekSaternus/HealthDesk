@@ -4,3 +4,7 @@ src-tauri/target/
 *.exe
 .DS_Store
 .claude/
+landing/dist/
+landing/node_modules/
+landing/studio/node_modules/
+landing/studio/studio.json

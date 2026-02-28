@@ -1,0 +1,517 @@
+/* HealthDesk Blog Studio — Frontend */
+
+let currentArticle = null; // { lang, slug }
+let currentMarkdown = '';
+let allArticles = [];
+
+// ─── Navigation ───
+document.querySelectorAll('[data-view]').forEach(link => {
+  link.addEventListener('click', e => {
+    e.preventDefault();
+    switchView(link.dataset.view);
+  });
+});
+
+function switchView(view) {
+  document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+  document.getElementById('view-' + (view === 'ideas' ? 'ideas' : view)).classList.remove('hidden');
+
+  document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
+  const nav = document.querySelector(`[data-view="${view}"]`);
+  if (nav) nav.classList.add('active');
+
+  if (view === 'dashboard') loadDashboard();
+  if (view === 'ideas') loadIdeas();
+  if (view === 'checker' && currentMarkdown) {
+    renderCheckerText();
+  }
+}
+
+// ─── Dashboard ───
+async function loadDashboard() {
+  const res = await fetch('/api/articles');
+  const data = await res.json();
+  allArticles = data.articles;
+
+  const filterLang = document.getElementById('filter-lang').value;
+  const filterStatus = document.getElementById('filter-status').value;
+
+  let filtered = allArticles;
+  if (filterLang) filtered = filtered.filter(a => a.lang === filterLang);
+  if (filterStatus) filtered = filtered.filter(a => a.status === filterStatus);
+
+  // Stats
+  const stats = document.getElementById('stats-bar');
+  const langs = [...new Set(allArticles.map(a => a.lang))];
+  const totalWords = allArticles.reduce((s, a) => s + a.wordCount, 0);
+  stats.innerHTML = `
+    <div class="stat-card"><div class="stat-val">${allArticles.length}</div><div class="stat-label">Articles</div></div>
+    <div class="stat-card"><div class="stat-val">${langs.length}</div><div class="stat-label">Languages</div></div>
+    <div class="stat-card"><div class="stat-val">${Math.round(totalWords/1000)}k</div><div class="stat-label">Total Words</div></div>
+    <div class="stat-card"><div class="stat-val">${allArticles.filter(a=>a.status==='published').length}</div><div class="stat-label">Published</div></div>
+  `;
+
+  // Populate lang filter
+  const langSelect = document.getElementById('filter-lang');
+  if (langSelect.options.length <= 1) {
+    langs.forEach(l => {
+      const opt = document.createElement('option');
+      opt.value = l; opt.textContent = l.toUpperCase();
+      langSelect.appendChild(opt);
+    });
+  }
+
+  // Render grid
+  const grid = document.getElementById('articles-grid');
+  if (filtered.length === 0) {
+    grid.innerHTML = '<p style="color:var(--text-dim)">No articles found. Create one!</p>';
+    return;
+  }
+  grid.innerHTML = filtered.map(a => `
+    <div class="article-card" onclick="openArticle('${a.lang}','${a.slug}')">
+      <div class="article-card-header">
+        <h3>${escHtml(a.title)}</h3>
+        <span class="badge badge-${a.status}">${a.status}</span>
+      </div>
+      <div class="article-card-meta">
+        <span class="lang-flag">${a.lang.toUpperCase()}</span>
+        <span>${a.date || 'no date'}</span>
+        <span>${a.wordCount} words</span>
+        ${Object.keys(a.siblings).length ? '<span>+ ' + Object.keys(a.siblings).length + ' translations</span>' : ''}
+      </div>
+      ${a.description ? '<div class="article-card-desc">' + escHtml(a.description).slice(0, 120) + '</div>' : ''}
+    </div>
+  `).join('');
+}
+
+// ─── Open article in editor ───
+async function openArticle(lang, slug) {
+  const res = await fetch(`/api/articles/${lang}/${slug}`);
+  if (!res.ok) { alert('Failed to load article'); return; }
+  const data = await res.json();
+
+  currentArticle = { lang, slug };
+  currentMarkdown = data.markdown;
+
+  // Fill frontmatter form
+  document.getElementById('fm-title').value = data.frontmatter.title || '';
+  document.getElementById('fm-slug').value = data.frontmatter.slug || slug;
+  document.getElementById('fm-desc').value = data.frontmatter.description || '';
+  document.getElementById('fm-date').value = data.frontmatter.date ? String(data.frontmatter.date).slice(0,10) : '';
+  document.getElementById('fm-tags').value = (data.frontmatter.tags || []).join(', ');
+  document.getElementById('fm-lang').value = lang;
+  document.getElementById('editor-title').textContent = data.frontmatter.title || slug;
+
+  // Editor
+  document.getElementById('md-editor').value = data.markdown;
+  document.getElementById('md-preview').innerHTML = data.html;
+
+  updateSEOLive();
+  switchView('editor');
+}
+
+// ─── Editor input ───
+function onEditorInput() {
+  const md = document.getElementById('md-editor').value;
+  currentMarkdown = md;
+  // Debounced preview
+  clearTimeout(window._previewTimer);
+  window._previewTimer = setTimeout(() => {
+    fetch('/api/seo/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ frontmatter: getFrontmatter(), markdown: md, lang: currentArticle?.lang || 'pl' })
+    }).then(r => r.json()).then(renderPreviewAndSEO);
+  }, 500);
+}
+
+function renderPreviewAndSEO(data) {
+  // We need html preview — let's use marked on client side (simple approach: re-fetch)
+  // For now just update via marked-like rendering from server response
+  // Actually, let's just parse the markdown to HTML inline:
+  const md = document.getElementById('md-editor').value;
+  document.getElementById('md-preview').innerHTML = simpleMarkdown(md);
+}
+
+function simpleMarkdown(md) {
+  // Minimal markdown renderer for live preview
+  return md
+    .replace(/^### (.+)$/gm, '<h3>$1</h3>')
+    .replace(/^## (.+)$/gm, '<h2>$1</h2>')
+    .replace(/^# (.+)$/gm, '<h1>$1</h1>')
+    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+    .replace(/^\> (.+)$/gm, '<blockquote><p>$1</p></blockquote>')
+    .replace(/^\- (.+)$/gm, '<li>$1</li>')
+    .replace(/(<li>.*<\/li>\n?)+/g, m => '<ul>' + m + '</ul>')
+    .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2">$1</a>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\n\n/g, '</p><p>')
+    .replace(/^(?!<[hublao])/gm, '<p>')
+    .replace(/<p><(h[1-3]|ul|blockquote|li)/g, '<$1')
+    .replace(/<\/p>$/gm, '');
+}
+
+function updateSEOLive() {
+  const title = document.getElementById('fm-title').value;
+  const desc = document.getElementById('fm-desc').value;
+  document.getElementById('fm-title-count').textContent = title.length + '/60';
+  document.getElementById('fm-title-count').style.color = (title.length >= 40 && title.length <= 65) ? 'var(--green)' : 'var(--yellow)';
+  document.getElementById('fm-desc-count').textContent = desc.length + '/160';
+  document.getElementById('fm-desc-count').style.color = (desc.length >= 100 && desc.length <= 165) ? 'var(--green)' : 'var(--yellow)';
+}
+
+function getFrontmatter() {
+  return {
+    title: document.getElementById('fm-title').value,
+    slug: document.getElementById('fm-slug').value,
+    description: document.getElementById('fm-desc').value,
+    date: document.getElementById('fm-date').value,
+    tags: document.getElementById('fm-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    lang: document.getElementById('fm-lang').value,
+    siblings: currentArticle ? (allArticles.find(a => a.lang === currentArticle.lang && a.slug === currentArticle.slug) || {}).siblings || {} : {}
+  };
+}
+
+// ─── Save article ───
+async function saveArticle() {
+  if (!currentArticle) { alert('No article open'); return; }
+
+  const frontmatter = getFrontmatter();
+  const markdown = document.getElementById('md-editor').value;
+
+  const res = await fetch(`/api/articles/${currentArticle.lang}/${currentArticle.slug}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frontmatter, markdown })
+  });
+
+  if (res.ok) {
+    showToast('Saved!');
+    // Update slug if changed
+    if (frontmatter.slug !== currentArticle.slug) {
+      currentArticle.slug = frontmatter.slug;
+    }
+  } else {
+    alert('Save failed');
+  }
+}
+
+// ─── SEO Check ───
+async function runSEOCheck() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+
+  const frontmatter = getFrontmatter();
+  const markdown = document.getElementById('md-editor').value;
+
+  const res = await fetch('/api/seo/analyze', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ frontmatter, markdown, lang: currentArticle.lang })
+  });
+  const data = await res.json();
+
+  const panel = document.getElementById('seo-panel');
+  panel.classList.remove('hidden');
+  document.getElementById('seo-score').textContent = data.score + '%';
+  document.getElementById('seo-score').style.color = data.score >= 80 ? 'var(--green)' : data.score >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+  document.getElementById('seo-checks').innerHTML = data.checks.map(c => `
+    <div class="seo-check">
+      <span class="seo-icon ${c.pass ? 'pass' : 'fail'}">${c.pass ? '&#10003;' : '&#10007;'}</span>
+      <span class="seo-label">${c.label}</span>
+      <span class="seo-value">${c.value}</span>
+    </div>
+    ${!c.pass ? '<div class="seo-hint">' + c.hint + '</div>' : ''}
+  `).join('');
+}
+
+// ─── Checker ───
+function renderCheckerText() {
+  const el = document.getElementById('checker-text');
+  if (currentMarkdown) {
+    el.innerHTML = simpleMarkdown(currentMarkdown);
+  }
+}
+
+async function runGrammarCheck() {
+  if (!currentMarkdown) { alert('Open an article first'); return; }
+
+  const sidebar = document.getElementById('checker-results');
+  sidebar.innerHTML = '<p style="color:var(--text-dim)">Checking grammar...</p>';
+
+  // Strip markdown
+  const plain = currentMarkdown
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/^>\s+/gm, '')
+    .replace(/`[^`]+`/g, '');
+
+  const lang = currentArticle?.lang || 'pl';
+
+  try {
+    const res = await fetch('/api/check/grammar', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text: plain, lang })
+    });
+    const data = await res.json();
+
+    if (!data.matches || data.matches.length === 0) {
+      sidebar.innerHTML = '<p style="color:var(--green);font-weight:600;">No issues found!</p>';
+      return;
+    }
+
+    sidebar.innerHTML = `<p style="margin-bottom:0.75rem;font-weight:600;">${data.matches.length} issue(s) found</p>` +
+      data.matches.map(m => `
+        <div class="grammar-issue">
+          <div class="grammar-issue-msg">${escHtml(m.message)}</div>
+          <div class="grammar-issue-ctx">"...${escHtml(m.context.text.slice(Math.max(0,m.context.offset-10), m.context.offset + m.context.length + 10))}..."</div>
+          ${m.replacements && m.replacements.length ? '<div class="grammar-issue-fix">Suggestion: ' + m.replacements.slice(0,3).map(r => '<strong>'+escHtml(r.value)+'</strong>').join(', ') + '</div>' : ''}
+        </div>
+      `).join('');
+
+    // Highlight errors in text
+    highlightErrors(data.matches);
+  } catch (err) {
+    sidebar.innerHTML = '<p style="color:var(--red)">Error: ' + err.message + '</p>';
+  }
+}
+
+function highlightErrors(matches) {
+  const el = document.getElementById('checker-text');
+  let html = el.innerHTML;
+  // Simple: we can't reliably match positions in HTML, so just note the count
+  // A full implementation would track offsets — for now the sidebar is the main UI
+}
+
+async function runReadabilityCheck() {
+  if (!currentMarkdown) { alert('Open an article first'); return; }
+
+  const lang = currentArticle?.lang || 'pl';
+  const res = await fetch('/api/check/readability', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text: currentMarkdown, lang })
+  });
+  const data = await res.json();
+
+  const sidebar = document.getElementById('checker-results');
+  const fleschColor = data.fleschScore >= 60 ? 'var(--green)' : data.fleschScore >= 40 ? 'var(--yellow)' : 'var(--red)';
+
+  sidebar.innerHTML = `
+    <div class="readability-card">
+      <div class="stat-val" style="color:${fleschColor}">${data.fleschScore}</div>
+      <div class="stat-label">Flesch Score (${data.fleschLabel})</div>
+    </div>
+    <div class="readability-card">
+      <div class="stat-val">${data.wordCount}</div>
+      <div class="stat-label">Words</div>
+    </div>
+    <div class="readability-card">
+      <div class="stat-val">${data.sentenceCount}</div>
+      <div class="stat-label">Sentences</div>
+    </div>
+    <div class="readability-card">
+      <div class="stat-val">${data.avgSentenceLength}</div>
+      <div class="stat-label">Avg Sentence Length</div>
+    </div>
+    <div class="readability-card">
+      <div class="stat-val" style="color:${data.longSentences > 3 ? 'var(--yellow)' : 'var(--green)'}">${data.longSentences}</div>
+      <div class="stat-label">Long Sentences (25+)</div>
+    </div>
+    ${data.issues.length ? '<div style="margin-top:1rem">' + data.issues.map(i => '<p style="color:var(--yellow);font-size:0.8rem;margin-bottom:0.3rem;">&#9888; ' + i + '</p>').join('') + '</div>' : '<p style="color:var(--green);margin-top:1rem;font-size:0.85rem;">No readability issues!</p>'}
+  `;
+}
+
+// ─── Ideas ───
+async function loadIdeas() {
+  const res = await fetch('/api/ideas');
+  const ideas = await res.json();
+
+  const list = document.getElementById('ideas-list');
+  if (ideas.length === 0) {
+    list.innerHTML = '<p style="color:var(--text-dim)">No ideas yet. Add a keyword above.</p>';
+    return;
+  }
+  list.innerHTML = ideas.map(i => `
+    <div class="idea-item">
+      <div class="idea-item-left">
+        <span class="lang-flag">${i.lang.toUpperCase()}</span>
+        <span class="idea-keyword">${escHtml(i.keyword)}</span>
+        ${i.notes ? '<span class="idea-notes">' + escHtml(i.notes) + '</span>' : ''}
+      </div>
+      <div class="idea-actions">
+        <button class="btn btn-sm" onclick="ideaToArticle('${i.id}','${escAttr(i.keyword)}','${i.lang}')">Create Article</button>
+        <button class="btn btn-sm" onclick="deleteIdea('${i.id}')">&times;</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+async function addIdea() {
+  const keyword = document.getElementById('idea-keyword').value.trim();
+  if (!keyword) return;
+
+  await fetch('/api/ideas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      keyword,
+      lang: document.getElementById('idea-lang').value,
+      notes: document.getElementById('idea-notes').value
+    })
+  });
+
+  document.getElementById('idea-keyword').value = '';
+  document.getElementById('idea-notes').value = '';
+  loadIdeas();
+}
+
+async function deleteIdea(id) {
+  await fetch(`/api/ideas/${id}`, { method: 'DELETE' });
+  loadIdeas();
+}
+
+function ideaToArticle(id, keyword, lang) {
+  document.getElementById('new-lang').value = lang;
+  document.getElementById('new-title').value = keyword;
+  document.getElementById('new-slug').value = slugify(keyword);
+  showNewArticleModal();
+}
+
+// ─── New article ───
+function showNewArticleModal() {
+  document.getElementById('modal-new').classList.remove('hidden');
+  document.getElementById('new-title').focus();
+}
+function closeModal() {
+  document.getElementById('modal-new').classList.add('hidden');
+}
+
+document.getElementById('new-title').addEventListener('input', () => {
+  const slug = document.getElementById('new-slug');
+  if (!slug._manual) {
+    slug.value = slugify(document.getElementById('new-title').value);
+  }
+});
+document.getElementById('new-slug').addEventListener('input', function() { this._manual = true; });
+
+async function createArticle() {
+  const lang = document.getElementById('new-lang').value;
+  const title = document.getElementById('new-title').value.trim();
+  const slug = document.getElementById('new-slug').value.trim() || slugify(title);
+
+  if (!title || !slug) { alert('Title and slug required'); return; }
+
+  const res = await fetch('/api/articles', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ lang, slug, title })
+  });
+
+  if (res.ok) {
+    closeModal();
+    openArticle(lang, slug);
+  } else {
+    const err = await res.json();
+    alert(err.error || 'Failed');
+  }
+}
+
+// ─── Build & Deploy ───
+async function runBuild() {
+  const btn = document.getElementById('btn-build');
+  btn.disabled = true;
+  btn.textContent = 'Building...';
+
+  const logEl = document.getElementById('build-log');
+  const logContent = document.getElementById('build-log-content');
+  logEl.classList.remove('hidden');
+  logContent.textContent = 'Running build...\n';
+
+  try {
+    const res = await fetch('/api/build', { method: 'POST' });
+    const data = await res.json();
+    logContent.textContent = data.ok ? data.output : 'Error: ' + data.error;
+  } catch (err) {
+    logContent.textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Build';
+}
+
+async function runDeploy() {
+  if (!confirm('Deploy to production (healthdesk.site)? Make sure you built first.')) return;
+
+  const btn = document.getElementById('btn-deploy');
+  btn.disabled = true;
+  btn.textContent = 'Deploying...';
+
+  const logEl = document.getElementById('build-log');
+  const logContent = document.getElementById('build-log-content');
+  logEl.classList.remove('hidden');
+  logContent.textContent = 'Deploying to FTP...\n';
+
+  try {
+    const res = await fetch('/api/deploy', { method: 'POST' });
+    const data = await res.json();
+    logContent.textContent = data.ok ? data.output : 'Error: ' + data.error;
+  } catch (err) {
+    logContent.textContent = 'Error: ' + err.message;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Deploy to Production';
+}
+
+// ─── Article status ───
+async function setStatus(lang, slug, status) {
+  await fetch(`/api/articles/${lang}/${slug}/status`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status })
+  });
+  loadDashboard();
+}
+
+// ─── Utilities ───
+function slugify(text) {
+  return text.toLowerCase()
+    .replace(/[ąà]/g,'a').replace(/[ćč]/g,'c').replace(/[ę]/g,'e')
+    .replace(/[łĺ]/g,'l').replace(/[ńñ]/g,'n').replace(/[óò]/g,'o')
+    .replace(/[śš]/g,'s').replace(/[źżž]/g,'z').replace(/[üú]/g,'u')
+    .replace(/[ö]/g,'o').replace(/[ä]/g,'a').replace(/[ß]/g,'ss')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+function escHtml(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function escAttr(s) {
+  return String(s).replace(/'/g, "\\'").replace(/"/g, '\\"');
+}
+
+function showToast(msg) {
+  const toast = document.createElement('div');
+  toast.style.cssText = 'position:fixed;bottom:1.5rem;right:1.5rem;background:var(--green);color:#000;padding:0.6rem 1.2rem;border-radius:8px;font-weight:600;font-size:0.85rem;z-index:200;animation:fadeIn 0.2s';
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 2000);
+}
+
+// Keyboard shortcut: Ctrl+S to save
+document.addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 's') {
+    e.preventDefault();
+    if (currentArticle) saveArticle();
+  }
+});
+
+// ─── Init ───
+loadDashboard();

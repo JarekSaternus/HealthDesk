@@ -1,0 +1,55 @@
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/{{lang}}/" class="navbar-brand">
+        <img src="/logo-color.svg" alt="HealthDesk logo" class="navbar-logo">
+        HealthDesk
+      </a>
+      <ul class="navbar-links">
+        <li><a href="/{{lang}}/">{{t.nav.features}}</a></li>
+        <li><a href="/{{lang}}/blog/" class="active">Blog</a></li>
+        <li><a href="/{{lang}}/#download" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">{{t.nav.download}}</a></li>
+      </ul>
+      {{lang_links}}
+    </div>
+  </nav>
+
+  <!-- ===== Blog Index ===== -->
+  <main class="blog-main">
+    <div class="container blog-container">
+      <h1 class="blog-index-title">Blog</h1>
+      <p class="blog-index-subtitle">{{t.blog.subtitle}}</p>
+
+      <div class="blog-missing-notice" id="missing-notice" style="display:none">
+        <p>{{t.blog.not_translated}}</p>
+      </div>
+
+      <div class="blog-grid">
+        {{blog_posts}}
+      </div>
+      <script>
+      (function(){
+        var p=new URLSearchParams(location.search);
+        if(p.get('missing')){document.getElementById('missing-notice').style.display='block'}
+      })();
+      </script>
+    </div>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="/logo-white.svg" alt="HealthDesk" class="footer-logo">
+          HealthDesk
+        </div>
+        <ul class="footer-links">
+          <li><a href="/{{lang}}/privacy/">{{t.footer.privacy}}</a></li>
+          <li><a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></li>
+          <li><a href="/{{lang}}/blog/">Blog</a></li>
+        </ul>
+        <p class="footer-copy">{{t.footer.copy}}</p>
+      </div>
+    </div>
+  </footer>

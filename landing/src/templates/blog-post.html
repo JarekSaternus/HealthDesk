@@ -1,0 +1,59 @@
+  <!-- ===== Navbar ===== -->
+  <nav class="navbar">
+    <div class="container">
+      <a href="/{{lang}}/" class="navbar-brand">
+        <img src="/logo-color.svg" alt="HealthDesk logo" class="navbar-logo">
+        HealthDesk
+      </a>
+      <ul class="navbar-links">
+        <li><a href="/{{lang}}/">{{t.nav.features}}</a></li>
+        <li><a href="/{{lang}}/blog/">Blog</a></li>
+        <li><a href="/{{lang}}/#download" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">{{t.nav.download}}</a></li>
+      </ul>
+      {{lang_links}}
+    </div>
+  </nav>
+
+  <!-- ===== Blog Article ===== -->
+  <main class="blog-main">
+    <div class="container blog-container">
+      <nav class="blog-breadcrumb">
+        <a href="/{{lang}}/">HealthDesk</a> &rsaquo;
+        <a href="/{{lang}}/blog/">Blog</a> &rsaquo;
+        <span>{{article_title}}</span>
+      </nav>
+
+      <article class="blog-article">
+        <header class="blog-header">
+          <h1>{{article_title}}</h1>
+          <div class="blog-meta">
+            <time datetime="{{article_date}}">{{article_date_formatted}}</time>
+            {{article_tags}}
+          </div>
+        </header>
+
+        <div class="blog-content">
+          {{article_html}}
+        </div>
+
+      </article>
+    </div>
+  </main>
+
+  <!-- ===== Footer ===== -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <img src="/logo-white.svg" alt="HealthDesk" class="footer-logo">
+          HealthDesk
+        </div>
+        <ul class="footer-links">
+          <li><a href="/{{lang}}/privacy/">{{t.footer.privacy}}</a></li>
+          <li><a href="mailto:kontakt@healthdesk.site">kontakt@healthdesk.site</a></li>
+          <li><a href="/{{lang}}/blog/">Blog</a></li>
+        </ul>
+        <p class="footer-copy">{{t.footer.copy}}</p>
+      </div>
+    </div>
+  </footer>
