@@ -363,6 +363,133 @@ app.delete('/api/ideas/:id', (req, res) => {
   res.json({ ok: true });
 });
 
+// ─── Serper API helper ───
+function getSerperKey() {
+  try {
+    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'studio.json'), 'utf8'));
+    return data.serper_api_key || '';
+  } catch { return ''; }
+}
+
+const LANG_MAP = {
+  pl: { gl: 'pl', hl: 'pl' },
+  en: { gl: 'us', hl: 'en' },
+  de: { gl: 'de', hl: 'de' },
+  es: { gl: 'es', hl: 'es' },
+  fr: { gl: 'fr', hl: 'fr' }
+};
+
+async function serperRequest(endpoint, body) {
+  const key = getSerperKey();
+  if (!key) throw new Error('No serper_api_key configured in studio.json');
+
+  const response = await fetch(`https://google.serper.dev/${endpoint}`, {
+    method: 'POST',
+    headers: { 'X-API-KEY': key, 'Content-Type': 'application/json' },
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    const err = await response.text();
+    throw new Error(`Serper API error ${response.status}: ${err}`);
+  }
+  return response.json();
+}
+
+// ─── API: Keyword search (Serper) ───
+app.post('/api/keywords/search', async (req, res) => {
+  const { query, lang } = req.body;
+  if (!query) return res.status(400).json({ error: 'query required' });
+
+  const locale = LANG_MAP[lang] || LANG_MAP.en;
+
+  try {
+    console.log(`[Keywords] Searching "${query}" (${lang})...`);
+
+    const [searchData, autocompleteData] = await Promise.all([
+      serperRequest('search', { q: query, gl: locale.gl, hl: locale.hl, num: 5 }),
+      serperRequest('autocomplete', { q: query, gl: locale.gl, hl: locale.hl })
+    ]);
+
+    const result = {
+      organic: (searchData.organic || []).slice(0, 5).map(r => ({
+        title: r.title,
+        link: r.link,
+        snippet: r.snippet,
+        position: r.position
+      })),
+      peopleAlsoAsk: (searchData.peopleAlsoAsk || []).map(p => p.question),
+      relatedSearches: (searchData.relatedSearches || []).map(r => r.query),
+      autocomplete: (autocompleteData.suggestions || []).slice(0, 8)
+    };
+
+    console.log(`[Keywords] Found: ${result.organic.length} organic, ${result.peopleAlsoAsk.length} PAA, ${result.relatedSearches.length} related, ${result.autocomplete.length} autocomplete`);
+    res.json(result);
+  } catch (err) {
+    console.error(`[Keywords] Error: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── API: Keyword AI analysis ───
+app.post('/api/keywords/analyze', async (req, res) => {
+  const { query, lang, serp } = req.body;
+  if (!query || !serp) return res.status(400).json({ error: 'query and serp data required' });
+
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  const serpSummary = (serp.organic || []).map((r, i) =>
+    `${i+1}. "${r.title}" — ${r.link}\n   ${r.snippet}`
+  ).join('\n');
+
+  const paa = (serp.peopleAlsoAsk || []).map(q => `- ${q}`).join('\n');
+  const related = (serp.relatedSearches || []).join(', ');
+  const autocomplete = (serp.autocomplete || []).join(', ');
+
+  try {
+    const result = await callClaude(
+      `You are an SEO analyst for HealthDesk, a desktop wellness app (break reminders, eye exercises, stretch exercises, water tracking, activity monitoring). Analyze keyword potential based on real SERP data.`,
+      `Analyze this keyword for blog content potential.
+
+Keyword: "${query}"
+Language: ${langName}
+
+SERP Top 5:
+${serpSummary}
+
+People Also Ask:
+${paa}
+
+Related Searches: ${related}
+Autocomplete suggestions: ${autocomplete}
+
+Evaluate:
+1. **Potential** (1-5 stars): Is there search demand? Are people looking for this?
+2. **Competition** (1-5 stars): How strong are the current top results? Medical sites? Big brands?
+3. **Relevance** (1-5 stars): How well does this fit HealthDesk's blog (wellness, breaks, ergonomics, eyes, productivity)?
+4. **Suggested title**: SEO-optimized title (50-60 chars, in ${langName})
+5. **Suggested angle**: What unique perspective can HealthDesk offer vs existing results?
+6. **Notes**: Any additional observations
+
+Return as JSON:
+{
+  "potential": 4,
+  "competition": 3,
+  "relevance": 5,
+  "suggestedTitle": "...",
+  "suggestedAngle": "...",
+  "notes": "..."
+}
+Return ONLY valid JSON.`,
+      1000
+    );
+    res.json(parseJsonResponse(result));
+  } catch (err) {
+    console.error(`[Keywords Analyze] Error: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── AI: Generate outline from keyword ───
 app.post('/api/ai/outline', async (req, res) => {
   const { keyword, lang } = req.body;

@@ -14,7 +14,7 @@ document.querySelectorAll('[data-view]').forEach(link => {
 
 function switchView(view) {
   document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-  document.getElementById('view-' + (view === 'ideas' ? 'ideas' : view)).classList.remove('hidden');
+  document.getElementById('view-' + view).classList.remove('hidden');
 
   document.querySelectorAll('.sidebar-nav a').forEach(a => a.classList.remove('active'));
   const nav = document.querySelector(`[data-view="${view}"]`);
@@ -910,6 +910,185 @@ function applySEOFix(btn) {
   }
   updateSEOLive();
   showToast('Applied!');
+}
+
+// ─── Keywords ───
+let lastSerpData = null;
+
+async function searchKeywords() {
+  const query = document.getElementById('kw-query').value.trim();
+  if (!query) return;
+  const lang = document.getElementById('kw-lang').value;
+
+  const btn = document.getElementById('btn-kw-search');
+  btn.disabled = true; btn.textContent = 'Searching...';
+
+  const resultsEl = document.getElementById('kw-results');
+  resultsEl.classList.add('hidden');
+  document.getElementById('kw-analysis').classList.add('hidden');
+
+  try {
+    const res = await fetch('/api/keywords/search', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, lang })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    lastSerpData = data;
+    renderSerpResults(data);
+    resultsEl.classList.remove('hidden');
+  } catch (err) {
+    document.getElementById('kw-serp').innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p>';
+    resultsEl.classList.remove('hidden');
+  }
+
+  btn.disabled = false; btn.textContent = 'Search';
+}
+
+function renderSerpResults(data) {
+  // SERP Top 5
+  const serpEl = document.getElementById('kw-serp');
+  if (data.organic.length === 0) {
+    serpEl.innerHTML = '<p style="color:var(--text-dim)">No organic results found.</p>';
+  } else {
+    serpEl.innerHTML = data.organic.map((r, i) => `
+      <div class="serp-result">
+        <div class="serp-position">${r.position || i + 1}</div>
+        <div class="serp-content">
+          <a href="${escHtml(r.link)}" target="_blank" class="serp-title">${escHtml(r.title)}</a>
+          <div class="serp-url">${escHtml(r.link)}</div>
+          <div class="serp-snippet">${escHtml(r.snippet)}</div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  // People Also Ask
+  const paaEl = document.getElementById('kw-paa');
+  if (data.peopleAlsoAsk.length === 0) {
+    paaEl.innerHTML = '<p style="color:var(--text-dim)">No PAA data.</p>';
+  } else {
+    paaEl.innerHTML = data.peopleAlsoAsk.map(q => `<div class="paa-item">${escHtml(q)}</div>`).join('');
+  }
+
+  // Autocomplete
+  const acEl = document.getElementById('kw-autocomplete');
+  if (data.autocomplete.length === 0) {
+    acEl.innerHTML = '<p style="color:var(--text-dim)">No autocomplete data.</p>';
+  } else {
+    acEl.innerHTML = data.autocomplete.map(s => `<div class="paa-item">${escHtml(s)}</div>`).join('');
+  }
+
+  // Related Searches
+  const relEl = document.getElementById('kw-related');
+  if (data.relatedSearches.length === 0) {
+    relEl.innerHTML = '<p style="color:var(--text-dim)">No related searches.</p>';
+  } else {
+    relEl.innerHTML = data.relatedSearches.map(q =>
+      `<span class="kw-tag" onclick="document.getElementById('kw-query').value='${escAttr(q)}';searchKeywords()">${escHtml(q)}</span>`
+    ).join('');
+  }
+}
+
+async function analyzeKeyword() {
+  if (!lastSerpData) { alert('Search for a keyword first'); return; }
+
+  const query = document.getElementById('kw-query').value.trim();
+  const lang = document.getElementById('kw-lang').value;
+
+  const btn = document.getElementById('btn-kw-analyze');
+  btn.disabled = true; btn.textContent = 'Analyzing...';
+
+  const analysisEl = document.getElementById('kw-analysis');
+  analysisEl.classList.remove('hidden');
+  analysisEl.innerHTML = '<p style="color:var(--accent)">AI is analyzing SERP data... (10-20 sec)</p>';
+
+  try {
+    const res = await fetch('/api/keywords/analyze', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ query, lang, serp: lastSerpData })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    window._lastKwAnalysis = data;
+    renderKwAnalysis(query, lang, data);
+  } catch (err) {
+    analysisEl.innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p>';
+  }
+
+  btn.disabled = false; btn.textContent = 'AI Analyze';
+}
+
+function renderStars(count) {
+  const max = 5;
+  let html = '';
+  for (let i = 0; i < max; i++) {
+    html += i < count ? '<span class="kw-star filled">&#9733;</span>' : '<span class="kw-star">&#9734;</span>';
+  }
+  return html;
+}
+
+function renderKwAnalysis(query, lang, data) {
+  const labels = {
+    potential: 'Potencja\u0142',
+    competition: 'Konkurencja',
+    relevance: 'Dopasowanie do HealthDesk'
+  };
+  const analysisEl = document.getElementById('kw-analysis');
+  analysisEl.innerHTML = `
+    <div class="kw-analysis-card">
+      <h3>AI Analysis</h3>
+      <div class="kw-analysis-ratings">
+        <div class="kw-rating-row">
+          <span class="kw-rating-label">${labels.potential}:</span>
+          <span class="kw-rating-stars">${renderStars(data.potential)}</span>
+        </div>
+        <div class="kw-rating-row">
+          <span class="kw-rating-label">${labels.competition}:</span>
+          <span class="kw-rating-stars">${renderStars(data.competition)}</span>
+        </div>
+        <div class="kw-rating-row">
+          <span class="kw-rating-label">${labels.relevance}:</span>
+          <span class="kw-rating-stars">${renderStars(data.relevance)}</span>
+        </div>
+      </div>
+      ${data.suggestedTitle ? '<div class="kw-suggestion"><strong>Sugerowany tytu\u0142:</strong> ' + escHtml(data.suggestedTitle) + '</div>' : ''}
+      ${data.suggestedAngle ? '<div class="kw-suggestion"><strong>Sugerowany angle:</strong> ' + escHtml(data.suggestedAngle) + '</div>' : ''}
+      ${data.notes ? '<div class="kw-suggestion"><strong>Uwagi:</strong> ' + escHtml(data.notes) + '</div>' : ''}
+      <div class="kw-analysis-actions">
+        <button class="btn btn-primary btn-sm" onclick="createFromKeyword()">Create Article from Keyword</button>
+      </div>
+    </div>
+  `;
+}
+
+function createFromKeyword() {
+  const query = document.getElementById('kw-query').value.trim();
+  const lang = document.getElementById('kw-lang').value;
+  const analysis = window._lastKwAnalysis;
+
+  // Add to Idea Board with SERP context
+  const notes = analysis
+    ? `AI: ${analysis.suggestedAngle || ''} | Potencjał: ${analysis.potential}/5, Konkurencja: ${analysis.competition}/5`
+    : '';
+
+  fetch('/api/ideas', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      keyword: analysis?.suggestedTitle || query,
+      lang,
+      notes,
+      serpScore: analysis ? { potential: analysis.potential, competition: analysis.competition, relevance: analysis.relevance } : null
+    })
+  }).then(() => {
+    showToast('Added to Idea Board!');
+    switchView('ideas');
+  });
 }
 
 // ─── Init ───
