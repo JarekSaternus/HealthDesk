@@ -367,7 +367,21 @@ app.post('/api/deploy', (req, res) => {
     if (err) {
       res.status(500).json({ error: stderr || err.message });
     } else {
-      res.json({ ok: true, output: stdout });
+      // Auto-update status to 'published' for all non-draft articles
+      const studio = loadStudioData();
+      let updated = 0;
+      for (const key of Object.keys(studio.articles || {})) {
+        const status = studio.articles[key].status;
+        if (status && status !== 'published' && status !== 'idea') {
+          studio.articles[key].status = 'published';
+          updated++;
+        }
+      }
+      if (updated > 0) {
+        saveStudioData(studio);
+        console.log(`[Deploy] Updated ${updated} articles to 'published'`);
+      }
+      res.json({ ok: true, output: stdout, publishedCount: updated });
     }
   });
 });
@@ -1593,33 +1607,27 @@ app.post('/api/ai/generate-image', async (req, res) => {
   if (!apiKey) return res.status(400).json({ error: 'No Gemini API key configured. Add gemini_api_key to studio.json' });
 
   try {
-    // Step 1: Claude generates an optimal image prompt
     const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
-    const promptResult = await callClaude(
-      `You generate image prompts for AI image generation. Output ONLY the prompt text, nothing else.`,
-      `Generate a photorealistic image prompt for a blog hero image (1200x630px, landscape).
+    const styleHint = style || 'clean, modern, professional';
 
-Article title: ${title}
-Article description: ${description}
-Style preference: ${style || 'clean, modern, professional'}
+    // Single Gemini call: generate image + alt text
+    const imagePrompt = `Generate a photorealistic hero image for a blog article.
+
+Article: "${title}"
+Description: ${description}
+Style: ${styleHint}
 
 Requirements:
-- Photorealistic or high-quality illustration style
+- Photorealistic or high-quality illustration, landscape orientation (16:9)
 - Related to workplace health, wellness, productivity, or ergonomics
-- No text or typography in the image
-- Good contrast, visually striking for a blog header
-- Suitable as og:image for social media sharing
-- DO NOT include any people's faces (to avoid AI face artifacts)
+- No text, no typography, no watermarks in the image
+- No visible human faces (show hands, silhouettes, or objects instead)
+- Good contrast, visually striking for a blog header and og:image
+- Warm, inviting atmosphere with natural lighting
 
-Output ONLY the image generation prompt, max 200 words.`,
-      300
-    );
+After generating the image, write a single line of SEO alt text (max 125 characters) in ${langName} describing what the image shows. Format: ALT: <your alt text>`;
 
-    const imagePrompt = promptResult.trim();
-    console.log(`[Image] Prompt: ${imagePrompt.slice(0, 100)}...`);
-
-    // Step 2: Call Gemini 3.1 Flash Image (Nano Banana 2) API
-    console.log('[Image] Calling Gemini 3.1 Flash Image...');
+    console.log(`[Image] Calling Gemini 3.1 Flash Image for "${title}"...`);
     const geminiRes = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
       {
@@ -1641,26 +1649,30 @@ Output ONLY the image generation prompt, max 200 words.`,
 
     const geminiData = await geminiRes.json();
 
-    // Extract image from response
+    // Extract image and alt text from response
     let imageBase64 = null;
     let imageMime = null;
+    let altText = title; // fallback
     const parts = geminiData.candidates?.[0]?.content?.parts || [];
     for (const part of parts) {
       if (part.inlineData) {
         imageBase64 = part.inlineData.data;
         imageMime = part.inlineData.mimeType;
-        break;
+      }
+      if (part.text) {
+        const altMatch = part.text.match(/ALT:\s*(.+)/i);
+        if (altMatch) altText = altMatch[1].trim().slice(0, 125).replace(/"/g, "'");
       }
     }
 
     if (!imageBase64) {
-      throw new Error('Gemini did not return an image. Try a different prompt.');
+      throw new Error('Gemini did not return an image. Try again.');
     }
 
     console.log(`[Image] Received ${imageMime} image, converting to WebP...`);
     const imgBuffer = Buffer.from(imageBase64, 'base64');
 
-    // Step 3: Convert and optimize with sharp → WebP 1200x630
+    // Convert and optimize with sharp → WebP 1200x630
     fs.mkdirSync(BLOG_IMAGES_DIR, { recursive: true });
     const filename = `${slug}.webp`;
     const filepath = path.join(BLOG_IMAGES_DIR, filename);
@@ -1673,20 +1685,12 @@ Output ONLY the image generation prompt, max 200 words.`,
     const stats = fs.statSync(filepath);
     console.log(`[Image] Saved: ${filepath} (${(stats.size / 1024).toFixed(1)} KB)`);
 
-    // Step 4: Generate SEO alt text
-    const altResult = await callClaude(
-      `Generate a concise, descriptive alt text for an image. Output ONLY the alt text, max 125 characters.`,
-      `Blog article: "${title}"\nImage prompt used: "${imagePrompt}"\n\nWrite alt text in ${langName} that describes the image content for accessibility and SEO.`,
-      100
-    );
-    const altText = altResult.trim().replace(/"/g, "'");
-
     res.json({
       ok: true,
       filename,
       path: `/images/blog/${filename}`,
       altText,
-      prompt: imagePrompt,
+      prompt: imagePrompt.split('\n')[0],
       size: `${(stats.size / 1024).toFixed(1)} KB`
     });
   } catch (err) {

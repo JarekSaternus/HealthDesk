@@ -518,6 +518,14 @@ function build() {
           ? `<img src="${post.image}" alt="${post.image_alt}" class="blog-hero-image" width="1200" height="630" loading="eager">`
           : '';
 
+        // Generate visible FAQ section from frontmatter
+        const faqLabel = lang === 'pl' ? 'Najczęściej zadawane pytania' : 'Frequently Asked Questions';
+        const visibleFaqHtml = (post.faq && Array.isArray(post.faq) && post.faq.length > 0)
+          ? `<section class="blog-faq"><h2>${faqLabel}</h2><div class="faq-list">${post.faq.map(item =>
+              `<details class="faq-item"><summary>${item.q}</summary><p>${item.a}</p></details>`
+            ).join('')}</div></section>`
+          : '';
+
         const postVars = {
           _resolve: resolve,
           lang,
@@ -525,7 +533,7 @@ function build() {
           article_title: post.title,
           article_date: post.date,
           article_date_formatted: formatDate(post.date, lang),
-          article_html: post.html,
+          article_html: post.html + visibleFaqHtml,
           article_tags: tagsHtml,
           article_hero_image: heroImageHtml
         };
