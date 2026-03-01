@@ -1,8 +1,9 @@
 ---
 title: "Workplace Ergonomics — How to Set Up Your Desk, Chair, and Monitor"
 slug: "workplace-ergonomics"
-date: 2026-03-05
+date: 2026-02-21
 description: "A practical guide to computer workstation ergonomics. Learn how to position your monitor, chair, and desk to avoid back and neck pain."
+keyword: "workplace ergonomics"
 tags: ["ergonomics", "spine", "desk"]
 lang: en
 siblings:

@@ -1,8 +1,9 @@
 ---
 title: "Healthy Eyes at the Computer — 7 Habits Worth Adopting"
 slug: "healthy-eyes-at-computer"
-date: 2026-03-01
+date: 2026-02-17
 description: "Learn how to protect your eyesight during long hours of computer work. 7 proven habits that keep your eyes healthy."
+keyword: "healthy eyes at computer"
 tags: ["eyes", "health", "ergonomics"]
 lang: en
 siblings:

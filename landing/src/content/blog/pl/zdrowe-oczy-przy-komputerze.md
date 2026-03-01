@@ -1,8 +1,9 @@
 ---
 title: "Zdrowe oczy przy komputerze — 7 nawyków, które warto wdrożyć"
 slug: "zdrowe-oczy-przy-komputerze"
-date: 2026-03-01
+date: 2026-02-15
 description: "Dowiedz się, jak dbać o wzrok podczas wielogodzinnej pracy przy komputerze. 7 sprawdzonych nawyków, które chronią Twoje oczy."
+keyword: "zdrowe oczy przy komputerze"
 tags: ["oczy", "zdrowie", "ergonomia"]
 lang: pl
 siblings:

@@ -1,8 +1,9 @@
 ---
 title: "Ćwiczenia przy biurku na ból pleców – 10 skutecznych"
 slug: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
-date: 2026-02-28
+date: 2026-02-27
 description: "Ból pleców przy biurku? Poznaj 10 skutecznych ćwiczeń, które możesz wykonać w pracy i szybko ulżysz swojemu kręgosłupowi!"
+keyword: "ćwiczenia przy biurku na ból pleców"
 tags: ["ćwiczenia przy biurku", "ból pleców", "praca siedząca", "zdrowie w pracy", "stretching biurowy"]
 lang: pl
 siblings:

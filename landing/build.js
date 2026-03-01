@@ -164,6 +164,14 @@ function generateBlogPostSchema(meta, lang, articleHtml) {
     mainEntityOfPage: `${SITE_URL}/${lang}/blog/${meta.slug}/`,
     inLanguage: lang
   };
+  if (meta.image) {
+    schema.image = {
+      '@type': 'ImageObject',
+      url: `${SITE_URL}${meta.image}`,
+      width: 1200,
+      height: 630
+    };
+  }
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
 }
 

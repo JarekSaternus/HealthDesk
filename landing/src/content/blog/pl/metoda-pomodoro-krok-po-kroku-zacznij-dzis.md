@@ -1,8 +1,9 @@
 ---
 title: "Metoda Pomodoro krok po kroku – zacznij dziś"
 slug: "metoda-pomodoro-krok-po-kroku-zacznij-dzis"
-date: 2026-03-01
+date: 2026-02-28
 description: "Poznaj metodę Pomodoro krok po kroku i zwiększ swoją produktywność już dziś. Praktyczny przewodnik dla każdego, kto chce lepiej zarządzać czasem."
+keyword: "metoda pomodoro"
 tags: ["metoda pomodoro", "produktywność", "zarządzanie czasem", "przerwy w pracy", "technika pomodoro"]
 lang: pl
 ---

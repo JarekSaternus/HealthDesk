@@ -1,8 +1,9 @@
 ---
 title: "Ergonomia stanowiska pracy — jak ustawić biurko, krzesło i monitor"
 slug: "ergonomia-stanowiska-pracy"
-date: 2026-03-05
+date: 2026-02-19
 description: "Praktyczny poradnik ergonomii stanowiska komputerowego. Dowiedz się, jak ustawić monitor, krzesło i biurko, żeby uniknąć bólów pleców i szyi."
+keyword: "ergonomia stanowiska pracy"
 tags: ["ergonomia", "kręgosłup", "biurko"]
 lang: pl
 siblings:

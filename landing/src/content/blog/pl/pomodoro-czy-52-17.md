@@ -1,8 +1,9 @@
 ---
 title: "Pomodoro czy 52-17? Która metoda pracy jest lepsza?"
 slug: "pomodoro-czy-52-17"
-date: 2026-03-10
+date: 2026-02-23
 description: "Porównanie techniki Pomodoro (25/5) z metodą 52-17. Dowiedz się, która strategia przerw w pracy zwiększy Twoją produktywność — i jak HealthDesk wspiera obie."
+keyword: "pomodoro czy 52-17"
 tags: ["produktywność", "pomodoro", "przerwy", "52-17"]
 lang: pl
 siblings:

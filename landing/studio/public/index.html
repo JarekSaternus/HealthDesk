@@ -94,7 +94,151 @@
     <section class="view hidden" id="view-keywords">
       <div class="view-header">
         <h1>Keyword Research</h1>
+        <div class="kw-tabs">
+          <button class="btn btn-sm kw-tab active" onclick="switchKwTab('research')">Research</button>
+          <button class="btn btn-sm kw-tab" onclick="switchKwTab('tracker')">Rank Tracker</button>
+          <button class="btn btn-sm kw-tab" onclick="switchKwTab('gsc')">GSC Analytics</button>
+          <button class="btn btn-sm kw-tab" onclick="switchKwTab('structure')">Struktura</button>
+        </div>
       </div>
+
+      <!-- ===== Rank Tracker sub-tab ===== -->
+      <div class="kw-subtab" id="kw-tab-tracker" style="display:none">
+        <div class="tracker-header">
+          <button class="btn btn-primary btn-sm" onclick="showAddKeywordForm()">+ Dodaj keyword</button>
+          <button class="btn btn-sm" onclick="checkAllPositions()" id="btn-check-positions">Sprawdź pozycje</button>
+          <button class="btn btn-sm" onclick="seedExistingKeywords()" id="btn-seed-kw">Seed istniejące</button>
+          <span class="tracker-last-check" id="tracker-last-check"></span>
+        </div>
+
+        <!-- Add keyword form -->
+        <div class="tracker-add-form hidden" id="tracker-add-form">
+          <input type="text" id="tk-keyword" placeholder="Keyword..." class="input" onkeydown="if(event.key==='Enter')addTrackedKeyword()">
+          <select id="tk-lang" class="input input-sm">
+            <option value="pl">PL</option><option value="en">EN</option>
+            <option value="de">DE</option><option value="es">ES</option><option value="fr">FR</option>
+          </select>
+          <select id="tk-target" class="input">
+            <option value="">— Target URL —</option>
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addTrackedKeyword()">Dodaj</button>
+          <button class="btn btn-sm" onclick="document.getElementById('tracker-add-form').classList.add('hidden')">Anuluj</button>
+        </div>
+
+        <!-- Cannibalization alert -->
+        <div class="tracker-alert hidden" id="tracker-cannibalization"></div>
+
+        <!-- Tracked keywords table -->
+        <div class="tracker-table-wrap">
+          <table class="tracker-table" id="tracker-table">
+            <thead>
+              <tr>
+                <th>Keyword</th>
+                <th>Język</th>
+                <th>Target</th>
+                <th>Pozycja</th>
+                <th>Zmiana</th>
+                <th>Trend</th>
+                <th>Status</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="tracker-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== GSC Analytics sub-tab ===== -->
+      <div class="kw-subtab" id="kw-tab-gsc" style="display:none">
+        <div class="gsc-analytics-header">
+          <div class="gsc-analytics-controls">
+            <select id="gsc-period" class="input input-sm" onchange="loadGscAnalytics()">
+              <option value="7">7 dni</option>
+              <option value="28" selected>28 dni</option>
+              <option value="90">90 dni</option>
+            </select>
+            <div class="gsc-view-toggle">
+              <button class="btn btn-sm gsc-view-btn active" onclick="switchGscView('queries')">Zapytania</button>
+              <button class="btn btn-sm gsc-view-btn" onclick="switchGscView('pages')">Strony</button>
+              <button class="btn btn-sm gsc-view-btn" onclick="switchGscView('discover')">Odkryte</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Summary stats -->
+        <div class="gsc-summary" id="gsc-summary"></div>
+
+        <!-- Info/error message -->
+        <div class="gsc-message" id="gsc-message"></div>
+
+        <!-- Queries table -->
+        <div class="gsc-table-wrap" id="gsc-view-queries">
+          <table class="tracker-table" id="gsc-queries-table">
+            <thead>
+              <tr>
+                <th>Zapytanie</th>
+                <th>Kliknięcia</th>
+                <th>Wyświetlenia</th>
+                <th>CTR</th>
+                <th>Pozycja</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="gsc-queries-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Pages table -->
+        <div class="gsc-table-wrap" id="gsc-view-pages" style="display:none">
+          <table class="tracker-table" id="gsc-pages-table">
+            <thead>
+              <tr>
+                <th>Strona</th>
+                <th>Kliknięcia</th>
+                <th>Wyświetlenia</th>
+                <th>CTR</th>
+                <th>Śr. pozycja</th>
+              </tr>
+            </thead>
+            <tbody id="gsc-pages-tbody"></tbody>
+          </table>
+        </div>
+
+        <!-- Discovered keywords -->
+        <div class="gsc-table-wrap" id="gsc-view-discover" style="display:none">
+          <p class="gsc-discover-desc">Keywords z Google na które się pojawiasz, ale nie śledzisz w Rank Trackerze:</p>
+          <table class="tracker-table" id="gsc-discover-table">
+            <thead>
+              <tr>
+                <th>Zapytanie</th>
+                <th>Strona</th>
+                <th>Kliknięcia</th>
+                <th>Wyświetlenia</th>
+                <th>Pozycja</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody id="gsc-discover-tbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== Site Structure sub-tab ===== -->
+      <div class="kw-subtab" id="kw-tab-structure" style="display:none">
+        <div class="structure-wrap">
+          <div class="structure-section">
+            <h3>Landing Pages</h3>
+            <div class="structure-grid" id="structure-landings"></div>
+          </div>
+          <div class="structure-section">
+            <h3>Blog Posts</h3>
+            <div class="structure-grid" id="structure-blogs"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== Research sub-tab ===== -->
+      <div class="kw-subtab" id="kw-tab-research">
       <div class="kw-search-form">
         <input type="text" id="kw-query" placeholder="Enter keyword or phrase..." class="input" onkeydown="if(event.key==='Enter')searchKeywords()">
         <select id="kw-lang" class="input input-sm">
@@ -140,6 +284,7 @@
         <!-- AI Analysis result -->
         <div class="kw-analysis hidden" id="kw-analysis"></div>
       </div>
+      </div><!-- /kw-tab-research -->
     </section>
 
     <!-- ===== Editor ===== -->
@@ -178,6 +323,7 @@
         <div class="fm-row fm-row-inline">
           <div><label>Date</label><input type="date" id="fm-date" class="input input-sm"></div>
           <div><label>Tags</label><input type="text" id="fm-tags" class="input" placeholder="comma-separated"></div>
+          <div><label>Focus Keyword</label><input type="text" id="fm-keyword" class="input" placeholder="main SEO keyword"></div>
           <div><label>Lang</label><input type="text" id="fm-lang" class="input input-sm" readonly></div>
         </div>
       </div>

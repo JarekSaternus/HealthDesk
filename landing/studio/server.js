@@ -180,6 +180,9 @@ app.put('/api/articles/:lang/:slug', (req, res) => {
   yamlLines.push(`slug: "${frontmatter.slug || slug}"`);
   yamlLines.push(`date: ${frontmatter.date || new Date().toISOString().split('T')[0]}`);
   yamlLines.push(`description: "${(frontmatter.description || '').replace(/"/g, '\\"')}"`);
+  if (frontmatter.keyword) {
+    yamlLines.push(`keyword: "${frontmatter.keyword.replace(/"/g, '\\"')}"`);
+  }
   if (frontmatter.tags && frontmatter.tags.length) {
     yamlLines.push(`tags: [${frontmatter.tags.map(t => `"${t}"`).join(', ')}]`);
   }
@@ -201,6 +204,9 @@ app.put('/api/articles/:lang/:slug', (req, res) => {
   const actualSlug = frontmatter.slug || slug;
   const filePath = path.join(langDir, `${actualSlug}.md`);
   fs.writeFileSync(filePath, fileContent, 'utf8');
+
+  // Auto-track article focus keyword
+  syncArticleKeyword(lang, actualSlug, frontmatter.keyword);
 
   res.json({ ok: true, path: filePath });
 });
@@ -1140,24 +1146,345 @@ function countSyllables(word, lang) {
   return matches ? Math.max(1, matches.length) : 1;
 }
 
-// ─── AI: Generate hero image (Replicate Flux → WebP) ───
+// ─── Auto-sync article focus keyword → tracked keywords ───
+function syncArticleKeyword(lang, slug, keyword) {
+  if (!keyword) return 0;
+  keyword = keyword.toLowerCase().trim();
+  if (!keyword) return 0;
+
+  const studio = loadStudioData();
+  if (!studio.tracked_keywords) studio.tracked_keywords = [];
+
+  const targetUrl = `https://healthdesk.site/${lang}/blog/${slug}`;
+  const targetPage = `${lang}/blog/${slug}`;
+
+  const exists = studio.tracked_keywords.find(k => k.keyword === keyword && k.lang === lang);
+  if (exists) {
+    // Update target if changed
+    if (exists.targetUrl !== targetUrl) {
+      exists.targetUrl = targetUrl;
+      exists.targetPage = targetPage;
+      saveStudioData(studio);
+    }
+    return 0;
+  }
+
+  studio.tracked_keywords.push({
+    id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+    keyword,
+    lang,
+    targetUrl,
+    targetPage,
+    addedAt: new Date().toISOString().slice(0, 10),
+    history: [],
+    source: 'auto'
+  });
+  saveStudioData(studio);
+  return 1;
+}
+
+// ─── Keyword Rank Tracker ───
+
+// API: Get tracked keywords
+app.get('/api/keywords/tracked', (req, res) => {
+  const studio = loadStudioData();
+  res.json(studio.tracked_keywords || []);
+});
+
+// API: Add tracked keyword
+app.post('/api/keywords/tracked', (req, res) => {
+  const { keyword, lang, targetUrl, targetPage } = req.body;
+  if (!keyword || !lang) return res.status(400).json({ error: 'keyword and lang required' });
+
+  const studio = loadStudioData();
+  if (!studio.tracked_keywords) studio.tracked_keywords = [];
+
+  // Check duplicate
+  const exists = studio.tracked_keywords.find(k => k.keyword === keyword && k.lang === lang);
+  if (exists) return res.status(409).json({ error: 'Keyword already tracked' });
+
+  const entry = {
+    id: Date.now().toString(36),
+    keyword,
+    lang,
+    targetUrl: targetUrl || '',
+    targetPage: targetPage || '',
+    addedAt: new Date().toISOString().slice(0, 10),
+    history: []
+  };
+  studio.tracked_keywords.push(entry);
+  saveStudioData(studio);
+  res.json(entry);
+});
+
+// API: Delete tracked keyword
+app.delete('/api/keywords/tracked/:id', (req, res) => {
+  const studio = loadStudioData();
+  studio.tracked_keywords = (studio.tracked_keywords || []).filter(k => k.id !== req.params.id);
+  saveStudioData(studio);
+  res.json({ ok: true });
+});
+
+// API: Seed tracked keywords from all existing articles + landing pages
+app.post('/api/keywords/seed-existing', (req, res) => {
+  let totalAdded = 0;
+
+  // 1) Scan all blog articles for focus keyword
+  const blogDir = BLOG_DIR;
+  if (fs.existsSync(blogDir)) {
+    const langs = fs.readdirSync(blogDir).filter(d => fs.statSync(path.join(blogDir, d)).isDirectory());
+    for (const lang of langs) {
+      const langDir = path.join(blogDir, lang);
+      const files = fs.readdirSync(langDir).filter(f => f.endsWith('.md'));
+      for (const file of files) {
+        const content = fs.readFileSync(path.join(langDir, file), 'utf8');
+        const parsed = fm(content);
+        const slug = parsed.attributes.slug || file.replace('.md', '');
+        const keyword = parsed.attributes.keyword;
+        if (keyword) {
+          const added = syncArticleKeyword(lang, slug, keyword);
+          totalAdded += added || 0;
+        }
+      }
+    }
+  }
+
+  // 2) Landing page keywords (manual)
+  const landingKeywords = [
+    { keyword: 'przerwy w pracy', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
+    { keyword: 'zdrowie przy komputerze', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
+    { keyword: 'ćwiczenia dla oczu', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
+    { keyword: 'przypomnienie o wodzie', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
+    { keyword: 'ergonomia pracy biurowej', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
+    { keyword: 'work break reminder', lang: 'en', targetUrl: 'https://healthdesk.site/en/', targetPage: 'en/landing' },
+    { keyword: 'eye exercise app', lang: 'en', targetUrl: 'https://healthdesk.site/en/', targetPage: 'en/landing' },
+    { keyword: 'desk break software', lang: 'en', targetUrl: 'https://healthdesk.site/en/', targetPage: 'en/landing' },
+    { keyword: 'water reminder desktop', lang: 'en', targetUrl: 'https://healthdesk.site/en/', targetPage: 'en/landing' },
+    { keyword: 'healthy computing habits', lang: 'en', targetUrl: 'https://healthdesk.site/en/', targetPage: 'en/landing' },
+  ];
+
+  const studio = loadStudioData();
+  if (!studio.tracked_keywords) studio.tracked_keywords = [];
+
+  for (const lk of landingKeywords) {
+    const exists = studio.tracked_keywords.find(k => k.keyword === lk.keyword && k.lang === lk.lang);
+    if (exists) continue;
+    studio.tracked_keywords.push({
+      id: Date.now().toString(36) + Math.random().toString(36).slice(2, 5),
+      keyword: lk.keyword,
+      lang: lk.lang,
+      targetUrl: lk.targetUrl,
+      targetPage: lk.targetPage,
+      addedAt: new Date().toISOString().slice(0, 10),
+      history: [],
+      source: 'seed'
+    });
+    totalAdded++;
+  }
+
+  if (totalAdded > 0) saveStudioData(studio);
+  res.json({ ok: true, added: totalAdded });
+});
+
+// API: Site structure — all pages with their SEO data
+app.get('/api/site-structure', (req, res) => {
+  const studio = loadStudioData();
+  const keywords = studio.tracked_keywords || [];
+  const pages = [];
+
+  // Landing pages (12 languages)
+  const LANGS = ['pl','en','de','es','fr','it','pt','nl','sv','da','nb','cs'];
+  for (const lang of LANGS) {
+    const url = `https://healthdesk.site/${lang}/`;
+    const kws = keywords.filter(k => k.targetPage === `${lang}/landing`);
+    pages.push({
+      type: 'landing',
+      lang,
+      url,
+      title: `Landing ${lang.toUpperCase()}`,
+      keyword: kws.length ? kws[0].keyword : null,
+      allKeywords: kws.map(k => k.keyword),
+      position: kws.length && kws[0].history.length ? kws[0].history[kws[0].history.length - 1].position : null
+    });
+  }
+
+  // Blog posts
+  if (fs.existsSync(BLOG_DIR)) {
+    const langs = fs.readdirSync(BLOG_DIR).filter(d => fs.statSync(path.join(BLOG_DIR, d)).isDirectory());
+    for (const lang of langs) {
+      const langDir = path.join(BLOG_DIR, lang);
+      const files = fs.readdirSync(langDir).filter(f => f.endsWith('.md'));
+      for (const file of files) {
+        const content = fs.readFileSync(path.join(langDir, file), 'utf8');
+        const parsed = fm(content);
+        const slug = parsed.attributes.slug || file.replace('.md', '');
+        const url = `https://healthdesk.site/${lang}/blog/${slug}`;
+        const kw = keywords.find(k => k.targetPage === `${lang}/blog/${slug}`);
+        const status = (studio.articles[`${lang}/${slug}`] && studio.articles[`${lang}/${slug}`].status) || 'draft';
+        pages.push({
+          type: 'blog',
+          lang,
+          url,
+          title: parsed.attributes.title,
+          slug,
+          keyword: parsed.attributes.keyword || null,
+          position: kw && kw.history.length ? kw.history[kw.history.length - 1].position : null,
+          date: parsed.attributes.date,
+          status,
+          siblings: parsed.attributes.siblings || {}
+        });
+      }
+    }
+  }
+
+  res.json(pages);
+});
+
+// API: Check positions for all tracked keywords (or one)
+app.post('/api/keywords/check-positions', async (req, res) => {
+  const { keywordId } = req.body; // optional: check single keyword
+  const studio = loadStudioData();
+  if (!studio.tracked_keywords || !studio.tracked_keywords.length) {
+    return res.json({ checked: 0, results: [] });
+  }
+
+  const toCheck = keywordId
+    ? studio.tracked_keywords.filter(k => k.id === keywordId)
+    : studio.tracked_keywords;
+
+  const today = new Date().toISOString().slice(0, 10);
+  const results = [];
+
+  for (const kw of toCheck) {
+    const locale = LANG_MAP[kw.lang] || LANG_MAP.en;
+
+    try {
+      console.log(`[Rank] Checking "${kw.keyword}" (${kw.lang})...`);
+      const data = await serperRequest('search', {
+        q: kw.keyword,
+        gl: locale.gl,
+        hl: locale.hl,
+        num: 100
+      });
+
+      // Find healthdesk.site in results
+      const organic = data.organic || [];
+      let foundPosition = null;
+      let foundUrl = null;
+      const allMatches = [];
+
+      for (const result of organic) {
+        if (result.link && result.link.includes('healthdesk.site')) {
+          if (!foundPosition) {
+            foundPosition = result.position;
+            foundUrl = result.link.replace('https://healthdesk.site', '');
+          }
+          allMatches.push({
+            position: result.position,
+            url: result.link.replace('https://healthdesk.site', ''),
+            title: result.title
+          });
+        }
+      }
+
+      // Detect cannibalization
+      const cannibalization = allMatches.length > 1 ||
+        (foundUrl && kw.targetUrl && foundUrl !== kw.targetUrl);
+
+      // Store in history
+      const entry = {
+        date: today,
+        position: foundPosition,
+        foundUrl,
+        allMatches,
+        cannibalization
+      };
+
+      // Find keyword in studio data and update
+      const kwRef = studio.tracked_keywords.find(k => k.id === kw.id);
+      if (kwRef) {
+        // Replace today's entry if already checked today
+        const todayIdx = kwRef.history.findIndex(h => h.date === today);
+        if (todayIdx >= 0) {
+          kwRef.history[todayIdx] = entry;
+        } else {
+          kwRef.history.push(entry);
+        }
+        // Keep max 52 weeks of history
+        if (kwRef.history.length > 52) kwRef.history = kwRef.history.slice(-52);
+      }
+
+      results.push({ id: kw.id, keyword: kw.keyword, ...entry });
+      console.log(`[Rank] "${kw.keyword}": position ${foundPosition || 'not found'}${cannibalization ? ' ⚠️ CANNIBALIZATION' : ''}`);
+
+      // Rate limit
+      if (toCheck.length > 1) await new Promise(r => setTimeout(r, 800));
+    } catch (err) {
+      console.error(`[Rank] Error checking "${kw.keyword}": ${err.message}`);
+      results.push({ id: kw.id, keyword: kw.keyword, error: err.message });
+    }
+  }
+
+  saveStudioData(studio);
+  res.json({ checked: results.length, results });
+});
+
+// API: Cannibalization report
+app.get('/api/keywords/cannibalization', (req, res) => {
+  const studio = loadStudioData();
+  const keywords = studio.tracked_keywords || [];
+  const issues = [];
+
+  // Check for keywords where multiple pages rank
+  for (const kw of keywords) {
+    const latest = kw.history[kw.history.length - 1];
+    if (!latest) continue;
+
+    if (latest.cannibalization) {
+      issues.push({
+        keyword: kw.keyword,
+        lang: kw.lang,
+        targetUrl: kw.targetUrl,
+        foundUrl: latest.foundUrl,
+        allMatches: latest.allMatches || [],
+        suggestion: latest.foundUrl !== kw.targetUrl
+          ? `Strona ${latest.foundUrl} rankuje zamiast ${kw.targetUrl}. Rozważ canonical lub zmianę treści.`
+          : `Kilka stron rankuje na to samo keyword. Rozważ konsolidację.`
+      });
+    }
+  }
+
+  // Check for overlapping target keywords across pages
+  const urlKeywords = {};
+  for (const kw of keywords) {
+    const latest = kw.history[kw.history.length - 1];
+    const url = latest?.foundUrl || kw.targetUrl;
+    if (!url) continue;
+    if (!urlKeywords[url]) urlKeywords[url] = [];
+    urlKeywords[url].push(kw.keyword);
+  }
+
+  res.json({ issues, urlKeywords });
+});
+
+// ─── AI: Generate hero image (Gemini Nano Banana → WebP) ───
 const BLOG_IMAGES_DIR = path.join(LANDING_ROOT, 'src', 'content', 'images', 'blog');
 
-function getReplicateKey() {
+function getGeminiKey() {
   const studio = JSON.parse(fs.readFileSync(STUDIO_DATA, 'utf8'));
-  return studio.replicate_api_key || process.env.REPLICATE_API_TOKEN || null;
+  return studio.gemini_api_key || process.env.GEMINI_API_KEY || null;
 }
 
 app.post('/api/ai/generate-image', async (req, res) => {
   const { slug, lang, title, description, style } = req.body;
-  const apiKey = getReplicateKey();
-  if (!apiKey) return res.status(400).json({ error: 'No Replicate API key configured. Add replicate_api_key to studio.json' });
+  const apiKey = getGeminiKey();
+  if (!apiKey) return res.status(400).json({ error: 'No Gemini API key configured. Add gemini_api_key to studio.json' });
 
   try {
     // Step 1: Claude generates an optimal image prompt
     const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
     const promptResult = await callClaude(
-      `You generate image prompts for the Flux AI model. Output ONLY the prompt text, nothing else.`,
+      `You generate image prompts for AI image generation. Output ONLY the prompt text, nothing else.`,
       `Generate a photorealistic image prompt for a blog hero image (1200x630px, landscape).
 
 Article title: ${title}
@@ -1179,55 +1506,49 @@ Output ONLY the image generation prompt, max 200 words.`,
     const imagePrompt = promptResult.trim();
     console.log(`[Image] Prompt: ${imagePrompt.slice(0, 100)}...`);
 
-    // Step 2: Call Replicate API (Flux Schnell — fast, cheap)
-    console.log('[Image] Calling Replicate Flux...');
-    const replicateRes = await fetch('https://api.replicate.com/v1/predictions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({
-        model: 'black-forest-labs/flux-schnell',
-        input: {
-          prompt: imagePrompt,
-          aspect_ratio: '16:9',
-          output_format: 'webp',
-          output_quality: 80,
-          num_outputs: 1
-        }
-      })
-    });
+    // Step 2: Call Gemini Nano Banana 2 API
+    console.log('[Image] Calling Gemini Nano Banana 2...');
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: imagePrompt }] }],
+          generationConfig: {
+            responseModalities: ['TEXT', 'IMAGE']
+          }
+        })
+      }
+    );
 
-    if (!replicateRes.ok) {
-      const err = await replicateRes.json();
-      throw new Error(err.detail || `Replicate API error: ${replicateRes.status}`);
+    if (!geminiRes.ok) {
+      const err = await geminiRes.json();
+      throw new Error(err.error?.message || `Gemini API error: ${geminiRes.status}`);
     }
 
-    let prediction = await replicateRes.json();
+    const geminiData = await geminiRes.json();
 
-    // Step 3: Poll for completion
-    while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
-      await new Promise(r => setTimeout(r, 1500));
-      const pollRes = await fetch(prediction.urls.get, {
-        headers: { 'Authorization': `Bearer ${apiKey}` }
-      });
-      prediction = await pollRes.json();
-      console.log(`[Image] Status: ${prediction.status}`);
+    // Extract image from response
+    let imageBase64 = null;
+    let imageMime = null;
+    const parts = geminiData.candidates?.[0]?.content?.parts || [];
+    for (const part of parts) {
+      if (part.inlineData) {
+        imageBase64 = part.inlineData.data;
+        imageMime = part.inlineData.mimeType;
+        break;
+      }
     }
 
-    if (prediction.status === 'failed') {
-      throw new Error(prediction.error || 'Image generation failed');
+    if (!imageBase64) {
+      throw new Error('Gemini did not return an image. Try a different prompt.');
     }
 
-    const imageUrl = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output;
-    console.log(`[Image] Generated: ${imageUrl}`);
+    console.log(`[Image] Received ${imageMime} image, converting to WebP...`);
+    const imgBuffer = Buffer.from(imageBase64, 'base64');
 
-    // Step 4: Download and optimize with sharp
-    const imgResponse = await fetch(imageUrl);
-    const imgBuffer = Buffer.from(await imgResponse.arrayBuffer());
-
-    // Optimize: resize to 1200x630 (og:image standard), WebP quality 82
+    // Step 3: Convert and optimize with sharp → WebP 1200x630
     fs.mkdirSync(BLOG_IMAGES_DIR, { recursive: true });
     const filename = `${slug}.webp`;
     const filepath = path.join(BLOG_IMAGES_DIR, filename);
@@ -1240,7 +1561,7 @@ Output ONLY the image generation prompt, max 200 words.`,
     const stats = fs.statSync(filepath);
     console.log(`[Image] Saved: ${filepath} (${(stats.size / 1024).toFixed(1)} KB)`);
 
-    // Step 5: Generate SEO alt text
+    // Step 4: Generate SEO alt text
     const altResult = await callClaude(
       `Generate a concise, descriptive alt text for an image. Output ONLY the alt text, max 125 characters.`,
       `Blog article: "${title}"\nImage prompt used: "${imagePrompt}"\n\nWrite alt text in ${langName} that describes the image content for accessibility and SEO.`,
@@ -1262,11 +1583,18 @@ Output ONLY the image generation prompt, max 200 words.`,
   }
 });
 
+// Serve blog images for preview
+app.get('/api/preview-image/:filename', (req, res) => {
+  const filepath = path.join(BLOG_IMAGES_DIR, req.params.filename);
+  if (!fs.existsSync(filepath)) return res.status(404).send('Not found');
+  res.type('image/webp').sendFile(filepath);
+});
+
 // ─── GSC Indexing ───
 const GSC_KEY_PATH = path.join(LANDING_ROOT, 'gsc-key.json');
 const GSC_CACHE_PATH = path.join(LANDING_ROOT, '.gsc-cache.json');
 const SITEMAP_PATH_GSC = path.join(DIST_DIR, 'sitemap.xml');
-const SITE_URL_GSC = 'https://healthdesk.site';
+const SITE_URL_GSC = 'sc-domain:healthdesk.site';
 
 function loadGscCache() {
   if (fs.existsSync(GSC_CACHE_PATH)) return JSON.parse(fs.readFileSync(GSC_CACHE_PATH, 'utf8'));
@@ -1371,6 +1699,142 @@ app.post('/api/gsc/submit', async (req, res) => {
     errors: results.filter(r => r.status === 'error').length,
     results
   });
+});
+
+// ─── GSC Search Analytics ───
+
+function getGscAuth() {
+  const { google } = require('googleapis');
+  return new google.auth.GoogleAuth({
+    keyFile: GSC_KEY_PATH,
+    scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
+  });
+}
+
+// API: GSC Analytics — performance data (queries, pages, clicks, impressions, position)
+app.get('/api/gsc/analytics', async (req, res) => {
+  if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ configured: false, error: 'Brak gsc-key.json' });
+
+  const { days = 28, type = 'query' } = req.query; // type: query | page
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - parseInt(days));
+
+  try {
+    const { google } = require('googleapis');
+    const auth = getGscAuth();
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
+
+    const result = await searchconsole.searchanalytics.query({
+      siteUrl: SITE_URL_GSC,
+      requestBody: {
+        startDate: startDate.toISOString().slice(0, 10),
+        endDate: endDate.toISOString().slice(0, 10),
+        dimensions: [type],
+        rowLimit: 100
+      }
+    });
+
+    const rows = (result.data.rows || []).map(r => ({
+      key: r.keys[0],
+      clicks: r.clicks,
+      impressions: r.impressions,
+      ctr: Math.round(r.ctr * 1000) / 10,
+      position: Math.round(r.position * 10) / 10
+    }));
+
+    res.json({ configured: true, rows, period: `${startDate.toISOString().slice(0, 10)} — ${endDate.toISOString().slice(0, 10)}` });
+  } catch (err) {
+    const msg = err.response?.data?.error?.message || err.message;
+    console.error('[GSC Analytics]', msg);
+    res.json({ configured: true, rows: [], error: msg });
+  }
+});
+
+// API: GSC Analytics — daily trend for specific query or page
+app.get('/api/gsc/analytics/trend', async (req, res) => {
+  if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ configured: false });
+
+  const { days = 28, query, page } = req.query;
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - parseInt(days));
+
+  const filters = [];
+  if (query) filters.push({ dimension: 'query', operator: 'equals', expression: query });
+  if (page) filters.push({ dimension: 'page', operator: 'contains', expression: page });
+
+  try {
+    const { google } = require('googleapis');
+    const auth = getGscAuth();
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
+
+    const result = await searchconsole.searchanalytics.query({
+      siteUrl: SITE_URL_GSC,
+      requestBody: {
+        startDate: startDate.toISOString().slice(0, 10),
+        endDate: endDate.toISOString().slice(0, 10),
+        dimensions: ['date'],
+        dimensionFilterGroups: filters.length ? [{ filters }] : undefined,
+        rowLimit: 500
+      }
+    });
+
+    const rows = (result.data.rows || []).map(r => ({
+      date: r.keys[0],
+      clicks: r.clicks,
+      impressions: r.impressions,
+      ctr: Math.round(r.ctr * 1000) / 10,
+      position: Math.round(r.position * 10) / 10
+    }));
+
+    res.json({ configured: true, rows });
+  } catch (err) {
+    res.json({ configured: true, rows: [], error: err.response?.data?.error?.message || err.message });
+  }
+});
+
+// API: GSC Analytics — discover new keywords not yet tracked
+app.get('/api/gsc/discover-keywords', async (req, res) => {
+  if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ configured: false });
+
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 28);
+
+  try {
+    const { google } = require('googleapis');
+    const auth = getGscAuth();
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
+
+    const result = await searchconsole.searchanalytics.query({
+      siteUrl: SITE_URL_GSC,
+      requestBody: {
+        startDate: startDate.toISOString().slice(0, 10),
+        endDate: endDate.toISOString().slice(0, 10),
+        dimensions: ['query', 'page'],
+        rowLimit: 200
+      }
+    });
+
+    const studio = loadStudioData();
+    const tracked = (studio.tracked_keywords || []).map(k => k.keyword.toLowerCase());
+
+    const discovered = (result.data.rows || [])
+      .filter(r => !tracked.includes(r.keys[0].toLowerCase()))
+      .map(r => ({
+        query: r.keys[0],
+        page: r.keys[1],
+        clicks: r.clicks,
+        impressions: r.impressions,
+        position: Math.round(r.position * 10) / 10
+      }))
+      .sort((a, b) => b.impressions - a.impressions);
+
+    res.json({ configured: true, discovered });
+  } catch (err) {
+    res.json({ configured: true, discovered: [], error: err.response?.data?.error?.message || err.message });
+  }
 });
 
 // ─── Start ───

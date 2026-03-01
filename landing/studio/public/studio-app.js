@@ -102,6 +102,7 @@ async function openArticle(lang, slug) {
   document.getElementById('fm-desc').value = data.frontmatter.description || '';
   document.getElementById('fm-date').value = data.frontmatter.date ? String(data.frontmatter.date).slice(0,10) : '';
   document.getElementById('fm-tags').value = (data.frontmatter.tags || []).join(', ');
+  document.getElementById('fm-keyword').value = data.frontmatter.keyword || '';
   document.getElementById('fm-lang').value = lang;
   document.getElementById('editor-title').textContent = data.frontmatter.title || slug;
 
@@ -171,6 +172,7 @@ function getFrontmatter() {
     description: document.getElementById('fm-desc').value,
     date: document.getElementById('fm-date').value,
     tags: document.getElementById('fm-tags').value.split(',').map(t => t.trim()).filter(Boolean),
+    keyword: document.getElementById('fm-keyword').value.trim(),
     lang: document.getElementById('fm-lang').value,
     siblings: currentArticle ? (allArticles.find(a => a.lang === currentArticle.lang && a.slug === currentArticle.slug) || {}).siblings || {} : {}
   };
@@ -1014,6 +1016,50 @@ function applySEOFix(btn) {
   showToast('Applied!');
 }
 
+// ─── Generate hero image ───
+async function generateHeroImage() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+
+  const frontmatter = getFrontmatter();
+  if (!confirm(`Generate hero image for "${frontmatter.title}"?\n\nUses Gemini Nano Banana (free tier). May take 5-15s.`)) return;
+
+  showToast('Generating hero image... (15-30s)');
+
+  try {
+    const res = await fetch('/api/ai/generate-image', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        slug: currentArticle.slug,
+        lang: currentArticle.lang,
+        title: frontmatter.title,
+        description: frontmatter.description,
+        style: 'clean, modern, professional, wellness'
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    showToast(`Image generated! (${data.size})`);
+
+    // Show preview and offer to add alt text to frontmatter
+    const preview = document.createElement('div');
+    preview.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#222836;border:2px solid var(--accent);border-radius:12px;padding:1.5rem;z-index:9999;max-width:700px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
+    preview.innerHTML = `
+      <h3 style="color:#fff;margin:0 0 1rem;">Hero Image Generated</h3>
+      <img src="/api/preview-image/${data.filename}" style="width:100%;border-radius:8px;margin-bottom:1rem;" alt="Preview">
+      <p style="color:#8a92a6;font-size:0.85rem;margin:0.5rem 0;"><strong>Alt text:</strong> ${escHtml(data.altText)}</p>
+      <p style="color:#8a92a6;font-size:0.85rem;margin:0.5rem 0;"><strong>Size:</strong> ${data.size} | <strong>Format:</strong> WebP 1200x630</p>
+      <div style="display:flex;gap:0.5rem;margin-top:1rem;">
+        <button class="btn btn-primary btn-sm" onclick="this.closest('div[style]').remove(); showToast('Image saved! Run Build to include it.')">OK</button>
+      </div>
+    `;
+    document.body.appendChild(preview);
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
 // ─── Create language version ───
 async function createLangVersion(targetLang) {
   if (!currentArticle) { alert('Open an article first'); return; }
@@ -1382,4 +1428,478 @@ const origSwitchView = switchView;
 switchView = function(view) {
   origSwitchView(view);
   if (view === 'build') gscRefresh();
+  if (view === 'keywords') loadTrackedKeywords();
 };
+
+// ─── Keyword Rank Tracker ───
+
+function switchKwTab(tab) {
+  document.querySelectorAll('.kw-tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.kw-subtab').forEach(s => s.style.display = 'none');
+  document.getElementById('kw-tab-' + tab).style.display = '';
+  event.target.classList.add('active');
+  if (tab === 'tracker') loadTrackedKeywords();
+  if (tab === 'gsc') loadGscAnalytics();
+  if (tab === 'structure') loadSiteStructure();
+}
+
+async function loadTrackedKeywords() {
+  const tbody = document.getElementById('tracker-tbody');
+  try {
+    const res = await fetch('/api/keywords/tracked');
+    const keywords = await res.json();
+
+    if (keywords.length === 0) {
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--text-dim);padding:2rem;">Brak śledzonych keywords. Kliknij "+ Dodaj keyword" żeby zacząć.</td></tr>';
+      document.getElementById('tracker-cannibalization').classList.add('hidden');
+      return;
+    }
+
+    // Populate target URL dropdown
+    populateTargetDropdown();
+
+    // Find last check date
+    let lastCheck = null;
+    for (const kw of keywords) {
+      if (kw.history.length) {
+        const d = kw.history[kw.history.length - 1].date;
+        if (!lastCheck || d > lastCheck) lastCheck = d;
+      }
+    }
+    document.getElementById('tracker-last-check').textContent = lastCheck
+      ? `Ostatnie sprawdzenie: ${lastCheck}`
+      : 'Jeszcze nie sprawdzono';
+
+    // Render table
+    tbody.innerHTML = keywords.map(kw => {
+      const latest = kw.history.length ? kw.history[kw.history.length - 1] : null;
+      const prev = kw.history.length > 1 ? kw.history[kw.history.length - 2] : null;
+
+      // Position
+      const pos = latest?.position;
+      const posText = pos ? `#${pos}` : '—';
+      const posClass = !pos ? 'tk-pos-none' : pos <= 10 ? 'tk-pos-good' : pos <= 30 ? 'tk-pos-mid' : 'tk-pos-low';
+
+      // Change
+      let changeHtml = '<span class="tk-change-same">—</span>';
+      if (pos && prev?.position) {
+        const diff = prev.position - pos; // positive = improved
+        if (diff > 0) changeHtml = `<span class="tk-change-up">↑${diff}</span>`;
+        else if (diff < 0) changeHtml = `<span class="tk-change-down">↓${Math.abs(diff)}</span>`;
+        else changeHtml = '<span class="tk-change-same">→</span>';
+      }
+
+      // Sparkline (last 8 data points)
+      const sparkData = kw.history.slice(-8).map(h => h.position || 100);
+      const sparkMax = Math.max(...sparkData, 1);
+      const sparkHtml = sparkData.map(p => {
+        const height = Math.max(2, Math.round((1 - (p - 1) / sparkMax) * 20));
+        const color = p <= 10 ? '#2ecc71' : p <= 30 ? '#f1c40f' : p >= 100 ? '#555' : '#e67e22';
+        return `<div class="tk-sparkline-bar" style="height:${height}px;background:${color}"></div>`;
+      }).join('');
+
+      // Status
+      const isCannibalization = latest?.cannibalization;
+      const statusHtml = !latest ? '⏳' :
+        isCannibalization ? '⚠️ Kanibalizacja' :
+        pos ? '✅' : '❌ Brak';
+
+      const rowClass = isCannibalization ? 'tk-cannibalization' : '';
+      // Show readable page name instead of truncated URL
+      let targetLabel = '—';
+      if (kw.targetPage) {
+        targetLabel = kw.targetPage;
+      } else if (kw.targetUrl) {
+        const u = kw.targetUrl.replace('https://healthdesk.site/', '');
+        if (u.includes('/blog/')) {
+          targetLabel = u.split('/blog/')[0].toUpperCase() + ' Blog: ' + u.split('/blog/')[1].replace(/\/$/, '');
+        } else {
+          targetLabel = u.replace(/\/$/, '') || 'Home';
+        }
+      }
+
+      return `<tr class="${rowClass}">
+        <td class="tk-keyword">${escHtml(kw.keyword)}</td>
+        <td>${kw.lang.toUpperCase()}</td>
+        <td class="tk-target" title="${kw.targetUrl || ''}">${escHtml(targetLabel)}</td>
+        <td class="tk-position ${posClass}">${posText}</td>
+        <td>${changeHtml}</td>
+        <td><div class="tk-sparkline">${sparkHtml}</div></td>
+        <td>${statusHtml}</td>
+        <td><button class="btn-close" title="Usuń" onclick="removeTrackedKeyword('${kw.id}')">&times;</button></td>
+      </tr>`;
+    }).join('');
+
+    // Cannibalization alerts
+    checkCannibalization();
+
+  } catch (err) {
+    tbody.innerHTML = `<tr><td colspan="8" style="color:#e74c3c">Błąd: ${err.message}</td></tr>`;
+  }
+}
+
+async function populateTargetDropdown() {
+  const select = document.getElementById('tk-target');
+  if (select.options.length > 1) return; // already populated
+
+  try {
+    const res = await fetch('/api/gsc/status');
+    const data = await res.json();
+    if (data.urls) {
+      data.urls.forEach(u => {
+        const opt = document.createElement('option');
+        const short = u.url.replace('https://healthdesk.site', '');
+        opt.value = short;
+        opt.textContent = short;
+        select.appendChild(opt);
+      });
+    }
+  } catch {}
+}
+
+function showAddKeywordForm() {
+  const form = document.getElementById('tracker-add-form');
+  form.classList.remove('hidden');
+  document.getElementById('tk-keyword').focus();
+  populateTargetDropdown();
+}
+
+async function addTrackedKeyword() {
+  const keyword = document.getElementById('tk-keyword').value.trim();
+  const lang = document.getElementById('tk-lang').value;
+  const targetUrl = document.getElementById('tk-target').value;
+  if (!keyword) return;
+
+  // Determine target page name
+  let targetPage = targetUrl || '';
+  if (targetUrl.includes('/blog/')) {
+    targetPage = 'Blog: ' + targetUrl.split('/blog/')[1].replace(/\/$/, '');
+  } else if (targetUrl.match(/^\/[a-z]{2}\/$/)) {
+    targetPage = 'Landing ' + targetUrl.replace(/\//g, '').toUpperCase();
+  }
+
+  try {
+    const res = await fetch('/api/keywords/tracked', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keyword, lang, targetUrl, targetPage })
+    });
+    const data = await res.json();
+    if (data.error) { showToast(data.error); return; }
+
+    document.getElementById('tk-keyword').value = '';
+    document.getElementById('tracker-add-form').classList.add('hidden');
+    showToast(`Keyword "${keyword}" dodany`);
+    loadTrackedKeywords();
+  } catch (err) {
+    showToast('Błąd: ' + err.message);
+  }
+}
+
+async function removeTrackedKeyword(id) {
+  if (!confirm('Usunąć ten keyword z trackera?')) return;
+  try {
+    await fetch(`/api/keywords/tracked/${id}`, { method: 'DELETE' });
+    loadTrackedKeywords();
+  } catch (err) {
+    showToast('Błąd: ' + err.message);
+  }
+}
+
+async function seedExistingKeywords() {
+  const btn = document.getElementById('btn-seed-kw');
+  btn.disabled = true;
+  btn.textContent = 'Seeduję...';
+  try {
+    const r = await fetch('/api/keywords/seed-existing', { method: 'POST' });
+    const data = await r.json();
+    if (data.ok) {
+      showToast(`Dodano ${data.added} keywords z istniejących artykułów i landing pages`, 'success');
+      loadTrackedKeywords();
+    } else {
+      showToast('Błąd: ' + (data.error || 'unknown'), 'error');
+    }
+  } catch (e) {
+    showToast('Błąd: ' + e.message, 'error');
+  }
+  btn.disabled = false;
+  btn.textContent = 'Seed istniejące';
+}
+
+// ─── GSC Analytics ───
+
+let gscCurrentView = 'queries';
+
+function switchGscView(view) {
+  gscCurrentView = view;
+  document.querySelectorAll('.gsc-view-btn').forEach(b => b.classList.remove('active'));
+  event.target.classList.add('active');
+  document.querySelectorAll('.gsc-table-wrap[id^="gsc-view-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('gsc-view-' + view).style.display = '';
+  if (view === 'discover') loadGscDiscover();
+}
+
+async function loadGscAnalytics() {
+  const days = document.getElementById('gsc-period').value;
+  const msgEl = document.getElementById('gsc-message');
+  const summaryEl = document.getElementById('gsc-summary');
+  msgEl.innerHTML = '<span class="gsc-loading">Ładowanie danych z Google Search Console...</span>';
+  summaryEl.innerHTML = '';
+
+  try {
+    // Load queries and pages in parallel
+    const [qRes, pRes] = await Promise.all([
+      fetch(`/api/gsc/analytics?days=${days}&type=query`),
+      fetch(`/api/gsc/analytics?days=${days}&type=page`)
+    ]);
+    const qData = await qRes.json();
+    const pData = await pRes.json();
+
+    if (!qData.configured) {
+      msgEl.innerHTML = '<span class="gsc-error">Brak konfiguracji GSC (gsc-key.json)</span>';
+      return;
+    }
+
+    if (qData.error) {
+      msgEl.innerHTML = `<span class="gsc-error">${escHtml(qData.error)}</span>`;
+      return;
+    }
+
+    // Summary
+    const totalClicks = qData.rows.reduce((s, r) => s + r.clicks, 0);
+    const totalImpressions = qData.rows.reduce((s, r) => s + r.impressions, 0);
+    const avgCtr = totalImpressions > 0 ? Math.round((totalClicks / totalImpressions) * 1000) / 10 : 0;
+    const avgPos = qData.rows.length > 0 ? Math.round(qData.rows.reduce((s, r) => s + r.position, 0) / qData.rows.length * 10) / 10 : 0;
+
+    if (qData.rows.length === 0 && pData.rows.length === 0) {
+      msgEl.innerHTML = `<span class="gsc-info">Brak danych za ostatnie ${days} dni. Strona jest świeża — dane pojawią się za 2-3 dni po zaindeksowaniu.</span>`;
+      summaryEl.innerHTML = '';
+      document.getElementById('gsc-queries-tbody').innerHTML = '';
+      document.getElementById('gsc-pages-tbody').innerHTML = '';
+      return;
+    }
+
+    msgEl.innerHTML = `<span class="gsc-period-label">${qData.period}</span>`;
+
+    summaryEl.innerHTML = `
+      <div class="gsc-stat-card">
+        <div class="gsc-stat-value">${totalClicks}</div>
+        <div class="gsc-stat-label">Kliknięcia</div>
+      </div>
+      <div class="gsc-stat-card">
+        <div class="gsc-stat-value">${totalImpressions}</div>
+        <div class="gsc-stat-label">Wyświetlenia</div>
+      </div>
+      <div class="gsc-stat-card">
+        <div class="gsc-stat-value">${avgCtr}%</div>
+        <div class="gsc-stat-label">Śr. CTR</div>
+      </div>
+      <div class="gsc-stat-card">
+        <div class="gsc-stat-value">${avgPos}</div>
+        <div class="gsc-stat-label">Śr. pozycja</div>
+      </div>
+    `;
+
+    // Queries table
+    document.getElementById('gsc-queries-tbody').innerHTML = qData.rows
+      .sort((a, b) => b.impressions - a.impressions)
+      .map(r => {
+        const posClass = r.position <= 10 ? 'tk-pos-good' : r.position <= 30 ? 'tk-pos-mid' : 'tk-pos-low';
+        return `<tr>
+          <td class="tk-keyword">${escHtml(r.key)}</td>
+          <td>${r.clicks}</td>
+          <td>${r.impressions}</td>
+          <td>${r.ctr}%</td>
+          <td class="${posClass}">${r.position}</td>
+          <td><button class="btn btn-xs" onclick="trackFromGsc('${escHtml(r.key)}')" title="Dodaj do Rank Tracker">+Track</button></td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="6" class="text-center">Brak danych</td></tr>';
+
+    // Pages table
+    document.getElementById('gsc-pages-tbody').innerHTML = pData.rows
+      .sort((a, b) => b.impressions - a.impressions)
+      .map(r => {
+        const shortUrl = r.key.replace('https://healthdesk.site', '');
+        const posClass = r.position <= 10 ? 'tk-pos-good' : r.position <= 30 ? 'tk-pos-mid' : 'tk-pos-low';
+        return `<tr>
+          <td class="tk-target" title="${escHtml(r.key)}">${escHtml(shortUrl)}</td>
+          <td>${r.clicks}</td>
+          <td>${r.impressions}</td>
+          <td>${r.ctr}%</td>
+          <td class="${posClass}">${r.position}</td>
+        </tr>`;
+      }).join('') || '<tr><td colspan="5" class="text-center">Brak danych</td></tr>';
+
+  } catch (e) {
+    msgEl.innerHTML = `<span class="gsc-error">Błąd: ${escHtml(e.message)}</span>`;
+  }
+}
+
+async function loadGscDiscover() {
+  const tbody = document.getElementById('gsc-discover-tbody');
+  tbody.innerHTML = '<tr><td colspan="6">Szukam nieśledzonych keywords...</td></tr>';
+
+  try {
+    const res = await fetch('/api/gsc/discover-keywords');
+    const data = await res.json();
+
+    if (data.error) {
+      tbody.innerHTML = `<tr><td colspan="6" class="gsc-error">${escHtml(data.error)}</td></tr>`;
+      return;
+    }
+
+    if (!data.discovered.length) {
+      tbody.innerHTML = '<tr><td colspan="6" class="text-center">Brak nowych keywords (wszystkie już śledzone lub brak danych GSC)</td></tr>';
+      return;
+    }
+
+    tbody.innerHTML = data.discovered.map(r => {
+      const shortPage = r.page.replace('https://healthdesk.site', '');
+      const posClass = r.position <= 10 ? 'tk-pos-good' : r.position <= 30 ? 'tk-pos-mid' : 'tk-pos-low';
+      return `<tr>
+        <td class="tk-keyword">${escHtml(r.query)}</td>
+        <td class="tk-target" title="${escHtml(r.page)}">${escHtml(shortPage)}</td>
+        <td>${r.clicks}</td>
+        <td>${r.impressions}</td>
+        <td class="${posClass}">${r.position}</td>
+        <td><button class="btn btn-xs btn-primary" onclick="trackFromGsc('${escHtml(r.query)}', '${escHtml(r.page)}')">+Track</button></td>
+      </tr>`;
+    }).join('');
+  } catch (e) {
+    tbody.innerHTML = `<tr><td colspan="6" class="gsc-error">Błąd: ${escHtml(e.message)}</td></tr>`;
+  }
+}
+
+async function trackFromGsc(keyword, pageUrl) {
+  // Detect lang from page URL or keyword
+  let lang = 'pl';
+  if (pageUrl && pageUrl.includes('/en/')) lang = 'en';
+  else if (pageUrl && pageUrl.includes('/de/')) lang = 'de';
+  else if (/^[a-zA-Z\s]+$/.test(keyword)) lang = 'en';
+
+  const targetUrl = pageUrl || '';
+  let targetPage = '';
+  if (pageUrl) {
+    const path = pageUrl.replace('https://healthdesk.site/', '');
+    targetPage = path.replace(/\/$/, '');
+  }
+
+  try {
+    const res = await fetch('/api/keywords/tracked', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ keyword, lang, targetUrl, targetPage })
+    });
+    const data = await res.json();
+    if (res.ok) {
+      showToast(`Dodano "${keyword}" do Rank Trackera`, 'success');
+      // Refresh discover view
+      if (gscCurrentView === 'discover') loadGscDiscover();
+    } else {
+      showToast(data.error || 'Błąd', 'error');
+    }
+  } catch (e) {
+    showToast('Błąd: ' + e.message, 'error');
+  }
+}
+
+async function loadSiteStructure() {
+  try {
+    const res = await fetch('/api/site-structure');
+    const pages = await res.json();
+    const landings = pages.filter(p => p.type === 'landing');
+    const blogs = pages.filter(p => p.type === 'blog');
+
+    // Landing pages grid
+    const landingsEl = document.getElementById('structure-landings');
+    landingsEl.innerHTML = landings.map(p => {
+      const posHtml = p.position ? `<span class="str-pos">#${p.position}</span>` : '';
+      const kwHtml = p.keyword ? `<span class="str-kw">${escHtml(p.keyword)}</span>` : '<span class="str-no-kw">brak keyword</span>';
+      return `<div class="str-card">
+        <div class="str-card-head">
+          <span class="str-lang">${p.lang.toUpperCase()}</span>
+          ${posHtml}
+        </div>
+        <div class="str-card-url">${p.url.replace('https://healthdesk.site', '')}</div>
+        <div class="str-card-kw">${kwHtml}</div>
+        ${p.allKeywords.length > 1 ? `<div class="str-card-extra">+${p.allKeywords.length - 1} more keywords</div>` : ''}
+      </div>`;
+    }).join('');
+
+    // Blog posts grid — grouped by language
+    const blogsEl = document.getElementById('structure-blogs');
+    const blogLangs = [...new Set(blogs.map(b => b.lang))].sort();
+    blogsEl.innerHTML = blogLangs.map(lang => {
+      const langBlogs = blogs.filter(b => b.lang === lang).sort((a, b) => (b.date || '').localeCompare(a.date || ''));
+      return `<div class="str-lang-group">
+        <h4>${lang.toUpperCase()} (${langBlogs.length})</h4>
+        ${langBlogs.map(p => {
+          const posHtml = p.position ? `<span class="str-pos">#${p.position}</span>` : '';
+          const kwHtml = p.keyword ? `<span class="str-kw">${escHtml(p.keyword)}</span>` : '<span class="str-no-kw">brak focus keyword!</span>';
+          const sibHtml = p.siblings && Object.keys(p.siblings).length
+            ? `<span class="str-sib">${Object.keys(p.siblings).map(l => l.toUpperCase()).join(', ')}</span>`
+            : '<span class="str-no-sib">brak tłumaczeń</span>';
+          const statusCls = p.status === 'published' ? 'str-published' : 'str-draft';
+          return `<div class="str-card str-blog-card">
+            <div class="str-card-head">
+              <span class="str-status ${statusCls}">${p.status}</span>
+              ${posHtml}
+            </div>
+            <div class="str-card-title">${escHtml(p.title)}</div>
+            <div class="str-card-url">${p.url.replace('https://healthdesk.site', '')}</div>
+            <div class="str-card-meta">
+              <span class="str-card-kw">${kwHtml}</span>
+              <span class="str-card-date">${p.date || ''}</span>
+            </div>
+            <div class="str-card-foot">Tłumaczenia: ${sibHtml}</div>
+          </div>`;
+        }).join('')}
+      </div>`;
+    }).join('');
+  } catch (e) {
+    console.error('loadSiteStructure error:', e);
+  }
+}
+
+async function checkAllPositions() {
+  const btn = document.getElementById('btn-check-positions');
+  btn.disabled = true;
+  btn.textContent = 'Sprawdzanie...';
+
+  try {
+    const res = await fetch('/api/keywords/check-positions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: '{}'
+    });
+    const data = await res.json();
+    showToast(`Sprawdzono ${data.checked} keywords`);
+    loadTrackedKeywords();
+  } catch (err) {
+    showToast('Błąd: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Sprawdź pozycje';
+  }
+}
+
+async function checkCannibalization() {
+  try {
+    const res = await fetch('/api/keywords/cannibalization');
+    const data = await res.json();
+    const alertEl = document.getElementById('tracker-cannibalization');
+
+    if (data.issues.length === 0) {
+      alertEl.classList.add('hidden');
+      return;
+    }
+
+    alertEl.classList.remove('hidden');
+    alertEl.innerHTML = '<strong>⚠️ Kanibalizacja wykryta:</strong><br>' +
+      data.issues.map(i =>
+        `• <strong>${escHtml(i.keyword)}</strong>: target ${i.targetUrl || '?'}, ale rankuje ${i.foundUrl || '?'}` +
+        (i.allMatches?.length > 1 ? ` (${i.allMatches.length} stron w wynikach!)` : '') +
+        `<br><em>${i.suggestion}</em>`
+      ).join('<br>');
+  } catch {}
+}
