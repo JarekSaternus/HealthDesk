@@ -8,6 +8,15 @@ tags: ["desk exercises", "back pain relief", "office stretches", "sitting all da
 lang: en
 siblings:
   pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+faq:
+  - q: "How often should you do desk exercises for back pain?"
+    a: "For best results, do 2-3 exercises every 45-60 minutes of sitting. Research published in Medicine & Science in Sport & Exercise found that regular micro-breaks reduce back pain by 54% compared to uninterrupted sitting."
+  - q: "Can desk exercises replace physical therapy?"
+    a: "Desk exercises are effective prevention and complement to treatment, but they cannot replace diagnosis and therapy by a specialist. If pain lasts longer than 6 weeks or radiates to your leg, consult a physiotherapist."
+  - q: "What is the single best desk exercise for lower back pain?"
+    a: "The seated knee hug is one of the most effective quick-relief exercises. Pull one knee toward your chest, hold for 30 seconds, then switch legs. It gently decompresses the lower spine and stretches the piriformis muscle."
+  - q: "How long does it take to form a desk exercise habit?"
+    a: "Research from University College London found that forming a new habit takes an average of 66 days, not the commonly cited 21 days. Using automated reminders from apps like HealthDesk helps maintain consistency."
 ---
 ## 10 Desk Exercises to Relieve Back Pain at Work
 
