@@ -690,6 +690,33 @@ Write ~${isLast ? '150-250' : '200-350'} words per H2 section. Start directly wi
     const markdown = parts.join('\n\n');
     console.log(`[AI Draft] Done: ${markdown.split(/\s+/).length} words total`);
 
+    // Auto-generate FAQ from article content
+    let faqYaml = '';
+    try {
+      draftProgress.sections = 'Generating FAQ...';
+      const faqResult = await callClaude(
+        `You extract FAQ pairs from blog articles. Return ONLY valid JSON.`,
+        `Extract 3-5 frequently asked questions and concise answers from this article. Each answer should be 1-2 sentences (max 200 chars).
+
+Article title: ${title}
+Article content (first 2000 chars):
+${markdown.slice(0, 2000)}
+
+Return ONLY valid JSON:
+{ "faq": [ { "q": "Question?", "a": "Answer." } ] }`,
+        800
+      );
+      const faqData = parseJsonResponse(faqResult);
+      if (faqData.faq && faqData.faq.length > 0) {
+        faqYaml = 'faq:\n' + faqData.faq.map(f =>
+          `  - q: "${(f.q || '').replace(/"/g, '\\"')}"\n    a: "${(f.a || '').replace(/"/g, '\\"')}"`
+        ).join('\n');
+        console.log(`[AI Draft] Generated ${faqData.faq.length} FAQ pairs`);
+      }
+    } catch (faqErr) {
+      console.error(`[AI Draft] FAQ generation failed: ${faqErr.message}`);
+    }
+
     // Auto-save draft to disk so it's not lost if browser times out
     if (slug && lang) {
       try {
@@ -701,10 +728,12 @@ Write ~${isLast ? '150-250' : '200-350'} words per H2 section. Start directly wi
           `slug: "${slug}"`,
           `date: ${new Date().toISOString().split('T')[0]}`,
           `description: "${(description || '').replace(/"/g, '\\"')}"`,
+          `keyword: "${(keyword || '').replace(/"/g, '\\"')}"`,
           `tags: []`,
           `lang: ${lang}`,
+          faqYaml,
           '---'
-        ].join('\n');
+        ].filter(Boolean).join('\n');
         fs.writeFileSync(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
         console.log(`[AI Draft] Auto-saved to ${lang}/${slug}.md`);
       } catch (saveErr) {
