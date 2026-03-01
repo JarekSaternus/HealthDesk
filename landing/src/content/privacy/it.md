@@ -15,7 +15,7 @@ Il titolare del trattamento dei dati personali effettuato in relazione all'utili
 
 ul. Katowicka 202, 43-100 Tychy, Polonia
 
-Email: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Email: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -158,7 +158,7 @@ Per qualsiasi domanda o dubbio riguardante la presente Informativa sulla Privacy
 
 ul. Katowicka 202, 43-100 Tychy, Polonia
 
-Email: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Email: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

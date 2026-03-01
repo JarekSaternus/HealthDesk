@@ -15,7 +15,7 @@ Administratorem danych osobowych przetwarzanych w związku z korzystaniem z serw
 
 ul. Katowicka 202, 43-100 Tychy, Polska
 
-E-mail: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+E-mail: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -157,7 +157,7 @@ W przypadku jakichkolwiek pytań lub wątpliwości dotyczących niniejszej Polit
 
 ul. Katowicka 202, 43-100 Tychy, Polska
 
-E-mail: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+E-mail: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

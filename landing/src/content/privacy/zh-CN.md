@@ -15,7 +15,7 @@ lang: zh-CN
 
 ul. Katowicka 202, 43-100 Tychy, 波兰
 
-电子邮件: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+电子邮件: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -176,7 +176,7 @@ Cookie是用户访问本网站时存储在其设备上的小型文本文件。Co
 
 ul. Katowicka 202, 43-100 Tychy, 波兰
 
-电子邮件: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+电子邮件: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

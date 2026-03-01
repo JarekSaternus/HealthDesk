@@ -15,7 +15,7 @@ lang: ko
 
 ul. Katowicka 202, 43-100 Tychy, Poland
 
-이메일: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+이메일: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -173,7 +173,7 @@ Google 도구(Google Analytics, Google Tag Manager)의 사용과 관련하여 �
 
 ul. Katowicka 202, 43-100 Tychy, Poland
 
-이메일: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+이메일: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

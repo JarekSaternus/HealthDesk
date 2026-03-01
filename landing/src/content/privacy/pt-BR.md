@@ -15,7 +15,7 @@ O controlador dos dados pessoais tratados em conexão com o uso do site healthde
 
 ul. Katowicka 202, 43-100 Tychy, Polônia
 
-Email: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Email: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -177,7 +177,7 @@ Se você tiver dúvidas ou preocupações sobre esta Política de Privacidade ou
 
 ul. Katowicka 202, 43-100 Tychy, Polônia
 
-Email: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Email: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

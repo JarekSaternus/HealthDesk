@@ -15,7 +15,7 @@ lang: ru
 
 ul. Katowicka 202, 43-100 Tychy, Польша
 
-Электронная почта: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Электронная почта: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -175,7 +175,7 @@ ul. Katowicka 202, 43-100 Tychy, Польша
 
 ul. Katowicka 202, 43-100 Tychy, Польша
 
-Электронная почта: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Электронная почта: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

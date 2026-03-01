@@ -15,7 +15,7 @@ The controller of personal data processed in connection with the use of the webs
 
 ul. Katowicka 202, 43-100 Tychy, Poland
 
-Email: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Email: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -157,7 +157,7 @@ If you have any questions or concerns regarding this Privacy Policy or the way w
 
 ul. Katowicka 202, 43-100 Tychy, Poland
 
-Email: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+Email: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

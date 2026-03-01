@@ -15,7 +15,7 @@ healthdesk.site web sitesinin (bundan böyle: "Web Sitesi") kullanımıyla bağl
 
 ul. Katowicka 202, 43-100 Tychy, Polonya
 
-E-posta: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+E-posta: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -179,7 +179,7 @@ Bu Gizlilik Politikası veya kişisel verilerinizi işleme şeklimiz hakkında h
 
 ul. Katowicka 202, 43-100 Tychy, Polonya
 
-E-posta: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+E-posta: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

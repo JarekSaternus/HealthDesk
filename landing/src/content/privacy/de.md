@@ -15,7 +15,7 @@ Verantwortlicher für die Verarbeitung personenbezogener Daten im Zusammenhang m
 
 ul. Katowicka 202, 43-100 Tychy, Polen
 
-E-Mail: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+E-Mail: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -158,7 +158,7 @@ Wenn Sie Fragen oder Bedenken hinsichtlich dieser Datenschutzerklärung oder der
 
 ul. Katowicka 202, 43-100 Tychy, Polen
 
-E-Mail: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+E-Mail: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 

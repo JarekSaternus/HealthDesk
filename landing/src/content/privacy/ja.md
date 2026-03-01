@@ -15,7 +15,7 @@ lang: ja
 
 ul. Katowicka 202, 43-100 Tychy, ポーランド
 
-メール: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+メール: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
@@ -174,7 +174,7 @@ Cookieを通じて収集されたデータは、各Cookieの設定で指定さ�
 
 ul. Katowicka 202, 43-100 Tychy, ポーランド
 
-メール: [kontakt@healthdesk.site](mailto:kontakt@healthdesk.site)
+メール: [privacy@healthdesk.site](mailto:privacy@healthdesk.site)
 
 </div>
 
