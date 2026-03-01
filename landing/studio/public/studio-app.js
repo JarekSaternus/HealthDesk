@@ -1615,6 +1615,9 @@ async function gscSubmitNew() {
 
     if (data.message) {
       showToast(data.message);
+    } else if (data.submitted === 0 && data.errors > 0) {
+      const firstErr = data.results?.find(r => r.error)?.error || 'Nieznany błąd';
+      showToast(`❌ Błąd GSC: ${firstErr}`, 'error');
     } else {
       const errors = data.errors || 0;
       showToast(`Zgłoszono ${data.submitted} URL-ów${errors ? `, ${errors} błędów` : ''}`);
@@ -2133,5 +2136,185 @@ async function checkCannibalization() {
         (i.allMatches?.length > 1 ? ` (${i.allMatches.length} stron w wynikach!)` : '') +
         `<br><em>${i.suggestion}</em>`
       ).join('<br>');
+  } catch {}
+}
+
+// ─── Autopilot ───
+let apTopics = [];
+let apPollInterval = null;
+
+function apAddTopic() {
+  const input = document.getElementById('ap-topic');
+  const topic = input.value.trim();
+  if (!topic) return;
+  if (apTopics.includes(topic)) { showToast('Topic already added'); return; }
+  apTopics.push(topic);
+  input.value = '';
+  apRenderTopics();
+}
+
+function apRemoveTopic(idx) {
+  apTopics.splice(idx, 1);
+  apRenderTopics();
+}
+
+function apRenderTopics() {
+  const el = document.getElementById('ap-topics');
+  if (apTopics.length === 0) {
+    el.innerHTML = '';
+    return;
+  }
+  el.innerHTML = apTopics.map((t, i) =>
+    `<div class="ap-topic-chip">
+      <span>${escHtml(t)}</span>
+      <button class="btn-close" onclick="apRemoveTopic(${i})">&times;</button>
+    </div>`
+  ).join('');
+}
+
+const AP_STEP_NAMES = [
+  'Keyword Research', 'Keyword Analysis', 'AI Outline', 'Create Article',
+  'AI Draft', 'AI Audit', 'Humanize', 'Grammar Fix',
+  'AI Description', 'Hero Image', 'Save Article'
+];
+
+function apRenderProgress(data) {
+  const el = document.getElementById('ap-progress');
+  if (!data || data.status === 'idle') {
+    el.classList.add('hidden');
+    return;
+  }
+  el.classList.remove('hidden');
+
+  const steps = data.steps || [];
+  const stepsHtml = AP_STEP_NAMES.map((name, i) => {
+    const step = steps[i];
+    const status = step ? step.status : 'pending';
+    const icon = status === 'done' ? '&#10003;' : status === 'running' ? '&#9679;' : status === 'error' ? '&#10007;' : status === 'skipped' ? '&#8212;' : '&#9675;';
+    return `<div class="ap-step ${status}">${icon} ${name}</div>`;
+  }).join('');
+
+  const topicCounter = data.totalTopics > 1
+    ? `<span class="ap-progress-counter">Topic ${(data.completedTopics || 0) + 1} / ${data.totalTopics}</span>`
+    : '';
+
+  el.innerHTML = `
+    <div class="ap-progress-header">
+      <span class="ap-progress-topic">${escHtml(data.currentTopic || '')}</span>
+      ${topicCounter}
+    </div>
+    <div class="ap-steps">${stepsHtml}</div>
+  `;
+}
+
+function apRenderResults(results) {
+  const el = document.getElementById('ap-results');
+  if (!results || results.length === 0) {
+    el.classList.add('hidden');
+    return;
+  }
+  el.classList.remove('hidden');
+
+  el.innerHTML = '<h3>Results</h3>' + results.map(r => {
+    if (r.error) {
+      return `<div class="ap-result-error">
+        <strong>${escHtml(r.topic || '?')}</strong>: ${escHtml(r.error)}
+      </div>`;
+    }
+    const scoreClass = r.score <= 3 ? 'ap-score-good' : r.score <= 6 ? 'ap-score-mid' : 'ap-score-bad';
+    return `<div class="ap-result-card">
+      <div class="ap-result-info">
+        <div class="ap-result-title">${escHtml(r.title)}</div>
+        <div class="ap-result-meta">
+          <span>${r.lang.toUpperCase()}</span>
+          <span>${r.wordCount} words</span>
+          <span class="ap-result-score ${scoreClass}">AI: ${r.score}/10</span>
+          ${r.heroImage ? '<span>Hero &#10003;</span>' : '<span style="color:var(--yellow)">No hero</span>'}
+        </div>
+      </div>
+      <div class="ap-result-actions">
+        <button class="btn btn-sm btn-primary" onclick="openArticle('${r.lang}','${escAttr(r.slug)}')">Open</button>
+        <button class="btn btn-sm" onclick="window.open('/preview/${r.lang}/blog/${escAttr(r.slug)}/','_blank')">Preview</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function apStartPolling() {
+  apStopPolling();
+  apPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/ai/autopilot/status');
+      const data = await res.json();
+      apRenderProgress(data);
+      if (data.results && data.results.length > 0) apRenderResults(data.results);
+      if (data.status === 'done' || data.status === 'error' || data.status === 'idle') {
+        apStopPolling();
+        document.getElementById('btn-ap-start').disabled = false;
+        document.getElementById('btn-ap-start').textContent = 'Generate All';
+        if (data.status === 'done') showToast('Autopilot done!');
+      }
+    } catch {}
+  }, 2000);
+}
+
+function apStopPolling() {
+  if (apPollInterval) { clearInterval(apPollInterval); apPollInterval = null; }
+}
+
+async function apStart() {
+  const lang = document.getElementById('ap-lang').value;
+  const persona = document.getElementById('ap-persona').value.trim() || undefined;
+
+  // If no chips, use the input field as single topic
+  if (apTopics.length === 0) {
+    const singleTopic = document.getElementById('ap-topic').value.trim();
+    if (!singleTopic) { alert('Add at least one topic'); return; }
+    apTopics.push(singleTopic);
+    document.getElementById('ap-topic').value = '';
+    apRenderTopics();
+  }
+
+  const btn = document.getElementById('btn-ap-start');
+  btn.disabled = true;
+  btn.textContent = 'Running...';
+  document.getElementById('ap-results').classList.add('hidden');
+
+  apStartPolling();
+
+  try {
+    if (apTopics.length === 1) {
+      const res = await fetch('/api/ai/autopilot', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lang, topic: apTopics[0], persona })
+      });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      apRenderResults([data]);
+    } else {
+      const res = await fetch('/api/ai/autopilot/batch', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lang, topics: apTopics, persona })
+      });
+      const data = await res.json();
+      apRenderResults(data.results || []);
+    }
+    apTopics = [];
+    apRenderTopics();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+
+  apStopPolling();
+  btn.disabled = false;
+  btn.textContent = 'Generate All';
+
+  // Final status render
+  try {
+    const res = await fetch('/api/ai/autopilot/status');
+    const data = await res.json();
+    apRenderProgress(data);
   } catch {}
 }

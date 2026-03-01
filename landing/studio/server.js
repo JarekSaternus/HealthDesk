@@ -621,12 +621,10 @@ app.get('/api/ai/draft/status', (req, res) => {
   res.json(draftProgress || { status: 'idle' });
 });
 
-// ─── AI: Write full draft from outline (chunked by 2-3 sections) ───
-app.post('/api/ai/draft', async (req, res) => {
-  const { title, description, outline, lang, keyword, slug, persona } = req.body;
+// ─── Helper: AI draft (chunked writing + FAQ) ───
+async function doDraft(title, description, outline, lang, keyword, slug, persona) {
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
 
-  // Split outline into chunks of 2-3 sections
   const CHUNK_SIZE = 2;
   const chunks = [];
   for (let i = 0; i < outline.length; i += CHUNK_SIZE) {
@@ -684,56 +682,46 @@ Equivalent banned phrases in French: "il convient de noter", "sans aucun doute",
 
   console.log(`[AI Draft] Generating in ${chunks.length} chunks (${outline.length} sections total)`);
 
-  // Init progress
   draftProgress = {
-    slug: slug || '',
-    lang,
-    title,
-    chunk: 0,
-    totalChunks: chunks.length,
-    sections: '',
-    status: 'generating',
-    startedAt: Date.now(),
-    words: 0
+    slug: slug || '', lang, title, chunk: 0, totalChunks: chunks.length,
+    sections: '', status: 'generating', startedAt: Date.now(), words: 0
   };
 
-  try {
-    const parts = [];
-    for (let ci = 0; ci < chunks.length; ci++) {
-      const chunk = chunks[ci];
-      const isLast = ci === chunks.length - 1;
+  const parts = [];
+  for (let ci = 0; ci < chunks.length; ci++) {
+    const chunk = chunks[ci];
+    const isLast = ci === chunks.length - 1;
 
-      const chunkOutline = chunk.map(s => {
-        let t = `## ${s.h2}`;
-        if (s.h3) t += '\n' + s.h3.map(h => `### ${h}`).join('\n');
-        return t;
-      }).join('\n\n');
+    const chunkOutline = chunk.map(s => {
+      let t = `## ${s.h2}`;
+      if (s.h3) t += '\n' + s.h3.map(h => `### ${h}`).join('\n');
+      return t;
+    }).join('\n\n');
 
-      const prevContext = parts.length > 0
-        ? `\n\nPrevious sections already written (for context, do NOT repeat):\n${parts.join('\n').slice(-600)}`
-        : '';
+    const prevContext = parts.length > 0
+      ? `\n\nPrevious sections already written (for context, do NOT repeat):\n${parts.join('\n').slice(-600)}`
+      : '';
 
-      const conclusionNote = isLast
-        ? '\n\nThis is the LAST chunk — end with a brief conclusion section (## header + 2-3 sentences).'
-        : '\n\nDo NOT end with a conclusion — more sections follow.';
+    const conclusionNote = isLast
+      ? '\n\nThis is the LAST chunk — end with a brief conclusion section (## header + 2-3 sentences).'
+      : '\n\nDo NOT end with a conclusion — more sections follow.';
 
-      // Update progress
-      draftProgress.chunk = ci + 1;
-      draftProgress.sections = chunk.map(s => s.h2).join(', ');
+    draftProgress.chunk = ci + 1;
+    draftProgress.sections = chunk.map(s => s.h2).join(', ');
 
-      console.log(`[AI Draft] Chunk ${ci + 1}/${chunks.length}: ${draftProgress.sections}`);
+    console.log(`[AI Draft] Chunk ${ci + 1}/${chunks.length}: ${draftProgress.sections}`);
 
-      const chunkStyleHints = [
-        'Start this chunk with an engaging anecdote, observation, or surprising fact.',
-        'Open with data or a statistic, then pivot to practical advice.',
-        'Start with a rhetorical question that hooks the reader.',
-        'Begin with a common misconception, then debunk it.'
-      ];
-      const styleHint = chunkStyleHints[ci % chunkStyleHints.length];
+    const chunkStyleHints = [
+      'Start this chunk with an engaging anecdote, observation, or surprising fact.',
+      'Open with data or a statistic, then pivot to practical advice.',
+      'Start with a rhetorical question that hooks the reader.',
+      'Begin with a common misconception, then debunk it.'
+    ];
+    const styleHint = chunkStyleHints[ci % chunkStyleHints.length];
 
-      const result = await callClaude(
-        systemPrompt,
-        `Write sections ${ci * CHUNK_SIZE + 1}-${ci * CHUNK_SIZE + chunk.length} of a blog article in Markdown.
+    const result = await callClaude(
+      systemPrompt,
+      `Write sections ${ci * CHUNK_SIZE + 1}-${ci * CHUNK_SIZE + chunk.length} of a blog article in Markdown.
 
 Article title: ${title}
 Keyword: ${keyword || title}
@@ -750,23 +738,23 @@ ${conclusionNote}
 Style hint for this chunk: ${styleHint}
 
 Write ~${isLast ? '150-250' : '200-350'} words per H2 section. Start directly with ## heading. No frontmatter.`,
-        2000
-      );
+      2000
+    );
 
-      parts.push(result.trim());
-      draftProgress.words = parts.join('\n\n').split(/\s+/).length;
-    }
+    parts.push(result.trim());
+    draftProgress.words = parts.join('\n\n').split(/\s+/).length;
+  }
 
-    const markdown = parts.join('\n\n');
-    console.log(`[AI Draft] Done: ${markdown.split(/\s+/).length} words total`);
+  const markdown = parts.join('\n\n');
+  console.log(`[AI Draft] Done: ${markdown.split(/\s+/).length} words total`);
 
-    // Auto-generate FAQ from article content
-    let faqYaml = '';
-    try {
-      draftProgress.sections = 'Generating FAQ...';
-      const faqResult = await callClaude(
-        `You extract FAQ pairs from blog articles. Return ONLY valid JSON.`,
-        `Extract 3-5 frequently asked questions and concise answers from this article. Each answer should be 1-2 sentences (max 200 chars).
+  // Auto-generate FAQ from article content
+  let faqYaml = '';
+  try {
+    draftProgress.sections = 'Generating FAQ...';
+    const faqResult = await callClaude(
+      `You extract FAQ pairs from blog articles. Return ONLY valid JSON.`,
+      `Extract 3-5 frequently asked questions and concise answers from this article. Each answer should be 1-2 sentences (max 200 chars).
 
 Article title: ${title}
 Article content (first 2000 chars):
@@ -774,89 +762,168 @@ ${markdown.slice(0, 2000)}
 
 Return ONLY valid JSON:
 { "faq": [ { "q": "Question?", "a": "Answer." } ] }`,
-        800
-      );
-      const faqData = parseJsonResponse(faqResult);
-      if (faqData.faq && faqData.faq.length > 0) {
-        faqYaml = 'faq:\n' + faqData.faq.map(f =>
-          `  - q: "${(f.q || '').replace(/"/g, '\\"')}"\n    a: "${(f.a || '').replace(/"/g, '\\"')}"`
-        ).join('\n');
-        console.log(`[AI Draft] Generated ${faqData.faq.length} FAQ pairs`);
-      }
-    } catch (faqErr) {
-      console.error(`[AI Draft] FAQ generation failed: ${faqErr.message}`);
+      800
+    );
+    const faqData = parseJsonResponse(faqResult);
+    if (faqData.faq && faqData.faq.length > 0) {
+      faqYaml = 'faq:\n' + faqData.faq.map(f =>
+        `  - q: "${(f.q || '').replace(/"/g, '\\"')}"\n    a: "${(f.a || '').replace(/"/g, '\\"')}"`
+      ).join('\n');
+      console.log(`[AI Draft] Generated ${faqData.faq.length} FAQ pairs`);
     }
+  } catch (faqErr) {
+    console.error(`[AI Draft] FAQ generation failed: ${faqErr.message}`);
+  }
 
-    // Auto-save draft to disk so it's not lost if browser times out
-    if (slug && lang) {
-      try {
-        const langDir = path.join(BLOG_DIR, lang);
-        fs.mkdirSync(langDir, { recursive: true });
-        const frontmatterYaml = [
-          '---',
-          `title: "${(title || '').replace(/"/g, '\\"')}"`,
-          `slug: "${slug}"`,
-          `date: ${new Date().toISOString().split('T')[0]}`,
-          `description: "${(description || '').replace(/"/g, '\\"')}"`,
-          `keyword: "${(keyword || '').replace(/"/g, '\\"')}"`,
-          `tags: []`,
-          `lang: ${lang}`,
-          faqYaml,
-          '---'
-        ].filter(Boolean).join('\n');
-        fs.writeFileSync(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
-        console.log(`[AI Draft] Auto-saved to ${lang}/${slug}.md`);
-      } catch (saveErr) {
-        console.error(`[AI Draft] Auto-save failed: ${saveErr.message}`);
-      }
+  // Auto-save draft to disk
+  if (slug && lang) {
+    try {
+      const langDir = path.join(BLOG_DIR, lang);
+      fs.mkdirSync(langDir, { recursive: true });
+      const frontmatterYaml = [
+        '---',
+        `title: "${(title || '').replace(/"/g, '\\"')}"`,
+        `slug: "${slug}"`,
+        `date: ${new Date().toISOString().split('T')[0]}`,
+        `description: "${(description || '').replace(/"/g, '\\"')}"`,
+        `keyword: "${(keyword || '').replace(/"/g, '\\"')}"`,
+        `tags: []`,
+        `lang: ${lang}`,
+        faqYaml,
+        '---'
+      ].filter(Boolean).join('\n');
+      fs.writeFileSync(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
+      console.log(`[AI Draft] Auto-saved to ${lang}/${slug}.md`);
+    } catch (saveErr) {
+      console.error(`[AI Draft] Auto-save failed: ${saveErr.message}`);
     }
+  }
 
-    draftProgress.status = 'done';
-    draftProgress.words = markdown.split(/\s+/).length;
-    res.json({ markdown });
+  draftProgress.status = 'done';
+  draftProgress.words = markdown.split(/\s+/).length;
 
-    // Clear progress after 30s
+  return { markdown, faqYaml };
+}
+
+// ─── AI: Write full draft from outline ───
+app.post('/api/ai/draft', async (req, res) => {
+  const { title, description, outline, lang, keyword, slug, persona } = req.body;
+  try {
+    const result = await doDraft(title, description, outline, lang, keyword, slug, persona);
+    res.json({ markdown: result.markdown });
     setTimeout(() => { if (draftProgress && draftProgress.status === 'done') draftProgress = null; }, 30000);
   } catch (err) {
-    draftProgress.status = 'error';
-    draftProgress.error = err.message;
+    if (draftProgress) { draftProgress.status = 'error'; draftProgress.error = err.message; }
     res.status(500).json({ error: err.message });
     setTimeout(() => { draftProgress = null; }, 30000);
   }
 });
 
-// ─── AI: Suggest meta description ───
-app.post('/api/ai/description', async (req, res) => {
-  const { markdown, title, lang } = req.body;
+// ─── Helper: AI description ───
+async function doDescription(markdown, title, lang) {
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
-
-  try {
-    const result = await callClaude(
-      'You are an SEO specialist. Generate meta descriptions that are compelling, include the main keyword, and drive clicks.',
-      `Generate a meta description (120-160 characters) in ${langName} for this article:
+  const result = await callClaude(
+    'You are an SEO specialist. Generate meta descriptions that are compelling, include the main keyword, and drive clicks.',
+    `Generate a meta description (120-160 characters) in ${langName} for this article:
 Title: ${title}
 Content preview: ${markdown.slice(0, 500)}
 
 Return ONLY the description text, nothing else.`,
-      200
-    );
-    res.json({ description: result.trim() });
+    200
+  );
+  return result.trim();
+}
+
+// ─── AI: Suggest meta description ───
+app.post('/api/ai/description', async (req, res) => {
+  const { markdown, title, lang } = req.body;
+  try {
+    const description = await doDescription(markdown, title, lang);
+    res.json({ description });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── AI: Humanize article (remove AI patterns) ───
-app.post('/api/ai/humanize', async (req, res) => {
-  const { markdown, lang } = req.body;
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+// ─── Helper: Humanize article ───
+const LANG_GUIDELINES = {
+  pl: {
+    name: 'Polish',
+    formalPhrases: `"warto zauważyć", "nie ulega wątpliwości", "w dzisiejszych czasach", "kluczowym aspektem jest", "nie sposób nie wspomnieć", "z całą pewnością", "w związku z powyższym", "ponadto", "co więcej", "należy podkreślić", "w kontekście", "biorąc pod uwagę", "nie da się ukryć, że"`,
+    personalPhrases: `"z mojego doświadczenia", "sam/sama to testowałem/am", "przyznam, że na początku…", "u mnie sprawdza się", "powiem szczerze"`,
+    softStats: `"wielu użytkowników zauważa, że…", "z praktyki wynika, że…", "badania sugerują, że…"`,
+    style: `- Use "ty" form (2nd person singular informal), NOT "Państwo" or "Pan/Pani"
+- Use natural Polish word order — don't calque English sentence structures
+- Contractions are fine: "nie da się" instead of "nie jest to możliwe"
+- Rhetorical questions: "Znasz to uczucie, gdy...?", "Ile razy zdarzyło ci się...?"
+- Polish allows longer sentences than English — but still vary them
+- Avoid unnecessary Anglicisms: use "przerwa" not "break", "technika" not overused "metoda"
+- Colloquial interjections: "no i co?", "serio?", "brzmi znajomo?", "no właśnie"
+- Polish readers appreciate warmth and directness — write like talking to a friend over coffee`,
+  },
+  en: {
+    name: 'English',
+    formalPhrases: `"it's worth noting that", "there is no doubt", "for this reason", "furthermore", "moreover", "it should be highlighted that", "in today's dynamic world", "a key aspect is", "needless to say", "it goes without saying", "at the end of the day", "in conclusion"`,
+    personalPhrases: `"from my experience", "I've tested this myself", "I'll admit, at first…", "here's what works for me"`,
+    softStats: `"many users report that…", "research suggests that…", "from what we've seen…"`,
+    style: `- Use conversational contractions: "don't", "isn't", "we've", "you'll"
+- Mix short punchy sentences with longer ones — English thrives on rhythm
+- Use active voice: "you'll notice" not "it can be noticed"
+- Rhetorical questions: "Ever noticed how...?", "Sound familiar?"
+- Colloquial: "here's the thing", "turns out", "spoiler alert", "let's be honest"
+- Keep consistent American English spelling`,
+  },
+  de: {
+    name: 'German',
+    formalPhrases: `"es ist erwähnenswert", "zweifellos", "darüber hinaus", "des Weiteren", "es sei darauf hingewiesen", "in der heutigen Zeit", "ein wesentlicher Aspekt", "selbstverständlich", "es versteht sich von selbst", "im Folgenden", "abschließend lässt sich sagen", "es ist unbestritten"`,
+    personalPhrases: `"aus meiner Erfahrung", "ich habe das selbst getestet", "ich gebe zu, anfangs…", "was bei mir funktioniert", "ganz ehrlich"`,
+    softStats: `"viele Nutzer berichten, dass…", "Studien deuten darauf hin, dass…", "in der Praxis zeigt sich…"`,
+    style: `- Use "du" form (informal) for blog content, NOT "Sie"
+- Simplify subordinate clause chains — German AI text tends to nest too deeply
+- Use natural compound words: "Arbeitsplatzergonomie", "Bildschirmarbeit"
+- Avoid direct English calques — use German idioms: "Hand aufs Herz", "mal ehrlich"
+- Rhetorical questions: "Kennst du das Gefühl, wenn...?", "Kommt dir das bekannt vor?"
+- Colloquial: "mal ehrlich", "und zwar", "klingt vertraut?", "Spaß beiseite"
+- German readers expect depth — don't oversimplify, but break up dense passages
+- Avoid overusing "man" (impersonal) — address the reader directly with "du"`,
+  },
+  es: {
+    name: 'Spanish',
+    formalPhrases: `"cabe destacar", "sin lugar a dudas", "por esta razón", "además", "asimismo", "es importante señalar que", "en la actualidad", "un aspecto clave es", "huelga decir", "dicho lo anterior", "en definitiva", "resulta evidente que"`,
+    personalPhrases: `"por experiencia propia", "yo mismo lo he probado", "te confieso que al principio…", "a mí me funciona", "siendo honesto"`,
+    softStats: `"muchos usuarios notan que…", "los estudios sugieren que…", "en la práctica se observa que…"`,
+    style: `- Use "tú" form (informal), NOT "usted"
+- Spanish is naturally more verbose — embrace it, but vary sentence lengths
+- Rhetorical questions: "¿Te suena?", "¿Cuántas veces te ha pasado que...?"
+- Avoid anglicisms: use "enlace" not "link", "pantalla" not "display"
+- Emphatic structures: "Lo que sí funciona es…", "El problema real es que…"
+- Colloquial: "la verdad es que", "ojo", "vamos a lo importante", "seamos sinceros"
+- Don't forget inverted punctuation: ¿ ¡
+- Latin American vs Spain: prefer neutral Spanish that works for both`,
+  },
+  fr: {
+    name: 'French',
+    formalPhrases: `"il convient de noter", "sans aucun doute", "c'est pourquoi", "en outre", "de surcroît", "il est important de souligner", "dans le monde actuel", "un aspect clé est", "il va sans dire", "en définitive", "force est de constater", "il est indéniable que"`,
+    personalPhrases: `"d'après mon expérience", "j'ai testé cela moi-même", "j'avoue qu'au début…", "ce qui marche pour moi", "honnêtement"`,
+    softStats: `"beaucoup d'utilisateurs remarquent que…", "les études suggèrent que…", "dans la pratique, on observe que…"`,
+    style: `- Use "tu" form for blog content — casual, direct, like talking to a colleague
+- French values elegance — avoid repeating the same word in nearby sentences, use synonyms
+- Rhetorical questions: "Tu connais cette sensation quand...?", "Ça te parle?"
+- Avoid English borrowings when French alternatives exist
+- French-specific expressions: "entre nous", "avouons-le", "c'est là que ça se complique"
+- Colloquial: "bon", "du coup", "en gros", "soyons honnêtes"
+- French readers expect intellectual engagement — don't dumb things down
+- Liaison and rhythm matter — read sentences aloud mentally to check flow`,
+  },
+};
 
-  console.log(`[AI Humanize] Processing ${markdown?.length || 0} chars in ${langName}`);
+async function doHumanize(markdown, lang) {
+  const lg = LANG_GUIDELINES[lang] || LANG_GUIDELINES.en;
+  console.log(`[AI Humanize] Processing ${markdown?.length || 0} chars in ${lg.name}`);
 
-  try {
-    const result = await callClaude(
-      `You are an experienced editor who humanizes AI-generated content. Write in ${langName}. Your task is to transform the given text so it sounds like it was written by a real person — an expert who blogs with passion, not a robot producing content.`,
-      `STEP 1: DIAGNOSE — Before editing, analyze the article and list 5-7 specific AI-pattern problems you found (with quotes from the text). Output them as a brief numbered list at the very top, wrapped in <!-- DIAGNOSIS: ... --> HTML comment.
+  const result = await callClaude(
+    `You are an experienced ${lg.name}-language editor who humanizes AI-generated content. Write ENTIRELY in ${lg.name}. Your task is to transform the given text so it sounds like it was written by a real person — a ${lg.name}-speaking expert who blogs with passion, not a robot producing content.`,
+    `STEP 1: DIAGNOSE — Before editing, analyze the article and list 5-7 specific AI-pattern problems you found (with quotes from the text). Output them as a brief numbered list at the very top, wrapped in <!-- DIAGNOSIS: ... --> HTML comment. Write the diagnosis in ${lg.name}.
 
 STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below.
 
@@ -868,13 +935,15 @@ STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below
 - Remove or relocate duplicate information (AI often repeats the same data in different sections)
 - If a list has only 3 items, convert it to a flowing sentence instead
 
-## 2. VOICE & PERSONALITY
-- Add 2-3 personal interjections: "from my experience", "I've tested this myself", "I'll admit, at first…"
-- Insert 1 controversial opinion or caveat: "this doesn't suit everyone", "this isn't a magic bullet"
-- Add 1-2 rhetorical questions directed at the reader: "You know that feeling when...?"
-- Insert 1 colloquial/informal expression (don't overdo it, but keep it human)
-- Remove unnecessary formal phrases: "it's worth noting that", "there is no doubt", "for this reason", "furthermore", "moreover", "it should be highlighted that", "in today's dynamic world", "a key aspect is", "needless to say"
+## 2. VOICE & PERSONALITY (${lg.name}-specific rules)
+- Add 2-3 personal interjections using natural ${lg.name} phrasing: ${lg.personalPhrases}
+- Insert 1 controversial opinion or caveat
+- Add 1-2 rhetorical questions directed at the reader
+- Insert 1 colloquial/informal expression natural to ${lg.name}
+- REMOVE these ${lg.name} AI-filler/formal phrases (AI overuses them): ${lg.formalPhrases}
 - Add 1 brief digression or anecdote (even 2 sentences) — this is the most human element
+- LANGUAGE-SPECIFIC STYLE RULES:
+${lg.style}
 
 ## 3. FORMATTING (anti-AI)
 - Reduce bolds — max 3-4 per 1000 words (AI overuses bold)
@@ -884,7 +953,7 @@ STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below
 - Don't end every section with a CTA or summary
 
 ## 4. DATA & SOURCES
-- Max 3-4 statistics in the ENTIRE article — replace the rest with soft observations ("many users report that…")
+- Max 3-4 statistics in the ENTIRE article — replace the rest with soft ${lg.name} observations: ${lg.softStats}
 - Add context to statistics ("this 2022 study…", "though the numbers may vary")
 - Don't drop stats without commentary — add an interpreting sentence
 - When studies are mentioned without links, add real external source links (WHO, PubMed, university domains)
@@ -895,13 +964,13 @@ STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below
 - Don't start or end the article with product promotion
 
 ## 6. KEYWORDS (anti-stuffing)
-- Check if the main keyword appears more than 5-7 times per 2000 words — if so, replace excess with synonyms
-- Use variants: "technique", "system", "approach", "this method", etc.
+- Check if the main keyword appears more than 5-7 times per 2000 words — if so, replace excess with ${lg.name} synonyms
+- Use natural ${lg.name} synonym variants for the main keyword
 - Keywords should sound natural in the sentence — if grammar bends to fit the phrase, rewrite it
 
 ## 7. INTRO & OUTRO
 - Intro should NOT be encyclopedic — if it starts with a definition, rewrite to start from the reader's problem, a question, or brief story
-- Outro should NOT be a formulaic "In summary…" — end with a concrete takeaway, call to action, or reflection
+- Outro should NOT be a formulaic summary — end with a concrete takeaway, call to action, or reflection
 
 PRESERVE:
 - All ## and ### headings exactly as they are
@@ -914,31 +983,38 @@ Return the diagnosis comment followed by the rewritten article. No markdown fenc
 
 ARTICLE:
 ${markdown}`,
-      8000
-    );
-    let cleaned = result.trim();
-    if (cleaned.startsWith('```')) {
-      cleaned = cleaned.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
-    }
-    console.log(`[AI Humanize] Done: ${cleaned.length} chars`);
-    res.json({ markdown: cleaned });
+    8000
+  );
+  let cleaned = result.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+  }
+  // Strip diagnosis comment for clean output
+  const articleText = cleaned.replace(/<!--\s*DIAGNOSIS:\s*[\s\S]*?-->\s*/, '').trim();
+  console.log(`[AI Humanize] Done: ${articleText.length} chars`);
+  return { markdown: cleaned, articleText };
+}
+
+// ─── AI: Humanize article (remove AI patterns) ───
+app.post('/api/ai/humanize', async (req, res) => {
+  const { markdown, lang } = req.body;
+  try {
+    const result = await doHumanize(markdown, lang);
+    res.json({ markdown: result.markdown });
   } catch (err) {
     console.error(`[AI Humanize] Error: ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── AI: Audit article for AI fingerprints ───
-app.post('/api/ai/audit', async (req, res) => {
-  const { markdown, lang } = req.body;
+// ─── Helper: Audit article ───
+async function doAudit(markdown, lang) {
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
-
   console.log(`[AI Audit] Analyzing ${markdown?.length || 0} chars in ${langName}`);
 
-  try {
-    const result = await callClaude(
-      `You analyze blog articles for "AI fingerprints" — typical traits of AI-generated content that reduce reader trust and may trigger Google's Helpful Content Update penalties. Respond in ${langName}.`,
-      `Analyze this blog article for AI-generated content patterns. Score it 1-10 (1 = fully human, 10 = obvious AI) and justify your assessment.
+  const result = await callClaude(
+    `You analyze blog articles for "AI fingerprints" — typical traits of AI-generated content that reduce reader trust and may trigger Google's Helpful Content Update penalties. Respond in ${langName}.`,
+    `Analyze this blog article for AI-generated content patterns. Score it 1-10 (1 = fully human, 10 = obvious AI) and justify your assessment.
 
 CHECK THESE 10 DIMENSIONS (score each 1-10):
 1. Structure symmetry — do sections have identical structure/length?
@@ -969,17 +1045,115 @@ Return ONLY valid JSON, no markdown fences.
 
 ARTICLE TO AUDIT:
 ${markdown}`,
-      3000
-    );
+    3000
+  );
 
-    const parsed = parseJsonResponse(result);
-    console.log(`[AI Audit] Score: ${parsed.score}/10`);
-    res.json(parsed);
+  const parsed = parseJsonResponse(result);
+  console.log(`[AI Audit] Score: ${parsed.score}/10`);
+  return parsed;
+}
+
+// ─── AI: Audit article for AI fingerprints ───
+app.post('/api/ai/audit', async (req, res) => {
+  const { markdown, lang } = req.body;
+  try {
+    res.json(await doAudit(markdown, lang));
   } catch (err) {
     console.error(`[AI Audit] Error: ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 });
+
+// ─── Helper: Full grammar fix (LanguageTool + AI) ───
+async function doGrammarFix(markdown, lang) {
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const ltLang = lang === 'pl' ? 'pl-PL' : lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es' : lang;
+
+  // Step 1: Get grammar issues from LanguageTool
+  const plain = markdown
+    .replace(/^#{1,6}\s+/gm, '')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/\*([^*]+)\*/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+    .replace(/`[^`]+`/g, '');
+
+  const params = new URLSearchParams({ text: plain, language: ltLang, enabledOnly: 'false' });
+  params.set('disabledCategories', 'TYPOGRAPHY');
+
+  const ltResponse = await fetch('https://api.languagetool.org/v2/check', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: params
+  });
+  const ltData = await ltResponse.json();
+
+  // Filter false positives
+  let matches = ltData.matches || [];
+  const dictSet = new Set(CUSTOM_DICTIONARY.map(w => w.toLowerCase()));
+  matches = matches.filter(m => {
+    const flagged = plain.substring(m.offset, m.offset + m.length).trim();
+    if (dictSet.has(flagged.toLowerCase())) return false;
+    if (CUSTOM_DICTIONARY.some(w => flagged.toLowerCase().includes(w.toLowerCase()))) return false;
+    if (m.rule && m.rule.id && m.rule.id.includes('NIESP') && (flagged === '\u201E' || flagged === '\u201D')) return false;
+    return true;
+  });
+
+  if (matches.length === 0) {
+    console.log('[Grammar Fix] No issues found');
+    return { markdown, changed: false, issueCount: 0 };
+  }
+
+  const issues = matches.map(m => ({
+    message: m.message,
+    context: m.context.text.slice(Math.max(0, m.context.offset - 15), m.context.offset + m.context.length + 15),
+    suggestion: m.replacements?.slice(0, 2).map(r => r.value).join(' or ') || ''
+  }));
+
+  // Step 2: AI fix
+  const actionableIssues = issues.filter(i => i.suggestion && i.suggestion.trim()).map((i, idx) =>
+    `${idx+1}. Find: "${i.context.trim()}" → Replace with suggestion: "${i.suggestion}". Reason: ${i.message}`
+  );
+  const otherIssues = issues.filter(i => !i.suggestion || !i.suggestion.trim()).map((i, idx) =>
+    `${idx+1}. Issue near: "${i.context.trim()}" — ${i.message}`
+  );
+  const issueList = [...actionableIssues, ...otherIssues].join('\n');
+
+  console.log(`[Grammar Fix] ${issues.length} issues (${actionableIssues.length} actionable)`);
+
+  const result = await callClaude(
+    `You are a professional ${langName} text editor. You MUST fix the listed grammar/spelling issues in a Markdown article.
+
+CRITICAL RULES:
+- You MUST make changes. If you return the same text, you have failed.
+- Apply EVERY suggested replacement listed below.
+- Fix spelling errors even in proper nouns if a suggestion is given.
+- Add missing commas between clauses.
+- Add missing periods after abbreviations (Pon. Wt. Śr. Czw. Pt.).
+- Shorten sentences over 25 words by splitting into two sentences.
+- Break paragraphs longer than 3 sentences.
+- Preserve Markdown: ##, ###, **bold**, [links](url), lists, tables.
+- Do NOT remove or add content. Only fix grammar/spelling/punctuation.
+- Brand name "HealthDesk" stays capitalized (ignore any suggestion to lowercase it).`,
+    `Apply these fixes to the ${langName} article below:
+
+FIXES TO APPLY:
+${issueList}
+
+ARTICLE TO FIX:
+${markdown}
+
+Return the FIXED article. No markdown fences, no comments. Start with ## heading.`,
+    8000
+  );
+
+  let cleaned = result.trim();
+  if (cleaned.startsWith('```')) {
+    cleaned = cleaned.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+  }
+  const changed = cleaned.trim() !== markdown.trim();
+  console.log(`[Grammar Fix] Result: ${cleaned.length} chars, changed: ${changed}`);
+  return { markdown: cleaned, changed, issueCount: issues.length };
+}
 
 // ─── AI: Fix grammar & readability ───
 app.post('/api/ai/fix-grammar', async (req, res) => {
@@ -1837,17 +2011,15 @@ function getGeminiKey() {
   return studio.gemini_api_key || process.env.GEMINI_API_KEY || null;
 }
 
-app.post('/api/ai/generate-image', async (req, res) => {
-  const { slug, lang, title, description, style } = req.body;
+// ─── Helper: Generate hero image ───
+async function doHeroImage(slug, lang, title, description, style) {
   const apiKey = getGeminiKey();
-  if (!apiKey) return res.status(400).json({ error: 'No Gemini API key configured. Add gemini_api_key to studio.json' });
+  if (!apiKey) throw new Error('No Gemini API key configured. Add gemini_api_key to studio.json');
 
-  try {
-    const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
-    const styleHint = style || 'clean, modern, professional';
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const styleHint = style || 'clean, modern, professional';
 
-    // Single Gemini call: generate image + alt text
-    const imagePrompt = `Generate a photorealistic hero image for a blog article.
+  const imagePrompt = `Generate a photorealistic hero image for a blog article.
 
 Article: "${title}"
 Description: ${description}
@@ -1863,90 +2035,88 @@ Requirements:
 
 After generating the image, write a single line of SEO alt text (max 125 characters) in ${langName} describing what the image shows. Format: ALT: <your alt text>`;
 
-    console.log(`[Image] Calling Gemini 3.1 Flash Image for "${title}"...`);
-    const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: imagePrompt }] }],
-          generationConfig: {
-            responseModalities: ['TEXT', 'IMAGE']
-          }
-        })
-      }
-    );
-
-    if (!geminiRes.ok) {
-      const err = await geminiRes.json();
-      throw new Error(err.error?.message || `Gemini API error: ${geminiRes.status}`);
+  console.log(`[Image] Calling Gemini 3.1 Flash Image for "${title}"...`);
+  const geminiRes = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
+    {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: imagePrompt }] }],
+        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+      })
     }
+  );
 
-    const geminiData = await geminiRes.json();
+  if (!geminiRes.ok) {
+    const err = await geminiRes.json();
+    throw new Error(err.error?.message || `Gemini API error: ${geminiRes.status}`);
+  }
 
-    // Extract image and alt text from response
-    let imageBase64 = null;
-    let imageMime = null;
-    let altText = title; // fallback
-    const parts = geminiData.candidates?.[0]?.content?.parts || [];
-    for (const part of parts) {
-      if (part.inlineData) {
-        imageBase64 = part.inlineData.data;
-        imageMime = part.inlineData.mimeType;
-      }
-      if (part.text) {
-        const altMatch = part.text.match(/ALT:\s*(.+)/i);
-        if (altMatch) altText = altMatch[1].trim().slice(0, 125).replace(/"/g, "'");
-      }
+  const geminiData = await geminiRes.json();
+
+  let imageBase64 = null;
+  let imageMime = null;
+  let altText = title;
+  const parts = geminiData.candidates?.[0]?.content?.parts || [];
+  for (const part of parts) {
+    if (part.inlineData) {
+      imageBase64 = part.inlineData.data;
+      imageMime = part.inlineData.mimeType;
     }
-
-    if (!imageBase64) {
-      throw new Error('Gemini did not return an image. Try again.');
+    if (part.text) {
+      const altMatch = part.text.match(/ALT:\s*(.+)/i);
+      if (altMatch) altText = altMatch[1].trim().slice(0, 125).replace(/"/g, "'");
     }
+  }
 
-    console.log(`[Image] Received ${imageMime} image, converting to WebP...`);
-    const imgBuffer = Buffer.from(imageBase64, 'base64');
+  if (!imageBase64) throw new Error('Gemini did not return an image. Try again.');
 
-    // Convert and optimize with sharp → WebP 1200x630
-    fs.mkdirSync(BLOG_IMAGES_DIR, { recursive: true });
-    const filename = `${slug}.webp`;
-    const filepath = path.join(BLOG_IMAGES_DIR, filename);
+  console.log(`[Image] Received ${imageMime} image, converting to WebP...`);
+  const imgBuffer = Buffer.from(imageBase64, 'base64');
 
-    await sharp(imgBuffer)
-      .resize(1200, 630, { fit: 'cover' })
-      .webp({ quality: 82 })
-      .toFile(filepath);
+  fs.mkdirSync(BLOG_IMAGES_DIR, { recursive: true });
+  const filename = `${slug}.webp`;
+  const filepath = path.join(BLOG_IMAGES_DIR, filename);
 
-    const stats = fs.statSync(filepath);
-    console.log(`[Image] Saved: ${filepath} (${(stats.size / 1024).toFixed(1)} KB)`);
+  await sharp(imgBuffer)
+    .resize(1200, 630, { fit: 'cover' })
+    .webp({ quality: 82 })
+    .toFile(filepath);
 
-    // Auto-save image_alt to article frontmatter
-    const mdFile = findArticleFile(lang, slug);
-    if (mdFile && altText) {
-      const mdContent = fs.readFileSync(mdFile, 'utf8');
-      const fmMatch = mdContent.match(/^---\n([\s\S]*?)\n---/);
-      if (fmMatch) {
-        let fm = fmMatch[1];
-        if (fm.includes('image_alt:')) {
-          fm = fm.replace(/image_alt:.*/, `image_alt: "${altText}"`);
-        } else {
-          fm += `\nimage_alt: "${altText}"`;
-        }
-        const updated = mdContent.replace(/^---\n[\s\S]*?\n---/, `---\n${fm}\n---`);
-        fs.writeFileSync(mdFile, updated, 'utf8');
-        console.log(`[Image] Saved image_alt to frontmatter: "${altText}"`);
+  const stats = fs.statSync(filepath);
+  console.log(`[Image] Saved: ${filepath} (${(stats.size / 1024).toFixed(1)} KB)`);
+
+  // Auto-save image_alt to article frontmatter
+  const mdFile = findArticleFile(lang, slug);
+  if (mdFile && altText) {
+    const mdContent = fs.readFileSync(mdFile, 'utf8');
+    const fmMatch = mdContent.match(/^---\n([\s\S]*?)\n---/);
+    if (fmMatch) {
+      let fmContent = fmMatch[1];
+      if (fmContent.includes('image_alt:')) {
+        fmContent = fmContent.replace(/image_alt:.*/, `image_alt: "${altText}"`);
+      } else {
+        fmContent += `\nimage_alt: "${altText}"`;
       }
+      const updated = mdContent.replace(/^---\n[\s\S]*?\n---/, `---\n${fmContent}\n---`);
+      fs.writeFileSync(mdFile, updated, 'utf8');
+      console.log(`[Image] Saved image_alt to frontmatter: "${altText}"`);
     }
+  }
 
-    res.json({
-      ok: true,
-      filename,
-      path: `/images/blog/${filename}`,
-      altText,
-      prompt: imagePrompt.split('\n')[0],
-      size: `${(stats.size / 1024).toFixed(1)} KB`
-    });
+  return {
+    ok: true, filename,
+    path: `/images/blog/${filename}`,
+    altText,
+    size: `${(stats.size / 1024).toFixed(1)} KB`
+  };
+}
+
+app.post('/api/ai/generate-image', async (req, res) => {
+  const { slug, lang, title, description, style } = req.body;
+  try {
+    res.json(await doHeroImage(slug, lang, title, description, style));
   } catch (err) {
     console.error('[Image]', err);
     res.status(500).json({ error: err.message });
@@ -2221,6 +2391,239 @@ app.get('/api/gsc/discover-keywords', async (req, res) => {
   } catch (err) {
     res.json({ configured: true, discovered: [], error: err.response?.data?.error?.message || err.message });
   }
+});
+
+// ─── Autopilot: progress tracking ───
+let autopilotProgress = null;
+// { status, currentStep, totalSteps, stepName, currentTopic, totalTopics, completedTopics, results[], error }
+
+app.get('/api/ai/autopilot/status', (req, res) => {
+  res.json(autopilotProgress || { status: 'idle' });
+});
+
+// ─── Helper: slugify for autopilot ───
+function autoSlugify(text) {
+  return text.toLowerCase()
+    .replace(/[ąà]/g,'a').replace(/[ćč]/g,'c').replace(/[ę]/g,'e')
+    .replace(/[łĺ]/g,'l').replace(/[ńñ]/g,'n').replace(/[óò]/g,'o')
+    .replace(/[śš]/g,'s').replace(/[źżž]/g,'z').replace(/[üú]/g,'u')
+    .replace(/[ö]/g,'o').replace(/[ä]/g,'a').replace(/[ß]/g,'ss')
+    .replace(/[èéêë]/g,'e').replace(/[ìíîï]/g,'i').replace(/[ùûü]/g,'u')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
+// ─── Autopilot: single topic pipeline ───
+async function runAutopilot(lang, topic, persona) {
+  const steps = [];
+  const updateStep = (num, name, status) => {
+    steps[num - 1] = { step: num, name, status, startedAt: Date.now() };
+    if (autopilotProgress) {
+      autopilotProgress.currentStep = num;
+      autopilotProgress.stepName = name;
+      autopilotProgress.steps = steps;
+    }
+  };
+
+  try {
+    // Step 1: Keyword Research
+    updateStep(1, 'Keyword Research', 'running');
+    const serp = await doKeywordSearch(topic, lang);
+    steps[0].status = 'done';
+
+    // Step 2: Keyword Analysis
+    updateStep(2, 'Keyword Analysis', 'running');
+    const analysis = await doKeywordAnalyze(topic, lang, serp);
+    steps[1].status = 'done';
+
+    // Step 3: AI Outline
+    updateStep(3, 'AI Outline', 'running');
+    const outline = await doOutline(analysis.suggestedTitle || topic, lang);
+    steps[2].status = 'done';
+
+    const title = outline.title || analysis.suggestedTitle || topic;
+    const slug = autoSlugify(title);
+    const description = outline.description || '';
+
+    // Step 4: Create Article
+    updateStep(4, 'Create Article', 'running');
+    const langDir = path.join(BLOG_DIR, lang);
+    fs.mkdirSync(langDir, { recursive: true });
+    const filePath = path.join(langDir, `${slug}.md`);
+    if (!fs.existsSync(filePath)) {
+      const content = `---\ntitle: "${title.replace(/"/g, '\\"')}"\nslug: "${slug}"\ndate: ${new Date().toISOString().split('T')[0]}\ndescription: "${description.replace(/"/g, '\\"')}"\nkeyword: "${topic.replace(/"/g, '\\"')}"\ntags: [${(outline.tags || []).map(t => `"${t}"`).join(', ')}]\nlang: ${lang}\n---\n\n`;
+      fs.writeFileSync(filePath, content, 'utf8');
+    }
+    const studio = loadStudioData();
+    studio.articles[`${lang}/${slug}`] = { status: 'draft' };
+    saveStudioData(studio);
+    steps[3].status = 'done';
+
+    // Step 5: AI Draft
+    updateStep(5, 'AI Draft', 'running');
+    const draftResult = await doDraft(title, description, outline.outline || [], lang, topic, slug, persona);
+    const markdown = draftResult.markdown;
+    steps[4].status = 'done';
+
+    // Step 6: AI Audit
+    updateStep(6, 'AI Audit', 'running');
+    const audit = await doAudit(markdown, lang);
+    const aiScore = audit.score || 0;
+    steps[5].status = 'done';
+    steps[5].detail = `Score: ${aiScore}/10`;
+
+    let currentMarkdown = markdown;
+    let finalAiScore = aiScore;
+
+    // Steps 7-8: Humanize + Grammar with iteration (max 2 rounds)
+    const MAX_ROUNDS = 2;
+    for (let round = 1; round <= MAX_ROUNDS; round++) {
+      const roundLabel = MAX_ROUNDS > 1 ? ` (${round}/${MAX_ROUNDS})` : '';
+
+      // Step 7: Humanize (if score > 5)
+      updateStep(7, `Humanize${roundLabel}`, finalAiScore > 5 ? 'running' : 'skipped');
+      if (finalAiScore > 5) {
+        const humanized = await doHumanize(currentMarkdown, lang);
+        currentMarkdown = humanized.articleText || humanized.markdown;
+        steps[6].status = 'done';
+      }
+
+      // Step 8: Grammar Fix
+      updateStep(8, `Grammar Fix${roundLabel}`, 'running');
+      const grammarResult = await doGrammarFix(currentMarkdown, lang);
+      if (grammarResult.changed) currentMarkdown = grammarResult.markdown;
+      steps[7].status = 'done';
+      steps[7].detail = `${grammarResult.issueCount} issues`;
+
+      // Re-audit after corrections to check improvement
+      if (round < MAX_ROUNDS && finalAiScore > 5) {
+        updateStep(6, `Re-audit${roundLabel}`, 'running');
+        const reAudit = await doAudit(currentMarkdown, lang);
+        finalAiScore = reAudit.score || 0;
+        steps[5].status = 'done';
+        steps[5].detail = `Score: ${finalAiScore}/10`;
+        console.log(`[Autopilot] Round ${round} re-audit: ${finalAiScore}/10`);
+        if (finalAiScore <= 5) {
+          console.log(`[Autopilot] Score OK after round ${round}, skipping further rounds`);
+          break;
+        }
+      } else {
+        break;
+      }
+    }
+
+    // Step 9: AI Description
+    updateStep(9, 'AI Description', 'running');
+    const metaDescription = await doDescription(currentMarkdown, title, lang);
+    steps[8].status = 'done';
+
+    // Step 10: Hero Image
+    updateStep(10, 'Hero Image', 'running');
+    let heroResult = null;
+    try {
+      heroResult = await doHeroImage(slug, lang, title, metaDescription);
+      steps[9].status = 'done';
+    } catch (imgErr) {
+      console.error(`[Autopilot] Hero image failed: ${imgErr.message}`);
+      steps[9].status = 'error';
+      steps[9].detail = imgErr.message;
+    }
+
+    // Step 11: Save final article
+    updateStep(11, 'Save Article', 'running');
+    const finalFrontmatter = [
+      '---',
+      `title: "${title.replace(/"/g, '\\"')}"`,
+      `slug: "${slug}"`,
+      `date: ${new Date().toISOString().split('T')[0]}`,
+      `description: "${metaDescription.replace(/"/g, '\\"')}"`,
+      `keyword: "${topic.replace(/"/g, '\\"')}"`,
+      `tags: [${(outline.tags || []).map(t => `"${t}"`).join(', ')}]`,
+      `lang: ${lang}`,
+      heroResult?.altText ? `image_alt: "${heroResult.altText}"` : null,
+      draftResult.faqYaml || null,
+      '---'
+    ].filter(Boolean).join('\n');
+
+    fs.writeFileSync(filePath, finalFrontmatter + '\n' + currentMarkdown, 'utf8');
+    syncArticleKeyword(lang, slug, topic);
+    steps[10].status = 'done';
+
+    const wordCount = currentMarkdown.split(/\s+/).filter(Boolean).length;
+    return {
+      slug, lang, title, score: finalAiScore, wordCount,
+      description: metaDescription, steps,
+      heroImage: heroResult ? heroResult.filename : null
+    };
+
+  } catch (err) {
+    const failedStep = steps.findIndex(s => s && s.status === 'running');
+    if (failedStep >= 0) steps[failedStep].status = 'error';
+    throw err;
+  }
+}
+
+// ─── API: Autopilot single ───
+app.post('/api/ai/autopilot', async (req, res) => {
+  const { lang, topic, persona } = req.body;
+  if (!lang || !topic) return res.status(400).json({ error: 'lang and topic required' });
+
+  autopilotProgress = {
+    status: 'running', currentStep: 0, totalSteps: 11, stepName: 'Starting...',
+    currentTopic: topic, totalTopics: 1, completedTopics: 0, results: []
+  };
+
+  try {
+    const result = await runAutopilot(lang, topic, persona);
+    autopilotProgress.status = 'done';
+    autopilotProgress.completedTopics = 1;
+    autopilotProgress.results = [result];
+    res.json(result);
+    setTimeout(() => { if (autopilotProgress?.status === 'done') autopilotProgress = null; }, 60000);
+  } catch (err) {
+    console.error('[Autopilot] Error:', err.message);
+    autopilotProgress.status = 'error';
+    autopilotProgress.error = err.message;
+    res.status(500).json({ error: err.message });
+    setTimeout(() => { autopilotProgress = null; }, 60000);
+  }
+});
+
+// ─── API: Autopilot batch ───
+app.post('/api/ai/autopilot/batch', async (req, res) => {
+  const { lang, topics, persona } = req.body;
+  if (!lang || !topics || !topics.length) return res.status(400).json({ error: 'lang and topics[] required' });
+
+  autopilotProgress = {
+    status: 'running', currentStep: 0, totalSteps: 11, stepName: 'Starting...',
+    currentTopic: topics[0], totalTopics: topics.length, completedTopics: 0, results: []
+  };
+
+  const results = [];
+  for (let i = 0; i < topics.length; i++) {
+    const topic = topics[i].trim();
+    if (!topic) continue;
+
+    autopilotProgress.currentTopic = topic;
+    autopilotProgress.completedTopics = i;
+    autopilotProgress.currentStep = 0;
+
+    try {
+      const result = await runAutopilot(lang, topic, persona);
+      results.push(result);
+      autopilotProgress.results = results;
+    } catch (err) {
+      console.error(`[Autopilot Batch] Error on "${topic}":`, err.message);
+      results.push({ topic, error: err.message, steps: autopilotProgress.steps || [] });
+      autopilotProgress.results = results;
+    }
+  }
+
+  autopilotProgress.status = 'done';
+  autopilotProgress.completedTopics = topics.length;
+  res.json({ total: topics.length, completed: results.filter(r => !r.error).length, results });
+  setTimeout(() => { if (autopilotProgress?.status === 'done') autopilotProgress = null; }, 60000);
 });
 
 // ─── Start ───

@@ -92,6 +92,30 @@
       </div>
       <div class="ai-outline-result hidden" id="ai-outline-result"></div>
       <div class="ideas-list" id="ideas-list"></div>
+
+      <!-- Autopilot -->
+      <div class="autopilot-section">
+        <div class="autopilot-header">
+          <h2>Autopilot</h2>
+          <span class="autopilot-desc">Full pipeline: keyword research → draft → humanize → grammar → hero image</span>
+        </div>
+        <div class="autopilot-form">
+          <select id="ap-lang" class="input input-sm">
+            <option value="pl">PL</option><option value="en">EN</option>
+            <option value="de">DE</option><option value="es">ES</option>
+            <option value="fr">FR</option><option value="it">IT</option>
+            <option value="pt">PT</option><option value="nl">NL</option>
+            <option value="sv">SV</option>
+          </select>
+          <input type="text" id="ap-topic" placeholder="Topic / keyword..." class="input" onkeydown="if(event.key==='Enter')apAddTopic()">
+          <button class="btn btn-sm" onclick="apAddTopic()">+ Add</button>
+          <input type="text" id="ap-persona" placeholder="Persona (optional)" class="input" style="max-width:200px;">
+          <button class="btn btn-primary" onclick="apStart()" id="btn-ap-start">Generate All</button>
+        </div>
+        <div class="ap-topics" id="ap-topics"></div>
+        <div class="ap-progress hidden" id="ap-progress"></div>
+        <div class="ap-results hidden" id="ap-results"></div>
+      </div>
     </section>
 
     <!-- ===== Keywords ===== -->
