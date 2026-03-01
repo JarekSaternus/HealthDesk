@@ -1,0 +1,137 @@
+{% extends "admin_base.html" %}
+{% block title %}Telemetria - HealthDesk Admin{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<header>
+    <h1 style="font-size:1.4rem;margin-bottom:0.5rem;">Dashboard</h1>
+</header>
+
+<p class="section-label">Aktywni uzytkownicy</p>
+<div class="grid">
+    <article class="stat-card">
+        <h2>{{ dau }}</h2>
+        <p>DAU <span class="tip" data-tip="Daily Active Users — ile unikalnych osob uruchomilo aplikacje dzisiaj">?</span></p>
+    </article>
+    <article class="stat-card">
+        <h2>{{ wau }}</h2>
+        <p>WAU <span class="tip" data-tip="Weekly Active Users — ile unikalnych osob korzystalo z aplikacji w ostatnich 7 dniach">?</span></p>
+    </article>
+    <article class="stat-card">
+        <h2>{{ mau }}</h2>
+        <p>MAU <span class="tip" data-tip="Monthly Active Users — ile unikalnych osob korzystalo z aplikacji w ostatnich 30 dniach">?</span></p>
+    </article>
+    <article class="stat-card">
+        <h2>{{ events_today }}</h2>
+        <p>Eventy <span class="tip" data-tip="Zdarzenia dzisiaj — suma wszystkich akcji uzytkownikow (przerwy, woda, cwiczenia, itp.)">?</span></p>
+    </article>
+</div>
+
+<p class="section-label">Pobrania</p>
+<div class="grid">
+    <article class="stat-card blue">
+        <h2>{{ downloads_today }}</h2>
+        <p>Dzisiaj <span class="tip" data-tip="Ile razy ktos kliknal Pobierz na stronie healthdesk.site dzisiaj">?</span></p>
+    </article>
+    <article class="stat-card blue">
+        <h2>{{ downloads_total }}</h2>
+        <p>Lacznie <span class="tip" data-tip="Suma wszystkich klikniec Pobierz od poczatku zbierania danych">?</span></p>
+    </article>
+    {% for dl in downloads_by_platform %}
+    <article class="stat-card blue">
+        <h2>{{ dl.count }}</h2>
+        <p>{{ dl.platform | capitalize }}</p>
+    </article>
+    {% endfor %}
+</div>
+
+<!-- Charts side by side -->
+<div class="grid">
+    <article>
+        <h3>Pobrania (30 dni)</h3>
+        <canvas id="downloadsChart"></canvas>
+    </article>
+    <article>
+        <h3>Zdarzenia (30 dni)</h3>
+        <canvas id="eventsChart"></canvas>
+    </article>
+</div>
+
+<!-- Tables side by side -->
+<div class="grid">
+    <article>
+        <h3>Najczestsze zdarzenia <span class="tip" data-tip="Ranking akcji uzytkownikow: app_start = uruchomienie, break_taken = przerwa, water_logged = woda, exercise_done = cwiczenie, audio_play = muzyka, error = blad">?</span></h3>
+        {% if common_events %}
+        <figure>
+            <table>
+                <thead>
+                    <tr><th>Typ</th><th style="text-align:right">Liczba</th></tr>
+                </thead>
+                <tbody>
+                    {% for event in common_events %}
+                    <tr><td>{{ event.event_type }}</td><td style="text-align:right">{{ event.count }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </figure>
+        {% else %}
+        <p>Brak danych</p>
+        {% endif %}
+    </article>
+
+    <article>
+        <h3>Wersje aplikacji <span class="tip" data-tip="Ile osob uzywa kazdej wersji HealthDesk — jesli ktos ma stara wersje, nie zaktualizowal">?</span></h3>
+        {% if app_versions %}
+        <figure>
+            <table>
+                <thead>
+                    <tr><th>Wersja</th><th style="text-align:right">Userzy</th></tr>
+                </thead>
+                <tbody>
+                    {% for ver in app_versions %}
+                    <tr><td>{{ ver.app_version }}</td><td style="text-align:right">{{ ver.users }}</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </figure>
+        {% else %}
+        <p>Brak danych</p>
+        {% endif %}
+    </article>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    var chartOpts = {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+            x: { grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', font: { size: 10 } } },
+            y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#aaa', precision: 0, font: { size: 10 } } }
+        },
+        plugins: { legend: { display: false } }
+    };
+
+    new Chart(document.getElementById('downloadsChart'), {
+        type: 'bar',
+        data: {
+            labels: {{ dl_chart_labels | tojson }},
+            datasets: [{ data: {{ dl_chart_values | tojson }}, backgroundColor: 'rgba(52,152,219,0.7)', borderColor: '#3498db', borderWidth: 1 }]
+        },
+        options: chartOpts
+    });
+
+    new Chart(document.getElementById('eventsChart'), {
+        type: 'line',
+        data: {
+            labels: {{ chart_labels | tojson }},
+            datasets: [{ data: {{ chart_values | tojson }}, borderColor: '#2ecc71', backgroundColor: 'rgba(46,204,113,0.1)', fill: true, tension: 0.3, pointRadius: 2, pointBackgroundColor: '#2ecc71' }]
+        },
+        options: chartOpts
+    });
+</script>
+{% endblock %}

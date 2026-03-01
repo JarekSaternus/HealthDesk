@@ -897,6 +897,26 @@
               modal.classList.add('dl-modal-open');
             });
           });
+
+          // Track actual download clicks
+          var dlModalBtn = document.getElementById('dl-modal-btn');
+          if (dlModalBtn) {
+            dlModalBtn.addEventListener('click', function() {
+              var params = new URLSearchParams(window.location.search);
+              var platform = 'unknown';
+              var activeTab = document.querySelector('.dl-modal-content[style*="block"]');
+              if (activeTab) platform = activeTab.id.replace('dl-content-', '');
+              fetch('https://api.healthdesk.site/api/downloads', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                  platform: platform,
+                  source: params.get('utm_source') || document.referrer || null,
+                  language: navigator.language || null
+                })
+              }).catch(function(){});
+            });
+          }
         });
       } catch(e) {}
     })();

@@ -1,0 +1,49 @@
+{% extends "admin_base.html" %}
+{% block title %}{% if ad %}Edytuj reklame{% else %}Nowa reklama{% endif %} - HealthDesk Admin{% endblock %}
+
+{% block content %}
+<header>
+    <h1>{% if ad %}Edytuj reklame{% else %}Nowa reklama{% endif %}</h1>
+</header>
+
+<article>
+    <form method="post" action="{{ form_action }}">
+        <label for="title">Tytul</label>
+        <input type="text" id="title" name="title" value="{{ ad.title if ad else '' }}" required>
+
+        <label for="text">Tekst</label>
+        <textarea id="text" name="text" rows="3" required>{{ ad.text if ad else '' }}</textarea>
+
+        <label for="url">URL</label>
+        <input type="url" id="url" name="url" value="{{ ad.url if ad else '' }}" required>
+
+        <div class="grid">
+            <div>
+                <label for="bg">Kolor tla</label>
+                <input type="color" id="bg" name="bg" value="{{ ad.bg if ad else '#1a1a2e' }}">
+            </div>
+            <div>
+                <label for="accent">Kolor akcentu</label>
+                <input type="color" id="accent" name="accent" value="{{ ad.accent if ad else '#2ecc71' }}">
+            </div>
+            <div>
+                <label for="weight">Waga</label>
+                <input type="number" id="weight" name="weight" value="{{ ad.weight if ad else 1 }}" min="1" max="100">
+            </div>
+        </div>
+
+        <fieldset>
+            <label>
+                <input type="checkbox" id="is_affiliate" name="is_affiliate" value="true"
+                    {% if ad and ad.is_affiliate %}checked{% endif %}>
+                Reklama afiliacyjna
+            </label>
+        </fieldset>
+
+        <div class="grid">
+            <a href="/admin/ads" role="button" class="secondary outline">Anuluj</a>
+            <button type="submit">{% if ad %}Zapisz zmiany{% else %}Dodaj reklame{% endif %}</button>
+        </div>
+    </form>
+</article>
+{% endblock %}

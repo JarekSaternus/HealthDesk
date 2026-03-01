@@ -1,0 +1,61 @@
+{% extends "admin_base.html" %}
+{% block title %}Reklamy - HealthDesk Admin{% endblock %}
+
+{% block content %}
+<header>
+    <div style="display: flex; justify-content: space-between; align-items: center;">
+        <h1>Reklamy</h1>
+        <a href="/admin/ads/new" role="button">Dodaj reklame</a>
+    </div>
+</header>
+
+{% if ads_data %}
+<figure>
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tytul</th>
+                <th>Tekst</th>
+                <th>URL</th>
+                <th>Status</th>
+                <th>Waga</th>
+                <th>Wyswietlenia</th>
+                <th>Klikniecia</th>
+                <th>Akcje</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in ads_data %}
+            <tr>
+                <td>{{ item.ad.id }}</td>
+                <td>{{ item.ad.title }}</td>
+                <td>{{ item.ad.text[:50] }}{% if item.ad.text|length > 50 %}...{% endif %}</td>
+                <td><a href="{{ item.ad.url }}" target="_blank">{{ item.ad.url[:30] }}{% if item.ad.url|length > 30 %}...{% endif %}</a></td>
+                <td>
+                    {% if item.ad.is_active %}
+                        <span class="badge-active">Aktywna</span>
+                    {% else %}
+                        <span class="badge-inactive">Nieaktywna</span>
+                    {% endif %}
+                </td>
+                <td>{{ item.ad.weight }}</td>
+                <td>{{ item.impressions }}</td>
+                <td>{{ item.clicks }}</td>
+                <td>
+                    <div class="actions">
+                        <a href="/admin/ads/{{ item.ad.id }}/edit" role="button" class="outline">Edytuj</a>
+                        <form method="post" action="/admin/ads/{{ item.ad.id }}/delete" style="margin:0;" onsubmit="return confirm('Czy na pewno chcesz dezaktywowac te reklame?')">
+                            <button type="submit" class="secondary outline">Usun</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</figure>
+{% else %}
+<p>Brak reklam. <a href="/admin/ads/new">Dodaj pierwsza reklame</a>.</p>
+{% endif %}
+{% endblock %}

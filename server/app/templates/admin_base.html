@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}HealthDesk Admin{% endblock %}</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+    <style>
+        :root {
+            --pico-primary: #2ecc71;
+            --pico-primary-hover: #27ae60;
+        }
+        .brand {
+            color: #2ecc71;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        .brand:hover {
+            color: #27ae60;
+        }
+        nav ul li a.active {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .stat-card {
+            text-align: center;
+            padding: 0.75rem 0.5rem;
+            margin-bottom: 0;
+        }
+        .stat-card h2 {
+            color: #2ecc71;
+            font-size: 1.6rem;
+            margin-bottom: 0.1rem;
+            line-height: 1.2;
+        }
+        .stat-card p {
+            color: var(--pico-muted-color);
+            margin: 0;
+            font-size: 0.8rem;
+        }
+        .stat-card.blue h2 { color: #3498db; }
+        .stat-card .tip {
+            display: inline-block;
+            width: 14px; height: 14px;
+            line-height: 14px;
+            font-size: 10px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.1);
+            color: #888;
+            cursor: help;
+            vertical-align: middle;
+            margin-left: 3px;
+            position: relative;
+        }
+        .stat-card .tip:hover::after {
+            content: attr(data-tip);
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #333;
+            color: #eee;
+            padding: 6px 10px;
+            border-radius: 6px;
+            font-size: 11px;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .section-label {
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--pico-muted-color);
+            margin: 1.5rem 0 0.5rem;
+        }
+        article h3 {
+            font-size: 1rem;
+            margin-bottom: 0.75rem;
+        }
+        article canvas {
+            max-height: 220px !important;
+        }
+        table {
+            margin-top: 1rem;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+        .actions a, .actions button {
+            font-size: 0.85rem;
+            padding: 0.3rem 0.7rem;
+            margin: 0;
+        }
+        .actions button.secondary {
+            background-color: #e74c3c;
+            border-color: #e74c3c;
+        }
+        .badge-active {
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        .badge-inactive {
+            color: #e74c3c;
+            font-weight: bold;
+        }
+    </style>
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+    <nav class="container-fluid">
+        <ul>
+            <li><a href="/admin/ads" class="brand">HealthDesk</a></li>
+        </ul>
+        <ul>
+            <li><a href="/admin/ads" {% if request.url.path.startswith('/admin/ads') %}class="active"{% endif %}>Reklamy</a></li>
+            <li><a href="/admin/telemetry" {% if '/telemetry' in request.url.path %}class="active"{% endif %}>Telemetria</a></li>
+            <li><a href="/admin/logout">Wyloguj</a></li>
+        </ul>
+    </nav>
+
+    <main class="container">
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block extra_scripts %}{% endblock %}
+</body>
+</html>

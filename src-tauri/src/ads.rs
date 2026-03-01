@@ -4,7 +4,7 @@ use std::path::PathBuf;
 
 use crate::config;
 
-const API_HOST: &str = "https://api.healthdesk.app";
+const API_HOST: &str = "https://api.healthdesk.site";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Ad {

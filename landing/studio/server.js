@@ -2593,29 +2593,33 @@ app.post('/api/ai/autopilot', async (req, res) => {
 // ─── API: Autopilot batch ───
 app.post('/api/ai/autopilot/batch', async (req, res) => {
   const { lang, topics, persona } = req.body;
-  if (!lang || !topics || !topics.length) return res.status(400).json({ error: 'lang and topics[] required' });
+  // topics can be strings (same lang) or objects {lang, topic, persona?}
+  if (!topics || !topics.length) return res.status(400).json({ error: 'topics[] required' });
+  if (!lang && typeof topics[0] === 'string') return res.status(400).json({ error: 'lang required when topics are strings' });
+
+  const normalized = topics.map(t => typeof t === 'string' ? { lang, topic: t.trim(), persona } : { lang: t.lang, topic: t.topic?.trim(), persona: t.persona || persona });
 
   autopilotProgress = {
     status: 'running', currentStep: 0, totalSteps: 11, stepName: 'Starting...',
-    currentTopic: topics[0], totalTopics: topics.length, completedTopics: 0, results: []
+    currentTopic: normalized[0].topic, totalTopics: normalized.length, completedTopics: 0, results: []
   };
 
   const results = [];
-  for (let i = 0; i < topics.length; i++) {
-    const topic = topics[i].trim();
-    if (!topic) continue;
+  for (let i = 0; i < normalized.length; i++) {
+    const { lang: itemLang, topic, persona: itemPersona } = normalized[i];
+    if (!topic || !itemLang) continue;
 
-    autopilotProgress.currentTopic = topic;
+    autopilotProgress.currentTopic = `[${itemLang}] ${topic}`;
     autopilotProgress.completedTopics = i;
     autopilotProgress.currentStep = 0;
 
     try {
-      const result = await runAutopilot(lang, topic, persona);
+      const result = await runAutopilot(itemLang, topic, itemPersona);
       results.push(result);
       autopilotProgress.results = results;
     } catch (err) {
       console.error(`[Autopilot Batch] Error on "${topic}":`, err.message);
-      results.push({ topic, error: err.message, steps: autopilotProgress.steps || [] });
+      results.push({ lang: itemLang, topic, error: err.message, steps: autopilotProgress.steps || [] });
       autopilotProgress.results = results;
     }
   }
