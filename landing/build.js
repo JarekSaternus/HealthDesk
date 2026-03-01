@@ -172,6 +172,64 @@ function generateBlogPostSchema(meta, lang, articleHtml) {
       height: 630
     };
   }
+  // Speakable — key sections for voice assistants and LLMs
+  schema.speakable = {
+    '@type': 'SpeakableSpecification',
+    cssSelector: ['.blog-content h2', '.blog-content p:first-of-type', '.blog-content h3']
+  };
+  if (meta.keyword) schema.keywords = meta.keyword;
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
+// ─── Blog Article FAQ Schema (auto-extract from headings + frontmatter faq field) ───
+function generateBlogFAQSchema(post) {
+  const questions = [];
+
+  // 1. Manual FAQ from frontmatter (priority)
+  if (post.faq && Array.isArray(post.faq)) {
+    for (const item of post.faq) {
+      if (item.q && item.a) {
+        questions.push({
+          '@type': 'Question',
+          name: item.q,
+          acceptedAnswer: { '@type': 'Answer', text: item.a }
+        });
+      }
+    }
+  }
+
+  // 2. Auto-extract from H2/H3 headings that end with "?"
+  if (post.body) {
+    const lines = post.body.split('\n');
+    for (let i = 0; i < lines.length; i++) {
+      const headingMatch = lines[i].match(/^#{2,3}\s+(.+\?)\s*$/);
+      if (!headingMatch) continue;
+      const question = headingMatch[1].trim();
+      // Skip if already in manual FAQ
+      if (questions.some(q => q.name === question)) continue;
+      // Collect answer: paragraphs until next heading or end
+      const answerParts = [];
+      for (let j = i + 1; j < lines.length; j++) {
+        if (/^#{1,3}\s+/.test(lines[j])) break;
+        const line = lines[j].trim();
+        if (line && !line.startsWith('|') && !line.startsWith('---') && !line.startsWith('![')) {
+          // Strip markdown formatting for clean text
+          answerParts.push(line.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\*\*([^*]+)\*\*/g, '$1').replace(/\*([^*]+)\*/g, '$1'));
+        }
+        if (answerParts.length >= 3) break; // First 3 lines of answer
+      }
+      if (answerParts.length > 0) {
+        questions.push({
+          '@type': 'Question',
+          name: question,
+          acceptedAnswer: { '@type': 'Answer', text: answerParts.join(' ') }
+        });
+      }
+    }
+  }
+
+  if (questions.length === 0) return '';
+  const schema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: questions };
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
 }
 
@@ -261,6 +319,7 @@ function loadBlogPosts() {
       posts[lang].push({
         ...parsed.attributes,
         html,
+        body: parsed.body,
         file,
         image: fs.existsSync(heroImg) ? `/images/blog/${slug}.webp` : null,
         image_alt: parsed.attributes.image_alt || parsed.attributes.title
@@ -483,7 +542,7 @@ function build() {
           og_image: post.image ? `${SITE_URL}${post.image}` : `${SITE_URL}/og-image.png`,
           og_image_alt: post.image_alt || post.title,
           hreflang_tags: post.siblings ? generateBlogHreflangTags(post, lang) : '',
-          schema_jsonld: generateBlogPostSchema(post, lang, post.html) + '\n' + generateBreadcrumbSchema(lang, post),
+          schema_jsonld: generateBlogPostSchema(post, lang, post.html) + '\n' + generateBreadcrumbSchema(lang, post) + '\n' + generateBlogFAQSchema(post),
           content: postContent
         };
         const postHtml = renderTemplate(baseTemplate, postPageVars);

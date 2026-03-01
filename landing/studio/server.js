@@ -283,17 +283,50 @@ app.post('/api/seo/analyze', (req, res) => {
 });
 
 // ─── API: Grammar check (LanguageTool) ───
+// Custom dictionary — words to ignore in grammar check
+const CUSTOM_DICTIONARY = [
+  'Pomodoro', 'pomodoro', 'Cirillo', 'HealthDesk', 'healthdesk',
+  'Todoist', 'Notion', 'GTD', 'Draugiem', 'DeskTime',
+  'Stretchly', 'Workrave', 'EyeLeo', 'Pomy',
+  'ultradian', 'ultradiańskimi', 'mikroprzerwy', 'mikro-ćwiczenia',
+  'time blocking', 'blockingiem', 'deep work', 'flow',
+  'Optometric', 'Association', 'Irvine', 'Illinois',
+  'Getting', 'Things', 'Done', 'Frog', 'Eat',
+  'Technique', 'Journal', 'Applied', 'Psychology', 'Experimental',
+  'University', 'American', 'California', 'Microsoft', 'Research'
+];
+
 app.post('/api/check/grammar', async (req, res) => {
   const { text, lang } = req.body;
   const ltLang = lang === 'pl' ? 'pl-PL' : lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es' : lang;
 
   try {
+    const params = new URLSearchParams({ text, language: ltLang, enabledOnly: 'false' });
+    // Disable noisy rule categories
+    params.set('disabledCategories', 'TYPOGRAPHY');
+
     const response = await fetch('https://api.languagetool.org/v2/check', {
       method: 'POST',
       headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ text, language: ltLang, enabledOnly: 'false' })
+      body: params
     });
     const data = await response.json();
+
+    // Filter out false positives: matches where the flagged word is in our dictionary
+    if (data.matches) {
+      const dictSet = new Set(CUSTOM_DICTIONARY.map(w => w.toLowerCase()));
+      data.matches = data.matches.filter(m => {
+        const flagged = text.substring(m.offset, m.offset + m.length).trim();
+        // Skip if flagged text is a known word
+        if (dictSet.has(flagged.toLowerCase())) return false;
+        // Skip if flagged text contains a known word (for multi-word matches)
+        if (CUSTOM_DICTIONARY.some(w => flagged.toLowerCase().includes(w.toLowerCase()))) return false;
+        // Skip Polish curly quote "unmatched" warnings (typographic quotes „")
+        if (m.rule && m.rule.id && m.rule.id.includes('NIESP') && (flagged === '„' || flagged === '"')) return false;
+        return true;
+      });
+    }
+
     res.json(data);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -1585,10 +1618,10 @@ Output ONLY the image generation prompt, max 200 words.`,
     const imagePrompt = promptResult.trim();
     console.log(`[Image] Prompt: ${imagePrompt.slice(0, 100)}...`);
 
-    // Step 2: Call Gemini Nano Banana 2 API
-    console.log('[Image] Calling Gemini Nano Banana 2...');
+    // Step 2: Call Gemini 3.1 Flash Image (Nano Banana 2) API
+    console.log('[Image] Calling Gemini 3.1 Flash Image...');
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
