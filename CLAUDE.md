@@ -51,7 +51,7 @@ No test suite exists yet.
 | `scheduler.rs` | Async timer (tauri::async_runtime), emits Tauri events every 1s |
 | `tracker.rs` | Win32 API via windows-rs crate, 5s polling, app categorization |
 | `popup_manager.rs` | Priority queue for break/exercise/water popups, preemption logic |
-| `audio/` | rodio-based: brown noise, rain, white/pink noise, drone, forest + chime |
+| `audio/` | rodio-based (mod.rs + generators.rs): brown noise, rain, white/pink noise, drone, forest + chime |
 | `youtube.rs` | yt-dlp + ffplay subprocess for YouTube Radio |
 | `ads.rs` | Remote ad loading with cache fallback, HTML sanitization |
 | `telemetry.rs` | Async batch telemetry via mpsc channel |
@@ -62,8 +62,8 @@ No test suite exists yet.
 **React frontend** (~2000 lines) in `src/`:
 | Path | Role |
 |------|------|
-| `pages/` | Home, Stats, Music, Settings, Help |
-| `windows/` | BreakWindow, BreakFullscreen, EyeExercise, StretchExercise, WaterReminder |
+| `pages/` | Home (HomeEnhanced + HomeCompact layouts), Stats, Music, Settings, Help |
+| `windows/` | BreakWindow, BreakFullscreen, EyeExercise, StretchExercise, WaterReminder, BreathingExercise |
 | `components/` | Sidebar, BottomBar, Card |
 | `stores/appStore.ts` | Zustand store: config, schedulerState, water, page |
 | `i18n.ts` | Client-side translation with dot-notation resolve |
@@ -77,7 +77,7 @@ No test suite exists yet.
 - `/stretch-exercise` → StretchExercise
 - `/water-reminder` → WaterReminder
 
-**Tauri plugins:** autostart, notification, shell (yt-dlp), single-instance. Updater npm package installed but Rust plugin not yet wired up in lib.rs.
+**Tauri plugins:** autostart, notification, shell (yt-dlp), single-instance, updater (auto-update with popup since v2.0.20).
 
 **Capabilities (ACL):** `src-tauri/capabilities/default.json` defines permissions per window label (main + all popup windows). Popup windows have limited permissions — event listeners are skipped in React for popup windows to avoid ACL errors.
 

@@ -45,14 +45,19 @@ pub fn save_config(
         }
     }
 
-    // Only reset timers if break intervals actually changed
+    // Reset timers if break intervals or work hours changed
     let intervals_changed =
         old_cfg.small_break_interval_min != cfg.small_break_interval_min
         || old_cfg.big_break_interval_min != cfg.big_break_interval_min
         || old_cfg.water_interval_min != cfg.water_interval_min
         || old_cfg.eye_exercise_interval_min != cfg.eye_exercise_interval_min;
 
-    if intervals_changed {
+    let work_hours_changed =
+        old_cfg.work_hours_enabled != cfg.work_hours_enabled
+        || old_cfg.work_hours_start != cfg.work_hours_start
+        || old_cfg.work_hours_end != cfg.work_hours_end;
+
+    if intervals_changed || work_hours_changed {
         let mut sched = scheduler.lock().unwrap();
         // Recalculate timers: keep elapsed time, cap to new interval
         let now = std::time::Instant::now();
