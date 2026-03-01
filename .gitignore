@@ -8,3 +8,5 @@ landing/dist/
 landing/node_modules/
 landing/studio/node_modules/
 landing/studio/studio.json
+landing/gsc-key.json
+landing/.gsc-cache.json

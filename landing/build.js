@@ -167,6 +167,57 @@ function generateBlogPostSchema(meta, lang, articleHtml) {
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
 }
 
+// ─── FAQPage Schema ───
+function generateFAQSchema(lang, resolve) {
+  const questions = [];
+  for (let i = 1; i <= 7; i++) {
+    const q = resolve(`faq.q${i}`);
+    const a = resolve(`faq.a${i}`);
+    if (q && q !== `faq.q${i}` && a && a !== `faq.a${i}`) {
+      questions.push({
+        '@type': 'Question',
+        name: stripHtml(q),
+        acceptedAnswer: { '@type': 'Answer', text: stripHtml(a) }
+      });
+    }
+  }
+  if (questions.length === 0) return '';
+  const schema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: questions };
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
+// ─── Blog Index CollectionPage Schema ───
+function generateBlogIndexSchema(lang, posts) {
+  const items = (posts || []).map(p => ({
+    '@type': 'BlogPosting',
+    headline: p.title,
+    url: `${SITE_URL}/${lang}/blog/${p.slug}/`,
+    datePublished: p.date
+  }));
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: 'Blog — HealthDesk',
+    url: `${SITE_URL}/${lang}/blog/`,
+    hasPart: items
+  };
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
+// ─── BreadcrumbList Schema for blog posts ───
+function generateBreadcrumbSchema(lang, post) {
+  const schema = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'HealthDesk', item: `${SITE_URL}/${lang}/` },
+      { '@type': 'ListItem', position: 2, name: 'Blog', item: `${SITE_URL}/${lang}/blog/` },
+      { '@type': 'ListItem', position: 3, name: post.title, item: `${SITE_URL}/${lang}/blog/${post.slug}/` }
+    ]
+  };
+  return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
+}
+
 // ─── Load translations ───
 function loadTranslations() {
   const translations = {};
@@ -262,6 +313,23 @@ function build() {
     const blogSubtitles = { pl:'Artykuły o zdrowiu przy komputerze', en:'Articles about healthy computer work', de:'Artikel über gesundes Arbeiten am Computer', es:'Artículos sobre el trabajo saludable', fr:'Articles sur le travail sain', 'pt-BR':'Artigos sobre trabalho saudável', ja:'健康的なコンピュータ作業についての記事', 'zh-CN':'关于健康电脑工作的文章', ko:'건강한 컴퓨터 작업에 대한 기사', it:'Articoli sul lavoro sano al computer', tr:'Sağlıklı bilgisayar çalışması hakkında makaleler', ru:'Статьи о здоровой работе за компьютером' };
     t['blog.subtitle'] = blogSubtitles[lang] || blogSubtitles.en;
 
+    // Translated keywords
+    const keywords = {
+      pl: 'przerwy w pracy, zdrowie przy komputerze, ćwiczenia oczu, nawodnienie, tracker aktywności, pomodoro, ergonomia, Windows, macOS, Linux',
+      en: 'work breaks, computer health, eye exercises, hydration, activity tracker, pomodoro, ergonomics, Windows, macOS, Linux',
+      de: 'Arbeitspausen, Gesundheit am Computer, Augenübungen, Flüssigkeitszufuhr, Aktivitätstracker, Pomodoro, Ergonomie, Windows, macOS, Linux',
+      es: 'pausas en el trabajo, salud informática, ejercicios oculares, hidratación, seguimiento de actividad, pomodoro, ergonomía, Windows, macOS, Linux',
+      fr: 'pauses au travail, santé informatique, exercices oculaires, hydratation, suivi d\'activité, pomodoro, ergonomie, Windows, macOS, Linux',
+      'pt-BR': 'pausas no trabalho, saúde no computador, exercícios oculares, hidratação, rastreador de atividades, pomodoro, ergonomia, Windows, macOS, Linux',
+      ja: '仕事の休憩, パソコンの健康, 目の体操, 水分補給, アクティビティトラッカー, ポモドーロ, 人間工学, Windows, macOS, Linux',
+      'zh-CN': '工作休息, 电脑健康, 眼保健操, 补水提醒, 活动追踪, 番茄工作法, 人体工学, Windows, macOS, Linux',
+      ko: '업무 휴식, 컴퓨터 건강, 눈 운동, 수분 섭취, 활동 추적기, 뽀모도로, 인체공학, Windows, macOS, Linux',
+      it: 'pause lavorative, salute al computer, esercizi per gli occhi, idratazione, tracker attività, pomodoro, ergonomia, Windows, macOS, Linux',
+      tr: 'iş molaları, bilgisayar sağlığı, göz egzersizleri, su içme hatırlatıcı, aktivite takibi, pomodoro, ergonomi, Windows, macOS, Linux',
+      ru: 'перерывы в работе, здоровье за компьютером, упражнения для глаз, гидратация, трекер активности, помодоро, эргономика, Windows, macOS, Linux'
+    };
+    t['meta.keywords'] = keywords[lang] || keywords.en;
+
     // Blog missing article notice
     const blogNotTranslated = { pl:'Ten artykuł nie jest jeszcze dostępny w tym języku. Przeglądaj dostępne artykuły poniżej.', en:'This article is not yet available in this language. Browse available articles below.', de:'Dieser Artikel ist in dieser Sprache noch nicht verfügbar. Durchsuchen Sie die verfügbaren Artikel unten.', es:'Este artículo aún no está disponible en este idioma. Consulte los artículos disponibles a continuación.', fr:'Cet article n\'est pas encore disponible dans cette langue. Parcourez les articles disponibles ci-dessous.', 'pt-BR':'Este artigo ainda não está disponível neste idioma. Veja os artigos disponíveis abaixo.', ja:'この記事はまだこの言語では利用できません。以下の記事をご覧ください。', 'zh-CN':'本文暂无此语言版本。请浏览以下可用文章。', ko:'이 기사는 아직 이 언어로 제공되지 않습니다. 아래에서 사용 가능한 기사를 찾아보세요.', it:'Questo articolo non è ancora disponibile in questa lingua. Sfoglia gli articoli disponibili qui sotto.', tr:'Bu makale henüz bu dilde mevcut değil. Aşağıdaki mevcut makalelere göz atın.', ru:'Эта статья пока недоступна на этом языке. Просмотрите доступные статьи ниже.' };
     t['blog.not_translated'] = blogNotTranslated[lang] || blogNotTranslated.en;
@@ -295,15 +363,16 @@ function build() {
       html_lang: htmlLang,
       page_title: `HealthDesk — ${resolve('hero.title_plain')}`,
       page_description: resolve('hero.subtitle_plain'),
+      meta_keywords: resolve('meta.keywords'),
       canonical_url: `${SITE_URL}/${lang}/`,
       og_locale: OG_LOCALES[lang] || 'en_US',
       hreflang_tags: generateHreflangTags('/'),
-      schema_jsonld: generateLandingSchema(lang, resolve),
+      schema_jsonld: generateLandingSchema(lang, resolve) + '\n' + generateFAQSchema(lang, resolve),
       content: landingContent
     };
     const landingHtml = renderTemplate(baseTemplate, landingPageVars);
     fs.writeFileSync(path.join(langDir, 'index.html'), landingHtml, 'utf8');
-    sitemapUrls.push({ url: `${SITE_URL}/${lang}/`, lang, pagePath: '/' });
+    sitemapUrls.push({ url: `${SITE_URL}/${lang}/`, lang, pagePath: '/', lastmod: new Date().toISOString().slice(0, 10) });
 
     // ── Blog index ──
     if (hasBlog) {
@@ -331,15 +400,16 @@ function build() {
         html_lang: htmlLang,
         page_title: `Blog — HealthDesk`,
         page_description: resolve('blog.subtitle'),
+        meta_keywords: resolve('meta.keywords'),
         canonical_url: `${SITE_URL}/${lang}/blog/`,
         og_locale: OG_LOCALES[lang] || 'en_US',
         hreflang_tags: generateHreflangTags('/blog/'),
-        schema_jsonld: '',
+        schema_jsonld: generateBlogIndexSchema(lang, blogPosts[lang]),
         content: blogIndexContent
       };
       const blogIndexHtml = renderTemplate(baseTemplate, blogIndexPageVars);
       fs.writeFileSync(path.join(blogDir, 'index.html'), blogIndexHtml, 'utf8');
-      sitemapUrls.push({ url: `${SITE_URL}/${lang}/blog/`, lang, pagePath: '/blog/' });
+      sitemapUrls.push({ url: `${SITE_URL}/${lang}/blog/`, lang, pagePath: '/blog/', lastmod: new Date().toISOString().slice(0, 10) });
 
       // ── Blog posts ──
       for (const post of blogPosts[lang]) {
@@ -374,15 +444,31 @@ function build() {
           html_lang: htmlLang,
           page_title: `${post.title} — HealthDesk`,
           page_description: post.description || resolve('hero.subtitle_plain'),
+          meta_keywords: (post.tags || []).join(', ') || resolve('meta.keywords'),
           canonical_url: `${SITE_URL}/${lang}/blog/${post.slug}/`,
           og_locale: OG_LOCALES[lang] || 'en_US',
           hreflang_tags: post.siblings ? generateBlogHreflangTags(post, lang) : '',
-          schema_jsonld: generateBlogPostSchema(post, lang, post.html),
+          schema_jsonld: generateBlogPostSchema(post, lang, post.html) + '\n' + generateBreadcrumbSchema(lang, post),
           content: postContent
         };
         const postHtml = renderTemplate(baseTemplate, postPageVars);
         fs.writeFileSync(path.join(postDir, 'index.html'), postHtml, 'utf8');
-        sitemapUrls.push({ url: `${SITE_URL}/${lang}/blog/${post.slug}/`, lang, pagePath: `/blog/${post.slug}/` });
+        // Build sibling URLs for sitemap hreflang
+        const sitemapSiblings = {};
+        if (post.siblings) {
+          for (const [sLang, sSlug] of Object.entries(post.siblings)) {
+            sitemapSiblings[sLang] = `${SITE_URL}/${sLang}/blog/${sSlug}/`;
+          }
+        }
+        sitemapSiblings[lang] = `${SITE_URL}/${lang}/blog/${post.slug}/`;
+
+        sitemapUrls.push({
+          url: `${SITE_URL}/${lang}/blog/${post.slug}/`,
+          lang,
+          pagePath: `/blog/${post.slug}/`,
+          lastmod: post.date instanceof Date ? post.date.toISOString().slice(0, 10) : String(post.date).slice(0, 10),
+          siblings: Object.keys(sitemapSiblings).length > 1 ? sitemapSiblings : null
+        });
       }
     }
   }
@@ -494,12 +580,25 @@ function generateSitemap(urls) {
 `;
 
   for (const u of urls) {
-    const siblings = grouped[u.pagePath] || [];
     xml += `  <url>\n    <loc>${u.url}</loc>\n`;
-    if (siblings.length > 1) {
-      for (const s of siblings) {
-        const hrefLang = s.lang === 'pt-BR' ? 'pt-br' : s.lang === 'zh-CN' ? 'zh-hans' : s.lang;
-        xml += `    <xhtml:link rel="alternate" hreflang="${hrefLang}" href="${s.url}"/>\n`;
+    if (u.lastmod) {
+      xml += `    <lastmod>${u.lastmod}</lastmod>\n`;
+    }
+
+    // Blog posts with siblings get their own hreflang links
+    if (u.siblings) {
+      for (const [sLang, sUrl] of Object.entries(u.siblings)) {
+        const hrefLang = sLang === 'pt-BR' ? 'pt-br' : sLang === 'zh-CN' ? 'zh-hans' : sLang;
+        xml += `    <xhtml:link rel="alternate" hreflang="${hrefLang}" href="${sUrl}"/>\n`;
+      }
+    } else {
+      // Landing/blog-index pages: group by pagePath
+      const siblings = grouped[u.pagePath] || [];
+      if (siblings.length > 1) {
+        for (const s of siblings) {
+          const hrefLang = s.lang === 'pt-BR' ? 'pt-br' : s.lang === 'zh-CN' ? 'zh-hans' : s.lang;
+          xml += `    <xhtml:link rel="alternate" hreflang="${hrefLang}" href="${s.url}"/>\n`;
+        }
       }
     }
     xml += `  </url>\n`;

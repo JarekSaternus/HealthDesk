@@ -110,8 +110,35 @@ GitHub Actions workflow (`.github/workflows/release.yml`) triggers on tag push `
 ## Landing Page
 
 Static site in `landing/` deployed to `healthdesk.site` via FTP.
-- Polish text, dark theme matching the app
-- Deploy: upload `landing/*` to FTP `public_html/`
+- Multilingual (12 langs), dark theme matching the app
+- Build: `node landing/build.js` — generates `landing/dist/` with locale dirs
+- Deploy: upload `landing/dist/*` to FTP `public_html/`
+
+## Blog Studio
+
+Internal tool in `landing/studio/` — Express.js app for managing blog content.
+
+```bash
+cd landing/studio && npm start   # http://localhost:4000
+```
+
+- Markdown editor with frontmatter support, AI draft generation (Claude API), grammar auto-fix
+- Keyword research tab (Serper API + AI analysis), Idea Board with AI outlines
+- Reads/writes blog posts in `landing/src/content/blog/<lang>/`
+- Config stored in `landing/studio/studio.json`
+
+## Backend Server
+
+FastAPI backend in `server/` — telemetry collection, ad management, admin dashboard.
+
+```bash
+cd server && pip install -r requirements.txt
+uvicorn app.main:app --reload     # http://localhost:8000
+```
+
+- Routers: `telemetry.py` (event ingestion), `ads.py` (ad CRUD), `admin.py` (dashboard)
+- SQLAlchemy + Jinja2 templates for admin UI
+- JWT auth (`python-jose`) for admin endpoints
 
 ## Build Requirements
 
