@@ -618,6 +618,8 @@ app.post('/api/ai/draft', async (req, res) => {
 - Naturally mention HealthDesk features where relevant (link format: [HealthDesk](https://healthdesk.site/${lang}/))
 - Use **bold** for key terms
 - Include at least 1 internal link to healthdesk.site per chunk
+- Include at least ONE markdown comparison/summary table per article (use | syntax)
+- Use H2 headings phrased as questions to maximize FAQ schema extraction
 - Do NOT write a conclusion unless explicitly told to`;
 
   console.log(`[AI Draft] Generating in ${chunks.length} chunks (${outline.length} sections total)`);
