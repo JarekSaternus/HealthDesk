@@ -76,6 +76,7 @@ No test suite exists yet.
 - `/eye-exercise` → EyeExercise
 - `/stretch-exercise` → StretchExercise
 - `/water-reminder` → WaterReminder
+- `/breathing-exercise` → BreathingExercise
 
 **Tauri plugins:** autostart, notification, shell (yt-dlp), single-instance, updater (auto-update with popup since v2.0.20).
 

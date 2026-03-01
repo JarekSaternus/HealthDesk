@@ -1016,6 +1016,71 @@ function applySEOFix(btn) {
   showToast('Applied!');
 }
 
+// ─── AI: Internal Linking Suggestions ───
+async function aiInternalLinks() {
+  if (!currentArticle) { alert('Open an article first'); return; }
+
+  showToast('Analyzing internal linking opportunities...');
+
+  try {
+    const res = await fetch('/api/ai/internal-links', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang: currentArticle.lang, slug: currentArticle.slug })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const suggestions = data.suggestions || [];
+    if (suggestions.length === 0) {
+      showToast('No linking opportunities found');
+      return;
+    }
+
+    const panel = document.getElementById('seo-panel');
+    panel.classList.remove('hidden');
+    document.getElementById('seo-score').textContent = '🔗 Internal Links';
+    document.getElementById('seo-score').style.color = 'var(--accent)';
+    document.getElementById('seo-checks').innerHTML = `<div style="margin-bottom:0.5rem;"><button class="btn btn-sm" style="background:var(--accent);color:#000;" onclick="applyAllInternalLinks()">Insert All (${suggestions.length})</button></div>` + suggestions.map((s, i) => `
+      <div class="seo-check" style="flex-direction:column;align-items:flex-start;gap:0.3rem;">
+        <span style="font-weight:600;color:var(--yellow);">"${escHtml(s.anchor)}" → ${escHtml(s.targetTitle)}</span>
+        <span style="font-size:0.8rem;">${escHtml(s.reason)}</span>
+        <button class="btn btn-sm" style="margin-top:0.3rem;" onclick="applyInternalLink(this)" data-anchor="${escAttr(s.anchor)}" data-url="${escAttr(s.url)}">Insert Link</button>
+      </div>`).join('');
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
+}
+
+function applyAllInternalLinks() {
+  const btns = document.querySelectorAll('#seo-checks button[data-anchor]');
+  let count = 0;
+  btns.forEach(btn => {
+    if (!btn.disabled) {
+      applyInternalLink(btn);
+      count++;
+    }
+  });
+  showToast(`Inserted ${count} links!`);
+}
+
+function applyInternalLink(btn) {
+  const anchor = btn.dataset.anchor;
+  const url = btn.dataset.url;
+  const editor = document.getElementById('md-editor');
+  const md = editor.value;
+  const idx = md.indexOf(anchor);
+  if (idx === -1) { showToast('Phrase not found in text'); return; }
+
+  // Replace first occurrence only
+  editor.value = md.substring(0, idx) + '[' + anchor + '](' + url + ')' + md.substring(idx + anchor.length);
+  onEditorInput();
+  btn.disabled = true;
+  btn.textContent = 'Inserted ✓';
+  btn.style.opacity = '0.5';
+  showToast('Link inserted!');
+}
+
 // ─── Generate hero image ───
 async function generateHeroImage() {
   if (!currentArticle) { alert('Open an article first'); return; }

@@ -812,6 +812,85 @@ Return ONLY valid JSON.`,
   }
 });
 
+// ─── AI: Internal Linking Suggestions ───
+app.post('/api/ai/internal-links', async (req, res) => {
+  const { lang, slug } = req.body;
+  if (!lang || !slug) return res.status(400).json({ error: 'lang and slug required' });
+
+  const langDir = path.join(BLOG_DIR, lang);
+  const filePath = path.join(langDir, slug + '.md');
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Article not found' });
+
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French', it: 'Italian', pt: 'Portuguese', nl: 'Dutch', sv: 'Swedish', ja: 'Japanese', ko: 'Korean', zh: 'Chinese' }[lang] || 'English';
+
+  try {
+    // Load current article
+    const raw = fs.readFileSync(filePath, 'utf8');
+    const parsed = fm(raw);
+    const articleBody = parsed.body;
+
+    // Load all other articles in same language
+    const files = fs.readdirSync(langDir).filter(f => f.endsWith('.md') && f !== slug + '.md');
+    const otherArticles = files.map(f => {
+      const content = fs.readFileSync(path.join(langDir, f), 'utf8');
+      const p = fm(content);
+      return {
+        slug: f.replace('.md', ''),
+        title: p.attributes.title || '',
+        description: p.attributes.description || '',
+        keyword: p.attributes.keyword || '',
+        tags: (p.attributes.tags || []).join(', ')
+      };
+    }).filter(a => a.title);
+
+    if (otherArticles.length === 0) return res.json({ suggestions: [] });
+
+    const articleList = otherArticles.map(a =>
+      `- slug: "${a.slug}" | title: "${a.title}" | description: "${a.description}" | keyword: "${a.keyword}"`
+    ).join('\n');
+
+    const baseUrl = `https://healthdesk.site/${lang}/blog/`;
+
+    const result = await callClaude(
+      `You are an internal linking specialist for a blog. You find natural anchor text phrases in an article that should link to other articles on the same site. Write in ${langName}.`,
+      `Find phrases in this article that naturally match other articles on the site. Each phrase should be an existing substring in the article text — do NOT invent phrases.
+
+Available articles to link to:
+${articleList}
+
+Current article content (first 3000 chars):
+${articleBody.slice(0, 3000)}
+
+Rules:
+- Find 2-6 linking opportunities
+- Anchor text must be an EXACT substring from the article
+- Each anchor should be 2-5 words, natural reading
+- Don't suggest links that already exist in the article
+- Prefer phrases closely related to the target article's topic/keyword
+
+Return ONLY valid JSON:
+{
+  "suggestions": [
+    { "anchor": "exact phrase from text", "targetSlug": "slug", "targetTitle": "Title", "reason": "why this link" }
+  ]
+}`,
+      1500
+    );
+
+    const data = parseJsonResponse(result);
+    // Filter out suggestions where link already exists or anchor not found in text
+    const filtered = (data.suggestions || []).filter(s => {
+      const url = baseUrl + s.targetSlug + '/';
+      s.url = url;
+      return articleBody.includes(s.anchor) && !articleBody.includes(url);
+    });
+
+    res.json({ suggestions: filtered });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── AI: Create localized version of article ───
 app.post('/api/ai/create-version', async (req, res) => {
   const { sourceLang, targetLang, slug, frontmatter, markdown } = req.body;
