@@ -333,6 +333,23 @@
         </div>
       </div>
 
+      <!-- Hero Image Panel -->
+      <div class="hero-panel hidden" id="hero-panel">
+        <div class="hero-panel-inner">
+          <div class="hero-preview" id="hero-preview">
+            <img id="hero-img" src="" alt="Hero image preview">
+          </div>
+          <div class="hero-info">
+            <span class="hero-badge" id="hero-badge">No image</span>
+            <span class="hero-size" id="hero-size"></span>
+            <div class="hero-actions">
+              <button class="btn btn-sm btn-primary" onclick="generateHeroImage()" id="hero-btn-generate">Generate</button>
+              <button class="btn btn-sm btn-danger" onclick="deleteHeroImage()" id="hero-btn-delete" style="display:none">Delete</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Split editor -->
       <div class="editor-split">
         <div class="editor-pane">
@@ -361,6 +378,8 @@
           <button class="btn btn-primary btn-sm" onclick="runGrammarCheck()">Check Grammar</button>
           <button class="btn btn-sm" onclick="runReadabilityCheck()">Readability</button>
           <button class="btn btn-sm" onclick="aiFixGrammar()" id="btn-ai-fix-grammar">AI Auto-Fix</button>
+          <button class="btn btn-sm" onclick="aiHumanize()" id="btn-ai-humanize" style="background:#8b5cf6;color:#fff;">Humanize</button>
+          <button class="btn btn-sm" onclick="aiAudit()" id="btn-ai-audit" style="background:#f59e0b;color:#000;">AI Check</button>
           <button class="btn btn-primary btn-sm" onclick="saveArticle()">Save</button>
         </div>
       </div>
@@ -512,14 +531,43 @@
         <div class="guide-step">
           <div class="guide-step-number">6</div>
           <div class="guide-step-body">
-            <h3>Grammar Check</h3>
-            <p>Przejdz do <strong>Checker</strong>.</p>
+            <h3>Grammar, Readability & Humanization</h3>
+            <p>Przejdz do zakladki <strong>Checker</strong>. Masz 5 narzedzi:</p>
+
+            <h4 style="margin-top:12px;color:var(--accent);">Check Grammar</h4>
+            <p>Sprawdza gramatyke, interpunkcje i literowki przez LanguageTool API. Wyswietla liste bledow z sugestiami poprawek w sidebarze. Kliknij pojedyncze bledy zeby zobaczyc kontekst.</p>
+
+            <h4 style="margin-top:12px;color:var(--accent);">Readability</h4>
+            <p>Analizuje czytelnosc tekstu: srednia dlugosc zdan, najtrudniejsze akapity, Flesch Reading Ease score. Podswietla zbyt dlugie zdania i skomplikowane fragmenty. Cel: zdania &lt; 25 slow, akapity &lt; 4 zdan.</p>
+
+            <h4 style="margin-top:12px;color:var(--accent);">AI Auto-Fix</h4>
+            <p>Dwukrokowy proces: (1) sprawdza gramatyke przez LanguageTool, (2) wysyla znalezione bledy do Claude, ktory poprawia je w kontekscie calego artykulu. Automatycznie dzieli za dlugie zdania i lamie dlugie akapity. Nie zmienia tresci — tylko naprawia jezyk.</p>
+
+            <h4 style="margin-top:12px;color:#8b5cf6;">Humanize</h4>
+            <p>Usuwa wzorce typowe dla AI z istniejacego tekstu. Dwuetapowy proces:</p>
             <ol>
-              <li>Wybierz artykul i kliknij <strong>Check</strong></li>
-              <li>AI znajdzie bledy gramatyczne, stylistyczne, literowki</li>
-              <li>Kliknij <strong>Fix</strong> przy kazdym bledzie lub <strong>Fix All</strong></li>
+              <li><strong>Diagnoza</strong> — AI analizuje artykul i wypisuje 5-7 konkretnych problemow (wyswietlane w sidebarze)</li>
+              <li><strong>Poprawa</strong> — przepisuje tekst wg 7 kategorii: struktura/rytm, glos/osobowosc, formatowanie, dane/zrodla, linki, keyword stuffing, intro/outro</li>
             </ol>
-            <div class="guide-tip">Sprawdz zarowno wersje PL jak i EN (jesli masz tlumaczenie).</div>
+            <p>Co zmienia: redukuje boldy (max 3-4/1000 slow), dodaje osobisty glos i anegdoty, wstawia zastrzezenia/kontropinie, roznicuje dlugosci akapitow, ogranicza linki do produktu do 2-3, dodaje linki do zrodel zewnetrznych, usuwa zakazane zwroty AI ("warto zauwazyc", "ponadto", "kluczowym aspektem").</p>
+
+            <h4 style="margin-top:12px;color:#f59e0b;">AI Check</h4>
+            <p>Audyt "czy tekst brzmi jak AI?" — ocena w skali 1-10 z analiza 10 wymiarow:</p>
+            <ol>
+              <li>Symetria struktury sekcji</li>
+              <li>Powtorzenia danych/faktow</li>
+              <li>Naduzycie pogr&uacute;bien</li>
+              <li>Brak osobistego glosu</li>
+              <li>Sztampowe zwroty</li>
+              <li>Statystyka w kazdej sekcji</li>
+              <li>Brak kontrowersji/zastrzezen</li>
+              <li>Encyklopedyczne intro</li>
+              <li>Sztampowe outro</li>
+              <li>Keyword stuffing</li>
+            </ol>
+            <p>Wyswietla: score, progress bary per wymiar, liste problemow z cytatami i konkretnymi fix-ami.</p>
+
+            <div class="guide-tip"><strong>Rekomendowany workflow:</strong> AI Draft → AI Check (sprawdz score) → Humanize (jesli score &gt; 5) → AI Check (weryfikacja) → Check Grammar → AI Auto-Fix → Save.</div>
           </div>
         </div>
 

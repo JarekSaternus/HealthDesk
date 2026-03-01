@@ -111,6 +111,7 @@ async function openArticle(lang, slug) {
   document.getElementById('md-preview').innerHTML = data.html;
 
   updateSEOLive();
+  loadHeroImage(slug);
   switchView('editor');
 }
 
@@ -786,6 +787,132 @@ async function aiFixGrammar() {
   btn.disabled = false; btn.textContent = 'AI Auto-Fix';
 }
 
+// ─── AI: Humanize article ───
+async function aiHumanize() {
+  if (!currentMarkdown) { alert('Open an article first'); return; }
+
+  const lang = currentArticle?.lang || 'pl';
+  const btn = document.getElementById('btn-ai-humanize');
+  const sidebar = document.getElementById('checker-results');
+  btn.disabled = true; btn.textContent = 'Humanizing...';
+  sidebar.innerHTML = '<p style="color:#8b5cf6;font-weight:600;">Humanizing article — removing AI patterns... (30-60 sec)</p>';
+
+  try {
+    const originalMd = currentMarkdown;
+    const res = await fetch('/api/ai/humanize', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: currentMarkdown, lang })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    if (!data.markdown || data.markdown.trim() === originalMd.trim()) {
+      sidebar.innerHTML = '<p style="color:var(--yellow);font-weight:600;">No changes made.</p>';
+      btn.disabled = false; btn.textContent = 'Humanize';
+      return;
+    }
+
+    // Extract diagnosis comment if present
+    let articleText = data.markdown;
+    let diagnosisHtml = '';
+    const diagMatch = articleText.match(/<!--\s*DIAGNOSIS:\s*([\s\S]*?)-->/);
+    if (diagMatch) {
+      const diagText = diagMatch[1].trim().replace(/\n/g, '<br>');
+      diagnosisHtml = '<div style="background:rgba(139,92,246,0.1);border:1px solid rgba(139,92,246,0.3);border-radius:8px;padding:12px;margin-bottom:12px;font-size:0.85rem;color:var(--text-secondary);"><strong style="color:#8b5cf6;">AI Diagnosis:</strong><br>' + diagText + '</div>';
+      articleText = articleText.replace(/<!--\s*DIAGNOSIS:\s*[\s\S]*?-->\s*/, '').trim();
+    }
+
+    const origLines = originalMd.split('\n');
+    const newLines = articleText.split('\n');
+    let changedLines = 0;
+    for (let i = 0; i < Math.max(origLines.length, newLines.length); i++) {
+      if ((origLines[i] || '') !== (newLines[i] || '')) changedLines++;
+    }
+
+    document.getElementById('md-editor').value = articleText;
+    currentMarkdown = articleText;
+    onEditorInput();
+    showToast('Humanized! ' + changedLines + ' lines changed');
+
+    sidebar.innerHTML = diagnosisHtml + '<p style="color:#8b5cf6;font-weight:600;">Humanized: ' + changedLines + ' lines changed. Review the result and save if satisfied.</p>';
+    renderCheckerText();
+  } catch (err) {
+    sidebar.innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p>';
+  }
+
+  btn.disabled = false; btn.textContent = 'Humanize';
+}
+
+// ─── AI: Audit article for AI patterns ───
+async function aiAudit() {
+  if (!currentMarkdown) { alert('Open an article first'); return; }
+
+  const lang = currentArticle?.lang || 'pl';
+  const btn = document.getElementById('btn-ai-audit');
+  const sidebar = document.getElementById('checker-results');
+  btn.disabled = true; btn.textContent = 'Checking...';
+  sidebar.innerHTML = '<p style="color:#f59e0b;font-weight:600;">Analyzing article for AI patterns... (15-30 sec)</p>';
+
+  try {
+    const res = await fetch('/api/ai/audit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ markdown: currentMarkdown, lang })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    const score = data.score || 0;
+    const scoreColor = score <= 3 ? 'var(--green)' : score <= 6 ? '#f59e0b' : 'var(--red)';
+    const scoreLabel = score <= 3 ? 'Human' : score <= 6 ? 'Mixed' : 'AI-like';
+
+    let html = '<div style="text-align:center;margin-bottom:16px;">';
+    html += '<div style="font-size:2.5rem;font-weight:800;color:' + scoreColor + ';">' + score + '/10</div>';
+    html += '<div style="font-size:0.85rem;color:' + scoreColor + ';font-weight:600;">' + scoreLabel + '</div>';
+    html += '</div>';
+
+    // Dimensions
+    if (data.dimensions && data.dimensions.length > 0) {
+      html += '<div style="margin-bottom:12px;">';
+      for (const dim of data.dimensions) {
+        const barW = (dim.score / 10) * 100;
+        const dimColor = dim.score <= 3 ? 'var(--green)' : dim.score <= 6 ? '#f59e0b' : 'var(--red)';
+        html += '<div style="margin-bottom:6px;font-size:0.8rem;">';
+        html += '<div style="display:flex;justify-content:space-between;margin-bottom:2px;"><span style="color:var(--text-secondary);">' + escHtml(dim.name) + '</span><span style="color:' + dimColor + ';font-weight:600;">' + dim.score + '</span></div>';
+        html += '<div style="background:rgba(255,255,255,0.06);border-radius:4px;height:4px;overflow:hidden;"><div style="width:' + barW + '%;height:100%;background:' + dimColor + ';border-radius:4px;"></div></div>';
+        if (dim.detail) html += '<div style="font-size:0.75rem;color:var(--text-dim);margin-top:2px;">' + escHtml(dim.detail) + '</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Top problems
+    if (data.top_problems && data.top_problems.length > 0) {
+      html += '<div style="border-top:1px solid rgba(255,255,255,0.06);padding-top:10px;"><strong style="color:var(--text-primary);font-size:0.85rem;">Problems & Fixes:</strong>';
+      for (const p of data.top_problems) {
+        html += '<div style="margin:8px 0;padding:8px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:0.8rem;">';
+        html += '<div style="color:var(--red);font-weight:600;">' + escHtml(p.problem) + '</div>';
+        if (p.quote) html += '<div style="color:var(--text-dim);font-style:italic;margin:2px 0;">"' + escHtml(p.quote).slice(0, 100) + '"</div>';
+        if (p.fix) html += '<div style="color:var(--green);margin-top:2px;">Fix: ' + escHtml(p.fix) + '</div>';
+        html += '</div>';
+      }
+      html += '</div>';
+    }
+
+    // Summary
+    if (data.summary) {
+      html += '<div style="margin-top:10px;padding:8px;background:rgba(245,158,11,0.1);border:1px solid rgba(245,158,11,0.2);border-radius:6px;font-size:0.8rem;color:var(--text-secondary);">' + escHtml(data.summary) + '</div>';
+    }
+
+    sidebar.innerHTML = html;
+  } catch (err) {
+    sidebar.innerHTML = '<p style="color:var(--red)">Error: ' + escHtml(err.message) + '</p>';
+  }
+
+  btn.disabled = false; btn.textContent = 'AI Check';
+}
+
 // ─── AI: Suggest description ───
 async function aiSuggestDesc() {
   if (!currentArticle) { alert('Open an article first'); return; }
@@ -826,6 +953,8 @@ async function aiWriteDraft() {
     return;
   }
 
+  const persona = prompt('Optional: Write from which perspective? (e.g. "physiotherapist", "IT expert", "productivity coach")\nLeave empty for default.', '') || '';
+
   if (!confirm('AI will write a full draft based on the current headings. Existing content will be replaced. Continue?')) return;
 
   const outline = [];
@@ -855,7 +984,7 @@ async function aiWriteDraft() {
     const res = await fetch('/api/ai/draft', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description: desc, outline, lang, keyword: title, slug: currentArticle.slug })
+      body: JSON.stringify({ title, description: desc, outline, lang, keyword: title, slug: currentArticle.slug, persona })
     });
     const data = await res.json();
     stopDraftPolling(pollId);
@@ -1081,13 +1210,61 @@ function applyInternalLink(btn) {
   showToast('Link inserted!');
 }
 
-// ─── Generate hero image ───
+// ─── Hero image management ───
+async function loadHeroImage(slug) {
+  const panel = document.getElementById('hero-panel');
+  panel.classList.remove('hidden');
+  try {
+    const res = await fetch(`/api/hero-image/${slug}`);
+    const data = await res.json();
+    updateHeroPanel(data);
+  } catch {
+    updateHeroPanel({ exists: false });
+  }
+}
+
+function updateHeroPanel(data) {
+  const img = document.getElementById('hero-img');
+  const badge = document.getElementById('hero-badge');
+  const size = document.getElementById('hero-size');
+  const btnDelete = document.getElementById('hero-btn-delete');
+  const btnGenerate = document.getElementById('hero-btn-generate');
+
+  if (data.exists) {
+    img.src = `/api/preview-image/${data.filename}?t=${Date.now()}`;
+    img.classList.add('loaded');
+    badge.textContent = 'Hero image';
+    badge.className = 'hero-badge has-image';
+    size.textContent = data.size + ' · WebP 1200×630';
+    btnDelete.style.display = '';
+    btnGenerate.textContent = 'Regenerate';
+  } else {
+    img.src = '';
+    img.classList.remove('loaded');
+    badge.textContent = 'No image';
+    badge.className = 'hero-badge';
+    size.textContent = '';
+    btnDelete.style.display = 'none';
+    btnGenerate.textContent = 'Generate';
+  }
+}
+
+async function deleteHeroImage() {
+  if (!currentArticle) return;
+  if (!confirm('Delete hero image?')) return;
+  await fetch(`/api/hero-image/${currentArticle.slug}`, { method: 'DELETE' });
+  updateHeroPanel({ exists: false });
+  showToast('Hero image deleted');
+}
+
 async function generateHeroImage() {
   if (!currentArticle) { alert('Open an article first'); return; }
 
   const frontmatter = getFrontmatter();
-  if (!confirm(`Generate hero image for "${frontmatter.title}"?\n\nUses Gemini Nano Banana (free tier). May take 5-15s.`)) return;
-
+  const btnGenerate = document.getElementById('hero-btn-generate');
+  const origText = btnGenerate.textContent;
+  btnGenerate.disabled = true;
+  btnGenerate.textContent = 'Generating...';
   showToast('Generating hero image... (15-30s)');
 
   try {
@@ -1106,22 +1283,12 @@ async function generateHeroImage() {
     if (data.error) throw new Error(data.error);
 
     showToast(`Image generated! (${data.size})`);
-
-    // Show preview and offer to add alt text to frontmatter
-    const preview = document.createElement('div');
-    preview.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:#222836;border:2px solid var(--accent);border-radius:12px;padding:1.5rem;z-index:9999;max-width:700px;width:90%;box-shadow:0 20px 60px rgba(0,0,0,0.5);';
-    preview.innerHTML = `
-      <h3 style="color:#fff;margin:0 0 1rem;">Hero Image Generated</h3>
-      <img src="/api/preview-image/${data.filename}" style="width:100%;border-radius:8px;margin-bottom:1rem;" alt="Preview">
-      <p style="color:#8a92a6;font-size:0.85rem;margin:0.5rem 0;"><strong>Alt text:</strong> ${escHtml(data.altText)}</p>
-      <p style="color:#8a92a6;font-size:0.85rem;margin:0.5rem 0;"><strong>Size:</strong> ${data.size} | <strong>Format:</strong> WebP 1200x630</p>
-      <div style="display:flex;gap:0.5rem;margin-top:1rem;">
-        <button class="btn btn-primary btn-sm" onclick="this.closest('div[style]').remove(); showToast('Image saved! Run Build to include it.')">OK</button>
-      </div>
-    `;
-    document.body.appendChild(preview);
+    updateHeroPanel({ exists: true, filename: data.filename, size: data.size });
   } catch (err) {
     alert('Error: ' + err.message);
+  } finally {
+    btnGenerate.disabled = false;
+    btnGenerate.textContent = origText;
   }
 }
 

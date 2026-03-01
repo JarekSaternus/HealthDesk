@@ -169,7 +169,8 @@ function generateBlogPostSchema(meta, lang, articleHtml) {
       '@type': 'ImageObject',
       url: `${SITE_URL}${meta.image}`,
       width: 1200,
-      height: 630
+      height: 630,
+      caption: meta.image_alt || meta.title
     };
   }
   // Speakable — key sections for voice assistants and LLMs
@@ -361,6 +362,7 @@ function build() {
   const landingTemplate = loadTemplate('landing.html');
   const blogPostTemplate = loadTemplate('blog-post.html');
   const blogIndexTemplate = loadTemplate('blog-index.html');
+  const privacyTemplate = loadTemplate('privacy.html');
   const blogPosts = loadBlogPosts();
 
   // Extra translation keys for build
@@ -451,6 +453,7 @@ function build() {
       og_locale: OG_LOCALES[lang] || 'en_US',
       og_image: `${SITE_URL}/og-image.png`,
       og_image_alt: `HealthDesk — ${resolve('hero.title_plain')}`,
+      og_image_type: 'image/png',
       hreflang_tags: generateHreflangTags('/'),
       schema_jsonld: generateLandingSchema(lang, resolve) + '\n' + generateFAQSchema(lang, resolve),
       content: landingContent
@@ -490,6 +493,7 @@ function build() {
         og_locale: OG_LOCALES[lang] || 'en_US',
         og_image: `${SITE_URL}/og-image.png`,
         og_image_alt: `Blog — HealthDesk`,
+        og_image_type: 'image/png',
         hreflang_tags: generateHreflangTags('/blog/'),
         schema_jsonld: generateBlogIndexSchema(lang, blogPosts[lang]),
         content: blogIndexContent
@@ -515,7 +519,7 @@ function build() {
         ).join(' ');
 
         const heroImageHtml = post.image
-          ? `<img src="${post.image}" alt="${post.image_alt}" class="blog-hero-image" width="1200" height="630" loading="eager">`
+          ? `<figure class="blog-hero-figure"><img src="${post.image}" alt="${post.image_alt}" class="blog-hero-image" width="1200" height="630" loading="eager"><figcaption>${post.image_alt}</figcaption></figure>`
           : '';
 
         // Generate visible FAQ section from frontmatter
@@ -549,6 +553,7 @@ function build() {
           og_locale: OG_LOCALES[lang] || 'en_US',
           og_image: post.image ? `${SITE_URL}${post.image}` : `${SITE_URL}/og-image.png`,
           og_image_alt: post.image_alt || post.title,
+          og_image_type: post.image ? 'image/webp' : 'image/png',
           hreflang_tags: post.siblings ? generateBlogHreflangTags(post, lang) : '',
           schema_jsonld: generateBlogPostSchema(post, lang, post.html) + '\n' + generateBreadcrumbSchema(lang, post) + '\n' + generateBlogFAQSchema(post),
           content: postContent
@@ -572,6 +577,50 @@ function build() {
           siblings: Object.keys(sitemapSiblings).length > 1 ? sitemapSiblings : null
         });
       }
+    }
+
+    // ── Privacy page ──
+    const privacyFile = path.join(SRC, 'content', 'privacy', `${lang}.md`);
+    if (fs.existsSync(privacyFile)) {
+      const privacyDir = path.join(langDir, 'privacy');
+      ensureDir(privacyDir);
+
+      const privacyRaw = fs.readFileSync(privacyFile, 'utf8');
+      const privacyParsed = fm(privacyRaw);
+      const privacyHtml = marked(privacyParsed.body);
+      const privacyMeta = privacyParsed.attributes;
+
+      const updatedLabels = { pl:'Ostatnia aktualizacja:', en:'Last updated:', de:'Letzte Aktualisierung:', es:'Última actualización:', fr:'Dernière mise à jour\u00a0:', 'pt-BR':'Última atualização:', ja:'最終更新日:', 'zh-CN':'最后更新:', ko:'최종 업데이트:', it:'Ultimo aggiornamento:', tr:'Son güncelleme:', ru:'Последнее обновление:' };
+      const updatedLabel = updatedLabels[lang] || updatedLabels.en;
+
+      const privacyVars = {
+        _resolve: resolve,
+        lang,
+        lang_links: generateLangLinks(lang, '/privacy/'),
+        privacy_title: privacyMeta.title || 'Privacy Policy',
+        privacy_updated: `${updatedLabel} ${privacyMeta.updated || ''}`,
+        privacy_content: privacyHtml
+      };
+      const privacyContent = renderTemplate(privacyTemplate, privacyVars);
+
+      const privacyPageVars = {
+        _resolve: resolve,
+        html_lang: htmlLang,
+        page_title: `${privacyMeta.title} — HealthDesk`,
+        page_description: privacyMeta.description || '',
+        meta_keywords: resolve('meta.keywords'),
+        canonical_url: `${SITE_URL}/${lang}/privacy/`,
+        og_locale: OG_LOCALES[lang] || 'en_US',
+        og_image: `${SITE_URL}/og-image.png`,
+        og_image_alt: `${privacyMeta.title} — HealthDesk`,
+        og_image_type: 'image/png',
+        hreflang_tags: generateHreflangTags('/privacy/'),
+        schema_jsonld: '',
+        content: privacyContent
+      };
+      const privacyPageHtml = renderTemplate(baseTemplate, privacyPageVars);
+      fs.writeFileSync(path.join(privacyDir, 'index.html'), privacyPageHtml, 'utf8');
+      sitemapUrls.push({ url: `${SITE_URL}/${lang}/privacy/`, lang, pagePath: '/privacy/', lastmod: privacyMeta.updated || new Date().toISOString().slice(0, 10) });
     }
   }
 

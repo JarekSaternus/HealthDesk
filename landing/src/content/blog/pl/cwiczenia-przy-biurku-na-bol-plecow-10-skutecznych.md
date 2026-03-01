@@ -8,17 +8,7 @@ tags: ["ćwiczenia przy biurku", "ból pleców", "praca siedząca", "zdrowie w p
 lang: pl
 siblings:
   en: "desk-exercises-for-back-pain"
-faq:
-  - q: "Jak często robić ćwiczenia przy biurku na ból pleców?"
-    a: "Najlepsze efekty daje wykonywanie 2-3 ćwiczeń co 45-60 minut siedzenia. Badania wykazały, że regularne mikro przerwy zmniejszają ból pleców o 54% w porównaniu z siedzeniem bez przerw."
-  - q: "Czy ćwiczenia przy biurku mogą zastąpić wizytę u fizjoterapeuty?"
-    a: "Ćwiczenia przy biurku są skuteczną profilaktyką, ale nie zastąpią diagnozy specjalisty. Jeśli ból trwa dłużej niż 6 tygodni lub promieniuje do nogi, skonsultuj się z fizjoterapeutą."
-  - q: "Które ćwiczenie na ból dolnych pleców jest najskuteczniejsze?"
-    a: "Siedzące przytulenie kolana do klatki piersiowej jest jednym z najskuteczniejszych ćwiczeń na natychmiastowe zmniejszenie napięcia w lędźwiach. Trzymaj przez 30 sekund na każdą nogę."
-  - q: "Czy można ćwiczyć przy biurku podczas wideokonferencji?"
-    a: "Tak — izometryczne napinanie brzucha, ściskanie poduszki między kolanami i siedzące uniesienie kolan to ćwiczenia, które można wykonać podczas spotkania online bez zwracania czyjejś uwagi."
 ---
-
 ## Dlaczego praca przy biurku powoduje ból pleców?
 
 Ból pleców to jeden z najczęstszych problemów zdrowotnych wśród pracowników biurowych. Spędzamy przy komputerze średnio **6–8 godzin dziennie**, często w pozycji, która systematycznie przeciąża kręgosłup. Zrozumienie mechanizmu powstawania bólu to pierwszy krok do skutecznej walki z nim.

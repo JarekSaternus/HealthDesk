@@ -74,7 +74,31 @@ function parseJsonResponse(text) {
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
   }
-  return JSON.parse(cleaned);
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    // Try to fix truncated JSON by closing open structures
+    let fixed = cleaned;
+    // Count open/close braces and brackets
+    const openBraces = (fixed.match(/\{/g) || []).length;
+    const closeBraces = (fixed.match(/\}/g) || []).length;
+    const openBrackets = (fixed.match(/\[/g) || []).length;
+    const closeBrackets = (fixed.match(/\]/g) || []).length;
+    // Remove trailing comma or incomplete key-value
+    fixed = fixed.replace(/,\s*$/, '');
+    fixed = fixed.replace(/,\s*"[^"]*"?\s*$/, '');
+    // Close open strings
+    const quotes = (fixed.match(/"/g) || []).length;
+    if (quotes % 2 !== 0) fixed += '"';
+    // Close structures
+    for (let i = 0; i < openBrackets - closeBrackets; i++) fixed += ']';
+    for (let i = 0; i < openBraces - closeBraces; i++) fixed += '}';
+    try {
+      return JSON.parse(fixed);
+    } catch (e2) {
+      throw new Error(`${e.message} (auto-fix also failed)`);
+    }
+  }
 }
 
 // Paths
@@ -594,7 +618,7 @@ app.get('/api/ai/draft/status', (req, res) => {
 
 // ─── AI: Write full draft from outline (chunked by 2-3 sections) ───
 app.post('/api/ai/draft', async (req, res) => {
-  const { title, description, outline, lang, keyword, slug } = req.body;
+  const { title, description, outline, lang, keyword, slug, persona } = req.body;
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
 
   // Split outline into chunks of 2-3 sections
@@ -610,17 +634,48 @@ app.post('/api/ai/draft', async (req, res) => {
     return t;
   }).join('\n\n');
 
-  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write engaging, SEO-optimized articles in Markdown. Follow these rules:
-- Write in ${langName}
-- First paragraph after each H2 should be a concise answer (40-60 words) — optimized for featured snippets
-- Use short paragraphs (2-3 sentences)
-- Include relevant statistics with sources
-- Naturally mention HealthDesk features where relevant (link format: [HealthDesk](https://healthdesk.site/${lang}/))
-- Use **bold** for key terms
-- Include at least 1 internal link to healthdesk.site per chunk
-- Include at least ONE markdown comparison/summary table per article (use | syntax)
+  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write in ${langName}. Your goal is to produce articles that read as if written by a knowledgeable human — NOT a generic AI.
+
+VOICE & TONE:
+- Write like a real person sharing expertise — use "I", share brief personal observations or anecdotes (e.g. "I noticed that…", "In my experience…", "I've seen this with clients…")
+- Vary paragraph lengths deliberately: mix 1-sentence punchy paragraphs with longer 4-5 sentence ones. Asymmetry is key.
+- Vary sentence lengths: mix short punchy sentences with longer complex ones. Monotonous rhythm = AI tell.
+- Include at least one moment of honest friction per article — a counterargument, limitation, or "this doesn't work for everyone" caveat
+- Ask rhetorical questions to engage the reader (2-3 per article max, not in every section)
+- Use 1 colloquial/informal expression per article to break the "textbook" feel (e.g. "let's be honest", "sounds great on paper, but…")
+- Use bold sparingly — max 3-4 bolded terms per 1000 words. Bold is the exception, not the norm.
+
+STRUCTURE:
+- INTRO: Start from the reader's problem, a question, or a brief anecdote — NEVER from a definition ("X is a technique that…")
+- First paragraph after each H2: concise answer (40-60 words) — optimized for featured snippets. But vary how you open — not every section should start the same way.
+- Vary section structure — NOT every section should follow the same pattern. Mix: stories → data, data → practical tip, question → answer → nuance. Sections should have DIFFERENT lengths (some 2 paragraphs, some 5).
 - Use H2 headings phrased as questions to maximize FAQ schema extraction
-- Do NOT write a conclusion unless explicitly told to`;
+- Include at least ONE markdown comparison/summary table per article (use | syntax)
+- OUTRO: End with a concrete takeaway or reflection — NEVER with "In summary…", "To conclude…", "In today's fast-paced world…"
+- If a list has only 3 items, write it as a sentence instead of bullet points
+
+DATA & STATS:
+- Max 3-4 statistics/data points in the ENTIRE article — the rest should be observations and experience
+- Always add an interpreting sentence after a statistic (don't just drop numbers)
+- Add context: "this 2022 study…", "though the sample was small…"
+- Cite external sources with real links: [Journal name](https://doi.org/...), [WHO](https://www.who.int/...)
+- Never repeat the same statistic or data point in different sections
+
+LINKS:
+- Link to HealthDesk ONLY 2-3 times in the ENTIRE article, naturally where truly relevant (link format: [HealthDesk](https://healthdesk.site/${lang}/))
+- Do NOT force a HealthDesk mention in every section. Do NOT start or end the article with product promotion.
+- Do NOT end sections with a CTA to the product
+
+SEO:
+- Use the target keyword naturally — max 4-5 exact matches per 2000 words. Use synonyms and related terms for the rest ("technique", "system", "approach", "this method").
+- Do NOT write a conclusion unless explicitly told to
+
+BANNED PHRASES (never use these — they are AI fingerprints):
+"it's worth noting", "it goes without saying", "in today's fast-paced world", "a key aspect is", "furthermore,", "moreover,", "it's important to highlight", "without a doubt", "for this reason", "in conclusion", "to summarize", "as we all know", "needless to say", "it should be noted that", "in the modern era"
+Equivalent banned phrases in Polish: "warto zauważyć", "nie ulega wątpliwości", "w dzisiejszym dynamicznym świecie", "kluczowym aspektem jest", "co więcej,", "ponadto,", "warto podkreślić, że", "z tego względu", "podsumowując", "jak wszyscy wiemy", "nie trzeba dodawać", "należy zauważyć, że"
+Equivalent banned phrases in German: "es ist erwähnenswert", "zweifellos", "in der heutigen schnelllebigen Welt", "ein wesentlicher Aspekt ist", "darüber hinaus", "zusammenfassend", "es sei darauf hingewiesen"
+Equivalent banned phrases in Spanish: "cabe destacar", "sin lugar a dudas", "en el mundo actual", "un aspecto clave es", "además,", "en resumen", "es importante señalar"
+Equivalent banned phrases in French: "il convient de noter", "sans aucun doute", "dans le monde d'aujourd'hui", "un aspect clé est", "de plus,", "en résumé", "il est important de souligner"`;
 
   console.log(`[AI Draft] Generating in ${chunks.length} chunks (${outline.length} sections total)`);
 
@@ -663,13 +718,21 @@ app.post('/api/ai/draft', async (req, res) => {
 
       console.log(`[AI Draft] Chunk ${ci + 1}/${chunks.length}: ${draftProgress.sections}`);
 
+      const chunkStyleHints = [
+        'Start this chunk with an engaging anecdote, observation, or surprising fact.',
+        'Open with data or a statistic, then pivot to practical advice.',
+        'Start with a rhetorical question that hooks the reader.',
+        'Begin with a common misconception, then debunk it.'
+      ];
+      const styleHint = chunkStyleHints[ci % chunkStyleHints.length];
+
       const result = await callClaude(
         systemPrompt,
         `Write sections ${ci * CHUNK_SIZE + 1}-${ci * CHUNK_SIZE + chunk.length} of a blog article in Markdown.
 
 Article title: ${title}
 Keyword: ${keyword || title}
-Description: ${description}
+Description: ${description}${persona ? `\nPerspective/persona: Write as a ${persona}` : ''}
 
 Full outline (for context):
 ${fullOutlineText}
@@ -678,6 +741,8 @@ NOW WRITE ONLY THESE SECTIONS:
 ${chunkOutline}
 ${prevContext}
 ${conclusionNote}
+
+Style hint for this chunk: ${styleHint}
 
 Write ~${isLast ? '150-250' : '200-350'} words per H2 section. Start directly with ## heading. No frontmatter.`,
         2000
@@ -772,6 +837,141 @@ Return ONLY the description text, nothing else.`,
     );
     res.json({ description: result.trim() });
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Humanize article (remove AI patterns) ───
+app.post('/api/ai/humanize', async (req, res) => {
+  const { markdown, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  console.log(`[AI Humanize] Processing ${markdown?.length || 0} chars in ${langName}`);
+
+  try {
+    const result = await callClaude(
+      `You are an experienced editor who humanizes AI-generated content. Write in ${langName}. Your task is to transform the given text so it sounds like it was written by a real person — an expert who blogs with passion, not a robot producing content.`,
+      `STEP 1: DIAGNOSE — Before editing, analyze the article and list 5-7 specific AI-pattern problems you found (with quotes from the text). Output them as a brief numbered list at the very top, wrapped in <!-- DIAGNOSIS: ... --> HTML comment.
+
+STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below.
+
+## 1. STRUCTURE & RHYTHM
+- Vary paragraph lengths (mix: 1-sentence, 3-sentence, 5-sentence)
+- Vary sentence lengths (mix short punchy with longer complex ones)
+- Break the perfect symmetry of sections — not every section should have exactly 3 paragraphs
+- Add 1-2 single-sentence paragraphs for dramatic effect
+- Remove or relocate duplicate information (AI often repeats the same data in different sections)
+- If a list has only 3 items, convert it to a flowing sentence instead
+
+## 2. VOICE & PERSONALITY
+- Add 2-3 personal interjections: "from my experience", "I've tested this myself", "I'll admit, at first…"
+- Insert 1 controversial opinion or caveat: "this doesn't suit everyone", "this isn't a magic bullet"
+- Add 1-2 rhetorical questions directed at the reader: "You know that feeling when...?"
+- Insert 1 colloquial/informal expression (don't overdo it, but keep it human)
+- Remove unnecessary formal phrases: "it's worth noting that", "there is no doubt", "for this reason", "furthermore", "moreover", "it should be highlighted that", "in today's dynamic world", "a key aspect is", "needless to say"
+- Add 1 brief digression or anecdote (even 2 sentences) — this is the most human element
+
+## 3. FORMATTING (anti-AI)
+- Reduce bolds — max 3-4 per 1000 words (AI overuses bold)
+- Don't bold every other paragraph — bold should be the exception
+- Don't start every section with a defining sentence ("X is a technique that…")
+- Vary how paragraphs open (don't start from the same pattern)
+- Don't end every section with a CTA or summary
+
+## 4. DATA & SOURCES
+- Max 3-4 statistics in the ENTIRE article — replace the rest with soft observations ("many users report that…")
+- Add context to statistics ("this 2022 study…", "though the numbers may vary")
+- Don't drop stats without commentary — add an interpreting sentence
+- When studies are mentioned without links, add real external source links (WHO, PubMed, university domains)
+
+## 5. INTERNAL LINKS / PRODUCT
+- Max 2-3 product mentions in the entire article
+- Product mentions should arise from context, not be forced
+- Don't start or end the article with product promotion
+
+## 6. KEYWORDS (anti-stuffing)
+- Check if the main keyword appears more than 5-7 times per 2000 words — if so, replace excess with synonyms
+- Use variants: "technique", "system", "approach", "this method", etc.
+- Keywords should sound natural in the sentence — if grammar bends to fit the phrase, rewrite it
+
+## 7. INTRO & OUTRO
+- Intro should NOT be encyclopedic — if it starts with a definition, rewrite to start from the reader's problem, a question, or brief story
+- Outro should NOT be a formulaic "In summary…" — end with a concrete takeaway, call to action, or reflection
+
+PRESERVE:
+- All ## and ### headings exactly as they are
+- All tables (| syntax)
+- All existing external links
+- Overall article structure and factual accuracy
+- Markdown formatting syntax
+
+Return the diagnosis comment followed by the rewritten article. No markdown fences. Start with <!-- DIAGNOSIS: then the article starting with ## heading.
+
+ARTICLE:
+${markdown}`,
+      8000
+    );
+    let cleaned = result.trim();
+    if (cleaned.startsWith('```')) {
+      cleaned = cleaned.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+    }
+    console.log(`[AI Humanize] Done: ${cleaned.length} chars`);
+    res.json({ markdown: cleaned });
+  } catch (err) {
+    console.error(`[AI Humanize] Error: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Audit article for AI fingerprints ───
+app.post('/api/ai/audit', async (req, res) => {
+  const { markdown, lang } = req.body;
+  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+
+  console.log(`[AI Audit] Analyzing ${markdown?.length || 0} chars in ${langName}`);
+
+  try {
+    const result = await callClaude(
+      `You analyze blog articles for "AI fingerprints" — typical traits of AI-generated content that reduce reader trust and may trigger Google's Helpful Content Update penalties. Respond in ${langName}.`,
+      `Analyze this blog article for AI-generated content patterns. Score it 1-10 (1 = fully human, 10 = obvious AI) and justify your assessment.
+
+CHECK THESE 10 DIMENSIONS (score each 1-10):
+1. Structure symmetry — do sections have identical structure/length?
+2. Data/fact repetition — same stats repeated in different sections?
+3. Bold overuse — bolded terms in almost every paragraph?
+4. Lack of personal voice — no anecdotes, opinions, digressions?
+5. Formulaic phrases — "it's worth noting", "a key aspect", "furthermore"?
+6. Stats in every section — data dumping without interpretation?
+7. No controversy or caveats — everything presented as universally true?
+8. Encyclopedic intro — starts with a definition instead of a problem?
+9. Formulaic outro — "In summary…", "To conclude…"?
+10. Keyword stuffing — main keyword appearing every 100 words?
+
+RESPONSE FORMAT (use exactly this JSON structure):
+{
+  "score": 7,
+  "dimensions": [
+    { "name": "Structure symmetry", "score": 8, "detail": "All 5 sections follow identical pattern: definition → 3 paragraphs → stat" },
+    { "name": "Bold overuse", "score": 9, "detail": "23 bolded phrases in 1500 words" }
+  ],
+  "top_problems": [
+    { "problem": "Repetition of '23 minutes to regain focus'", "quote": "...appears in sections 2 and 5...", "fix": "Keep only in section 2, replace in section 5 with a different supporting point" }
+  ],
+  "summary": "The article scores 7/10 on the AI scale. Main issues: uniform structure, excessive bolding, and repeated statistics."
+}
+
+Return ONLY valid JSON, no markdown fences.
+
+ARTICLE TO AUDIT:
+${markdown}`,
+      3000
+    );
+
+    const parsed = parseJsonResponse(result);
+    console.log(`[AI Audit] Score: ${parsed.score}/10`);
+    res.json(parsed);
+  } catch (err) {
+    console.error(`[AI Audit] Error: ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 });
@@ -1716,6 +1916,24 @@ After generating the image, write a single line of SEO alt text (max 125 charact
     const stats = fs.statSync(filepath);
     console.log(`[Image] Saved: ${filepath} (${(stats.size / 1024).toFixed(1)} KB)`);
 
+    // Auto-save image_alt to article frontmatter
+    const mdFile = findArticleFile(lang, slug);
+    if (mdFile && altText) {
+      const mdContent = fs.readFileSync(mdFile, 'utf8');
+      const fmMatch = mdContent.match(/^---\n([\s\S]*?)\n---/);
+      if (fmMatch) {
+        let fm = fmMatch[1];
+        if (fm.includes('image_alt:')) {
+          fm = fm.replace(/image_alt:.*/, `image_alt: "${altText}"`);
+        } else {
+          fm += `\nimage_alt: "${altText}"`;
+        }
+        const updated = mdContent.replace(/^---\n[\s\S]*?\n---/, `---\n${fm}\n---`);
+        fs.writeFileSync(mdFile, updated, 'utf8');
+        console.log(`[Image] Saved image_alt to frontmatter: "${altText}"`);
+      }
+    }
+
     res.json({
       ok: true,
       filename,
@@ -1735,6 +1953,22 @@ app.get('/api/preview-image/:filename', (req, res) => {
   const filepath = path.join(BLOG_IMAGES_DIR, req.params.filename);
   if (!fs.existsSync(filepath)) return res.status(404).send('Not found');
   res.type('image/webp').sendFile(filepath);
+});
+
+// Check if hero image exists for a slug
+app.get('/api/hero-image/:slug', (req, res) => {
+  const filename = `${req.params.slug}.webp`;
+  const filepath = path.join(BLOG_IMAGES_DIR, filename);
+  if (!fs.existsSync(filepath)) return res.json({ exists: false });
+  const stats = fs.statSync(filepath);
+  res.json({ exists: true, filename, path: `/images/blog/${filename}`, size: `${(stats.size / 1024).toFixed(1)} KB` });
+});
+
+// Delete hero image
+app.delete('/api/hero-image/:slug', (req, res) => {
+  const filepath = path.join(BLOG_IMAGES_DIR, `${req.params.slug}.webp`);
+  if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
+  res.json({ ok: true });
 });
 
 // ─── GSC Indexing ───

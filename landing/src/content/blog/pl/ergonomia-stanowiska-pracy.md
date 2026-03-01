@@ -15,6 +15,7 @@ faq:
     a: "Zaleca się wstawanie od biurka co 25-52 minuty na krótką przerwę trwającą 5-17 minut. Regularne zmiany pozycji zapobiegają bólom pleców i szyi."
   - q: "Czy biurko stojące jest lepsze od zwykłego?"
     a: "Biurko stojące nie jest samo w sobie lepsze — kluczem jest regularna zmiana pozycji. Najlepsze efekty daje naprzemienne stanie i siedzenie co 30-60 minut."
+image_alt: "Ergonomia stanowiska pracy - jak ustawic biurko, krzeslo i monitor"
 ---
 
 ## Dlaczego ergonomia stanowiska pracy ma znaczenie?
