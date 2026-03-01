@@ -17,6 +17,7 @@ faq:
     a: "Niebieskie światło z ekranu nie powoduje trwałych uszkodzeń oczu, ale może przyczyniać się do zmęczenia wzroku i zaburzeń snu. Tryb nocny w systemie operacyjnym redukuje emisję niebieskiego światła wieczorem."
   - q: "Ile razy mrugamy podczas pracy przy komputerze?"
     a: "Podczas pracy przy ekranie mrugamy o 66% rzadziej niż normalnie — zaledwie 5-7 razy na minutę zamiast standardowych 15-20. To prowadzi do suchości i podrażnienia oczu."
+image_alt: "Nowoczesne stanowisko pracy z ergonomicznych monitorem, rośliną i okularami, oświetlone naturalnym światłem w biurze."
 ---
 
 ## Dlaczego oczy cierpią przy wielogodzinnej pracy przy komputerze?

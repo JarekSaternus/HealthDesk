@@ -474,52 +474,46 @@ async function serperRequest(endpoint, body) {
   return response.json();
 }
 
+// ─── Helper: Keyword search ───
+async function doKeywordSearch(query, lang) {
+  const locale = LANG_MAP[lang] || LANG_MAP.en;
+  console.log(`[Keywords] Searching "${query}" (${lang})...`);
+
+  const [searchData, autocompleteData] = await Promise.all([
+    serperRequest('search', { q: query, gl: locale.gl, hl: locale.hl, num: 5 }),
+    serperRequest('autocomplete', { q: query, gl: locale.gl, hl: locale.hl })
+  ]);
+
+  const result = {
+    organic: (searchData.organic || []).slice(0, 5).map(r => ({
+      title: r.title,
+      link: r.link,
+      snippet: r.snippet,
+      position: r.position
+    })),
+    peopleAlsoAsk: (searchData.peopleAlsoAsk || []).map(p => p.question),
+    relatedSearches: (searchData.relatedSearches || []).map(r => r.query),
+    autocomplete: (autocompleteData.suggestions || []).slice(0, 8).map(s => typeof s === 'string' ? s : s.value || s.text || String(s))
+  };
+
+  console.log(`[Keywords] Found: ${result.organic.length} organic, ${result.peopleAlsoAsk.length} PAA, ${result.relatedSearches.length} related, ${result.autocomplete.length} autocomplete`);
+  return result;
+}
+
 // ─── API: Keyword search (Serper) ───
 app.post('/api/keywords/search', async (req, res) => {
   const { query, lang } = req.body;
   if (!query) return res.status(400).json({ error: 'query required' });
-
-  const locale = LANG_MAP[lang] || LANG_MAP.en;
-
   try {
-    console.log(`[Keywords] Searching "${query}" (${lang})...`);
-
-    const [searchData, autocompleteData] = await Promise.all([
-      serperRequest('search', { q: query, gl: locale.gl, hl: locale.hl, num: 5 }),
-      serperRequest('autocomplete', { q: query, gl: locale.gl, hl: locale.hl })
-    ]);
-
-    console.log('[Keywords] Raw search keys:', Object.keys(searchData));
-    if (searchData.peopleAlsoAsk) console.log('[Keywords] PAA sample:', JSON.stringify(searchData.peopleAlsoAsk[0]));
-    if (searchData.relatedSearches) console.log('[Keywords] Related sample:', JSON.stringify(searchData.relatedSearches[0]));
-    console.log('[Keywords] Autocomplete keys:', Object.keys(autocompleteData));
-    if (autocompleteData.suggestions) console.log('[Keywords] AC sample:', JSON.stringify(autocompleteData.suggestions[0]));
-
-    const result = {
-      organic: (searchData.organic || []).slice(0, 5).map(r => ({
-        title: r.title,
-        link: r.link,
-        snippet: r.snippet,
-        position: r.position
-      })),
-      peopleAlsoAsk: (searchData.peopleAlsoAsk || []).map(p => p.question),
-      relatedSearches: (searchData.relatedSearches || []).map(r => r.query),
-      autocomplete: (autocompleteData.suggestions || []).slice(0, 8).map(s => typeof s === 'string' ? s : s.value || s.text || String(s))
-    };
-
-    console.log(`[Keywords] Found: ${result.organic.length} organic, ${result.peopleAlsoAsk.length} PAA, ${result.relatedSearches.length} related, ${result.autocomplete.length} autocomplete`);
-    res.json(result);
+    res.json(await doKeywordSearch(query, lang));
   } catch (err) {
     console.error(`[Keywords] Error: ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── API: Keyword AI analysis ───
-app.post('/api/keywords/analyze', async (req, res) => {
-  const { query, lang, serp } = req.body;
-  if (!query || !serp) return res.status(400).json({ error: 'query and serp data required' });
-
+// ─── Helper: Keyword AI analysis ───
+async function doKeywordAnalyze(query, lang, serp) {
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
 
   const serpSummary = (serp.organic || []).map((r, i) =>
@@ -530,10 +524,9 @@ app.post('/api/keywords/analyze', async (req, res) => {
   const related = (serp.relatedSearches || []).join(', ');
   const autocomplete = (serp.autocomplete || []).join(', ');
 
-  try {
-    const result = await callClaude(
-      `You are an SEO analyst for HealthDesk, a desktop wellness app (break reminders, eye exercises, stretch exercises, water tracking, activity monitoring). Analyze keyword potential based on real SERP data.`,
-      `Analyze this keyword for blog content potential.
+  const result = await callClaude(
+    `You are an SEO analyst for HealthDesk, a desktop wellness app (break reminders, eye exercises, stretch exercises, water tracking, activity monitoring). Analyze keyword potential based on real SERP data.`,
+    `Analyze this keyword for blog content potential.
 
 Keyword: "${query}"
 Language: ${langName}
@@ -565,24 +558,29 @@ Return as JSON:
   "notes": "..."
 }
 Return ONLY valid JSON.`,
-      1000
-    );
-    res.json(parseJsonResponse(result));
+    1000
+  );
+  return parseJsonResponse(result);
+}
+
+// ─── API: Keyword AI analysis ───
+app.post('/api/keywords/analyze', async (req, res) => {
+  const { query, lang, serp } = req.body;
+  if (!query || !serp) return res.status(400).json({ error: 'query and serp data required' });
+  try {
+    res.json(await doKeywordAnalyze(query, lang, serp));
   } catch (err) {
     console.error(`[Keywords Analyze] Error: ${err.message}`);
     res.status(500).json({ error: err.message });
   }
 });
 
-// ─── AI: Generate outline from keyword ───
-app.post('/api/ai/outline', async (req, res) => {
-  const { keyword, lang } = req.body;
+// ─── Helper: AI outline ───
+async function doOutline(keyword, lang) {
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
-
-  try {
-    const result = await callClaude(
-      `You are an SEO content strategist for HealthDesk, a desktop wellness app (break reminders, eye exercises, water tracking, activity monitoring). Generate blog article outlines optimized for search engines.`,
-      `Generate a blog article outline for the keyword: "${keyword}"
+  const result = await callClaude(
+    `You are an SEO content strategist for HealthDesk, a desktop wellness app (break reminders, eye exercises, water tracking, activity monitoring). Generate blog article outlines optimized for search engines.`,
+    `Generate a blog article outline for the keyword: "${keyword}"
 Language: ${langName}
 Requirements:
 - Title (50-60 characters, include keyword)
@@ -602,8 +600,15 @@ Return as JSON:
   ]
 }
 Return ONLY valid JSON, no markdown fences.`
-    );
-    res.json(parseJsonResponse(result));
+  );
+  return parseJsonResponse(result);
+}
+
+// ─── AI: Generate outline from keyword ───
+app.post('/api/ai/outline', async (req, res) => {
+  const { keyword, lang } = req.body;
+  try {
+    res.json(await doOutline(keyword, lang));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
