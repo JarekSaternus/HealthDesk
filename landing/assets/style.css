@@ -2427,6 +2427,10 @@ tbody tr:last-child .cmp-col-hl {
   transform: translateY(-2px);
   box-shadow: 0 8px 24px rgba(0,0,0,0.3);
 }
+.blog-card,
+.blog-card:hover {
+  color: inherit;
+}
 .blog-card h2 {
   color: #fff;
   font-size: 1.3rem;
@@ -2448,6 +2452,14 @@ tbody tr:last-child .cmp-col-hl {
 }
 .blog-header {
   margin-bottom: 2.5rem;
+}
+.blog-hero-image {
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
+  margin-top: 1.5rem;
+  aspect-ratio: 1200 / 630;
+  object-fit: cover;
 }
 .blog-header h1 {
   font-size: 2.2rem;

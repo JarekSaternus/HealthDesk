@@ -247,10 +247,15 @@ function loadBlogPosts() {
       const content = fs.readFileSync(path.join(langDir, file), 'utf8');
       const parsed = fm(content);
       const html = marked(parsed.body);
+      // Check if hero image exists
+      const slug = parsed.attributes.slug || file.replace('.md', '');
+      const heroImg = path.join(SRC, 'content', 'images', 'blog', `${slug}.webp`);
       posts[lang].push({
         ...parsed.attributes,
         html,
-        file
+        file,
+        image: fs.existsSync(heroImg) ? `/images/blog/${slug}.webp` : null,
+        image_alt: parsed.attributes.image_alt || parsed.attributes.title
       });
     }
 
@@ -271,6 +276,17 @@ function build() {
   // 2. Copy assets
   console.log('Copying assets...');
   copyDir(ASSETS, DIST);
+
+  // 2b. Copy blog images
+  const blogImagesDir = path.join(SRC, 'content', 'images', 'blog');
+  const distImagesDir = path.join(DIST, 'images', 'blog');
+  if (fs.existsSync(blogImagesDir)) {
+    console.log('Copying blog images...');
+    ensureDir(distImagesDir);
+    for (const f of fs.readdirSync(blogImagesDir)) {
+      fs.copyFileSync(path.join(blogImagesDir, f), path.join(distImagesDir, f));
+    }
+  }
 
   // 3. Load data
   const translations = loadTranslations();
@@ -366,6 +382,8 @@ function build() {
       meta_keywords: resolve('meta.keywords'),
       canonical_url: `${SITE_URL}/${lang}/`,
       og_locale: OG_LOCALES[lang] || 'en_US',
+      og_image: `${SITE_URL}/og-image.png`,
+      og_image_alt: `HealthDesk — ${resolve('hero.title_plain')}`,
       hreflang_tags: generateHreflangTags('/'),
       schema_jsonld: generateLandingSchema(lang, resolve) + '\n' + generateFAQSchema(lang, resolve),
       content: landingContent
@@ -403,6 +421,8 @@ function build() {
         meta_keywords: resolve('meta.keywords'),
         canonical_url: `${SITE_URL}/${lang}/blog/`,
         og_locale: OG_LOCALES[lang] || 'en_US',
+        og_image: `${SITE_URL}/og-image.png`,
+        og_image_alt: `Blog — HealthDesk`,
         hreflang_tags: generateHreflangTags('/blog/'),
         schema_jsonld: generateBlogIndexSchema(lang, blogPosts[lang]),
         content: blogIndexContent
@@ -427,6 +447,10 @@ function build() {
           `<span class="blog-tag">${tag}</span>`
         ).join(' ');
 
+        const heroImageHtml = post.image
+          ? `<img src="${post.image}" alt="${post.image_alt}" class="blog-hero-image" width="1200" height="630" loading="eager">`
+          : '';
+
         const postVars = {
           _resolve: resolve,
           lang,
@@ -435,7 +459,8 @@ function build() {
           article_date: post.date,
           article_date_formatted: formatDate(post.date, lang),
           article_html: post.html,
-          article_tags: tagsHtml
+          article_tags: tagsHtml,
+          article_hero_image: heroImageHtml
         };
         const postContent = renderTemplate(blogPostTemplate, postVars);
 
@@ -447,6 +472,8 @@ function build() {
           meta_keywords: (post.tags || []).join(', ') || resolve('meta.keywords'),
           canonical_url: `${SITE_URL}/${lang}/blog/${post.slug}/`,
           og_locale: OG_LOCALES[lang] || 'en_US',
+          og_image: post.image ? `${SITE_URL}${post.image}` : `${SITE_URL}/og-image.png`,
+          og_image_alt: post.image_alt || post.title,
           hreflang_tags: post.siblings ? generateBlogHreflangTags(post, lang) : '',
           schema_jsonld: generateBlogPostSchema(post, lang, post.html) + '\n' + generateBreadcrumbSchema(lang, post),
           content: postContent

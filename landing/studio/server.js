@@ -10,6 +10,7 @@ const fs = require('fs');
 const { execSync, exec } = require('child_process');
 const fm = require('front-matter');
 const { marked } = require('marked');
+const sharp = require('sharp');
 
 const app = express();
 const PORT = 4000;
@@ -531,43 +532,142 @@ Return ONLY valid JSON, no markdown fences.`
   }
 });
 
-// ─── AI: Write full draft from outline ───
+// ─── AI Draft: progress tracking ───
+let draftProgress = null; // { slug, lang, title, chunk, totalChunks, sections, status, startedAt, words }
+
+app.get('/api/ai/draft/status', (req, res) => {
+  res.json(draftProgress || { status: 'idle' });
+});
+
+// ─── AI: Write full draft from outline (chunked by 2-3 sections) ───
 app.post('/api/ai/draft', async (req, res) => {
-  const { title, description, outline, lang, keyword } = req.body;
+  const { title, description, outline, lang, keyword, slug } = req.body;
   const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
 
-  const outlineText = outline.map(section => {
-    let s = `## ${section.h2}`;
-    if (section.h3) s += '\n' + section.h3.map(h => `### ${h}`).join('\n');
-    return s;
+  // Split outline into chunks of 2-3 sections
+  const CHUNK_SIZE = 2;
+  const chunks = [];
+  for (let i = 0; i < outline.length; i += CHUNK_SIZE) {
+    chunks.push(outline.slice(i, i + CHUNK_SIZE));
+  }
+
+  const fullOutlineText = outline.map(s => {
+    let t = `## ${s.h2}`;
+    if (s.h3) t += '\n' + s.h3.map(h => `### ${h}`).join('\n');
+    return t;
   }).join('\n\n');
 
-  try {
-    const result = await callClaude(
-      `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write engaging, SEO-optimized articles in Markdown. Follow these rules:
+  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write engaging, SEO-optimized articles in Markdown. Follow these rules:
 - Write in ${langName}
-- 800-1200 words
 - First paragraph after each H2 should be a concise answer (40-60 words) — optimized for featured snippets
 - Use short paragraphs (2-3 sentences)
 - Include relevant statistics with sources
 - Naturally mention HealthDesk features where relevant (link format: [HealthDesk](https://healthdesk.site/${lang}/))
 - Use **bold** for key terms
-- Include at least 2 internal links to healthdesk.site
-- End with a brief conclusion`,
-      `Write a full blog article in Markdown.
-Title: ${title}
+- Include at least 1 internal link to healthdesk.site per chunk
+- Do NOT write a conclusion unless explicitly told to`;
+
+  console.log(`[AI Draft] Generating in ${chunks.length} chunks (${outline.length} sections total)`);
+
+  // Init progress
+  draftProgress = {
+    slug: slug || '',
+    lang,
+    title,
+    chunk: 0,
+    totalChunks: chunks.length,
+    sections: '',
+    status: 'generating',
+    startedAt: Date.now(),
+    words: 0
+  };
+
+  try {
+    const parts = [];
+    for (let ci = 0; ci < chunks.length; ci++) {
+      const chunk = chunks[ci];
+      const isLast = ci === chunks.length - 1;
+
+      const chunkOutline = chunk.map(s => {
+        let t = `## ${s.h2}`;
+        if (s.h3) t += '\n' + s.h3.map(h => `### ${h}`).join('\n');
+        return t;
+      }).join('\n\n');
+
+      const prevContext = parts.length > 0
+        ? `\n\nPrevious sections already written (for context, do NOT repeat):\n${parts.join('\n').slice(-600)}`
+        : '';
+
+      const conclusionNote = isLast
+        ? '\n\nThis is the LAST chunk — end with a brief conclusion section (## header + 2-3 sentences).'
+        : '\n\nDo NOT end with a conclusion — more sections follow.';
+
+      // Update progress
+      draftProgress.chunk = ci + 1;
+      draftProgress.sections = chunk.map(s => s.h2).join(', ');
+
+      console.log(`[AI Draft] Chunk ${ci + 1}/${chunks.length}: ${draftProgress.sections}`);
+
+      const result = await callClaude(
+        systemPrompt,
+        `Write sections ${ci * CHUNK_SIZE + 1}-${ci * CHUNK_SIZE + chunk.length} of a blog article in Markdown.
+
+Article title: ${title}
 Keyword: ${keyword || title}
 Description: ${description}
 
-Outline:
-${outlineText}
+Full outline (for context):
+${fullOutlineText}
 
-Write the full article body in Markdown (no frontmatter, start directly with ## heading). Make it informative, backed by data, and naturally promote HealthDesk where relevant.`,
-      4000
-    );
-    res.json({ markdown: result });
+NOW WRITE ONLY THESE SECTIONS:
+${chunkOutline}
+${prevContext}
+${conclusionNote}
+
+Write ~${isLast ? '150-250' : '200-350'} words per H2 section. Start directly with ## heading. No frontmatter.`,
+        2000
+      );
+
+      parts.push(result.trim());
+      draftProgress.words = parts.join('\n\n').split(/\s+/).length;
+    }
+
+    const markdown = parts.join('\n\n');
+    console.log(`[AI Draft] Done: ${markdown.split(/\s+/).length} words total`);
+
+    // Auto-save draft to disk so it's not lost if browser times out
+    if (slug && lang) {
+      try {
+        const langDir = path.join(BLOG_DIR, lang);
+        fs.mkdirSync(langDir, { recursive: true });
+        const frontmatterYaml = [
+          '---',
+          `title: "${(title || '').replace(/"/g, '\\"')}"`,
+          `slug: "${slug}"`,
+          `date: ${new Date().toISOString().split('T')[0]}`,
+          `description: "${(description || '').replace(/"/g, '\\"')}"`,
+          `tags: []`,
+          `lang: ${lang}`,
+          '---'
+        ].join('\n');
+        fs.writeFileSync(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
+        console.log(`[AI Draft] Auto-saved to ${lang}/${slug}.md`);
+      } catch (saveErr) {
+        console.error(`[AI Draft] Auto-save failed: ${saveErr.message}`);
+      }
+    }
+
+    draftProgress.status = 'done';
+    draftProgress.words = markdown.split(/\s+/).length;
+    res.json({ markdown });
+
+    // Clear progress after 30s
+    setTimeout(() => { if (draftProgress && draftProgress.status === 'done') draftProgress = null; }, 30000);
   } catch (err) {
+    draftProgress.status = 'error';
+    draftProgress.error = err.message;
     res.status(500).json({ error: err.message });
+    setTimeout(() => { draftProgress = null; }, 30000);
   }
 });
 
@@ -702,6 +802,130 @@ Return ONLY valid JSON.`,
     );
     res.json(parseJsonResponse(result));
   } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── AI: Create localized version of article ───
+app.post('/api/ai/create-version', async (req, res) => {
+  const { sourceLang, targetLang, slug, frontmatter, markdown } = req.body;
+  const langNames = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French', it: 'Italian', pt: 'Portuguese', nl: 'Dutch', sv: 'Swedish', ja: 'Japanese', ko: 'Korean', zh: 'Chinese' };
+  const targetName = langNames[targetLang] || 'English';
+  const sourceName = langNames[sourceLang] || 'Polish';
+
+  const targetDir = path.join(BLOG_DIR, targetLang);
+
+  try {
+    // Step 1: Generate SEO-optimized title, slug + description for target language
+    const metaResult = await callClaude(
+      `You are an SEO content strategist. You create search-optimized metadata for blog articles targeting ${targetName}-speaking Google users.`,
+      `I have a ${sourceName} blog article. I need you to create an SEO-optimized title, URL slug, and meta description for the ${targetName} version.
+
+DO NOT translate literally. Instead:
+- Research what ${targetName}-speaking users would search for on this topic
+- Create a title that targets high-volume ${targetName} keywords (50-60 chars)
+- Create a URL slug in ${targetName}: lowercase, hyphens, no special chars, 3-6 words max (e.g. "pomodoro-technique-complete-guide")
+- Create a meta description that drives clicks (140-155 chars)
+- Generate 3-5 relevant tags in ${targetName}
+
+Source title: ${frontmatter.title}
+Source slug: ${slug}
+Source description: ${frontmatter.description}
+Source tags: ${(frontmatter.tags || []).join(', ')}
+
+Topic summary (first 500 chars of article):
+${markdown.slice(0, 500)}
+
+Return ONLY valid JSON:
+{
+  "title": "...",
+  "slug": "...",
+  "description": "...",
+  "tags": ["...", "..."]
+}`,
+      800
+    );
+    const meta = parseJsonResponse(metaResult);
+    const targetSlug = (meta.slug || slug).toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-');
+
+    // Check if target already exists
+    const targetPath = path.join(targetDir, `${targetSlug}.md`);
+    if (fs.existsSync(targetPath)) {
+      return res.status(409).json({ error: `Article already exists: ${targetLang}/${targetSlug}` });
+    }
+
+    // Step 2: Generate full article content
+    const contentResult = await callClaude(
+      `You are a professional ${targetName} content writer specializing in health, wellness, and productivity topics. You write native-quality ${targetName} articles optimized for Google search.
+
+CRITICAL RULES:
+- Do NOT translate the source article. Write a fresh ${targetName} article on the same topic.
+- Use the source article as a reference for structure and key points, but adapt for ${targetName} audience.
+- Use natural ${targetName} idioms, phrasing, and examples.
+- Optimize headings (H2/H3) for ${targetName} search keywords.
+- Include relevant internal context for ${targetName}-speaking readers.
+- Target similar word count as the source (~${markdown.split(/\s+/).length} words).
+- Output pure Markdown (no frontmatter, no code fences around the whole article).`,
+      `Write a comprehensive ${targetName} blog article based on this ${sourceName} source:
+
+Title for ${targetName} version: ${meta.title}
+
+Source article structure and content:
+${markdown.slice(0, 6000)}
+
+Write the full article in ${targetName}. Use proper Markdown with ## and ### headings. Make it feel native, not translated.`,
+      4000
+    );
+
+    // Step 3: Save the article
+    fs.mkdirSync(targetDir, { recursive: true });
+
+    const yamlLines = ['---'];
+    yamlLines.push(`title: "${(meta.title || '').replace(/"/g, '\\"')}"`);
+    yamlLines.push(`slug: "${targetSlug}"`);
+    yamlLines.push(`date: ${new Date().toISOString().split('T')[0]}`);
+    yamlLines.push(`description: "${(meta.description || '').replace(/"/g, '\\"')}"`);
+    if (meta.tags && meta.tags.length) {
+      yamlLines.push(`tags: [${meta.tags.map(t => `"${t}"`).join(', ')}]`);
+    }
+    yamlLines.push(`lang: ${targetLang}`);
+    yamlLines.push('siblings:');
+    yamlLines.push(`  ${sourceLang}: "${slug}"`);
+    yamlLines.push('---');
+
+    const fileContent = yamlLines.join('\n') + '\n' + contentResult;
+    fs.writeFileSync(targetPath, fileContent, 'utf8');
+
+    // Step 4: Update source article with sibling reference
+    const sourceFile = findArticleFile(sourceLang, slug);
+    if (sourceFile) {
+      let sourceContent = fs.readFileSync(sourceFile, 'utf8');
+      if (!sourceContent.includes(`siblings:`) || !sourceContent.includes(`${targetLang}:`)) {
+        // Add sibling to source frontmatter
+        if (sourceContent.includes('siblings:')) {
+          sourceContent = sourceContent.replace(/siblings:\n/, `siblings:\n  ${targetLang}: "${targetSlug}"\n`);
+        } else {
+          // Insert siblings before the closing --- of frontmatter
+          const fmEnd = sourceContent.indexOf('---', 4);
+          if (fmEnd > 0) {
+            sourceContent = sourceContent.slice(0, fmEnd) + `siblings:\n  ${targetLang}: "${targetSlug}"\n` + sourceContent.slice(fmEnd);
+          }
+        }
+        fs.writeFileSync(sourceFile, sourceContent, 'utf8');
+      }
+    }
+
+    res.json({
+      ok: true,
+      path: targetPath,
+      slug: targetSlug,
+      title: meta.title,
+      description: meta.description,
+      tags: meta.tags,
+      wordCount: contentResult.split(/\s+/).length
+    });
+  } catch (err) {
+    console.error('[AI create-version]', err);
     res.status(500).json({ error: err.message });
   }
 });
@@ -915,6 +1139,239 @@ function countSyllables(word, lang) {
   const matches = word.match(vowels);
   return matches ? Math.max(1, matches.length) : 1;
 }
+
+// ─── AI: Generate hero image (Replicate Flux → WebP) ───
+const BLOG_IMAGES_DIR = path.join(LANDING_ROOT, 'src', 'content', 'images', 'blog');
+
+function getReplicateKey() {
+  const studio = JSON.parse(fs.readFileSync(STUDIO_DATA, 'utf8'));
+  return studio.replicate_api_key || process.env.REPLICATE_API_TOKEN || null;
+}
+
+app.post('/api/ai/generate-image', async (req, res) => {
+  const { slug, lang, title, description, style } = req.body;
+  const apiKey = getReplicateKey();
+  if (!apiKey) return res.status(400).json({ error: 'No Replicate API key configured. Add replicate_api_key to studio.json' });
+
+  try {
+    // Step 1: Claude generates an optimal image prompt
+    const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+    const promptResult = await callClaude(
+      `You generate image prompts for the Flux AI model. Output ONLY the prompt text, nothing else.`,
+      `Generate a photorealistic image prompt for a blog hero image (1200x630px, landscape).
+
+Article title: ${title}
+Article description: ${description}
+Style preference: ${style || 'clean, modern, professional'}
+
+Requirements:
+- Photorealistic or high-quality illustration style
+- Related to workplace health, wellness, productivity, or ergonomics
+- No text or typography in the image
+- Good contrast, visually striking for a blog header
+- Suitable as og:image for social media sharing
+- DO NOT include any people's faces (to avoid AI face artifacts)
+
+Output ONLY the image generation prompt, max 200 words.`,
+      300
+    );
+
+    const imagePrompt = promptResult.trim();
+    console.log(`[Image] Prompt: ${imagePrompt.slice(0, 100)}...`);
+
+    // Step 2: Call Replicate API (Flux Schnell — fast, cheap)
+    console.log('[Image] Calling Replicate Flux...');
+    const replicateRes = await fetch('https://api.replicate.com/v1/predictions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: 'black-forest-labs/flux-schnell',
+        input: {
+          prompt: imagePrompt,
+          aspect_ratio: '16:9',
+          output_format: 'webp',
+          output_quality: 80,
+          num_outputs: 1
+        }
+      })
+    });
+
+    if (!replicateRes.ok) {
+      const err = await replicateRes.json();
+      throw new Error(err.detail || `Replicate API error: ${replicateRes.status}`);
+    }
+
+    let prediction = await replicateRes.json();
+
+    // Step 3: Poll for completion
+    while (prediction.status !== 'succeeded' && prediction.status !== 'failed') {
+      await new Promise(r => setTimeout(r, 1500));
+      const pollRes = await fetch(prediction.urls.get, {
+        headers: { 'Authorization': `Bearer ${apiKey}` }
+      });
+      prediction = await pollRes.json();
+      console.log(`[Image] Status: ${prediction.status}`);
+    }
+
+    if (prediction.status === 'failed') {
+      throw new Error(prediction.error || 'Image generation failed');
+    }
+
+    const imageUrl = Array.isArray(prediction.output) ? prediction.output[0] : prediction.output;
+    console.log(`[Image] Generated: ${imageUrl}`);
+
+    // Step 4: Download and optimize with sharp
+    const imgResponse = await fetch(imageUrl);
+    const imgBuffer = Buffer.from(await imgResponse.arrayBuffer());
+
+    // Optimize: resize to 1200x630 (og:image standard), WebP quality 82
+    fs.mkdirSync(BLOG_IMAGES_DIR, { recursive: true });
+    const filename = `${slug}.webp`;
+    const filepath = path.join(BLOG_IMAGES_DIR, filename);
+
+    await sharp(imgBuffer)
+      .resize(1200, 630, { fit: 'cover' })
+      .webp({ quality: 82 })
+      .toFile(filepath);
+
+    const stats = fs.statSync(filepath);
+    console.log(`[Image] Saved: ${filepath} (${(stats.size / 1024).toFixed(1)} KB)`);
+
+    // Step 5: Generate SEO alt text
+    const altResult = await callClaude(
+      `Generate a concise, descriptive alt text for an image. Output ONLY the alt text, max 125 characters.`,
+      `Blog article: "${title}"\nImage prompt used: "${imagePrompt}"\n\nWrite alt text in ${langName} that describes the image content for accessibility and SEO.`,
+      100
+    );
+    const altText = altResult.trim().replace(/"/g, "'");
+
+    res.json({
+      ok: true,
+      filename,
+      path: `/images/blog/${filename}`,
+      altText,
+      prompt: imagePrompt,
+      size: `${(stats.size / 1024).toFixed(1)} KB`
+    });
+  } catch (err) {
+    console.error('[Image]', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── GSC Indexing ───
+const GSC_KEY_PATH = path.join(LANDING_ROOT, 'gsc-key.json');
+const GSC_CACHE_PATH = path.join(LANDING_ROOT, '.gsc-cache.json');
+const SITEMAP_PATH_GSC = path.join(DIST_DIR, 'sitemap.xml');
+const SITE_URL_GSC = 'https://healthdesk.site';
+
+function loadGscCache() {
+  if (fs.existsSync(GSC_CACHE_PATH)) return JSON.parse(fs.readFileSync(GSC_CACHE_PATH, 'utf8'));
+  return {};
+}
+
+function saveGscCache(cache) {
+  fs.writeFileSync(GSC_CACHE_PATH, JSON.stringify(cache, null, 2), 'utf8');
+}
+
+function parseSitemapUrls() {
+  if (!fs.existsSync(SITEMAP_PATH_GSC)) return [];
+  const xml = fs.readFileSync(SITEMAP_PATH_GSC, 'utf8');
+  const urls = [];
+  const blocks = xml.split('<url>').slice(1);
+  for (const block of blocks) {
+    const locMatch = block.match(/<loc>([^<]+)<\/loc>/);
+    const modMatch = block.match(/<lastmod>([^<]+)<\/lastmod>/);
+    if (locMatch) urls.push({ url: locMatch[1], lastmod: modMatch ? modMatch[1] : null });
+  }
+  return urls;
+}
+
+// API: GSC status — show all URLs with indexing status
+app.get('/api/gsc/status', (req, res) => {
+  const hasKey = fs.existsSync(GSC_KEY_PATH);
+  const hasSitemap = fs.existsSync(SITEMAP_PATH_GSC);
+  if (!hasKey) return res.json({ configured: false, error: 'Brak gsc-key.json' });
+  if (!hasSitemap) return res.json({ configured: true, error: 'Brak dist/sitemap.xml — uruchom Build' });
+
+  const cache = loadGscCache();
+  const sitemapUrls = parseSitemapUrls();
+
+  const urls = sitemapUrls.map(u => {
+    const cached = cache[u.url];
+    const needsUpdate = !cached || (u.lastmod && cached.lastmod !== u.lastmod);
+    return {
+      url: u.url,
+      lastmod: u.lastmod,
+      notifiedAt: cached ? cached.notifiedAt : null,
+      status: !cached ? 'new' : needsUpdate ? 'changed' : 'ok'
+    };
+  });
+
+  const stats = {
+    total: urls.length,
+    ok: urls.filter(u => u.status === 'ok').length,
+    new: urls.filter(u => u.status === 'new').length,
+    changed: urls.filter(u => u.status === 'changed').length
+  };
+
+  res.json({ configured: true, urls, stats });
+});
+
+// API: GSC submit — send URLs to Google Indexing API
+app.post('/api/gsc/submit', async (req, res) => {
+  if (!fs.existsSync(GSC_KEY_PATH)) return res.status(400).json({ error: 'Brak gsc-key.json' });
+
+  const { google } = require('googleapis');
+  const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
+  const indexing = google.indexing({ version: 'v3', auth });
+
+  const { urls: requestedUrls } = req.body; // optional: specific URLs
+  const sitemapUrls = parseSitemapUrls();
+  const cache = loadGscCache();
+
+  let toSubmit;
+  if (requestedUrls && requestedUrls.length) {
+    toSubmit = requestedUrls;
+  } else {
+    // Submit new/changed only
+    toSubmit = sitemapUrls
+      .filter(u => {
+        const cached = cache[u.url];
+        return !cached || (u.lastmod && cached.lastmod !== u.lastmod);
+      })
+      .map(u => u.url);
+  }
+
+  if (toSubmit.length === 0) return res.json({ submitted: 0, results: [], message: 'Wszystko aktualne' });
+
+  const results = [];
+  const urlLastmodMap = {};
+  sitemapUrls.forEach(u => { urlLastmodMap[u.url] = u.lastmod; });
+
+  for (const url of toSubmit) {
+    try {
+      await indexing.urlNotifications.publish({ requestBody: { url, type: 'URL_UPDATED' } });
+      cache[url] = { notifiedAt: new Date().toISOString(), lastmod: urlLastmodMap[url] || null };
+      results.push({ url, status: 'ok' });
+    } catch (err) {
+      const msg = err.response?.data?.error?.message || err.message;
+      results.push({ url, status: 'error', error: msg });
+    }
+    // Rate limit
+    if (toSubmit.length > 1) await new Promise(r => setTimeout(r, 500));
+  }
+
+  saveGscCache(cache);
+  res.json({
+    submitted: results.filter(r => r.status === 'ok').length,
+    errors: results.filter(r => r.status === 'error').length,
+    results
+  });
+});
 
 // ─── Start ───
 const server = app.listen(PORT, () => {

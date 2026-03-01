@@ -5,6 +5,8 @@ date: 2026-02-28
 description: "Ból pleców przy biurku? Poznaj 10 skutecznych ćwiczeń, które możesz wykonać w pracy i szybko ulżysz swojemu kręgosłupowi!"
 tags: ["ćwiczenia przy biurku", "ból pleców", "praca siedząca", "zdrowie w pracy", "stretching biurowy"]
 lang: pl
+siblings:
+  en: "desk-exercises-for-back-pain"
 ---
 ## Dlaczego praca przy biurku powoduje ból pleców?
 

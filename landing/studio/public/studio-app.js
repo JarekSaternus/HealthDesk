@@ -529,7 +529,7 @@ function escHtml(s) {
 }
 
 function escAttr(s) {
-  return String(s).replace(/'/g, "\\'").replace(/"/g, '\\"');
+  return String(s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/'/g,'&#39;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 }
 
 function showToast(msg) {
@@ -663,8 +663,9 @@ async function createAndDraftFromOutline(lang) {
     body: JSON.stringify({ frontmatter: fm, markdown: outlineMd })
   });
 
-  // Step 3: Generate full draft via AI
-  resultEl.innerHTML = '<p style="color:var(--accent)">AI is writing the full article... (this takes 30-60 seconds)</p>';
+  // Step 3: Generate full draft via AI (chunked — multiple AI calls)
+  const chunkCount = Math.ceil((data.outline || []).length / 2);
+  resultEl.innerHTML = '<p style="color:var(--accent)">AI is writing the full article in ' + chunkCount + ' chunks... (this takes ' + (chunkCount * 20) + '-' + (chunkCount * 40) + ' seconds)</p>';
 
   try {
     const draftRes = await fetch('/api/ai/draft', {
@@ -675,7 +676,8 @@ async function createAndDraftFromOutline(lang) {
         description: data.description,
         outline: data.outline,
         lang,
-        keyword: document.getElementById('idea-keyword').value
+        keyword: document.getElementById('idea-keyword').value,
+        slug
       })
     });
     const draftData = await draftRes.json();
@@ -824,8 +826,6 @@ async function aiWriteDraft() {
 
   if (!confirm('AI will write a full draft based on the current headings. Existing content will be replaced. Continue?')) return;
 
-  showToast('AI is writing... (15-30 sec)');
-
   const outline = [];
   let currentH2 = null;
   for (const h of headings) {
@@ -838,22 +838,105 @@ async function aiWriteDraft() {
   }
   if (currentH2) outline.push(currentH2);
 
+  const chunkCount = Math.ceil(outline.length / 2);
+
+  // Show persistent progress banner in preview pane
+  showDraftProgress({ status: 'generating', chunk: 0, totalChunks: chunkCount, sections: 'Starting...', words: 0 });
+
+  // Start polling for progress
+  const pollId = startDraftPolling();
+
+  const editorEl = document.getElementById('md-editor');
+  editorEl.disabled = true;
+
   try {
     const res = await fetch('/api/ai/draft', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ title, description: desc, outline, lang, keyword: title })
+      body: JSON.stringify({ title, description: desc, outline, lang, keyword: title, slug: currentArticle.slug })
     });
     const data = await res.json();
+    stopDraftPolling(pollId);
     if (data.error) throw new Error(data.error);
 
     document.getElementById('md-editor').value = data.markdown;
     currentMarkdown = data.markdown;
     onEditorInput();
-    showToast('Draft generated!');
+    showDraftProgress({ status: 'done', words: data.markdown.split(/\s+/).length, totalChunks: chunkCount, chunk: chunkCount });
   } catch (err) {
-    alert('Error: ' + err.message);
+    stopDraftPolling(pollId);
+    showDraftProgress({ status: 'error', error: err.message });
   }
+  editorEl.disabled = false;
+}
+
+// ─── Draft progress UI ───
+let _draftPollInterval = null;
+
+function showDraftProgress(p) {
+  const previewEl = document.getElementById('md-preview');
+  if (!previewEl) return;
+
+  if (p.status === 'idle' || !p.status) return;
+
+  if (p.status === 'generating') {
+    const elapsed = p.startedAt ? Math.round((Date.now() - p.startedAt) / 1000) : 0;
+    const pct = p.totalChunks ? Math.round((Math.max(0, p.chunk - 1) / p.totalChunks) * 100) : 0;
+    const barWidth = p.totalChunks ? Math.round(((p.chunk - 0.5) / p.totalChunks) * 100) : 5;
+    previewEl.innerHTML = `
+      <div style="padding:2rem;text-align:center;">
+        <div style="font-size:1.2rem;font-weight:600;color:var(--accent);margin-bottom:0.75rem;">
+          ✍️ AI is writing the article...
+        </div>
+        <div style="background:var(--bg-sidebar);border-radius:8px;height:8px;max-width:400px;margin:0 auto 1rem;">
+          <div style="background:var(--accent);height:100%;border-radius:8px;width:${barWidth}%;transition:width 0.5s;"></div>
+        </div>
+        <div style="font-size:0.95rem;color:var(--text);margin-bottom:0.4rem;">
+          Chunk <strong>${p.chunk}</strong> / ${p.totalChunks}
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-dim);margin-bottom:0.3rem;">
+          ${p.sections ? 'Writing: ' + escHtml(p.sections) : ''}
+        </div>
+        <div style="font-size:0.8rem;color:var(--text-dim);">
+          ${p.words ? p.words + ' words so far' : ''}
+          ${elapsed ? ' · ' + elapsed + 's elapsed' : ''}
+        </div>
+      </div>`;
+  } else if (p.status === 'done') {
+    previewEl.innerHTML = `
+      <div style="padding:2rem;text-align:center;">
+        <div style="font-size:1.2rem;font-weight:600;color:var(--green);margin-bottom:0.5rem;">
+          ✅ Draft complete!
+        </div>
+        <div style="font-size:0.9rem;color:var(--text-dim);">
+          ${p.words || '?'} words · ${p.totalChunks || '?'} chunks
+        </div>
+      </div>`;
+    // Auto-refresh preview after 2s
+    setTimeout(() => {
+      const md = document.getElementById('md-editor').value;
+      if (md) previewEl.innerHTML = simpleMarkdown(md);
+    }, 2000);
+  } else if (p.status === 'error') {
+    previewEl.innerHTML = '<div style="padding:2rem;color:var(--red);text-align:center;">Error: ' + escHtml(p.error || 'Unknown') + '</div>';
+  }
+}
+
+function startDraftPolling() {
+  stopDraftPolling();
+  _draftPollInterval = setInterval(async () => {
+    try {
+      const res = await fetch('/api/ai/draft/status');
+      const p = await res.json();
+      if (p.status === 'generating') showDraftProgress(p);
+    } catch {}
+  }, 2000);
+  return _draftPollInterval;
+}
+
+function stopDraftPolling(id) {
+  if (_draftPollInterval) { clearInterval(_draftPollInterval); _draftPollInterval = null; }
+  if (id) clearInterval(id);
 }
 
 // ─── AI: Improve SEO ───
@@ -893,13 +976,25 @@ async function aiImproveSEO() {
     panel.classList.remove('hidden');
     document.getElementById('seo-score').textContent = seoData.score + '% → Fix:';
     document.getElementById('seo-score').style.color = 'var(--accent)';
-    document.getElementById('seo-checks').innerHTML = (data.suggestions || []).map(s => `
+    document.getElementById('seo-checks').innerHTML = (data.suggestions || []).map(s => {
+      const lower = (s.check || '').toLowerCase();
+      const canApply = s.newText && (lower.includes('title') || lower.includes('desc'));
+      const isTranslation = lower.includes('translation') || lower.includes('sibling') || lower.includes('hreflang');
+      let actionHtml = '';
+      if (canApply) {
+        actionHtml = '<div style="margin-top:0.3rem;"><button class="btn btn-sm" onclick="applySEOFix(this)" data-field="' + escAttr(s.check) + '" data-text="' + escAttr(s.newText) + '">Apply: ' + escHtml(s.newText).slice(0,60) + '...</button></div>';
+      } else if (isTranslation && currentArticle) {
+        const targetLang = currentArticle.lang === 'en' ? 'pl' : 'en';
+        const targetLabel = targetLang.toUpperCase();
+        actionHtml = '<div style="margin-top:0.3rem;"><button class="btn btn-sm" style="background:var(--accent);color:#000;" onclick="createLangVersion(\'' + targetLang + '\')">Create ' + targetLabel + ' Version</button></div>';
+      }
+      return `
       <div class="seo-check" style="flex-direction:column;align-items:flex-start;gap:0.3rem;">
         <span style="font-weight:600;color:var(--yellow);">${escHtml(s.check)}</span>
         <span style="font-size:0.8rem;">${escHtml(s.action)}</span>
-        ${s.newText ? '<div style="margin-top:0.3rem;"><button class="btn btn-sm" onclick="applySEOFix(this)" data-field="' + escAttr(s.check) + '" data-text="' + escAttr(s.newText) + '">Apply: ' + escHtml(s.newText).slice(0,60) + '...</button></div>' : ''}
-      </div>
-    `).join('');
+        ${actionHtml}
+      </div>`;
+    }).join('');
   } catch (err) {
     alert('Error: ' + err.message);
   }
@@ -917,6 +1012,44 @@ function applySEOFix(btn) {
   }
   updateSEOLive();
   showToast('Applied!');
+}
+
+// ─── Create language version ───
+async function createLangVersion(targetLang) {
+  if (!currentArticle) { alert('Open an article first'); return; }
+
+  const targetLabel = targetLang.toUpperCase();
+  const frontmatter = getFrontmatter();
+  if (!confirm(`Create ${targetLabel} version of "${frontmatter.title}"?\n\nThis will generate a new SEO-optimized article in ${targetLabel} (not a direct translation).`)) return;
+  const markdown = document.getElementById('md-editor').value;
+
+  showToast(`Generating ${targetLabel} version... This may take 30-60s`);
+
+  try {
+    const res = await fetch('/api/ai/create-version', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        sourceLang: currentArticle.lang,
+        targetLang,
+        slug: currentArticle.slug,
+        frontmatter,
+        markdown
+      })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    showToast(`${targetLabel} version created! (${data.wordCount} words)`);
+
+    // Ask if user wants to open the new article
+    if (confirm(`${targetLabel} version created:\n"${data.title}"\nSlug: ${data.slug}\n\n${data.wordCount} words. Open it now?`)) {
+      await loadDashboard();
+      openArticle(targetLang, data.slug);
+    }
+  } catch (err) {
+    alert('Error: ' + err.message);
+  }
 }
 
 // ─── Keywords ───
@@ -1100,3 +1233,153 @@ function createFromKeyword() {
 
 // ─── Init ───
 loadDashboard();
+
+// Check if AI draft is in progress (e.g. after page refresh)
+(async function checkDraftOnLoad() {
+  try {
+    const res = await fetch('/api/ai/draft/status');
+    const p = await res.json();
+    if (p.status === 'generating') {
+      // Draft is running — switch to editor and show progress
+      switchView('editor');
+      document.getElementById('editor-title').textContent = p.title || 'Generating...';
+      document.getElementById('md-editor').disabled = true;
+      showDraftProgress(p);
+      // Start polling until done
+      const pollId = setInterval(async () => {
+        try {
+          const r = await fetch('/api/ai/draft/status');
+          const s = await r.json();
+          showDraftProgress(s);
+          if (s.status === 'done') {
+            clearInterval(pollId);
+            document.getElementById('md-editor').disabled = false;
+            showToast('Draft finished! Reload article to see content.');
+            // Try to open the article
+            if (s.slug && s.lang) {
+              setTimeout(() => openArticle(s.lang, s.slug), 1500);
+            }
+          } else if (s.status === 'error' || s.status === 'idle') {
+            clearInterval(pollId);
+            document.getElementById('md-editor').disabled = false;
+          }
+        } catch { clearInterval(pollId); }
+      }, 2000);
+    }
+  } catch {}
+})();
+
+// ─── GSC Indexing Panel ───
+async function gscRefresh() {
+  const tbody = document.getElementById('gsc-tbody');
+  const statsEl = document.getElementById('gsc-stats');
+
+  try {
+    const res = await fetch('/api/gsc/status');
+    const data = await res.json();
+
+    if (!data.configured) {
+      statsEl.innerHTML = `<div class="gsc-error">⚠️ ${data.error || 'GSC nie skonfigurowane'}</div>`;
+      tbody.innerHTML = '';
+      return;
+    }
+
+    if (data.error) {
+      statsEl.innerHTML = `<div class="gsc-error">⚠️ ${data.error}</div>`;
+      tbody.innerHTML = '';
+      return;
+    }
+
+    const s = data.stats;
+    statsEl.innerHTML = `
+      <div class="gsc-stat gsc-stat-ok"><span class="gsc-stat-val">${s.ok}</span><span class="gsc-stat-label">Zgłoszone</span></div>
+      <div class="gsc-stat gsc-stat-new"><span class="gsc-stat-val">${s.new}</span><span class="gsc-stat-label">Nowe</span></div>
+      <div class="gsc-stat gsc-stat-changed"><span class="gsc-stat-val">${s.changed}</span><span class="gsc-stat-label">Zmienione</span></div>
+      <div class="gsc-stat"><span class="gsc-stat-val">${s.total}</span><span class="gsc-stat-label">Razem</span></div>
+    `;
+
+    tbody.innerHTML = data.urls.map(u => {
+      const icon = u.status === 'ok' ? '✅' : u.status === 'new' ? '🆕' : '🔄';
+      const statusClass = 'gsc-status-' + u.status;
+      const shortUrl = u.url.replace('https://healthdesk.site', '');
+      const notified = u.notifiedAt ? new Date(u.notifiedAt).toLocaleString('pl-PL', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—';
+      return `<tr class="${statusClass}">
+        <td class="gsc-url" title="${u.url}">${shortUrl}</td>
+        <td>${u.lastmod || '—'}</td>
+        <td>${notified}</td>
+        <td>${icon}</td>
+      </tr>`;
+    }).join('');
+
+    // Disable submit button if nothing to submit
+    const submitBtn = document.getElementById('btn-gsc-submit');
+    if (s.new === 0 && s.changed === 0) {
+      submitBtn.textContent = 'Wszystko aktualne ✓';
+      submitBtn.disabled = true;
+    } else {
+      submitBtn.textContent = `Zgłoś nowe do Google (${s.new + s.changed})`;
+      submitBtn.disabled = false;
+    }
+
+  } catch (err) {
+    statsEl.innerHTML = `<div class="gsc-error">❌ Błąd: ${err.message}</div>`;
+  }
+}
+
+async function gscSubmitNew() {
+  const btn = document.getElementById('btn-gsc-submit');
+  btn.disabled = true;
+  btn.textContent = 'Wysyłanie...';
+
+  try {
+    const res = await fetch('/api/gsc/submit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+    const data = await res.json();
+
+    if (data.message) {
+      showToast(data.message);
+    } else {
+      const errors = data.errors || 0;
+      showToast(`Zgłoszono ${data.submitted} URL-ów${errors ? `, ${errors} błędów` : ''}`);
+    }
+    gscRefresh();
+  } catch (err) {
+    showToast('Błąd: ' + err.message);
+    btn.disabled = false;
+    btn.textContent = 'Zgłoś nowe do Google';
+  }
+}
+
+async function gscSubmitAll() {
+  const btn = document.getElementById('btn-gsc-all');
+  btn.disabled = true;
+  btn.textContent = 'Wysyłanie wszystkich...';
+
+  try {
+    // Get all URLs from current status
+    const statusRes = await fetch('/api/gsc/status');
+    const statusData = await statusRes.json();
+    if (!statusData.urls) { showToast('Brak URL-i'); return; }
+
+    const allUrls = statusData.urls.map(u => u.url);
+    const res = await fetch('/api/gsc/submit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ urls: allUrls })
+    });
+    const data = await res.json();
+    showToast(`Zgłoszono ${data.submitted} URL-ów`);
+    gscRefresh();
+  } catch (err) {
+    showToast('Błąd: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Zgłoś wszystkie';
+  }
+}
+
+// Load GSC status when Build & Deploy view is opened
+const origSwitchView = switchView;
+switchView = function(view) {
+  origSwitchView(view);
+  if (view === 'build') gscRefresh();
+};

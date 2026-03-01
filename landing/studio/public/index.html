@@ -150,6 +150,7 @@
           <button class="btn btn-sm" onclick="aiSuggestDesc()">AI Description</button>
           <button class="btn btn-sm" onclick="aiWriteDraft()">AI Draft</button>
           <button class="btn btn-sm" onclick="aiImproveSEO()">AI Fix SEO</button>
+          <button class="btn btn-sm" onclick="generateHeroImage()">🖼 Hero Image</button>
           <button class="btn btn-sm" onclick="runSEOCheck()">SEO Check</button>
           <button class="btn btn-sm" onclick="switchView('checker')">Grammar</button>
           <button class="btn btn-primary btn-sm" onclick="saveArticle()">Save</button>
@@ -250,6 +251,27 @@
       <div class="build-log hidden" id="build-log">
         <h3>Log</h3>
         <pre id="build-log-content"></pre>
+      </div>
+
+      <!-- GSC Indexing Panel -->
+      <div class="gsc-panel" id="gsc-panel">
+        <div class="gsc-header">
+          <h2>Google Search Console</h2>
+          <div class="gsc-actions">
+            <button class="btn btn-primary btn-sm" onclick="gscSubmitNew()" id="btn-gsc-submit">Zgłoś nowe do Google</button>
+            <button class="btn btn-sm" onclick="gscSubmitAll()" id="btn-gsc-all">Zgłoś wszystkie</button>
+            <button class="btn btn-sm" onclick="gscRefresh()">Odśwież</button>
+          </div>
+        </div>
+        <div class="gsc-stats" id="gsc-stats"></div>
+        <div class="gsc-table-wrap">
+          <table class="gsc-table" id="gsc-table">
+            <thead>
+              <tr><th>URL</th><th>Lastmod</th><th>Zgłoszony</th><th>Status</th></tr>
+            </thead>
+            <tbody id="gsc-tbody"></tbody>
+          </table>
+        </div>
       </div>
     </section>
 
