@@ -33,11 +33,316 @@
 
   <link rel="icon" type="image/svg+xml" href="/logo-color.svg">
   <link rel="stylesheet" href="/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.css">
+
+  <!-- Google Analytics 4 (loads after consent) -->
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('consent', 'default', {
+      analytics_storage: 'denied',
+      ad_storage: 'denied',
+      ad_user_data: 'denied',
+      ad_personalization: 'denied',
+      functionality_storage: 'denied',
+      personalization_storage: 'denied',
+      security_storage: 'granted'
+    });
+  </script>
 
   <!-- JSON-LD Schema -->
   {{schema_jsonld}}
 </head>
 <body>
   {{content}}
+
+  <script src="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.1.0/dist/cookieconsent.umd.js"></script>
+  <script>
+    var GA_ID = 'G-YLX7Z1K73J';
+    CookieConsent.run({
+      guiOptions: {
+        consentModal: {
+          layout: 'bar inline',
+          position: 'bottom'
+        }
+      },
+      categories: {
+        necessary: {
+          enabled: true,
+          readOnly: true
+        },
+        analytics: {
+          autoClear: {
+            cookies: [{ name: /^(_ga|_gid)/ }]
+          },
+          services: {
+            ga4: {
+              label: 'Google Analytics 4'
+            }
+          }
+        }
+      },
+      onConsent: function() {
+        if (CookieConsent.acceptedCategory('analytics')) {
+          loadGA4();
+        }
+      },
+      onChange: function(param) {
+        if (param.changedCategories.includes('analytics')) {
+          if (CookieConsent.acceptedCategory('analytics')) {
+            loadGA4();
+          } else {
+            gtag('consent', 'update', {
+              analytics_storage: 'denied',
+              ad_storage: 'denied',
+              ad_user_data: 'denied',
+              ad_personalization: 'denied'
+            });
+          }
+        }
+      },
+      language: {
+        default: '{{html_lang}}',
+        translations: {
+          pl: {
+            consentModal: {
+              title: 'Używamy plików cookies',
+              description: 'Ta strona używa plików cookies analitycznych (Google Analytics), aby lepiej zrozumieć, jak odwiedzający korzystają z witryny. Żadne dane osobowe nie są zbierane. <a href="/pl/privacy/">Polityka prywatności</a>',
+              acceptAllBtn: 'Akceptuję',
+              acceptNecessaryBtn: 'Tylko niezbędne'
+            },
+            preferencesModal: {
+              title: 'Ustawienia cookies',
+              acceptAllBtn: 'Akceptuję wszystkie',
+              acceptNecessaryBtn: 'Tylko niezbędne',
+              savePreferencesBtn: 'Zapisz ustawienia',
+              sections: [
+                { title: 'Niezbędne', description: 'Te cookies są wymagane do prawidłowego działania strony.', linkedCategory: 'necessary' },
+                { title: 'Analityczne', description: 'Google Analytics 4 — pomagają zrozumieć, jak odwiedzający korzystają ze strony. Dane są przesyłane do Google LLC (USA).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Czas', description: 'Opis' }, body: [{ name: '_ga', duration: '2 lata', description: 'Rozróżnia użytkowników' }, { name: '_gid', duration: '24h', description: 'Rozróżnia użytkowników w ciągu dnia' }] } }
+              ]
+            }
+          },
+          en: {
+            consentModal: {
+              title: 'We use cookies',
+              description: 'This site uses analytics cookies (Google Analytics) to understand how visitors use the website. No personal data is collected. <a href="/en/privacy/">Privacy Policy</a>',
+              acceptAllBtn: 'Accept',
+              acceptNecessaryBtn: 'Necessary only'
+            },
+            preferencesModal: {
+              title: 'Cookie preferences',
+              acceptAllBtn: 'Accept all',
+              acceptNecessaryBtn: 'Necessary only',
+              savePreferencesBtn: 'Save preferences',
+              sections: [
+                { title: 'Necessary', description: 'These cookies are required for the website to function properly.', linkedCategory: 'necessary' },
+                { title: 'Analytics', description: 'Google Analytics 4 — helps us understand how visitors interact with the website. Data is transferred to Google LLC (USA).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Duration', description: 'Description' }, body: [{ name: '_ga', duration: '2 years', description: 'Distinguishes users' }, { name: '_gid', duration: '24h', description: 'Distinguishes users within a day' }] } }
+              ]
+            }
+          },
+          de: {
+            consentModal: {
+              title: 'Wir verwenden Cookies',
+              description: 'Diese Website verwendet Analyse-Cookies (Google Analytics), um zu verstehen, wie Besucher die Website nutzen. Es werden keine personenbezogenen Daten erhoben. <a href="/de/privacy/">Datenschutz</a>',
+              acceptAllBtn: 'Akzeptieren',
+              acceptNecessaryBtn: 'Nur notwendige'
+            },
+            preferencesModal: {
+              title: 'Cookie-Einstellungen',
+              acceptAllBtn: 'Alle akzeptieren',
+              acceptNecessaryBtn: 'Nur notwendige',
+              savePreferencesBtn: 'Einstellungen speichern',
+              sections: [
+                { title: 'Notwendig', description: 'Diese Cookies sind für das ordnungsgemäße Funktionieren der Website erforderlich.', linkedCategory: 'necessary' },
+                { title: 'Analytisch', description: 'Google Analytics 4 — hilft uns zu verstehen, wie Besucher die Website nutzen. Daten werden an Google LLC (USA) übertragen.', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Dauer', description: 'Beschreibung' }, body: [{ name: '_ga', duration: '2 Jahre', description: 'Unterscheidet Benutzer' }, { name: '_gid', duration: '24h', description: 'Unterscheidet Benutzer innerhalb eines Tages' }] } }
+              ]
+            }
+          },
+          es: {
+            consentModal: {
+              title: 'Usamos cookies',
+              description: 'Este sitio utiliza cookies analíticas (Google Analytics) para comprender cómo los visitantes usan el sitio web. No se recopilan datos personales. <a href="/es/privacy/">Política de privacidad</a>',
+              acceptAllBtn: 'Aceptar',
+              acceptNecessaryBtn: 'Solo necesarias'
+            },
+            preferencesModal: {
+              title: 'Preferencias de cookies',
+              acceptAllBtn: 'Aceptar todas',
+              acceptNecessaryBtn: 'Solo necesarias',
+              savePreferencesBtn: 'Guardar preferencias',
+              sections: [
+                { title: 'Necesarias', description: 'Estas cookies son necesarias para el correcto funcionamiento del sitio.', linkedCategory: 'necessary' },
+                { title: 'Analíticas', description: 'Google Analytics 4 — nos ayudan a entender cómo interactúan los visitantes con el sitio. Los datos se transfieren a Google LLC (EE.UU.).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Duración', description: 'Descripción' }, body: [{ name: '_ga', duration: '2 años', description: 'Distingue usuarios' }, { name: '_gid', duration: '24h', description: 'Distingue usuarios en un día' }] } }
+              ]
+            }
+          },
+          fr: {
+            consentModal: {
+              title: 'Nous utilisons des cookies',
+              description: 'Ce site utilise des cookies analytiques (Google Analytics) pour comprendre comment les visiteurs utilisent le site. Aucune donnée personnelle n\'est collectée. <a href="/fr/privacy/">Politique de confidentialité</a>',
+              acceptAllBtn: 'Accepter',
+              acceptNecessaryBtn: 'Nécessaires uniquement'
+            },
+            preferencesModal: {
+              title: 'Préférences des cookies',
+              acceptAllBtn: 'Tout accepter',
+              acceptNecessaryBtn: 'Nécessaires uniquement',
+              savePreferencesBtn: 'Enregistrer',
+              sections: [
+                { title: 'Nécessaires', description: 'Ces cookies sont indispensables au bon fonctionnement du site.', linkedCategory: 'necessary' },
+                { title: 'Analytiques', description: 'Google Analytics 4 — nous aident à comprendre comment les visiteurs utilisent le site. Les données sont transférées à Google LLC (États-Unis).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Durée', description: 'Description' }, body: [{ name: '_ga', duration: '2 ans', description: 'Distingue les utilisateurs' }, { name: '_gid', duration: '24h', description: 'Distingue les utilisateurs dans la journée' }] } }
+              ]
+            }
+          },
+          it: {
+            consentModal: {
+              title: 'Utilizziamo i cookie',
+              description: 'Questo sito utilizza cookie analitici (Google Analytics) per capire come i visitatori utilizzano il sito. Nessun dato personale viene raccolto. <a href="/it/privacy/">Informativa sulla privacy</a>',
+              acceptAllBtn: 'Accetta',
+              acceptNecessaryBtn: 'Solo necessari'
+            },
+            preferencesModal: {
+              title: 'Preferenze cookie',
+              acceptAllBtn: 'Accetta tutti',
+              acceptNecessaryBtn: 'Solo necessari',
+              savePreferencesBtn: 'Salva preferenze',
+              sections: [
+                { title: 'Necessari', description: 'Questi cookie sono necessari per il corretto funzionamento del sito.', linkedCategory: 'necessary' },
+                { title: 'Analitici', description: 'Google Analytics 4 — ci aiutano a capire come i visitatori interagiscono con il sito. I dati vengono trasferiti a Google LLC (USA).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Durata', description: 'Descrizione' }, body: [{ name: '_ga', duration: '2 anni', description: 'Distingue gli utenti' }, { name: '_gid', duration: '24h', description: 'Distingue gli utenti nell\'arco della giornata' }] } }
+              ]
+            }
+          },
+          ja: {
+            consentModal: {
+              title: 'Cookieを使用しています',
+              description: 'このサイトでは、訪問者がウェブサイトをどのように利用しているかを理解するために、分析Cookie（Google Analytics）を使用しています。個人データは収集されません。<a href="/ja/privacy/">プライバシーポリシー</a>',
+              acceptAllBtn: '同意する',
+              acceptNecessaryBtn: '必要なもののみ'
+            },
+            preferencesModal: {
+              title: 'Cookie設定',
+              acceptAllBtn: 'すべて同意',
+              acceptNecessaryBtn: '必要なもののみ',
+              savePreferencesBtn: '設定を保存',
+              sections: [
+                { title: '必要なCookie', description: 'ウェブサイトの正常な動作に必要なCookieです。', linkedCategory: 'necessary' },
+                { title: '分析Cookie', description: 'Google Analytics 4 — 訪問者がサイトをどのように利用しているかを理解するのに役立ちます。データはGoogle LLC（米国）に転送されます。', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: '期間', description: '説明' }, body: [{ name: '_ga', duration: '2年', description: 'ユーザーを区別します' }, { name: '_gid', duration: '24時間', description: '1日のユーザーを区別します' }] } }
+              ]
+            }
+          },
+          ko: {
+            consentModal: {
+              title: '쿠키를 사용합니다',
+              description: '이 사이트는 방문자가 웹사이트를 어떻게 사용하는지 이해하기 위해 분석 쿠키(Google Analytics)를 사용합니다. 개인 데이터는 수집되지 않습니다. <a href="/ko/privacy/">개인정보 처리방침</a>',
+              acceptAllBtn: '동의',
+              acceptNecessaryBtn: '필수만'
+            },
+            preferencesModal: {
+              title: '쿠키 설정',
+              acceptAllBtn: '모두 동의',
+              acceptNecessaryBtn: '필수만',
+              savePreferencesBtn: '설정 저장',
+              sections: [
+                { title: '필수 쿠키', description: '웹사이트가 올바르게 작동하는 데 필요한 쿠키입니다.', linkedCategory: 'necessary' },
+                { title: '분석 쿠키', description: 'Google Analytics 4 — 방문자가 사이트를 어떻게 이용하는지 이해하는 데 도움이 됩니다. 데이터는 Google LLC(미국)로 전송됩니다.', linkedCategory: 'analytics', cookieTable: { headers: { name: '쿠키', duration: '기간', description: '설명' }, body: [{ name: '_ga', duration: '2년', description: '사용자를 구별합니다' }, { name: '_gid', duration: '24시간', description: '하루 동안 사용자를 구별합니다' }] } }
+              ]
+            }
+          },
+          zh: {
+            consentModal: {
+              title: '我们使用Cookie',
+              description: '本网站使用分析Cookie（Google Analytics）来了解访问者如何使用网站。不会收集任何个人数据。<a href="/zh-CN/privacy/">隐私政策</a>',
+              acceptAllBtn: '接受',
+              acceptNecessaryBtn: '仅必要的'
+            },
+            preferencesModal: {
+              title: 'Cookie偏好设置',
+              acceptAllBtn: '全部接受',
+              acceptNecessaryBtn: '仅必要的',
+              savePreferencesBtn: '保存设置',
+              sections: [
+                { title: '必要Cookie', description: '这些Cookie是网站正常运行所必需的。', linkedCategory: 'necessary' },
+                { title: '分析Cookie', description: 'Google Analytics 4 — 帮助我们了解访问者如何与网站互动。数据将传输至Google LLC（美国）。', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: '时长', description: '描述' }, body: [{ name: '_ga', duration: '2年', description: '区分用户' }, { name: '_gid', duration: '24小时', description: '在一天内区分用户' }] } }
+              ]
+            }
+          },
+          tr: {
+            consentModal: {
+              title: 'Çerez kullanıyoruz',
+              description: 'Bu site, ziyaretçilerin web sitesini nasıl kullandığını anlamak için analitik çerezler (Google Analytics) kullanmaktadır. Kişisel veri toplanmamaktadır. <a href="/tr/privacy/">Gizlilik Politikası</a>',
+              acceptAllBtn: 'Kabul et',
+              acceptNecessaryBtn: 'Sadece gerekli'
+            },
+            preferencesModal: {
+              title: 'Çerez tercihleri',
+              acceptAllBtn: 'Tümünü kabul et',
+              acceptNecessaryBtn: 'Sadece gerekli',
+              savePreferencesBtn: 'Tercihleri kaydet',
+              sections: [
+                { title: 'Gerekli', description: 'Bu çerezler web sitesinin düzgün çalışması için gereklidir.', linkedCategory: 'necessary' },
+                { title: 'Analitik', description: 'Google Analytics 4 — ziyaretçilerin siteyi nasıl kullandığını anlamamıza yardımcı olur. Veriler Google LLC\'ye (ABD) aktarılır.', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Çerez', duration: 'Süre', description: 'Açıklama' }, body: [{ name: '_ga', duration: '2 yıl', description: 'Kullanıcıları ayırt eder' }, { name: '_gid', duration: '24 saat', description: 'Gün içinde kullanıcıları ayırt eder' }] } }
+              ]
+            }
+          },
+          ru: {
+            consentModal: {
+              title: 'Мы используем файлы cookie',
+              description: 'Этот сайт использует аналитические cookie (Google Analytics), чтобы понять, как посетители используют сайт. Личные данные не собираются. <a href="/ru/privacy/">Политика конфиденциальности</a>',
+              acceptAllBtn: 'Принять',
+              acceptNecessaryBtn: 'Только необходимые'
+            },
+            preferencesModal: {
+              title: 'Настройки cookie',
+              acceptAllBtn: 'Принять все',
+              acceptNecessaryBtn: 'Только необходимые',
+              savePreferencesBtn: 'Сохранить настройки',
+              sections: [
+                { title: 'Необходимые', description: 'Эти cookie необходимы для правильной работы сайта.', linkedCategory: 'necessary' },
+                { title: 'Аналитические', description: 'Google Analytics 4 — помогают понять, как посетители взаимодействуют с сайтом. Данные передаются в Google LLC (США).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Срок', description: 'Описание' }, body: [{ name: '_ga', duration: '2 года', description: 'Различает пользователей' }, { name: '_gid', duration: '24ч', description: 'Различает пользователей в течение дня' }] } }
+              ]
+            }
+          },
+          pt: {
+            consentModal: {
+              title: 'Usamos cookies',
+              description: 'Este site usa cookies analíticos (Google Analytics) para entender como os visitantes usam o site. Nenhum dado pessoal é coletado. <a href="/pt-BR/privacy/">Política de Privacidade</a>',
+              acceptAllBtn: 'Aceitar',
+              acceptNecessaryBtn: 'Apenas necessários'
+            },
+            preferencesModal: {
+              title: 'Preferências de cookies',
+              acceptAllBtn: 'Aceitar todos',
+              acceptNecessaryBtn: 'Apenas necessários',
+              savePreferencesBtn: 'Salvar preferências',
+              sections: [
+                { title: 'Necessários', description: 'Estes cookies são necessários para o funcionamento correto do site.', linkedCategory: 'necessary' },
+                { title: 'Analíticos', description: 'Google Analytics 4 — nos ajudam a entender como os visitantes interagem com o site. Os dados são transferidos para Google LLC (EUA).', linkedCategory: 'analytics', cookieTable: { headers: { name: 'Cookie', duration: 'Duração', description: 'Descrição' }, body: [{ name: '_ga', duration: '2 anos', description: 'Distingue usuários' }, { name: '_gid', duration: '24h', description: 'Distingue usuários no dia' }] } }
+              ]
+            }
+          }
+        }
+      }
+    });
+
+    function loadGA4() {
+      if (document.getElementById('ga4-script')) return;
+      var s = document.createElement('script');
+      s.id = 'ga4-script';
+      s.async = true;
+      s.src = 'https://www.googletagmanager.com/gtag/js?id=' + GA_ID;
+      document.head.appendChild(s);
+      gtag('js', new Date());
+      gtag('config', GA_ID);
+      gtag('consent', 'update', {
+        analytics_storage: 'granted',
+        ad_storage: 'denied',
+        ad_user_data: 'denied',
+        ad_personalization: 'denied',
+        functionality_storage: 'granted',
+        personalization_storage: 'denied',
+        security_storage: 'granted'
+      });
+    }
+  </script>
 </body>
 </html>

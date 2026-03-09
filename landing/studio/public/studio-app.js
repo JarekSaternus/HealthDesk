@@ -22,6 +22,7 @@ function switchView(view) {
 
   if (view === 'dashboard') loadDashboard();
   if (view === 'ideas') loadIdeas();
+  if (view === 'calendar') calLoad();
   if (view === 'checker' && currentMarkdown) {
     renderCheckerText();
   }
@@ -2317,4 +2318,472 @@ async function apStart() {
     const data = await res.json();
     apRenderProgress(data);
   } catch {}
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ─── Content Calendar ───
+// ═══════════════════════════════════════════════════════════════
+
+const CAL_ALL_LANGS = ['pl','en','de','es','fr','it','pt-BR','ja','zh-CN','ko','tr','ru'];
+const CAL_LANG_FLAGS = {
+  pl:'🇵🇱', en:'🇺🇸', de:'🇩🇪', es:'🇪🇸', fr:'🇫🇷', it:'🇮🇹',
+  'pt-BR':'🇧🇷', ja:'🇯🇵', 'zh-CN':'🇨🇳', ko:'🇰🇷', tr:'🇹🇷', ru:'🇷🇺'
+};
+let calData = null;
+let calPollingId = null;
+
+async function calLoad() {
+  try {
+    const res = await fetch('/api/calendar');
+    calData = await res.json();
+    calRender();
+  } catch (err) {
+    showToast('Calendar load error: ' + err.message);
+  }
+}
+
+function calRender() {
+  if (!calData) return;
+
+  // Stats bar
+  const stats = calData.stats || {};
+  document.getElementById('cal-stats-bar').innerHTML = `
+    <div class="stat-card"><div class="stat-val">${stats.pending || 0}</div><div class="stat-label">Pending</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.scheduled || 0}</div><div class="stat-label">Scheduled</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.writing || 0}</div><div class="stat-label">Writing</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.published || 0}</div><div class="stat-label">Published</div></div>
+    <div class="stat-card"><div class="stat-val">${stats.tracking || 0}</div><div class="stat-label">Tracking</div></div>
+  `;
+
+  // Auto toggle
+  document.getElementById('cal-auto-toggle').checked = calData.auto_enabled;
+  if (calData.interval_days) {
+    document.getElementById('cal-interval').value = calData.interval_days;
+  }
+
+  // Next run
+  const nextRunEl = document.getElementById('cal-next-run');
+  if (calData.auto_enabled && calData.next_run) {
+    const nextDate = new Date(calData.next_run);
+    const diff = Math.ceil((nextDate - new Date()) / (1000 * 60 * 60 * 24));
+    nextRunEl.innerHTML = `<span style="color:var(--green)">⚡ Autopilot ON</span> — Next run: <strong>${nextDate.toLocaleDateString('pl-PL')}</strong> (za ${diff > 0 ? diff : 0} dni)`;
+  } else {
+    nextRunEl.innerHTML = `<span style="color:var(--text-dim)">Autopilot OFF</span>`;
+  }
+
+  // Clusters
+  const clustersEl = document.getElementById('cal-clusters');
+  if (!calData.clusters || calData.clusters.length === 0) {
+    clustersEl.innerHTML = '<p style="color:var(--text-dim);padding:16px;">No clusters yet. Click "Add Cluster" to start.</p>';
+  } else {
+    clustersEl.innerHTML = calData.clusters.map(cluster => {
+      let totalKw = 0, publishedKw = 0, scheduledKw = 0, pendingKw = 0;
+      for (const lang of Object.keys(cluster.keywords || {})) {
+        for (const kw of cluster.keywords[lang]) {
+          totalKw++;
+          if (kw.status === 'published' || kw.status === 'tracking') publishedKw++;
+          else if (kw.status === 'scheduled') scheduledKw++;
+          else if (kw.status === 'pending') pendingKw++;
+        }
+      }
+
+      // Build keyword rows (show first 20)
+      // Build all keyword rows, group by language
+      const allKwRows = [];
+      for (const lang of Object.keys(cluster.keywords || {})) {
+        for (const kw of cluster.keywords[lang]) {
+          const flag = CAL_LANG_FLAGS[lang] || lang;
+          const statusIcon = kw.status === 'published' ? '✅' : kw.status === 'tracking' ? '📊' :
+            kw.status === 'scheduled' ? '📝' : kw.status === 'writing' ? '✍️' : '⏳';
+          const posStr = kw.gsc_position ? `pos: ${kw.gsc_position}` : '';
+          const kdBadge = kw.serp_verified ? `<span class="kd-badge kd-${kw.kd || 'unknown'}">${kw.kd || '?'}</span>` : '';
+
+          allKwRows.push(`<div class="cal-kw-row">
+            <span class="cal-kw-flag">${flag}</span>
+            <span class="cal-kw-text" title="${kw.keyword}">${kw.keyword.length > 50 ? kw.keyword.substring(0, 47) + '...' : kw.keyword}</span>
+            ${kdBadge}
+            <span class="cal-kw-status">${statusIcon} ${kw.status}</span>
+            ${kw.scheduled_date ? `<span class="cal-kw-date">${kw.scheduled_date}</span>` : ''}
+            ${posStr ? `<span class="cal-kw-pos">${posStr}</span>` : ''}
+          </div>`);
+        }
+      }
+
+      const INITIAL_SHOW = 20;
+      const clusterId = cluster.id;
+      const visibleRows = allKwRows.slice(0, INITIAL_SHOW).join('');
+      const hiddenRows = allKwRows.slice(INITIAL_SHOW).join('');
+      const moreCount = allKwRows.length - INITIAL_SHOW;
+
+      return `<div class="cal-cluster">
+        <div class="cal-cluster-header">
+          <h3>${cluster.name} <span class="cal-cluster-count">(${totalKw} keywords)</span></h3>
+          <div class="cal-cluster-stats">
+            <span class="stat-mini stat-published">✅ ${publishedKw}</span>
+            <span class="stat-mini stat-scheduled">📝 ${scheduledKw}</span>
+            <span class="stat-mini stat-pending">⏳ ${pendingKw}</span>
+          </div>
+          <div class="cal-cluster-actions">
+            <button class="btn btn-sm" onclick="calGenerateKeywords('${cluster.id}', '${cluster.name}')">🤖 Generate</button>
+            <button class="btn btn-sm" onclick="calVerifyKeywords('${cluster.id}')">🔍 Verify SERP</button>
+            <button class="btn btn-sm" onclick="calScheduleKeywords('${cluster.id}')">📅 Schedule</button>
+            <button class="btn btn-sm btn-danger" onclick="calDeleteCluster('${cluster.id}')">🗑</button>
+          </div>
+        </div>
+        <div class="cal-kw-list">${visibleRows}</div>
+        ${moreCount > 0 ? `<div class="cal-kw-list cal-kw-hidden" id="cal-more-${clusterId}" style="display:none">${hiddenRows}</div>
+        <div class="cal-more" style="cursor:pointer" onclick="calToggleMore('${clusterId}', this)">▶ Show ${moreCount} more keywords</div>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // GSC tracking table
+  calRenderGSC();
+}
+
+function calRenderGSC() {
+  const tbody = document.getElementById('cal-gsc-tbody');
+  if (!calData || !calData.clusters) { tbody.innerHTML = ''; return; }
+
+  const rows = [];
+  for (const cluster of calData.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'published' || kw.status === 'tracking') {
+          rows.push({ ...kw, lang });
+        }
+      }
+    }
+  }
+
+  if (rows.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-dim)">No published keywords yet</td></tr>';
+    return;
+  }
+
+  rows.sort((a, b) => (a.gsc_position || 999) - (b.gsc_position || 999));
+  tbody.innerHTML = rows.map(kw => {
+    const flag = CAL_LANG_FLAGS[kw.lang] || kw.lang;
+    const posClass = kw.gsc_position ? (kw.gsc_position <= 10 ? 'pos-good' : kw.gsc_position <= 30 ? 'pos-ok' : 'pos-bad') : '';
+    return `<tr>
+      <td title="${kw.keyword}">${kw.keyword.length > 40 ? kw.keyword.substring(0, 37) + '...' : kw.keyword}</td>
+      <td>${flag} ${kw.lang.toUpperCase()}</td>
+      <td>${kw.status}</td>
+      <td class="${posClass}">${kw.gsc_position || '—'}</td>
+      <td>${kw.gsc_clicks || 0}</td>
+      <td>${kw.gsc_impressions || 0}</td>
+      <td>${kw.published_date || '—'}</td>
+    </tr>`;
+  }).join('');
+}
+
+// Calendar actions
+
+function calToggleMore(clusterId, btn) {
+  const el = document.getElementById('cal-more-' + clusterId);
+  if (!el) return;
+  const hidden = el.style.display === 'none';
+  el.style.display = hidden ? '' : 'none';
+  btn.textContent = hidden ? '▼ Hide keywords' : btn.textContent.replace('▼ Hide', '▶ Show');
+  if (!hidden) btn.textContent = btn.dataset.original || btn.textContent;
+  if (hidden) btn.dataset.original = btn.textContent.replace('▼ Hide keywords', btn.textContent);
+  btn.textContent = hidden ? '▼ Hide keywords' : `▶ Show more keywords`;
+}
+
+async function calToggleAuto() {
+  const enabled = document.getElementById('cal-auto-toggle').checked;
+  try {
+    await fetch('/api/calendar/auto-toggle', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ enabled })
+    });
+    showToast(enabled ? 'Autopilot enabled!' : 'Autopilot disabled');
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calUpdateSettings() {
+  const interval = document.getElementById('cal-interval').value;
+  try {
+    await fetch('/api/calendar/settings', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ interval_days: parseInt(interval) })
+    });
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+function calShowAddCluster() {
+  const form = document.getElementById('cal-add-cluster-form');
+  form.classList.toggle('hidden');
+
+  // Init lang checkboxes if empty
+  const langCb = document.getElementById('cal-lang-checkboxes');
+  if (langCb && langCb.children.length === 0) {
+    langCb.innerHTML = CAL_ALL_LANGS.map(l =>
+      `<label style="display:flex;align-items:center;gap:4px;font-size:13px;"><input type="checkbox" value="${l}" checked> ${CAL_LANG_FLAGS[l] || ''} ${l.toUpperCase()}</label>`
+    ).join('');
+  }
+
+  document.getElementById('cal-cluster-name').focus();
+}
+
+async function calCreateCluster() {
+  const name = document.getElementById('cal-cluster-name').value.trim();
+  if (!name) return showToast('Enter cluster name');
+
+  const allInputs = document.querySelectorAll('#cal-lang-checkboxes input[type="checkbox"]');
+  const checkedLangs = [...allInputs].filter(cb => cb.checked).map(cb => cb.value);
+  console.log('[Calendar] Lang checkboxes found:', allInputs.length, 'checked:', checkedLangs);
+  if (checkedLangs.length === 0) {
+    // Fallback: use all languages if checkboxes not working
+    checkedLangs.push(...CAL_ALL_LANGS);
+  }
+
+  const btn = event.target;
+  btn.disabled = true; btn.textContent = 'Generating...';
+
+  try {
+    const res = await fetch('/api/calendar/generate-keywords', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cluster_name: name, langs: checkedLangs, count: 10 })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    showToast(`Cluster created with keywords in ${checkedLangs.length} languages`);
+    document.getElementById('cal-add-cluster-form').classList.add('hidden');
+    document.getElementById('cal-cluster-name').value = '';
+    calLoad();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+  }
+
+  btn.disabled = false; btn.textContent = 'Create & Generate Keywords';
+}
+
+async function calCreateClusterEmpty() {
+  const name = document.getElementById('cal-cluster-name').value.trim();
+  if (!name) return showToast('Enter cluster name');
+
+  try {
+    await fetch('/api/calendar/cluster', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name })
+    });
+    showToast('Empty cluster created');
+    document.getElementById('cal-add-cluster-form').classList.add('hidden');
+    document.getElementById('cal-cluster-name').value = '';
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calDeleteCluster(id) {
+  if (!confirm('Delete this cluster and all its keywords?')) return;
+  try {
+    await fetch(`/api/calendar/cluster/${id}`, { method: 'DELETE' });
+    showToast('Cluster deleted');
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calGenerateKeywords(clusterId, clusterName) {
+  const checkedLangs = [...document.querySelectorAll('#cal-lang-checkboxes input:checked')].map(cb => cb.value);
+  const langs = checkedLangs.length > 0 ? checkedLangs : CAL_ALL_LANGS;
+
+  showToast('Generating keywords... (this may take a moment)');
+  try {
+    const res = await fetch('/api/calendar/generate-keywords', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cluster_id: clusterId, cluster_name: clusterName, langs, count: 10 })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast('Keywords generated!');
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calVerifyKeywords(clusterId) {
+  showToast('Verifying keywords via Serper... (checking SERP difficulty)');
+  try {
+    const res = await fetch('/api/calendar/verify-keywords', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cluster_id: clusterId })
+    });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`Verified ${data.verified} keywords`);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calScheduleKeywords(clusterId) {
+  try {
+    const res = await fetch('/api/calendar/schedule', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ cluster_id: clusterId })
+    });
+    const data = await res.json();
+    showToast(`Scheduled ${data.scheduled} keywords`);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calRunNext() {
+  const btn = document.getElementById('btn-cal-run');
+  btn.disabled = true; btn.textContent = 'Running...';
+
+  try {
+    const res = await fetch('/api/calendar/run-next', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`Pipeline started: [${data.lang}] ${data.keyword}`);
+    calStartPolling();
+  } catch (err) {
+    showToast('Error: ' + err.message);
+    btn.disabled = false; btn.textContent = '▶ Run Next';
+  }
+}
+
+function calStartPolling() {
+  if (calPollingId) return;
+  const progressEl = document.getElementById('cal-progress');
+  progressEl.classList.remove('hidden');
+
+  calPollingId = setInterval(async () => {
+    try {
+      const res = await fetch('/api/calendar/status');
+      const data = await res.json();
+
+      const textEl = document.getElementById('cal-progress-text');
+      if (data.status === 'running') {
+        const batchInfo = data.batch_total ? ` (${(data.batch_done || 0) + 1}/${data.batch_total})` : '';
+        textEl.textContent = `[${data.lang}] ${data.keyword} — ${data.step}${batchInfo}`;
+      } else if (data.status === 'done') {
+        const doneCount = data.results ? data.results.filter(r => r.status === 'ok').length : 0;
+        textEl.textContent = `Done! ${doneCount} articles published`;
+        calStopPolling();
+        setTimeout(() => { progressEl.classList.add('hidden'); calLoad(); }, 3000);
+      } else if (data.status === 'error') {
+        textEl.textContent = `Error: ${data.error}`;
+        calStopPolling();
+        setTimeout(() => { progressEl.classList.add('hidden'); calLoad(); }, 5000);
+      } else {
+        calStopPolling();
+        progressEl.classList.add('hidden');
+        calLoad();
+      }
+    } catch {}
+  }, 3000);
+}
+
+function calStopPolling() {
+  if (calPollingId) { clearInterval(calPollingId); calPollingId = null; }
+  const btn = document.getElementById('btn-cal-run');
+  btn.disabled = false; btn.textContent = '▶ Run Next';
+}
+
+async function calRefreshGSC() {
+  const btn = document.getElementById('btn-cal-gsc');
+  btn.disabled = true; btn.textContent = 'Refreshing...';
+  try {
+    const res = await fetch('/api/calendar/refresh-gsc', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`GSC updated: ${data.updated} keywords`);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+  btn.disabled = false; btn.textContent = '📊 Refresh GSC';
+}
+
+// ─── Planner view ───
+
+let calCurrentView = 'clusters';
+
+function calSwitchView(view) {
+  calCurrentView = view;
+  document.getElementById('cal-clusters').style.display = view === 'clusters' ? '' : 'none';
+  document.getElementById('cal-planner').style.display = view === 'planner' ? '' : 'none';
+  document.querySelectorAll('.cal-view-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById(`cal-view-${view}-btn`).classList.add('active');
+  if (view === 'planner') calRenderPlanner();
+}
+
+function calRenderPlanner() {
+  if (!calData || !calData.clusters) return;
+  const plannerEl = document.getElementById('cal-planner');
+  const today = new Date().toISOString().split('T')[0];
+
+  // Collect all keywords with dates, group by date
+  const byDate = {};
+  // Published without date → use published_date
+  for (const cluster of calData.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        const date = kw.scheduled_date || kw.published_date || null;
+        if (!date && kw.status === 'pending') continue; // skip unscheduled pending
+        const key = date || 'unscheduled';
+        if (!byDate[key]) byDate[key] = [];
+        byDate[key].push({ ...kw, lang });
+      }
+    }
+  }
+
+  // Sort dates
+  const dates = Object.keys(byDate).filter(d => d !== 'unscheduled').sort();
+  if (byDate['unscheduled']) dates.push('unscheduled');
+
+  if (dates.length === 0) {
+    plannerEl.innerHTML = '<p style="color:var(--text-dim);padding:16px;">No scheduled keywords. Click Schedule on a cluster first.</p>';
+    return;
+  }
+
+  plannerEl.innerHTML = dates.map(date => {
+    const items = byDate[date];
+    const isToday = date === today;
+    const isPast = date < today && date !== 'unscheduled';
+    const dayClass = isToday ? 'today' : isPast ? 'past' : '';
+
+    const dateLabel = date === 'unscheduled' ? 'Unscheduled' :
+      new Date(date + 'T12:00:00').toLocaleDateString('pl-PL', { weekday: 'short', day: 'numeric', month: 'short' }) +
+      (isToday ? ' (DZIŚ)' : '');
+
+    const itemsHtml = items.map(kw => {
+      const flag = CAL_LANG_FLAGS[kw.lang] || kw.lang;
+      const statusIcon = kw.status === 'published' ? '✅' : kw.status === 'tracking' ? '📊' :
+        kw.status === 'scheduled' ? '📝' : kw.status === 'writing' ? '✍️' : '⏳';
+      const kdBadge = kw.serp_verified ? `<span class="kd-badge kd-${kw.kd || 'unknown'}">${kw.kd || '?'}</span>` : '';
+
+      return `<div class="cal-planner-item status-${kw.status}">
+        <span>${flag}</span>
+        <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="${kw.keyword}">${kw.keyword}</span>
+        ${kdBadge}
+        <span>${statusIcon}</span>
+      </div>`;
+    }).join('');
+
+    const publishedCount = items.filter(i => i.status === 'published' || i.status === 'tracking').length;
+    const countLabel = publishedCount > 0 ? `${publishedCount}/${items.length} published` : `${items.length} keywords`;
+
+    return `<div class="cal-planner-day ${dayClass}">
+      <div class="cal-planner-day-header">
+        <span class="day-date">${dateLabel}</span>
+        <span class="day-count">${countLabel}</span>
+      </div>
+      <div class="cal-planner-items">${itemsHtml}</div>
+    </div>`;
+  }).join('');
+}
+
+async function calAutoRefresh() {
+  const btn = document.getElementById('btn-cal-refresh');
+  btn.disabled = true; btn.textContent = 'Refreshing...';
+  try {
+    const res = await fetch('/api/calendar/auto-refresh', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(data.refreshed ? `Refreshed: [${data.lang}] ${data.keyword}` : data.message);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+  btn.disabled = false; btn.textContent = '🔄 Auto-Refresh Underperforming';
 }

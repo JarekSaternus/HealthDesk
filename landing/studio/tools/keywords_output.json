@@ -1,0 +1,429 @@
+{
+  "generated_at": "2026-03-09T08:27:39",
+  "total_keywords": 42,
+  "languages": [
+    "PL"
+  ],
+  "keywords": [
+    {
+      "keyword": "co ile przerwa od komputera",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 7.0,
+      "intent_type": "question",
+      "word_count": 5
+    },
+    {
+      "keyword": "co ile przerwa od komputera w pracy",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 7.0,
+      "intent_type": "question",
+      "word_count": 7
+    },
+    {
+      "keyword": "jak ból pleców praca magisterska",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "ból pleców praca",
+      "score": 7.0,
+      "intent_type": "question",
+      "word_count": 5
+    },
+    {
+      "keyword": "jak ból pleców praca plastyczna",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "ból pleców praca",
+      "score": 7.0,
+      "intent_type": "question",
+      "word_count": 5
+    },
+    {
+      "keyword": "jak ból pleców praca w domu",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "ból pleców praca",
+      "score": 7.0,
+      "intent_type": "question",
+      "word_count": 6
+    },
+    {
+      "keyword": "jak ból pleców praca zdalna",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "ból pleców praca",
+      "score": 7.0,
+      "intent_type": "question",
+      "word_count": 5
+    },
+    {
+      "keyword": "czy ból pleców od siedzenia jest szkodliwy",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "ból pleców od siedzenia",
+      "score": 6.0,
+      "intent_type": "question",
+      "word_count": 7
+    },
+    {
+      "keyword": "czy ból pleców praca zdalna",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "ból pleców praca",
+      "score": 6.0,
+      "intent_type": "question",
+      "word_count": 5
+    },
+    {
+      "keyword": "dlaczego kręgosłup siedzenie w samochodzie",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "kręgosłup siedzenie",
+      "score": 6.0,
+      "intent_type": "question",
+      "word_count": 5
+    },
+    {
+      "keyword": "co na ból pleców od siedzenia",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 5.5,
+      "intent_type": "question",
+      "word_count": 6
+    },
+    {
+      "keyword": "dlaczego kręgosłup siedzenie się",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "kręgosłup siedzenie",
+      "score": 5.5,
+      "intent_type": "question",
+      "word_count": 4
+    },
+    {
+      "keyword": "co przerwa komputera",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 5.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "co przerwa komputerowa",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 5.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "co przerwa komputerowego",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 5.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "kiedy przerwa komputera",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 5.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "kiedy przerwa komputerowa",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 5.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "kiedy przerwa komputerowego",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "przerwa komputer",
+      "score": 5.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "bol plecow od siedzenia przed komputerem",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 4.5,
+      "intent_type": "informational",
+      "word_count": 6
+    },
+    {
+      "keyword": "bol plecow od siedzenia w samochodzie",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 4.5,
+      "intent_type": "informational",
+      "word_count": 6
+    },
+    {
+      "keyword": "ból pleców od siedzenia ćwiczenia",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 4.5,
+      "intent_type": "informational",
+      "word_count": 5
+    },
+    {
+      "keyword": "przerwa od komputera 5 minut",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.5,
+      "intent_type": "informational",
+      "word_count": 5
+    },
+    {
+      "keyword": "przerwa od komputera kodeks pracy",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.5,
+      "intent_type": "informational",
+      "word_count": 5
+    },
+    {
+      "keyword": "przerwa od komputera w pracy",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.5,
+      "intent_type": "informational",
+      "word_count": 5
+    },
+    {
+      "keyword": "kiedy kark biurkowy",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest+prefix",
+      "seed": "kark biurko",
+      "score": 4.0,
+      "intent_type": "question",
+      "word_count": 3
+    },
+    {
+      "keyword": "kodeks pracy przerwa komputer",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "przerwa od komputera bhp",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "przerwa praca przed komputerem",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "przerwa praca przy komputerze",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 4.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "ból pleców na dole od siedzenia",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 3.5,
+      "intent_type": "informational",
+      "word_count": 6
+    },
+    {
+      "keyword": "ból pleców na dole praca siedząca",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców praca",
+      "score": 3.5,
+      "intent_type": "informational",
+      "word_count": 6
+    },
+    {
+      "keyword": "ból pleców od długiego siedzenia",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 3.5,
+      "intent_type": "informational",
+      "word_count": 5
+    },
+    {
+      "keyword": "ból pleców od siedzenia przy biurku",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 3.5,
+      "intent_type": "informational",
+      "word_count": 6
+    },
+    {
+      "keyword": "ból pleców od siedzenia przy komputerze",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 3.5,
+      "intent_type": "informational",
+      "word_count": 6
+    },
+    {
+      "keyword": "ból pleców praca przy komputerze",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców praca",
+      "score": 3.5,
+      "intent_type": "informational",
+      "word_count": 5
+    },
+    {
+      "keyword": "ból pleców od siedzenia",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 3.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "ból pleców podczas siedzenia",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców od siedzenia",
+      "score": 3.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "ból pleców praca biurowa",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców praca",
+      "score": 3.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "ból pleców praca fizyczna",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców praca",
+      "score": 3.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "ból pleców praca siedząca",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców praca",
+      "score": 3.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "ból pleców praca stojąca",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "ból pleców praca",
+      "score": 3.0,
+      "intent_type": "informational",
+      "word_count": 4
+    },
+    {
+      "keyword": "przerwa od komputera",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 2.5,
+      "intent_type": "informational",
+      "word_count": 3
+    },
+    {
+      "keyword": "przerwa przed komputerem",
+      "lang": "PL",
+      "country": "pl",
+      "source": "suggest",
+      "seed": "przerwa komputer",
+      "score": 2.5,
+      "intent_type": "informational",
+      "word_count": 3
+    }
+  ]
+}

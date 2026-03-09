@@ -131,9 +131,22 @@ impl YouTubePlayer {
         if results.is_empty() {
             return Err("No results found".into());
         }
-        let pick = rand::rng().random_range(0..results.len().min(5));
-        let chosen = &results[pick];
-        self.play_url(&chosen.url, &chosen.title, volume)
+        // Shuffle top results and try each until one works
+        let limit = results.len().min(5);
+        let mut indices: Vec<usize> = (0..limit).collect();
+        // Fisher-Yates shuffle
+        for i in (1..indices.len()).rev() {
+            let j = rand::rng().random_range(0..=i);
+            indices.swap(i, j);
+        }
+        let mut last_err = String::new();
+        for idx in indices {
+            match self.play_url(&results[idx].url, &results[idx].title, volume) {
+                Ok(()) => return Ok(()),
+                Err(e) => last_err = e,
+            }
+        }
+        Err(format!("All results failed: {}", last_err))
     }
 
     pub fn stop(&self) {

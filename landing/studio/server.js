@@ -15,6 +15,15 @@ const sharp = require('sharp');
 const app = express();
 const PORT = 4000;
 
+// ─── Language name mapping ───
+const LANG_NAMES = {
+  pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French',
+  it: 'Italian', 'pt-BR': 'Brazilian Portuguese', ja: 'Japanese',
+  'zh-CN': 'Simplified Chinese', ko: 'Korean', tr: 'Turkish', ru: 'Russian',
+  nl: 'Dutch', sv: 'Swedish', pt: 'Portuguese', zh: 'Chinese'
+};
+function getLangName(lang) { return LANG_NAMES[lang] || lang; }
+
 // ─── Claude API ───
 function getApiKey() {
   const key = process.env.ANTHROPIC_API_KEY;
@@ -25,13 +34,14 @@ function getApiKey() {
   } catch { return ''; }
 }
 
-async function callClaude(systemPrompt, userPrompt, maxTokens = 2000) {
+async function callClaude(systemPrompt, userPrompt, maxTokens = 2000, { model = 'sonnet' } = {}) {
   const apiKey = getApiKey();
   if (!apiKey) throw new Error('No ANTHROPIC_API_KEY configured');
 
-  console.log(`[AI] Calling Claude (max_tokens=${maxTokens})...`);
+  const modelId = model === 'haiku' ? 'claude-haiku-4-5-20251001' : 'claude-sonnet-4-6';
+  console.log(`[AI] Calling ${model === 'haiku' ? 'Haiku' : 'Sonnet'} (max_tokens=${maxTokens})...`);
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 180000); // 180s timeout
+  const timeout = setTimeout(() => controller.abort(), 300000); // 300s timeout
 
   try {
     const response = await fetch('https://api.anthropic.com/v1/messages', {
@@ -42,7 +52,7 @@ async function callClaude(systemPrompt, userPrompt, maxTokens = 2000) {
         'anthropic-version': '2023-06-01'
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: modelId,
         max_tokens: maxTokens,
         system: systemPrompt,
         messages: [{ role: 'user', content: userPrompt }]
@@ -454,7 +464,14 @@ const LANG_MAP = {
   en: { gl: 'us', hl: 'en' },
   de: { gl: 'de', hl: 'de' },
   es: { gl: 'es', hl: 'es' },
-  fr: { gl: 'fr', hl: 'fr' }
+  fr: { gl: 'fr', hl: 'fr' },
+  it: { gl: 'it', hl: 'it' },
+  'pt-BR': { gl: 'br', hl: 'pt-BR' },
+  ja: { gl: 'jp', hl: 'ja' },
+  'zh-CN': { gl: 'cn', hl: 'zh-CN' },
+  ko: { gl: 'kr', hl: 'ko' },
+  tr: { gl: 'tr', hl: 'tr' },
+  ru: { gl: 'ru', hl: 'ru' }
 };
 
 async function serperRequest(endpoint, body) {
@@ -514,7 +531,7 @@ app.post('/api/keywords/search', async (req, res) => {
 
 // ─── Helper: Keyword AI analysis ───
 async function doKeywordAnalyze(query, lang, serp) {
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
 
   const serpSummary = (serp.organic || []).map((r, i) =>
     `${i+1}. "${r.title}" — ${r.link}\n   ${r.snippet}`
@@ -558,7 +575,7 @@ Return as JSON:
   "notes": "..."
 }
 Return ONLY valid JSON.`,
-    1000
+    1000, { model: 'haiku' }
   );
   return parseJsonResponse(result);
 }
@@ -577,17 +594,18 @@ app.post('/api/keywords/analyze', async (req, res) => {
 
 // ─── Helper: AI outline ───
 async function doOutline(keyword, lang) {
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
   const result = await callClaude(
     `You are an SEO content strategist for HealthDesk, a desktop wellness app (break reminders, eye exercises, water tracking, activity monitoring). Generate blog article outlines optimized for search engines.`,
     `Generate a blog article outline for the keyword: "${keyword}"
 Language: ${langName}
+CRITICAL: ALL text (title, description, headings, tags) MUST be written in ${langName}. Do NOT use English unless the target language is English.
 Requirements:
-- Title (50-60 characters, include keyword)
-- Meta description (120-160 characters)
-- 5-7 H2 headings (at least 2 as questions for featured snippets)
-- 2-3 H3 subheadings under each H2
-- Suggested tags (3-5)
+- Title (50-60 characters, include keyword, in ${langName})
+- Meta description (120-160 characters, in ${langName})
+- 5-7 H2 headings in ${langName} (at least 2 as questions for featured snippets)
+- 2-3 H3 subheadings under each H2, in ${langName}
+- Suggested tags in ${langName} (3-5)
 - Naturally mention HealthDesk where relevant
 
 Return as JSON:
@@ -599,7 +617,8 @@ Return as JSON:
     { "h2": "...", "h3": ["...", "..."] }
   ]
 }
-Return ONLY valid JSON, no markdown fences.`
+Return ONLY valid JSON, no markdown fences.`,
+    2000, { model: 'haiku' }
   );
   return parseJsonResponse(result);
 }
@@ -623,7 +642,7 @@ app.get('/api/ai/draft/status', (req, res) => {
 
 // ─── Helper: AI draft (chunked writing + FAQ) ───
 async function doDraft(title, description, outline, lang, keyword, slug, persona) {
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
 
   const CHUNK_SIZE = 2;
   const chunks = [];
@@ -637,7 +656,7 @@ async function doDraft(title, description, outline, lang, keyword, slug, persona
     return t;
   }).join('\n\n');
 
-  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write in ${langName}. Your goal is to produce articles that read as if written by a knowledgeable human — NOT a generic AI.
+  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write ENTIRELY in ${langName} — every word, heading, sentence must be in ${langName}. NEVER use English (unless the target language IS English). Your goal is to produce articles that read as if written by a knowledgeable native ${langName} speaker — NOT a generic AI.
 
 VOICE & TONE:
 - Write like a real person sharing expertise — use "I", share brief personal observations or anecdotes (e.g. "I noticed that…", "In my experience…", "I've seen this with clients…")
@@ -821,7 +840,7 @@ app.post('/api/ai/draft', async (req, res) => {
 
 // ─── Helper: AI description ───
 async function doDescription(markdown, title, lang) {
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
   const result = await callClaude(
     'You are an SEO specialist. Generate meta descriptions that are compelling, include the main keyword, and drive clicks.',
     `Generate a meta description (120-160 characters) in ${langName} for this article:
@@ -829,7 +848,7 @@ Title: ${title}
 Content preview: ${markdown.slice(0, 500)}
 
 Return ONLY the description text, nothing else.`,
-    200
+    200, { model: 'haiku' }
   );
   return result.trim();
 }
@@ -914,6 +933,97 @@ const LANG_GUIDELINES = {
 - Colloquial: "bon", "du coup", "en gros", "soyons honnêtes"
 - French readers expect intellectual engagement — don't dumb things down
 - Liaison and rhythm matter — read sentences aloud mentally to check flow`,
+  },
+  it: {
+    name: 'Italian',
+    formalPhrases: `"è opportuno sottolineare", "non vi è dubbio", "in quest'ottica", "inoltre", "altresì", "è importante evidenziare che", "nel contesto attuale", "un aspetto fondamentale è", "va da sé", "in conclusione", "è innegabile che", "alla luce di quanto sopra"`,
+    personalPhrases: `"dalla mia esperienza", "l'ho provato personalmente", "ammetto che all'inizio…", "per me funziona", "onestamente"`,
+    softStats: `"molti utenti notano che…", "gli studi suggeriscono che…", "nella pratica si osserva che…"`,
+    style: `- Use "tu" form (informal), NOT "Lei"
+- Italian loves rhythm and melody — vary sentence length for musicality
+- Rhetorical questions: "Ti è mai capitato di...?", "Ti suona familiare?"
+- Avoid anglicisms: use "collegamento" not "link", "schermo" not "display"
+- Colloquial: "la verità è che", "occhio", "andiamo al sodo", "siamo onesti"
+- Italian readers appreciate warmth and expressiveness — don't be too dry
+- Use emphatic structures: "Il punto è che…", "Quello che funziona davvero è…"`,
+  },
+  'pt-BR': {
+    name: 'Brazilian Portuguese',
+    formalPhrases: `"vale ressaltar que", "não há dúvida de que", "nesse sentido", "ademais", "outrossim", "é importante destacar que", "no cenário atual", "um aspecto fundamental é", "escusado será dizer", "em suma", "é inegável que", "diante do exposto"`,
+    personalPhrases: `"pela minha experiência", "eu mesmo testei isso", "confesso que no começo…", "o que funciona pra mim", "sinceramente"`,
+    softStats: `"muitos usuários percebem que…", "pesquisas sugerem que…", "na prática, observa-se que…"`,
+    style: `- Use "você" form (Brazilian informal), NOT "o senhor/a senhora"
+- Brazilian Portuguese is naturally warm and conversational — embrace it
+- Rhetorical questions: "Já aconteceu com você de...?", "Parece familiar?"
+- Avoid excessive anglicisms: use "tela" not "display", "publicação" not "post"
+- Colloquial: "a real é que", "ó", "bora lá", "vamos ser sinceros", "tá ligado?"
+- Use Brazilian expressions naturally: "dá pra", "tipo assim", "na moral"
+- Brazilian readers prefer a light, friendly tone — como papo de amigo`,
+  },
+  ja: {
+    name: 'Japanese',
+    formalPhrases: `"注目に値する", "疑いの余地はない", "この観点から", "さらに", "加えて", "強調すべきは", "現代社会において", "重要な側面は", "言うまでもなく", "結論として", "否定できない事実として", "以上を踏まえて"`,
+    personalPhrases: `"私の経験では", "実際に試してみて", "正直に言うと最初は…", "個人的にうまくいったのは", "率直に言って"`,
+    softStats: `"多くのユーザーが感じているのは…", "研究が示唆するのは…", "実際のところ…"`,
+    style: `- Use です/ます form but keep it conversational, not stiff
+- Mix in casual expressions: "実はね", "ちょっと意外かも", "わかる気がする"
+- Japanese readers appreciate practical, actionable advice
+- Use appropriate particles and sentence-ending forms for friendly tone
+- Rhetorical questions: "こんな経験ありませんか？", "心当たりありますよね？"
+- Break long sentences — Japanese AI text tends to create overly complex structures
+- Use katakana for established loanwords naturally`,
+  },
+  'zh-CN': {
+    name: 'Simplified Chinese',
+    formalPhrases: `"值得注意的是", "毫无疑问", "从这个角度来看", "此外", "与此同时", "需要强调的是", "在当今社会", "一个关键方面是", "不言而喻", "总而言之", "不可否认的是", "综上所述"`,
+    personalPhrases: `"根据我的经验", "我亲自试过", "说实话一开始…", "对我来说有效的是", "坦白说"`,
+    softStats: `"很多用户发现…", "研究表明…", "实际情况是…"`,
+    style: `- Use casual but respectful tone — 你 not 您 for blog content
+- Chinese AI text overuses four-character idioms (成语) — use sparingly and naturally
+- Rhetorical questions: "你有没有过这样的经历？", "是不是听起来很熟悉？"
+- Keep sentences shorter than AI typically generates
+- Colloquial: "说真的", "你猜怎么着", "重点来了", "话说回来"
+- Chinese readers appreciate directness and practical value
+- Avoid overly formal or literary register — write like a knowledgeable friend`,
+  },
+  ko: {
+    name: 'Korean',
+    formalPhrases: `"주목할 만한 것은", "의심의 여지가 없다", "이러한 관점에서", "더불어", "아울러", "강조해야 할 점은", "현대 사회에서", "핵심적인 측면은", "두말할 나위 없이", "결론적으로", "부인할 수 없는 사실은", "이상을 종합하면"`,
+    personalPhrases: `"제 경험상", "직접 해봤는데", "솔직히 처음에는…", "저한테 효과가 있었던 건", "솔직히 말하면"`,
+    softStats: `"많은 사용자들이 느끼는 건…", "연구에 따르면…", "실제로 보면…"`,
+    style: `- Use 해요체 (polite informal) — not 합니다체 (formal) for blog
+- Korean AI text tends to be overly formal — make it conversational
+- Rhetorical questions: "이런 경험 있으시죠?", "공감되시나요?"
+- Colloquial: "사실은요", "근데 말이에요", "핵심은요", "솔직히"
+- Korean readers appreciate relatable, empathetic content
+- Mix honorific levels naturally — slight informality builds trust
+- Avoid direct translation patterns from English word order`,
+  },
+  tr: {
+    name: 'Turkish',
+    formalPhrases: `"belirtmek gerekir ki", "şüphesiz ki", "bu bağlamda", "ayrıca", "bunun yanı sıra", "vurgulanması gereken", "günümüz dünyasında", "temel bir husus", "söylemeye gerek yok ki", "sonuç olarak", "yadsınamaz bir gerçektir ki", "yukarıda belirtildiği üzere"`,
+    personalPhrases: `"kendi deneyimimden", "bunu bizzat denedim", "itiraf edeyim başta…", "benim için işe yarayan", "açıkçası"`,
+    softStats: `"birçok kullanıcı fark ediyor ki…", "araştırmalar gösteriyor ki…", "pratikte gözlemlenen…"`,
+    style: `- Use "sen" form (informal), NOT "siz" for blog content
+- Turkish agglutinative structure — avoid overly long compound words
+- Rhetorical questions: "Hiç başına geldi mi?", "Tanıdık geldi mi?"
+- Colloquial: "açıkçası", "işin aslı", "asıl mesele şu ki", "dürüst olalım"
+- Turkish readers appreciate direct, honest communication
+- Vary sentence endings — don't always end with -dır/-dir
+- Use natural Turkish idioms: "işin püf noktası", "can alıcı nokta"`,
+  },
+  ru: {
+    name: 'Russian',
+    formalPhrases: `"стоит отметить, что", "не вызывает сомнений", "в данном контексте", "кроме того", "помимо этого", "необходимо подчеркнуть", "в современном мире", "ключевым аспектом является", "само собой разумеется", "в заключение", "неоспоримым фактом является", "на основании вышеизложенного"`,
+    personalPhrases: `"по моему опыту", "я сам это пробовал", "признаюсь, поначалу…", "мне помогает", "честно говоря"`,
+    softStats: `"многие пользователи замечают, что…", "исследования показывают, что…", "на практике видно, что…"`,
+    style: `- Use "ты" form (informal), NOT "Вы" for blog content
+- Russian AI text overuses official/bureaucratic style — make it живой (alive)
+- Rhetorical questions: "Знакомо?", "Бывало такое?", "Узнаёшь себя?"
+- Colloquial: "на самом деле", "вот в чём фишка", "давай честно", "суть в том, что"
+- Russian readers appreciate depth and sincerity — don't be superficial
+- Use natural Russian word order — freer than English, use for emphasis
+- Avoid канцелярит (bureaucratic language) — it's the biggest AI giveaway in Russian`,
   },
 };
 
@@ -1009,7 +1119,7 @@ app.post('/api/ai/humanize', async (req, res) => {
 
 // ─── Helper: Audit article ───
 async function doAudit(markdown, lang) {
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
   console.log(`[AI Audit] Analyzing ${markdown?.length || 0} chars in ${langName}`);
 
   const result = await callClaude(
@@ -1045,7 +1155,7 @@ Return ONLY valid JSON, no markdown fences.
 
 ARTICLE TO AUDIT:
 ${markdown}`,
-    3000
+    3000, { model: 'haiku' }
   );
 
   const parsed = parseJsonResponse(result);
@@ -1065,9 +1175,25 @@ app.post('/api/ai/audit', async (req, res) => {
 });
 
 // ─── Helper: Full grammar fix (LanguageTool + AI) ───
+// Languages supported by LanguageTool API
+const LT_SUPPORTED_LANGS = new Set(['pl', 'en', 'de', 'fr', 'es', 'it', 'pt-BR', 'nl', 'ru', 'sv']);
+
 async function doGrammarFix(markdown, lang) {
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
-  const ltLang = lang === 'pl' ? 'pl-PL' : lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es' : lang;
+  const langName = getLangName(lang);
+
+  // Skip LanguageTool for unsupported languages (ja, zh-CN, ko, tr, etc.)
+  if (!LT_SUPPORTED_LANGS.has(lang)) {
+    console.log(`[Grammar Fix] Skipping LanguageTool for ${lang} (unsupported). Using AI-only fix.`);
+    // AI-only grammar fix without LanguageTool
+    const result = await callClaude(
+      `You are a ${langName} grammar and style editor. Fix grammar, spelling, and punctuation errors in the text below. Preserve all markdown formatting. Return ONLY the corrected markdown text, nothing else.`,
+      markdown, 8000, { model: 'haiku' }
+    );
+    const changed = result !== markdown;
+    return { markdown: result || markdown, changed, issueCount: changed ? 1 : 0 };
+  }
+
+  const ltLang = lang === 'pl' ? 'pl-PL' : lang === 'en' ? 'en-US' : lang === 'de' ? 'de-DE' : lang === 'fr' ? 'fr-FR' : lang === 'es' ? 'es' : lang === 'it' ? 'it' : lang === 'pt-BR' ? 'pt-BR' : lang === 'nl' ? 'nl' : lang === 'ru' ? 'ru-RU' : lang === 'sv' ? 'sv' : lang;
 
   // Step 1: Get grammar issues from LanguageTool
   const plain = markdown
@@ -1143,7 +1269,7 @@ ARTICLE TO FIX:
 ${markdown}
 
 Return the FIXED article. No markdown fences, no comments. Start with ## heading.`,
-    8000
+    8000, { model: 'haiku' }
   );
 
   let cleaned = result.trim();
@@ -1158,7 +1284,7 @@ Return the FIXED article. No markdown fences, no comments. Start with ## heading
 // ─── AI: Fix grammar & readability ───
 app.post('/api/ai/fix-grammar', async (req, res) => {
   const { markdown, issues, lang } = req.body;
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
 
   // Build actionable issue list — only include issues with concrete suggestions
   const actionableIssues = (issues || []).filter(i => i.suggestion && i.suggestion.trim()).map((i, idx) =>
@@ -1216,7 +1342,7 @@ Return the FIXED article. No markdown fences, no comments. Start with ## heading
 // ─── AI: Expand a section ───
 app.post('/api/ai/expand', async (req, res) => {
   const { heading, context, lang } = req.body;
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
 
   try {
     const result = await callClaude(
@@ -1237,7 +1363,7 @@ Write in Markdown. Start with an answer block (40-60 words concise answer), then
 // ─── AI: Improve SEO ───
 app.post('/api/ai/improve-seo', async (req, res) => {
   const { markdown, frontmatter, seoChecks, lang } = req.body;
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
 
   const failedChecks = (seoChecks || []).filter(c => !c.pass).map(c => `- ${c.label}: ${c.hint}`).join('\n');
 
@@ -1278,7 +1404,7 @@ app.post('/api/ai/internal-links', async (req, res) => {
   const filePath = path.join(langDir, slug + '.md');
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'Article not found' });
 
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French', it: 'Italian', pt: 'Portuguese', nl: 'Dutch', sv: 'Swedish', ja: 'Japanese', ko: 'Korean', zh: 'Chinese' }[lang] || 'English';
+  const langName = getLangName(lang);
 
   try {
     // Load current article
@@ -1351,7 +1477,7 @@ Return ONLY valid JSON:
 // ─── AI: Create localized version of article ───
 app.post('/api/ai/create-version', async (req, res) => {
   const { sourceLang, targetLang, slug, frontmatter, markdown } = req.body;
-  const langNames = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French', it: 'Italian', pt: 'Portuguese', nl: 'Dutch', sv: 'Swedish', ja: 'Japanese', ko: 'Korean', zh: 'Chinese' };
+  const langNames = LANG_NAMES;
   const targetName = langNames[targetLang] || 'English';
   const sourceName = langNames[sourceLang] || 'Polish';
 
@@ -2016,7 +2142,7 @@ async function doHeroImage(slug, lang, title, description, style) {
   const apiKey = getGeminiKey();
   if (!apiKey) throw new Error('No Gemini API key configured. Add gemini_api_key to studio.json');
 
-  const langName = { pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French' }[lang] || 'English';
+  const langName = getLangName(lang);
   const styleHint = style || 'clean, modern, professional';
 
   const imagePrompt = `Generate a photorealistic hero image for a blog article.
@@ -2403,15 +2529,32 @@ app.get('/api/ai/autopilot/status', (req, res) => {
 
 // ─── Helper: slugify for autopilot ───
 function autoSlugify(text) {
-  return text.toLowerCase()
+  let slug = text.toLowerCase()
     .replace(/[ąà]/g,'a').replace(/[ćč]/g,'c').replace(/[ę]/g,'e')
     .replace(/[łĺ]/g,'l').replace(/[ńñ]/g,'n').replace(/[óò]/g,'o')
     .replace(/[śš]/g,'s').replace(/[źżž]/g,'z').replace(/[üú]/g,'u')
     .replace(/[ö]/g,'o').replace(/[ä]/g,'a').replace(/[ß]/g,'ss')
     .replace(/[èéêë]/g,'e').replace(/[ìíîï]/g,'i').replace(/[ùûü]/g,'u')
-    .replace(/[^a-z0-9]+/g, '-')
+    // Cyrillic transliteration
+    .replace(/[а]/g,'a').replace(/[б]/g,'b').replace(/[в]/g,'v').replace(/[г]/g,'g')
+    .replace(/[д]/g,'d').replace(/[е]/g,'e').replace(/[ж]/g,'zh').replace(/[з]/g,'z')
+    .replace(/[и]/g,'i').replace(/[й]/g,'y').replace(/[к]/g,'k').replace(/[л]/g,'l')
+    .replace(/[м]/g,'m').replace(/[н]/g,'n').replace(/[о]/g,'o').replace(/[п]/g,'p')
+    .replace(/[р]/g,'r').replace(/[с]/g,'s').replace(/[т]/g,'t').replace(/[у]/g,'u')
+    .replace(/[ф]/g,'f').replace(/[х]/g,'kh').replace(/[ц]/g,'ts').replace(/[ч]/g,'ch')
+    .replace(/[ш]/g,'sh').replace(/[щ]/g,'sch').replace(/[ъь]/g,'').replace(/[ы]/g,'y')
+    .replace(/[э]/g,'e').replace(/[ю]/g,'yu').replace(/[я]/g,'ya').replace(/[ё]/g,'yo')
+    // Turkish special chars
+    .replace(/[ğ]/g,'g').replace(/[ı]/g,'i').replace(/[ş]/g,'s').replace(/[ç]/g,'c')
+    .replace(/[^a-z0-9\u3000-\u9fff\uac00-\ud7af\u3040-\u309f\u30a0-\u30ff]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 80);
+  // For CJK-only slugs (ja, zh, ko), if no latin chars, use a hash-based slug
+  if (!slug.match(/[a-z]/)) {
+    const hash = text.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
+    slug = 'article-' + Math.abs(hash).toString(36);
+  }
+  return slug;
 }
 
 // ─── Autopilot: single topic pipeline ───
@@ -2630,6 +2773,936 @@ app.post('/api/ai/autopilot/batch', async (req, res) => {
   setTimeout(() => { if (autopilotProgress?.status === 'done') autopilotProgress = null; }, 60000);
 });
 
+// ═══════════════════════════════════════════════════════════════
+// ─── Content Calendar: Data helpers ───
+// ═══════════════════════════════════════════════════════════════
+
+const ALL_CALENDAR_LANGS = ['pl','en','de','es','fr','it','pt-BR','ja','zh-CN','ko','tr','ru'];
+
+function loadCalendar() {
+  const studio = loadStudioData();
+  if (!studio.content_calendar) {
+    studio.content_calendar = {
+      interval_days: 3,
+      next_run: null,
+      auto_enabled: false,
+      clusters: []
+    };
+    saveStudioData(studio);
+  }
+  return studio.content_calendar;
+}
+
+function saveCalendar(cal) {
+  const studio = loadStudioData();
+  studio.content_calendar = cal;
+  saveStudioData(studio);
+}
+
+function findNextKeyword(cal) {
+  // Find first keyword with status 'scheduled' (sorted by scheduled_date)
+  // If none scheduled, find first 'pending' keyword
+  let best = null;
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'scheduled') {
+          if (!best || (kw.scheduled_date && (!best.scheduled_date || kw.scheduled_date < best.scheduled_date))) {
+            best = { ...kw, lang, cluster_id: cluster.id };
+          }
+        }
+      }
+    }
+  }
+  if (best) return best;
+  // Fallback: first pending
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'pending') {
+          return { ...kw, lang, cluster_id: cluster.id };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+function findNextBatch(cal) {
+  // Pick 1 keyword per language — skip langs that already have a 'writing' or
+  // were published today (avoid duplicates within same run day)
+  const today = new Date().toISOString().split('T')[0];
+  const skipLangs = new Set();
+
+  // Find languages already published/writing today
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'writing') skipLangs.add(lang);
+        if (kw.status === 'published' && kw.published_date === today) skipLangs.add(lang);
+      }
+    }
+  }
+
+  const seenLangs = new Set(skipLangs);
+  const batch = [];
+
+  // First pass: scheduled keywords (earliest date first)
+  const scheduled = [];
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      if (seenLangs.has(lang)) continue;
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'scheduled') {
+          scheduled.push({ ...kw, lang, cluster_id: cluster.id });
+        }
+      }
+    }
+  }
+  scheduled.sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
+  for (const kw of scheduled) {
+    if (!seenLangs.has(kw.lang)) {
+      seenLangs.add(kw.lang);
+      batch.push(kw);
+    }
+  }
+
+  // Second pass: pending keywords for missing langs
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      if (seenLangs.has(lang)) continue;
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'pending') {
+          seenLangs.add(lang);
+          batch.push({ ...kw, lang, cluster_id: cluster.id });
+          break;
+        }
+      }
+    }
+  }
+
+  if (skipLangs.size > 0) {
+    console.log(`[Calendar] Skipping langs (already done today): ${[...skipLangs].join(', ')}`);
+  }
+
+  return batch;
+}
+
+function updateKeywordStatus(cal, lang, keyword, updates) {
+  for (const cluster of cal.clusters) {
+    const kwList = cluster.keywords[lang];
+    if (!kwList) continue;
+    const kw = kwList.find(k => k.keyword === keyword);
+    if (kw) {
+      Object.assign(kw, updates);
+      return true;
+    }
+  }
+  return false;
+}
+
+// ─── Content Calendar: CRUD endpoints ───
+
+app.get('/api/calendar', (req, res) => {
+  const cal = loadCalendar();
+  // Add summary stats
+  let totalPending = 0, totalScheduled = 0, totalWriting = 0, totalPublished = 0, totalTracking = 0;
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'pending') totalPending++;
+        else if (kw.status === 'scheduled') totalScheduled++;
+        else if (kw.status === 'writing') totalWriting++;
+        else if (kw.status === 'published') totalPublished++;
+        else if (kw.status === 'tracking') totalTracking++;
+      }
+    }
+  }
+  res.json({ ...cal, stats: { pending: totalPending, scheduled: totalScheduled, writing: totalWriting, published: totalPublished, tracking: totalTracking } });
+});
+
+app.post('/api/calendar/cluster', (req, res) => {
+  const { name, keywords } = req.body;
+  if (!name) return res.status(400).json({ error: 'name required' });
+  const cal = loadCalendar();
+  const cluster = {
+    id: Date.now().toString(36),
+    name,
+    created: new Date().toISOString().split('T')[0],
+    keywords: keywords || {}
+  };
+  cal.clusters.push(cluster);
+  saveCalendar(cal);
+  res.json(cluster);
+});
+
+app.put('/api/calendar/cluster/:id', (req, res) => {
+  const cal = loadCalendar();
+  const cluster = cal.clusters.find(c => c.id === req.params.id);
+  if (!cluster) return res.status(404).json({ error: 'Cluster not found' });
+  if (req.body.name) cluster.name = req.body.name;
+  if (req.body.keywords) cluster.keywords = req.body.keywords;
+  saveCalendar(cal);
+  res.json(cluster);
+});
+
+app.delete('/api/calendar/cluster/:id', (req, res) => {
+  const cal = loadCalendar();
+  cal.clusters = cal.clusters.filter(c => c.id !== req.params.id);
+  saveCalendar(cal);
+  res.json({ ok: true });
+});
+
+// ─── Content Calendar: Generate keywords (Claude) ───
+
+app.post('/api/calendar/generate-keywords', async (req, res) => {
+  const { cluster_id, cluster_name, langs, count } = req.body;
+  const targetLangs = langs || ALL_CALENDAR_LANGS;
+  const kwCount = count || 10;
+
+  try {
+    const prompt = `Generate ${kwCount} long-tail SEO keywords for EACH of the following languages: ${targetLangs.join(', ')}.
+
+Topic cluster: "${cluster_name}"
+Context: HealthDesk is a desktop wellness app for office workers — break reminders, eye exercises, stretch exercises, water intake tracking, posture tips, ergonomics.
+
+For each language, generate keywords that:
+1. Are natural search queries in that language (NOT translations of English keywords)
+2. Target informational intent (how-to, tips, guides)
+3. Are long-tail (4-8 words) for lower competition
+4. Are relevant to the cluster topic and HealthDesk's niche
+
+Return JSON:
+{
+  "keywords": {
+    "pl": ["keyword1", "keyword2", ...],
+    "en": ["keyword1", "keyword2", ...],
+    ...
+  }
+}`;
+
+    const result = await callClaude(
+      'You are an SEO keyword researcher specializing in health, wellness, and productivity content across multiple languages. Generate native, natural keywords — NOT translations.',
+      prompt,
+      4000
+    );
+    const parsed = parseJsonResponse(result);
+
+    // Build keyword objects
+    const keywordsMap = {};
+    for (const lang of targetLangs) {
+      const kwList = parsed.keywords?.[lang] || [];
+      keywordsMap[lang] = kwList.map(kw => ({
+        keyword: kw,
+        intent: 'informational',
+        kd: null,
+        serp_verified: false,
+        serp_score: null,
+        status: 'pending',
+        scheduled_date: null,
+        slug: null,
+        published_date: null,
+        gsc_position: null,
+        gsc_clicks: 0,
+        gsc_impressions: 0,
+        gsc_last_check: null
+      }));
+    }
+
+    // Merge into cluster or create new
+    const cal = loadCalendar();
+    if (cluster_id) {
+      const cluster = cal.clusters.find(c => c.id === cluster_id);
+      if (cluster) {
+        for (const lang of Object.keys(keywordsMap)) {
+          if (!cluster.keywords[lang]) cluster.keywords[lang] = [];
+          // Avoid duplicates
+          const existing = new Set(cluster.keywords[lang].map(k => k.keyword.toLowerCase()));
+          for (const kw of keywordsMap[lang]) {
+            if (!existing.has(kw.keyword.toLowerCase())) {
+              cluster.keywords[lang].push(kw);
+            }
+          }
+        }
+        saveCalendar(cal);
+        res.json({ cluster_id: cluster.id, keywords: keywordsMap });
+        return;
+      }
+    }
+
+    // Create new cluster
+    const newCluster = {
+      id: Date.now().toString(36),
+      name: cluster_name || 'New Cluster',
+      created: new Date().toISOString().split('T')[0],
+      keywords: keywordsMap
+    };
+    cal.clusters.push(newCluster);
+    saveCalendar(cal);
+    res.json({ cluster_id: newCluster.id, keywords: keywordsMap });
+
+  } catch (err) {
+    console.error('[Calendar] Generate keywords error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Content Calendar: Verify keywords (Serper SERP analysis) ───
+
+app.post('/api/calendar/verify-keywords', async (req, res) => {
+  const { cluster_id, lang, max_keywords } = req.body;
+  if (!cluster_id) return res.status(400).json({ error: 'cluster_id required' });
+
+  const cal = loadCalendar();
+  const cluster = cal.clusters.find(c => c.id === cluster_id);
+  if (!cluster) return res.status(404).json({ error: 'Cluster not found' });
+
+  const maxKw = max_keywords || 9999;
+  const langsToVerify = lang ? [lang] : Object.keys(cluster.keywords);
+  const results = [];
+
+  for (const currentLang of langsToVerify) {
+    const kwList = cluster.keywords[currentLang] || [];
+    const unverified = kwList.filter(k => !k.serp_verified).slice(0, maxKw);
+
+    for (const kw of unverified) {
+      try {
+        const locale = LANG_MAP[currentLang] || LANG_MAP.en;
+        const serpData = await serperRequest('search', {
+          q: kw.keyword, gl: locale.gl, hl: locale.hl, num: 10
+        });
+
+        // Analyze SERP difficulty
+        const organic = serpData.organic || [];
+        const domains = organic.map(r => {
+          try { return new URL(r.link).hostname; } catch { return ''; }
+        });
+        const bigDomains = ['wikipedia.org','reddit.com','quora.com','webmd.com','healthline.com','mayoclinic.org','nhs.uk','who.int','nih.gov','medium.com'];
+        const bigCount = domains.filter(d => bigDomains.some(bd => d.includes(bd))).length;
+        const totalResults = serpData.searchInformation?.totalResults || 0;
+
+        // Score: 1 (easy) to 10 (hard)
+        let score = 3; // baseline
+        if (bigCount >= 5) score += 4;
+        else if (bigCount >= 3) score += 2;
+        else if (bigCount >= 1) score += 1;
+        if (totalResults > 10000000) score += 2;
+        else if (totalResults > 1000000) score += 1;
+        if (organic.length < 5) score -= 2; // thin SERP = opportunity
+        score = Math.max(1, Math.min(10, score));
+
+        kw.serp_verified = true;
+        kw.serp_score = score;
+        kw.kd = score <= 3 ? 'low' : score <= 6 ? 'medium' : 'high';
+
+        results.push({ lang: currentLang, keyword: kw.keyword, score, kd: kw.kd, bigDomains: bigCount, totalResults });
+
+        // Rate limit Serper
+        await new Promise(r => setTimeout(r, 300));
+      } catch (err) {
+        results.push({ lang: currentLang, keyword: kw.keyword, error: err.message });
+      }
+    }
+  }
+
+  saveCalendar(cal);
+  res.json({ verified: results.length, results });
+});
+
+// ─── Content Calendar: Settings ───
+
+app.post('/api/calendar/settings', (req, res) => {
+  const { interval_days } = req.body;
+  const cal = loadCalendar();
+  if (interval_days !== undefined) cal.interval_days = parseInt(interval_days) || 3;
+  saveCalendar(cal);
+  res.json({ ok: true, interval_days: cal.interval_days });
+});
+
+app.post('/api/calendar/auto-toggle', (req, res) => {
+  const { enabled } = req.body;
+  const cal = loadCalendar();
+  cal.auto_enabled = !!enabled;
+  if (cal.auto_enabled && !cal.next_run) {
+    const next = new Date();
+    next.setDate(next.getDate() + (cal.interval_days || 3));
+    cal.next_run = next.toISOString();
+  }
+  saveCalendar(cal);
+  console.log(`[Calendar] Auto-publish ${cal.auto_enabled ? 'ENABLED' : 'DISABLED'}, next: ${cal.next_run}`);
+  res.json({ ok: true, auto_enabled: cal.auto_enabled, next_run: cal.next_run });
+});
+
+// ─── Content Calendar: Run next keyword in queue ───
+
+let calendarProgress = null;
+
+app.get('/api/calendar/status', (req, res) => {
+  res.json(calendarProgress || { status: 'idle' });
+});
+
+app.post('/api/calendar/run-next', async (req, res) => {
+  if (calendarProgress && calendarProgress.status === 'running') {
+    return res.status(409).json({ error: 'Pipeline already running' });
+  }
+
+  const cal = loadCalendar();
+  const batch = findNextBatch(cal);
+  if (batch.length === 0) return res.status(404).json({ error: 'No keywords in queue' });
+
+  calendarProgress = {
+    status: 'running',
+    batch_total: batch.length,
+    batch_done: 0,
+    keyword: batch[0].keyword,
+    lang: batch[0].lang,
+    step: 'autopilot',
+    results: [],
+    started: new Date().toISOString()
+  };
+
+  // Mark all batch keywords as writing
+  for (const kw of batch) {
+    updateKeywordStatus(cal, kw.lang, kw.keyword, { status: 'writing' });
+  }
+  saveCalendar(cal);
+
+  res.json({ ok: true, batch_size: batch.length, keywords: batch.map(k => ({ lang: k.lang, keyword: k.keyword })) });
+
+  // Run pipeline: each keyword goes through FULL cycle before next one
+  // autopilot → build → deploy → GSC → next keyword
+  let completed = 0;
+
+  for (let i = 0; i < batch.length; i++) {
+    const item = batch[i];
+    const label = `[${i + 1}/${batch.length}] [${item.lang}]`;
+    calendarProgress.batch_done = i;
+    calendarProgress.keyword = item.keyword;
+    calendarProgress.lang = item.lang;
+
+    try {
+      // Step 1: Write article
+      calendarProgress.step = `writing (${i + 1}/${batch.length})`;
+      console.log(`${label} Autopilot: ${item.keyword}`);
+      const result = await runAutopilot(item.lang, item.keyword);
+      const slug = result.slug;
+
+      // Step 2: Build
+      calendarProgress.step = `build (${i + 1}/${batch.length})`;
+      console.log(`${label} Building...`);
+      execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+
+      // Step 3: Deploy to FTP
+      calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
+      console.log(`${label} Deploying...`);
+      await new Promise((resolve, reject) => {
+        exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+          if (err) reject(new Error(stderr || err.message));
+          else resolve(stdout);
+        });
+      });
+
+      // Step 4: GSC submit
+      calendarProgress.step = `gsc (${i + 1}/${batch.length})`;
+      const articleUrl = `https://healthdesk.site/${item.lang}/blog/${slug}/`;
+      if (fs.existsSync(GSC_KEY_PATH)) {
+        try {
+          const { google } = require('googleapis');
+          const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
+          const indexing = google.indexing({ version: 'v3', auth });
+          await indexing.urlNotifications.publish({ requestBody: { url: articleUrl, type: 'URL_UPDATED' } });
+          console.log(`${label} GSC submitted: ${articleUrl}`);
+        } catch (gscErr) {
+          console.error(`${label} GSC failed: ${gscErr.message}`);
+        }
+      }
+
+      // Update statuses
+      const cal2 = loadCalendar();
+      updateKeywordStatus(cal2, item.lang, item.keyword, {
+        status: 'published', slug, published_date: new Date().toISOString().split('T')[0]
+      });
+      saveCalendar(cal2);
+
+      const studio = loadStudioData();
+      studio.articles[`${item.lang}/${slug}`] = { status: 'published' };
+      saveStudioData(studio);
+
+      calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
+      completed++;
+      console.log(`${label} DONE — ${slug} is LIVE (${completed}/${batch.length})`);
+
+    } catch (err) {
+      console.error(`${label} Error: ${err.message}`);
+      calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
+
+      const cal2 = loadCalendar();
+      updateKeywordStatus(cal2, item.lang, item.keyword, { status: 'scheduled' });
+      saveCalendar(cal2);
+    }
+  }
+
+  // Schedule next run
+  const cal3 = loadCalendar();
+  if (cal3.auto_enabled) {
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + (cal3.interval_days || 3));
+    cal3.next_run = nextDate.toISOString();
+    saveCalendar(cal3);
+  }
+
+  calendarProgress.status = 'done';
+  calendarProgress.batch_done = batch.length;
+  console.log(`[Calendar] Batch complete: ${completed}/${batch.length} articles published`);
+
+  setTimeout(() => {
+    if (calendarProgress && calendarProgress.status !== 'running') calendarProgress = null;
+  }, 120000);
+});
+
+// ─── Content Calendar: Stats ───
+
+app.get('/api/calendar/stats', (req, res) => {
+  const cal = loadCalendar();
+  let total = 0, published = 0, avgPosition = 0, posCount = 0, totalClicks = 0, totalImpressions = 0;
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        total++;
+        if (kw.status === 'published' || kw.status === 'tracking') published++;
+        if (kw.gsc_position) { avgPosition += kw.gsc_position; posCount++; }
+        totalClicks += kw.gsc_clicks || 0;
+        totalImpressions += kw.gsc_impressions || 0;
+      }
+    }
+  }
+  res.json({
+    total, published,
+    avg_position: posCount ? Math.round(avgPosition / posCount * 10) / 10 : null,
+    total_clicks: totalClicks,
+    total_impressions: totalImpressions
+  });
+});
+
+// ─── Content Calendar: Refresh GSC positions ───
+
+app.post('/api/calendar/refresh-gsc', async (req, res) => {
+  if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ error: 'No GSC key configured' });
+
+  try {
+    const { google } = require('googleapis');
+    const auth = getGscAuth();
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
+
+    const endDate = new Date();
+    const startDate = new Date();
+    startDate.setDate(startDate.getDate() - 28);
+
+    const result = await searchconsole.searchanalytics.query({
+      siteUrl: SITE_URL_GSC,
+      requestBody: {
+        startDate: startDate.toISOString().slice(0, 10),
+        endDate: endDate.toISOString().slice(0, 10),
+        dimensions: ['query', 'page'],
+        rowLimit: 1000
+      }
+    });
+
+    const rows = result.data.rows || [];
+    const cal = loadCalendar();
+    let updated = 0;
+
+    for (const cluster of cal.clusters) {
+      for (const lang of Object.keys(cluster.keywords || {})) {
+        for (const kw of cluster.keywords[lang]) {
+          if (kw.status !== 'published' && kw.status !== 'tracking') continue;
+
+          // Match by keyword in GSC queries
+          const match = rows.find(r =>
+            r.keys[0].toLowerCase().includes(kw.keyword.toLowerCase().substring(0, 20)) ||
+            (kw.slug && r.keys[1].includes(kw.slug))
+          );
+
+          if (match) {
+            kw.gsc_position = Math.round(match.position * 10) / 10;
+            kw.gsc_clicks = match.clicks;
+            kw.gsc_impressions = match.impressions;
+            kw.gsc_last_check = new Date().toISOString();
+            if (kw.status === 'published') kw.status = 'tracking';
+            updated++;
+          }
+        }
+      }
+    }
+
+    saveCalendar(cal);
+    res.json({ updated, total_gsc_rows: rows.length });
+
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Content Calendar: Auto-refresh underperforming articles ───
+
+app.post('/api/calendar/auto-refresh', async (req, res) => {
+  const cal = loadCalendar();
+  const candidates = [];
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status !== 'tracking' && kw.status !== 'published') continue;
+        if (!kw.published_date) continue;
+        if (new Date(kw.published_date) > thirtyDaysAgo) continue; // too new
+
+        const underperforming =
+          !kw.gsc_position || kw.gsc_position > 40 ||
+          (kw.gsc_impressions < 5 && kw.gsc_position > 20);
+
+        if (underperforming) {
+          candidates.push({ ...kw, lang, cluster_id: cluster.id });
+        }
+      }
+    }
+  }
+
+  if (candidates.length === 0) return res.json({ refreshed: 0, message: 'No underperforming articles found' });
+
+  // Pick the worst performer
+  const target = candidates.sort((a, b) => (b.gsc_position || 100) - (a.gsc_position || 100))[0];
+
+  try {
+    console.log(`[Calendar Refresh] Refreshing: [${target.lang}] ${target.keyword} (pos: ${target.gsc_position})`);
+
+    // Read existing article
+    const filePath = findArticleFile(target.lang, target.slug);
+    if (!filePath) return res.status(404).json({ error: 'Article file not found' });
+
+    const content = fs.readFileSync(filePath, 'utf8');
+    const parsed = fm(content);
+
+    // Ask AI to improve
+    const improveResult = await callClaude(
+      `You are an SEO content optimization expert for ${getLangName(target.lang)} content.`,
+      `This article targets the keyword "${target.keyword}" but is underperforming (position: ${target.gsc_position || 'not ranked'}, impressions: ${target.gsc_impressions || 0}).
+
+Current article:
+${parsed.body}
+
+Improve this article to rank better:
+1. Strengthen keyword usage (naturally, not stuffing)
+2. Add more detailed, actionable content (expand by 20-30%)
+3. Improve headings for better search intent match
+4. Add new relevant sections if helpful
+5. Keep the same structure and style
+
+Return ONLY the improved markdown body (no frontmatter).`,
+      6000
+    );
+
+    // Save improved version
+    const updatedDate = new Date().toISOString().split('T')[0];
+    const frontmatterStr = content.split('---').slice(0, 2).join('---') + '---';
+    const updatedFm = frontmatterStr.replace(/date: .+/, `date: ${updatedDate}`);
+    fs.writeFileSync(filePath, updatedFm + '\n' + improveResult, 'utf8');
+
+    // Update keyword status
+    updateKeywordStatus(cal, target.lang, target.keyword, {
+      status: 'published', // will go back to tracking after next GSC refresh
+      published_date: updatedDate
+    });
+    saveCalendar(cal);
+
+    // Rebuild + redeploy
+    execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+    await new Promise((resolve, reject) => {
+      exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+        if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
+      });
+    });
+
+    // GSC re-submit
+    if (fs.existsSync(GSC_KEY_PATH)) {
+      try {
+        const { google } = require('googleapis');
+        const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
+        const indexing = google.indexing({ version: 'v3', auth });
+        const url = `https://healthdesk.site/${target.lang}/blog/${target.slug}/`;
+        await indexing.urlNotifications.publish({ requestBody: { url, type: 'URL_UPDATED' } });
+      } catch (e) { console.error('[Calendar Refresh] GSC re-submit failed:', e.message); }
+    }
+
+    res.json({ refreshed: 1, keyword: target.keyword, lang: target.lang, slug: target.slug });
+
+  } catch (err) {
+    console.error('[Calendar Refresh] Error:', err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── Content Calendar: Schedule keywords ───
+
+app.post('/api/calendar/schedule', (req, res) => {
+  const { cluster_id, lang, count } = req.body;
+  const cal = loadCalendar();
+  const intervalDays = cal.interval_days || 3;
+
+  // Collect pending keywords per language, sorted by KD (low first)
+  const pendingByLang = {};
+  for (const cluster of cal.clusters) {
+    if (cluster_id && cluster.id !== cluster_id) continue;
+    const langsToProcess = lang ? [lang] : Object.keys(cluster.keywords || {});
+    for (const l of langsToProcess) {
+      if (!pendingByLang[l]) pendingByLang[l] = [];
+      const kwList = cluster.keywords[l] || [];
+      const pending = kwList
+        .filter(k => k.status === 'pending' && k.serp_verified)
+        .sort((a, b) => (a.serp_score || 5) - (b.serp_score || 5));
+      pendingByLang[l].push(...pending);
+    }
+  }
+
+  // Build set of date+lang combos already published or scheduled
+  const occupied = new Set();
+  for (const cluster of cal.clusters) {
+    for (const l of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[l]) {
+        if (kw.status === 'published' && kw.published_date) occupied.add(`${kw.published_date}|${l}`);
+        if (kw.status === 'scheduled' && kw.scheduled_date) occupied.add(`${kw.scheduled_date}|${l}`);
+      }
+    }
+  }
+
+  // Schedule in rounds: each round = 1 keyword per language, same date
+  // Skip date+lang combos that already have published/scheduled article
+  const maxRounds = count || 9999;
+  let scheduled = 0;
+  let round = 0;
+  const startDate = new Date();
+
+  while (round < maxRounds) {
+    let anyScheduled = false;
+    const schedDate = new Date(startDate);
+    schedDate.setDate(schedDate.getDate() + round * intervalDays);
+    const dateStr = schedDate.toISOString().split('T')[0];
+
+    for (const l of Object.keys(pendingByLang)) {
+      if (occupied.has(`${dateStr}|${l}`)) continue; // skip — already has article on this date
+      const kw = pendingByLang[l].shift();
+      if (kw) {
+        kw.status = 'scheduled';
+        kw.scheduled_date = dateStr;
+        occupied.add(`${dateStr}|${l}`);
+        scheduled++;
+        anyScheduled = true;
+      }
+    }
+
+    if (!anyScheduled) break;
+    round++;
+  }
+
+  saveCalendar(cal);
+  res.json({ scheduled, rounds: round });
+});
+
+// ─── Content Calendar: Import keywords ───
+
+app.post('/api/calendar/import', (req, res) => {
+  const { cluster_id, cluster_name, keywords } = req.body;
+  // keywords: { lang: ["kw1", "kw2", ...], ... } or [{keyword, lang}, ...]
+  if (!keywords) return res.status(400).json({ error: 'keywords required' });
+
+  const cal = loadCalendar();
+  let cluster;
+
+  if (cluster_id) {
+    cluster = cal.clusters.find(c => c.id === cluster_id);
+    if (!cluster) return res.status(404).json({ error: 'Cluster not found' });
+  } else {
+    cluster = {
+      id: Date.now().toString(36),
+      name: cluster_name || 'Imported',
+      created: new Date().toISOString().split('T')[0],
+      keywords: {}
+    };
+    cal.clusters.push(cluster);
+  }
+
+  let imported = 0;
+  if (Array.isArray(keywords)) {
+    for (const item of keywords) {
+      const lang = item.lang || 'en';
+      if (!cluster.keywords[lang]) cluster.keywords[lang] = [];
+      const existing = new Set(cluster.keywords[lang].map(k => k.keyword.toLowerCase()));
+      if (!existing.has(item.keyword.toLowerCase())) {
+        cluster.keywords[lang].push({
+          keyword: item.keyword, intent: item.intent || 'informational',
+          kd: null, serp_verified: false, serp_score: null,
+          status: 'pending', scheduled_date: null, slug: null,
+          published_date: null, gsc_position: null, gsc_clicks: 0,
+          gsc_impressions: 0, gsc_last_check: null
+        });
+        imported++;
+      }
+    }
+  } else {
+    for (const [lang, kwList] of Object.entries(keywords)) {
+      if (!cluster.keywords[lang]) cluster.keywords[lang] = [];
+      const existing = new Set(cluster.keywords[lang].map(k => k.keyword.toLowerCase()));
+      for (const kw of kwList) {
+        const kwStr = typeof kw === 'string' ? kw : kw.keyword;
+        if (!existing.has(kwStr.toLowerCase())) {
+          cluster.keywords[lang].push({
+            keyword: kwStr, intent: 'informational',
+            kd: null, serp_verified: false, serp_score: null,
+            status: 'pending', scheduled_date: null, slug: null,
+            published_date: null, gsc_position: null, gsc_clicks: 0,
+            gsc_impressions: 0, gsc_last_check: null
+          });
+          imported++;
+        }
+      }
+    }
+  }
+
+  saveCalendar(cal);
+  res.json({ ok: true, cluster_id: cluster.id, imported });
+});
+
+// ─── Content Calendar: Scheduler (auto-run) ───
+
+let calendarSchedulerInterval = null;
+
+function startCalendarScheduler() {
+  if (calendarSchedulerInterval) return;
+  calendarSchedulerInterval = setInterval(async () => {
+    try {
+      const cal = loadCalendar();
+      if (!cal.auto_enabled) return;
+      if (!cal.next_run) return;
+      if (new Date() < new Date(cal.next_run)) return;
+      if (calendarProgress && calendarProgress.status === 'running') return;
+
+      console.log(`[Calendar Scheduler] Time to run! next_run was ${cal.next_run}`);
+
+      // Trigger batch (1 per language)
+      const batch = findNextBatch(cal);
+      if (batch.length === 0) {
+        console.log('[Calendar Scheduler] No keywords in queue, disabling auto');
+        cal.auto_enabled = false;
+        saveCalendar(cal);
+        return;
+      }
+
+      calendarProgress = {
+        status: 'running', batch_total: batch.length, batch_done: 0,
+        keyword: batch[0].keyword, lang: batch[0].lang,
+        step: 'writing', results: [], started: new Date().toISOString()
+      };
+
+      for (const kw of batch) {
+        updateKeywordStatus(cal, kw.lang, kw.keyword, { status: 'writing' });
+      }
+      saveCalendar(cal);
+
+      // Per-keyword full pipeline: write → build → deploy → GSC → next
+      let completed = 0;
+      for (let i = 0; i < batch.length; i++) {
+        const item = batch[i];
+        const label = `[Scheduler] [${i + 1}/${batch.length}] [${item.lang}]`;
+        calendarProgress.batch_done = i;
+        calendarProgress.keyword = item.keyword;
+        calendarProgress.lang = item.lang;
+
+        try {
+          // Step 1: Write article
+          calendarProgress.step = `writing (${i + 1}/${batch.length})`;
+          console.log(`${label} Autopilot: ${item.keyword}`);
+          const result = await runAutopilot(item.lang, item.keyword);
+          const slug = result.slug;
+
+          // Step 2: Build
+          calendarProgress.step = `build (${i + 1}/${batch.length})`;
+          console.log(`${label} Building...`);
+          execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+
+          // Step 3: Deploy to FTP
+          calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
+          console.log(`${label} Deploying...`);
+          await new Promise((resolve, reject) => {
+            exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+              if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
+            });
+          });
+
+          // Step 4: GSC submit
+          calendarProgress.step = `gsc (${i + 1}/${batch.length})`;
+          const articleUrl = `https://healthdesk.site/${item.lang}/blog/${slug}/`;
+          if (fs.existsSync(GSC_KEY_PATH)) {
+            try {
+              const { google } = require('googleapis');
+              const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
+              const indexing = google.indexing({ version: 'v3', auth });
+              await indexing.urlNotifications.publish({ requestBody: { url: articleUrl, type: 'URL_UPDATED' } });
+              console.log(`${label} GSC submitted: ${articleUrl}`);
+            } catch (gscErr) {
+              console.error(`${label} GSC failed: ${gscErr.message}`);
+            }
+          }
+
+          // Update statuses
+          const cal2 = loadCalendar();
+          updateKeywordStatus(cal2, item.lang, item.keyword, {
+            status: 'published', slug, published_date: new Date().toISOString().split('T')[0]
+          });
+          saveCalendar(cal2);
+
+          const studio = loadStudioData();
+          studio.articles[`${item.lang}/${slug}`] = { status: 'published' };
+          saveStudioData(studio);
+
+          calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
+          completed++;
+          console.log(`${label} DONE — ${slug} is LIVE (${completed}/${batch.length})`);
+
+        } catch (err) {
+          console.error(`${label} Error: ${err.message}`);
+          calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
+          const cal2 = loadCalendar();
+          updateKeywordStatus(cal2, item.lang, item.keyword, { status: 'scheduled' });
+          saveCalendar(cal2);
+        }
+      }
+
+      const cal3 = loadCalendar();
+      const nextDate = new Date();
+      nextDate.setDate(nextDate.getDate() + (cal3.interval_days || 3));
+      cal3.next_run = nextDate.toISOString();
+      saveCalendar(cal3);
+
+      calendarProgress.status = 'done';
+      calendarProgress.batch_done = batch.length;
+      console.log(`[Scheduler] Batch done: ${completed}/${batch.length}, next: ${cal3.next_run}`);
+
+    } catch (err) {
+      console.error('[Calendar Scheduler] Error:', err.message);
+      if (calendarProgress) {
+        calendarProgress.status = 'error';
+        calendarProgress.error = err.message;
+      }
+    }
+
+    setTimeout(() => {
+      if (calendarProgress && calendarProgress.status !== 'running') calendarProgress = null;
+    }, 120000);
+  }, 3600000); // Check every hour
+  console.log('[Calendar Scheduler] Started (checking every hour)');
+}
+
 // ─── Start ───
 const server = app.listen(PORT, () => {
   console.log(`\n  Blog Studio running at http://localhost:${PORT}\n`);
@@ -2639,3 +3712,6 @@ const server = app.listen(PORT, () => {
 });
 server.timeout = 300000;       // 5 min
 server.keepAliveTimeout = 300000;
+
+// Start calendar scheduler
+startCalendarScheduler();

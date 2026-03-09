@@ -686,6 +686,10 @@ function generateHtaccess() {
 
   const htaccess = `RewriteEngine On
 
+# Redirect www → non-www
+RewriteCond %{HTTP_HOST} ^www\\.healthdesk\\.site$ [NC]
+RewriteRule ^(.*)$ https://healthdesk.site/$1 [R=301,L]
+
 # Redirect root to language based on Accept-Language
 ${langRules}
 

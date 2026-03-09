@@ -1,0 +1,43 @@
+﻿keyword,lang,country,score,intent_type,word_count,source,seed
+co ile przerwa od komputera,PL,pl,7.0,question,5,suggest+prefix,przerwa komputer
+co ile przerwa od komputera w pracy,PL,pl,7.0,question,7,suggest+prefix,przerwa komputer
+jak ból pleców praca magisterska,PL,pl,7.0,question,5,suggest+prefix,ból pleców praca
+jak ból pleców praca plastyczna,PL,pl,7.0,question,5,suggest+prefix,ból pleców praca
+jak ból pleców praca w domu,PL,pl,7.0,question,6,suggest+prefix,ból pleców praca
+jak ból pleców praca zdalna,PL,pl,7.0,question,5,suggest+prefix,ból pleców praca
+czy ból pleców od siedzenia jest szkodliwy,PL,pl,6.0,question,7,suggest+prefix,ból pleców od siedzenia
+czy ból pleców praca zdalna,PL,pl,6.0,question,5,suggest+prefix,ból pleców praca
+dlaczego kręgosłup siedzenie w samochodzie,PL,pl,6.0,question,5,suggest+prefix,kręgosłup siedzenie
+co na ból pleców od siedzenia,PL,pl,5.5,question,6,suggest,ból pleców od siedzenia
+dlaczego kręgosłup siedzenie się,PL,pl,5.5,question,4,suggest+prefix,kręgosłup siedzenie
+co przerwa komputera,PL,pl,5.0,question,3,suggest+prefix,przerwa komputer
+co przerwa komputerowa,PL,pl,5.0,question,3,suggest+prefix,przerwa komputer
+co przerwa komputerowego,PL,pl,5.0,question,3,suggest+prefix,przerwa komputer
+kiedy przerwa komputera,PL,pl,5.0,question,3,suggest+prefix,przerwa komputer
+kiedy przerwa komputerowa,PL,pl,5.0,question,3,suggest+prefix,przerwa komputer
+kiedy przerwa komputerowego,PL,pl,5.0,question,3,suggest+prefix,przerwa komputer
+bol plecow od siedzenia przed komputerem,PL,pl,4.5,informational,6,suggest,ból pleców od siedzenia
+bol plecow od siedzenia w samochodzie,PL,pl,4.5,informational,6,suggest,ból pleców od siedzenia
+ból pleców od siedzenia ćwiczenia,PL,pl,4.5,informational,5,suggest,ból pleców od siedzenia
+przerwa od komputera 5 minut,PL,pl,4.5,informational,5,suggest,przerwa komputer
+przerwa od komputera kodeks pracy,PL,pl,4.5,informational,5,suggest,przerwa komputer
+przerwa od komputera w pracy,PL,pl,4.5,informational,5,suggest,przerwa komputer
+kiedy kark biurkowy,PL,pl,4.0,question,3,suggest+prefix,kark biurko
+kodeks pracy przerwa komputer,PL,pl,4.0,informational,4,suggest,przerwa komputer
+przerwa od komputera bhp,PL,pl,4.0,informational,4,suggest,przerwa komputer
+przerwa praca przed komputerem,PL,pl,4.0,informational,4,suggest,przerwa komputer
+przerwa praca przy komputerze,PL,pl,4.0,informational,4,suggest,przerwa komputer
+ból pleców na dole od siedzenia,PL,pl,3.5,informational,6,suggest,ból pleców od siedzenia
+ból pleców na dole praca siedząca,PL,pl,3.5,informational,6,suggest,ból pleców praca
+ból pleców od długiego siedzenia,PL,pl,3.5,informational,5,suggest,ból pleców od siedzenia
+ból pleców od siedzenia przy biurku,PL,pl,3.5,informational,6,suggest,ból pleców od siedzenia
+ból pleców od siedzenia przy komputerze,PL,pl,3.5,informational,6,suggest,ból pleców od siedzenia
+ból pleców praca przy komputerze,PL,pl,3.5,informational,5,suggest,ból pleców praca
+ból pleców od siedzenia,PL,pl,3.0,informational,4,suggest,ból pleców od siedzenia
+ból pleców podczas siedzenia,PL,pl,3.0,informational,4,suggest,ból pleców od siedzenia
+ból pleców praca biurowa,PL,pl,3.0,informational,4,suggest,ból pleców praca
+ból pleców praca fizyczna,PL,pl,3.0,informational,4,suggest,ból pleców praca
+ból pleców praca siedząca,PL,pl,3.0,informational,4,suggest,ból pleców praca
+ból pleców praca stojąca,PL,pl,3.0,informational,4,suggest,ból pleców praca
+przerwa od komputera,PL,pl,2.5,informational,3,suggest,przerwa komputer
+przerwa przed komputerem,PL,pl,2.5,informational,3,suggest,przerwa komputer

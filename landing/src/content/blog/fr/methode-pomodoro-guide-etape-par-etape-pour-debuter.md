@@ -15,6 +15,7 @@ faq:
     a: "Un Pomodoro dure 25 minutes de travail intensif, suivi d'une pause de 5 minutes."
   - q: "Pourquoi la méthode Pomodoro est-elle efficace ?"
     a: "Elle respecte les limites naturelles de la concentration humaine et structure le travail à l'avance, évitant les décisions improvisées."
+image_alt: "M�thode Pomodoro : guide �tape par �tape pour d�buter"
 ---
 ## Qu'est-ce que la méthode Pomodoro ?
 
