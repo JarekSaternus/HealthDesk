@@ -13,16 +13,18 @@
 
 ### P1 — Duże feature'y
 3. Google Calendar OAuth ✅ (v2.0.28-dev) — OAuth loopback flow, sync co 5 min, bloki spotkań na timeline
+   - ✅ Multi-calendar picker — wybór kalendarzy do synchronizacji
+   - ✅ Full-day fetch — eventy z całego dnia na osi czasu + lista spotkań
    - ⬜ Smart scheduling — auto-pauza podczas spotkań, przesuwanie przerw na wolne sloty
    - ⬜ Pre-meeting reminder ("Za 5 min spotkanie — czas na przerwę i wodę")
    - ⬜ Złożyć weryfikację aplikacji Google (review 1-2 tyg)
 4. Harmonogram tygodniowy ✅ (v2.0.28-dev) — per-day profil przerw + DayTimeline na Home
-   - ⬜ GUI polish — dopracowanie UI harmonogramu i timeline
+   - ✅ 3 tryby: Jednolity / Robocze+Weekend / Każdy dzień + "Zastosuj do"
    - ⬜ Suwak drag do ad-hoc przesuwania przerw (jednorazowe override)
-5. **Przebudowa Settings / Dashboard** — Settings robi się za duży, potrzebna reorganizacja:
-   - Podzielenie Settings na zakładki/sekcje (np. Przerwy, Wellness, Integracje, System)
-   - Lub nawigacja boczna w Settings
-   - Dashboard Home — uporządkowanie kart przy rosnącej liczbie widgetów
+5. ~~Przebudowa Settings / Dashboard~~ ✅ (v2.0.28-dev):
+   - ✅ Settings: 4 zakładki (Przerwy, Wellness, Integracje, System)
+   - ✅ Dashboard: kompaktowy layout (merge kart, inline stats, jednoliniowy sound)
+   - ✅ Timeline: pilulki legend w nagłówku, cieńsze markery, lista spotkań
 6. YouTube playlisty — import playlist usera (publiczne + unlisted), lista tracków, auto-next. Opcja cookies dla prywatnych.
 7. ~~Onboarding wizard~~ ✅ (v2.0.27)
 
