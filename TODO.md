@@ -15,8 +15,8 @@
 3. Google Calendar OAuth ✅ (v2.0.28-dev) — OAuth loopback flow, sync co 5 min, bloki spotkań na timeline
    - ✅ Multi-calendar picker — wybór kalendarzy do synchronizacji
    - ✅ Full-day fetch — eventy z całego dnia na osi czasu + lista spotkań
-   - ⬜ Smart scheduling — auto-pauza podczas spotkań, przesuwanie przerw na wolne sloty
-   - ⬜ Pre-meeting reminder ("Za 5 min spotkanie — czas na przerwę i wodę")
+   - ✅ Smart scheduling — timer freeze podczas spotkań, post-meeting break acceleration
+   - ✅ Pre-meeting reminder — popup HealthDesk z detalami, per-event timing z Google Calendar
    - ⬜ Złożyć weryfikację aplikacji Google (review 1-2 tyg)
 4. Harmonogram tygodniowy ✅ (v2.0.28-dev) — per-day profil przerw + DayTimeline na Home
    - ✅ 3 tryby: Jednolity / Robocze+Weekend / Każdy dzień + "Zastosuj do"
