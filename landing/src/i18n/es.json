@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> y ejecuta",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux no tiene equivalente a SmartScreen — instalación sin pasos adicionales.",
-  "footer.cookies": "Cookies"
+  "footer.cookies": "Cookies",
+  "hero.languages": "12 idiomas",
+  "feat.audioradio.t": "Audio y Radio",
+  "feat.audioradio.d": "<strong>6 sonidos nativos</strong> (ruido marrón, lluvia, bosque) + YouTube Radio + 6 emisoras FM. La pausa detiene la música con los temporizadores.",
+  "feat.exercises.t": "Ejercicios guiados",
+  "feat.exercises.d": "<strong>Respiración, ojos, estiramientos</strong> — sesiones animadas con temporizador. Respiración cuadrada 4-4-4-4, ejercicios de cuello, hombros y espalda.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Sincronización de reuniones</strong> — bloquea descansos durante reuniones, recordatorio pre-reunión, descanso automático tras reuniones largas.",
+  "feat.schedule.t": "Horario semanal",
+  "feat.schedule.d": "<strong>Perfil de descanso para cada día</strong> — intervalos más cortos el lunes, más largos el viernes. Línea temporal del día en el panel.",
+  "cmp.calendar": "Integración con calendario",
+  "cmp.weekly": "Horario semanal",
+  "faq.q8": "¿No distrae del trabajo?",
+  "faq.a8": "HealthDesk funciona en segundo plano y no interfiere hasta que es hora de un descanso. El <strong>modo suave</strong> muestra una ventana pequeña sin bloquear. Con la integración de Google Calendar, los descansos se saltan automáticamente durante las reuniones.",
+  "faq.q9": "Ya tengo un temporizador en el teléfono — ¿para qué necesito HealthDesk?",
+  "faq.a9": "Un temporizador de teléfono no rastrea la actividad, no guía ejercicios oculares, no conoce tus reuniones, no se pausa cuando te alejas ni reproduce sonidos ambient. HealthDesk es un <strong>sistema de bienestar completo</strong>, no solo un temporizador.",
+  "faq.q10": "¿Ralentiza mi computadora?",
+  "faq.a10": "HealthDesk usa <strong>~30 MB de RAM</strong> — menos que una pestaña del navegador. El instalador pesa solo ~4 MB. La app está construida con Rust (backend) + React (UI), asegurando rendimiento nativo."
 }

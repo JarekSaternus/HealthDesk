@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> e avvia",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux non ha un equivalente di SmartScreen — installazione senza passaggi aggiuntivi.",
-  "footer.cookies": "Cookie"
+  "footer.cookies": "Cookie",
+  "hero.languages": "12 lingue",
+  "feat.audioradio.t": "Audio e Radio",
+  "feat.audioradio.d": "<strong>6 suoni nativi</strong> (brown noise, pioggia, foresta) + YouTube Radio + 6 stazioni FM. La pausa ferma la musica con i timer.",
+  "feat.exercises.t": "Esercizi guidati",
+  "feat.exercises.d": "<strong>Respirazione, occhi, stretching</strong> — sessioni animate con timer. Box breathing 4-4-4-4, esercizi per collo, spalle e schiena.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Sincronizzazione riunioni</strong> — blocca le pause durante le riunioni, promemoria pre-riunione, pausa automatica dopo riunioni lunghe.",
+  "feat.schedule.t": "Programma settimanale",
+  "feat.schedule.d": "<strong>Profilo pause per ogni giorno</strong> — intervalli più brevi il lunedì, più lunghi il venerdì. Timeline del giorno nella dashboard.",
+  "cmp.calendar": "Integrazione calendario",
+  "cmp.weekly": "Programma settimanale",
+  "faq.q8": "Non distrae dal lavoro?",
+  "faq.a8": "HealthDesk funziona in background e non interferisce fino al momento della pausa. La <strong>modalità delicata</strong> mostra una piccola finestra non bloccante. Con l'integrazione Google Calendar, le pause saltano automaticamente le riunioni.",
+  "faq.q9": "Ho già un timer sul telefono — perché ho bisogno di HealthDesk?",
+  "faq.a9": "Un timer del telefono non traccia l'attività, non guida esercizi per gli occhi, non conosce le tue riunioni, non si mette in pausa quando ti allontani e non riproduce suoni ambient. HealthDesk è un <strong>sistema wellness completo</strong>, non un semplice timer.",
+  "faq.q10": "Rallenta il computer?",
+  "faq.a10": "HealthDesk usa <strong>~30 MB di RAM</strong> — meno di una scheda del browser. L'installer pesa solo ~4 MB. L'app è costruita con Rust (backend) + React (UI), garantendo prestazioni native."
 }

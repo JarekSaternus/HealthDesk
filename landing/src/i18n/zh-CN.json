@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage：<code>chmod +x HealthDesk.AppImage</code> 然后运行",
   "modal.linux.s3": "Deb：<code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux 没有 SmartScreen 等效物 — 无需额外步骤即可安装。",
-  "footer.cookies": "Cookie"
+  "footer.cookies": "Cookie",
+  "hero.languages": "12种语言",
+  "feat.audioradio.t": "音频和电台",
+  "feat.audioradio.d": "<strong>6种原生声音</strong>（棕色噪音、雨声、森林）+ YouTube电台 + 6个FM电台。暂停时音乐和计时器一起停止。",
+  "feat.exercises.t": "引导练习",
+  "feat.exercises.d": "<strong>呼吸、眼睛、拉伸</strong> — 带计时器的动画课程。箱式呼吸4-4-4-4，颈部、肩部和背部练习。",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>会议同步</strong> — 会议期间屏蔽休息，会前提醒，长会议后自动休息。",
+  "feat.schedule.t": "周计划",
+  "feat.schedule.d": "<strong>每天独立的休息配置</strong> — 例如周一较短间隔，周五较长间隔。仪表盘上的日程时间轴。",
+  "cmp.calendar": "日历集成",
+  "cmp.weekly": "周计划",
+  "faq.q8": "会打扰工作吗？",
+  "faq.a8": "HealthDesk在后台运行，直到休息时间才会干扰。<strong>温和模式</strong>显示一个不阻挡的小窗口。通过Google Calendar集成，休息会自动跳过会议。",
+  "faq.q9": "手机上已经有计时器了，为什么需要HealthDesk？",
+  "faq.a9": "手机计时器不追踪活动、不指导眼部运动、不了解您的日历会议、离开时不暂停、也不播放环境音效。HealthDesk是一个<strong>完整的健康系统</strong>，不仅仅是一个计时器。",
+  "faq.q10": "会让电脑变慢吗？",
+  "faq.a10": "HealthDesk使用<strong>约30MB内存</strong> — 比一个浏览器标签页还少。安装程序仅约4MB。应用采用Rust（后端）+ React（UI）构建，确保原生性能。"
 }

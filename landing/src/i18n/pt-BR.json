@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> e execute",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "O Linux não tem equivalente ao SmartScreen — instalação sem passos extras.",
-  "footer.cookies": "Cookies"
+  "footer.cookies": "Cookies",
+  "hero.languages": "12 idiomas",
+  "feat.audioradio.t": "Áudio e Rádio",
+  "feat.audioradio.d": "<strong>6 sons nativos</strong> (ruído marrom, chuva, floresta) + YouTube Radio + 6 estações FM. A pausa para a música junto com os timers.",
+  "feat.exercises.t": "Exercícios guiados",
+  "feat.exercises.d": "<strong>Respiração, olhos, alongamento</strong> — sessões animadas com timer. Respiração quadrada 4-4-4-4, exercícios para pescoço, ombros e costas.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Sincronização de reuniões</strong> — bloqueia pausas durante reuniões, lembrete pré-reunião, pausa automática após reuniões longas.",
+  "feat.schedule.t": "Agenda semanal",
+  "feat.schedule.d": "<strong>Perfil de pausas para cada dia</strong> — intervalos mais curtos na segunda, mais longos na sexta. Timeline do dia no painel.",
+  "cmp.calendar": "Integração com calendário",
+  "cmp.weekly": "Agenda semanal",
+  "faq.q8": "Isso não distrai do trabalho?",
+  "faq.a8": "O HealthDesk roda em segundo plano e não interfere até a hora da pausa. O <strong>modo suave</strong> mostra uma janela pequena sem bloquear. Com a integração do Google Calendar, as pausas pulam reuniões automaticamente.",
+  "faq.q9": "Já tenho um timer no celular — por que preciso do HealthDesk?",
+  "faq.a9": "Um timer de celular não rastreia atividades, não guia exercícios para os olhos, não conhece suas reuniões, não pausa quando você se afasta e não toca sons ambiente. O HealthDesk é um <strong>sistema de bem-estar completo</strong>, não apenas um timer.",
+  "faq.q10": "Deixa o computador lento?",
+  "faq.a10": "O HealthDesk usa <strong>~30 MB de RAM</strong> — menos que uma aba do navegador. O instalador tem apenas ~4 MB. O app é construído com Rust (backend) + React (UI), garantindo desempenho nativo."
 }

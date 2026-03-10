@@ -50,13 +50,14 @@
 ### P5 — Przyszłość
 20. macOS tracker (NSWorkspace + Accessibility API)
 21. Microsoft Store
-22. Achievements / odznaki
-23. Keyboard shortcuts — konfiguracja
-24. Cloud sync
-25. Roczne podsumowanie (Spotify Wrapped)
-26. Posture reminder (MediaPipe)
-27. Slack status — auto "Na przerwie"
-28. HealthDesk Pro (freemium)
+22. **HealthDesk Lite — Chrome/Edge Extension** — przerwy, woda, ćwiczenia, dźwięki (Web Audio), Google Calendar (Chrome Identity API). ~80% funkcji desktop bez trackera aktywności. React reuse ~60-70%. Chrome Web Store = 140M+ userów.
+23. Achievements / odznaki
+24. Keyboard shortcuts — konfiguracja
+25. Cloud sync
+26. Roczne podsumowanie (Spotify Wrapped)
+27. Posture reminder (MediaPipe)
+28. Slack status — auto "Na przerwie"
+29. HealthDesk Pro (freemium)
 
 ## Zrobione
 - ~~Trening oddechowy~~ ✅ (v2.0.21)

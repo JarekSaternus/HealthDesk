@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> 후 실행",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux에는 SmartScreen에 해당하는 것이 없습니다 — 추가 단계 없이 설치.",
-  "footer.cookies": "쿠키"
+  "footer.cookies": "쿠키",
+  "hero.languages": "12개 언어",
+  "feat.audioradio.t": "오디오 & 라디오",
+  "feat.audioradio.d": "<strong>6가지 네이티브 사운드</strong> (브라운 노이즈, 비, 숲) + YouTube 라디오 + 6개 FM 방송. 일시정지 시 타이머와 함께 음악도 정지.",
+  "feat.exercises.t": "가이드 운동",
+  "feat.exercises.d": "<strong>호흡, 눈, 스트레칭</strong> — 타이머가 있는 애니메이션 세션. 박스 브리딩 4-4-4-4, 목·어깨·등 운동.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>미팅 동기화</strong> — 미팅 중 휴식 차단, 미팅 전 알림, 긴 미팅 후 자동 휴식.",
+  "feat.schedule.t": "주간 일정",
+  "feat.schedule.d": "<strong>요일별 휴식 프로필</strong> — 월요일은 짧은 간격, 금요일은 긴 간격 등. 대시보드에 데이 타임라인.",
+  "cmp.calendar": "캘린더 연동",
+  "cmp.weekly": "주간 일정",
+  "faq.q8": "업무에 방해가 되지 않나요?",
+  "faq.a8": "HealthDesk는 백그라운드에서 실행되며 휴식 시간까지 간섭하지 않습니다. <strong>부드러운 모드</strong>는 차단하지 않는 작은 창을 표시합니다. Google Calendar 연동 시 미팅 중에는 자동으로 휴식을 건너뜁니다.",
+  "faq.q9": "폰에 타이머가 있는데 HealthDesk가 왜 필요한가요?",
+  "faq.a9": "폰 타이머는 활동을 추적하지 않고, 눈 운동을 안내하지 않으며, 캘린더 미팅을 모르고, 자리를 비울 때 일시정지하지 않으며, 앰비언트 사운드도 재생하지 않습니다. HealthDesk는 <strong>완전한 웰니스 시스템</strong>이지 단순한 타이머가 아닙니다.",
+  "faq.q10": "컴퓨터가 느려지나요?",
+  "faq.a10": "HealthDesk는 <strong>~30MB RAM</strong>을 사용합니다 — 브라우저 탭 하나보다 적습니다. 설치 파일은 ~4MB에 불과합니다. Rust(백엔드) + React(UI)로 제작되어 네이티브 성능을 보장합니다."
 }

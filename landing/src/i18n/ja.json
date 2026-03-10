@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code>して実行",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "LinuxにはSmartScreenに相当するものがありません — 追加手順なしでインストール。",
-  "footer.cookies": "Cookie"
+  "footer.cookies": "Cookie",
+  "hero.languages": "12言語",
+  "feat.audioradio.t": "オーディオ＆ラジオ",
+  "feat.audioradio.d": "<strong>6種のネイティブサウンド</strong>（ブラウンノイズ、雨、森）+ YouTubeラジオ + 6つのFM局。一時停止でタイマーと一緒に音楽も停止。",
+  "feat.exercises.t": "ガイド付きエクササイズ",
+  "feat.exercises.d": "<strong>呼吸、目、ストレッチ</strong> — タイマー付きアニメーションセッション。ボックスブリージング4-4-4-4、首・肩・背中のエクササイズ。",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>会議の同期</strong> — 会議中の休憩をブロック、会議前リマインダー、長い会議後の自動休憩。",
+  "feat.schedule.t": "週間スケジュール",
+  "feat.schedule.d": "<strong>曜日ごとの休憩プロファイル</strong> — 月曜は短い間隔、金曜は長い間隔など。ダッシュボードにデイタイムライン。",
+  "cmp.calendar": "カレンダー連携",
+  "cmp.weekly": "週間スケジュール",
+  "faq.q8": "仕事の邪魔になりませんか？",
+  "faq.a8": "HealthDeskはバックグラウンドで動作し、休憩時間まで干渉しません。<strong>やさしいモード</strong>は小さな非ブロッキングウィンドウを表示します。Google Calendar連携により、会議中は自動的に休憩をスキップします。",
+  "faq.q9": "スマホにタイマーがありますが、なぜHealthDeskが必要ですか？",
+  "faq.a9": "スマホのタイマーは活動を追跡せず、目の運動をガイドせず、カレンダーの会議を知らず、離席時に一時停止せず、アンビエントサウンドも再生しません。HealthDeskは<strong>完全なウェルネスシステム</strong>であり、単なるタイマーではありません。",
+  "faq.q10": "パソコンが重くなりませんか？",
+  "faq.a10": "HealthDeskは<strong>約30MBのRAM</strong>を使用します — ブラウザの1タブより少ないです。インストーラーはわずか約4MB。Rust（バックエンド）+ React（UI）で構築され、ネイティブパフォーマンスを実現しています。"
 }

@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> and run",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux has no SmartScreen equivalent — installation requires no extra steps.",
-  "footer.cookies": "Cookies"
+  "footer.cookies": "Cookies",
+  "hero.languages": "12 languages",
+  "feat.audioradio.t": "Audio & Radio",
+  "feat.audioradio.d": "<strong>6 native sounds</strong> (brown noise, rain, forest) + YouTube Radio + 6 FM stations. Pause stops music with timers.",
+  "feat.exercises.t": "Guided Exercises",
+  "feat.exercises.d": "<strong>Breathing, eyes, stretching</strong> — animated sessions with timer. Box breathing 4-4-4-4, neck, shoulder and back exercises.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Meeting sync</strong> — block breaks during meetings, pre-meeting reminder, automatic break after long meetings.",
+  "feat.schedule.t": "Weekly Schedule",
+  "feat.schedule.d": "<strong>Separate break profile for each day</strong> — e.g. shorter intervals on Monday, longer on Friday. Day timeline on dashboard.",
+  "cmp.calendar": "Calendar integration",
+  "cmp.weekly": "Weekly schedule",
+  "faq.q8": "Does it distract from work?",
+  "faq.a8": "HealthDesk runs in the background and doesn't interfere until it's time for a break. <strong>Gentle mode</strong> shows a small non-blocking window — you can ignore it. With Google Calendar integration, breaks automatically skip meetings.",
+  "faq.q9": "I already have a phone timer — why do I need HealthDesk?",
+  "faq.a9": "A phone timer doesn't track activity, guide eye exercises, know about your calendar meetings, pause when you step away, or play ambient sounds. HealthDesk is a <strong>complete wellness system</strong>, not just a timer.",
+  "faq.q10": "Does it slow down my computer?",
+  "faq.a10": "HealthDesk uses <strong>~30 MB RAM</strong> — less than a single browser tab. The installer is only ~4 MB. The app is built with Rust (backend) + React (UI), ensuring native performance."
 }

@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> und ausführen",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux hat kein SmartScreen-Äquivalent — Installation ohne zusätzliche Schritte.",
-  "footer.cookies": "Cookies"
+  "footer.cookies": "Cookies",
+  "hero.languages": "12 Sprachen",
+  "feat.audioradio.t": "Audio & Radio",
+  "feat.audioradio.d": "<strong>6 native Klänge</strong> (Brown Noise, Regen, Wald) + YouTube Radio + 6 FM-Sender. Pause stoppt Musik mit Timern.",
+  "feat.exercises.t": "Geführte Übungen",
+  "feat.exercises.d": "<strong>Atmung, Augen, Dehnung</strong> — animierte Sitzungen mit Timer. Box Breathing 4-4-4-4, Nacken-, Schulter- und Rückenübungen.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Meeting-Sync</strong> — Pausen während Meetings blockieren, Erinnerung vor Meetings, automatische Pause nach langen Meetings.",
+  "feat.schedule.t": "Wochenplan",
+  "feat.schedule.d": "<strong>Eigenes Pausenprofil für jeden Tag</strong> — z.B. kürzere Intervalle am Montag, längere am Freitag. Tages-Timeline im Dashboard.",
+  "cmp.calendar": "Kalender-Integration",
+  "cmp.weekly": "Wochenplan",
+  "faq.q8": "Stört es bei der Arbeit?",
+  "faq.a8": "HealthDesk läuft im Hintergrund und stört nicht, bis es Zeit für eine Pause ist. Der <strong>sanfte Modus</strong> zeigt ein kleines, nicht-blockierendes Fenster. Mit Google Calendar-Integration werden Pausen automatisch während Meetings übersprungen.",
+  "faq.q9": "Ich habe bereits einen Timer auf dem Handy — warum brauche ich HealthDesk?",
+  "faq.a9": "Ein Handy-Timer verfolgt keine Aktivitäten, leitet keine Augenübungen an, kennt Ihre Kalender-Meetings nicht, pausiert nicht wenn Sie weggehen und spielt keine Ambient-Sounds. HealthDesk ist ein <strong>komplettes Wellness-System</strong>, kein einfacher Timer.",
+  "faq.q10": "Verlangsamt es meinen Computer?",
+  "faq.a10": "HealthDesk benötigt <strong>~30 MB RAM</strong> — weniger als ein einzelner Browser-Tab. Der Installer ist nur ~4 MB groß. Die App wurde mit Rust (Backend) + React (UI) entwickelt und bietet native Leistung."
 }

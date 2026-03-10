@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> i uruchom",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux nie ma odpowiednika SmartScreen — instalacja bez dodatkowych kroków.",
-  "footer.cookies": "Cookies"
+  "footer.cookies": "Cookies",
+  "hero.languages": "12 języków",
+  "feat.audioradio.t": "Audio i Radio",
+  "feat.audioradio.d": "<strong>6 natywnych dźwięków</strong> (brown noise, deszcz, las) + YouTube Radio + 6 stacji FM. Pauza wstrzymuje muzykę z timerami.",
+  "feat.exercises.t": "Ćwiczenia prowadzone",
+  "feat.exercises.d": "<strong>Oddech, oczy, rozciąganie</strong> — animowane sesje z timerem. Box breathing 4-4-4-4, ćwiczenia szyi, ramion i pleców.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Synchronizacja spotkań</strong> — blok przerw podczas spotkań, przypomnienie przed spotkaniem, automatyczna przerwa po długim spotkaniu.",
+  "feat.schedule.t": "Harmonogram tygodniowy",
+  "feat.schedule.d": "<strong>Osobny profil przerw na każdy dzień</strong> — np. krótsze interwały w poniedziałek, dłuższe w piątek. Oś czasu dnia na dashboardzie.",
+  "cmp.calendar": "Integracja z kalendarzem",
+  "cmp.weekly": "Harmonogram tygodniowy",
+  "faq.q8": "Czy to nie rozprasza przy pracy?",
+  "faq.a8": "HealthDesk działa w tle i nie ingeruje, dopóki nie nadejdzie pora na przerwę. Tryb <strong>delikatny</strong> pokazuje małe okienko bez blokowania — możesz je zignorować. Przy włączonej integracji z Google Calendar przerwy automatycznie omijają spotkania.",
+  "faq.q9": "Mam timer w telefonie — po co mi HealthDesk?",
+  "faq.a9": "Timer w telefonie nie śledzi aktywności, nie prowadzi ćwiczeń oczu, nie wie o Twoich spotkaniach w kalendarzu, nie wstrzymuje się gdy odchodzisz od komputera i nie puszcza dźwięków ambient. HealthDesk to <strong>kompletny system wellness</strong>, nie zwykły timer.",
+  "faq.q10": "Czy spowalnia komputer?",
+  "faq.a10": "HealthDesk zużywa <strong>~30 MB RAM</strong> — mniej niż jedna karta w przeglądarce. Instalator waży tylko ~4 MB. Aplikacja jest napisana w Rust (backend) + React (UI), co zapewnia natywną wydajność."
 }

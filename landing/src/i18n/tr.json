@@ -157,5 +157,22 @@
   "modal.linux.s2": "AppImage: <code>chmod +x HealthDesk.AppImage</code> ve çalıştırın",
   "modal.linux.s3": "Deb: <code>sudo dpkg -i healthdesk.deb</code>",
   "modal.linux.note": "Linux'ta SmartScreen karşılığı yoktur — ek adım olmadan yükleme.",
-  "footer.cookies": "Çerezler"
+  "footer.cookies": "Çerezler",
+  "hero.languages": "12 dil",
+  "feat.audioradio.t": "Ses ve Radyo",
+  "feat.audioradio.d": "<strong>6 yerleşik ses</strong> (kahverengi gürültü, yağmur, orman) + YouTube Radio + 6 FM istasyonu. Duraklatma, zamanlayıcılarla birlikte müziği durdurur.",
+  "feat.exercises.t": "Rehberli Egzersizler",
+  "feat.exercises.d": "<strong>Nefes, göz, esneme</strong> — zamanlayıcılı animasyonlu seanslar. Kutu solunumu 4-4-4-4, boyun, omuz ve sırt egzersizleri.",
+  "feat.calendar.t": "Google Calendar",
+  "feat.calendar.d": "<strong>Toplantı senkronizasyonu</strong> — toplantılar sırasında molaları engelle, toplantı öncesi hatırlatıcı, uzun toplantılardan sonra otomatik mola.",
+  "feat.schedule.t": "Haftalık program",
+  "feat.schedule.d": "<strong>Her gün için ayrı mola profili</strong> — Pazartesi kısa aralıklar, Cuma uzun aralıklar. Panelde gün zaman çizelgesi.",
+  "cmp.calendar": "Takvim entegrasyonu",
+  "cmp.weekly": "Haftalık program",
+  "faq.q8": "İşe odaklanmayı bozmuyor mu?",
+  "faq.a8": "HealthDesk arka planda çalışır ve mola zamanına kadar müdahale etmez. <strong>Nazik mod</strong> küçük, engelleyici olmayan bir pencere gösterir. Google Calendar entegrasyonu ile molalar toplantılar sırasında otomatik olarak atlanır.",
+  "faq.q9": "Telefonumda zaten zamanlayıcı var — neden HealthDesk'e ihtiyacım var?",
+  "faq.a9": "Telefon zamanlayıcısı aktiviteyi takip etmez, göz egzersizlerine rehberlik etmez, takvim toplantılarınızı bilmez, uzaklaştığınızda duraklamaz ve ortam sesleri çalmaz. HealthDesk <strong>eksiksiz bir sağlık sistemidir</strong>, sadece bir zamanlayıcı değil.",
+  "faq.q10": "Bilgisayarı yavaşlatır mı?",
+  "faq.a10": "HealthDesk <strong>~30 MB RAM</strong> kullanır — tek bir tarayıcı sekmesinden az. Yükleyici sadece ~4 MB. Uygulama Rust (backend) + React (UI) ile geliştirilmiştir, yerel performans sağlar."
 }
