@@ -42,14 +42,14 @@ function generateEvents(
   const types = [
     { key: "small_break", interval: eff.small_break_interval_min, timer: schedulerState.time_to_small_break, color: "#3498db", label: t("home.small_break") },
     { key: "big_break", interval: eff.big_break_interval_min, timer: schedulerState.time_to_big_break, color: "#e67e22", label: t("home.big_break") },
-    { key: "water", interval: eff.water_interval_min, timer: schedulerState.time_to_water, color: "#2ecc71", label: t("home.water") },
+    { key: "water", interval: eff.water_interval_min, timer: schedulerState.time_to_water, color: "#5dade2", label: t("home.water") },
     { key: "eye", interval: eff.eye_exercise_interval_min, timer: schedulerState.time_to_eye, color: "#9b59b6", label: t("settings.eye_section") },
   ];
 
   if (eff.breathing_exercise_enabled) {
     types.push({
       key: "breathing", interval: eff.breathing_exercise_interval_min,
-      timer: schedulerState.time_to_breathing, color: "#1abc9c",
+      timer: schedulerState.time_to_breathing, color: "#2ecc71",
       label: t("settings.breathing_section"),
     });
   }
@@ -133,9 +133,27 @@ export default function DayTimeline() {
 
   return (
     <div className="mt-1">
-      <div className="flex items-center justify-between mb-1">
+      <div className="flex items-center gap-2 mb-1">
         <span className="text-xs text-text-muted">{t("home.timeline")}</span>
-        <span className="text-xs text-text-muted">
+        <div className="flex flex-wrap gap-1">
+          {[
+            { color: "#3498db", label: t("home.small_break") },
+            { color: "#e67e22", label: t("home.big_break") },
+            { color: "#5dade2", label: t("home.water") },
+            { color: "#9b59b6", label: t("settings.eye_section") },
+            ...(eff.breathing_exercise_enabled ? [{ color: "#2ecc71", label: t("settings.breathing_section") }] : []),
+            ...(meetings.length > 0 ? [{ color: "#e74c3c", label: t("home.meetings") }] : []),
+          ].map(({ color, label }) => (
+            <span
+              key={color}
+              className="text-[10px] px-1.5 py-0 rounded-full"
+              style={{ backgroundColor: `${color}20`, color }}
+            >
+              {label}
+            </span>
+          ))}
+        </div>
+        <span className="text-xs text-text-muted ml-auto">
           {config.work_hours_start} — {config.work_hours_end}
         </span>
       </div>
@@ -146,7 +164,7 @@ export default function DayTimeline() {
           return (
             <div key={h} className="absolute top-0 h-full" style={{ left: `${pct}%` }}>
               <div className="w-px h-full bg-content/50" />
-              <span className="absolute -top-0.5 text-[9px] text-text-muted/50 -translate-x-1/2">
+              <span className="absolute top-0 text-[11px] text-text-muted/60 -translate-x-1/2">
                 {h}
               </span>
             </div>
@@ -176,7 +194,7 @@ export default function DayTimeline() {
           return (
             <div
               key={`${ev.type}-${i}`}
-              className="absolute top-1 bottom-1 w-1.5 rounded-full opacity-70 hover:opacity-100 transition-opacity"
+              className="absolute top-4 bottom-1 w-[3px] rounded-full opacity-80 hover:opacity-100 transition-opacity"
               style={{ left: `${pct}%`, backgroundColor: ev.color }}
               title={`${ev.label} — ${minutesToHHMM(ev.time)}`}
             />
@@ -194,22 +212,6 @@ export default function DayTimeline() {
         )}
       </div>
 
-      {/* Legend */}
-      <div className="flex flex-wrap gap-3 mt-1.5">
-        {[
-          { color: "#3498db", label: t("home.small_break") },
-          { color: "#e67e22", label: t("home.big_break") },
-          { color: "#2ecc71", label: t("home.water") },
-          { color: "#9b59b6", label: t("settings.eye_section") },
-          ...(eff.breathing_exercise_enabled ? [{ color: "#1abc9c", label: t("settings.breathing_section") }] : []),
-          ...(meetings.length > 0 ? [{ color: "#e74c3c", label: t("home.meetings") }] : []),
-        ].map(({ color, label }) => (
-          <div key={color} className="flex items-center gap-1">
-            <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />
-            <span className="text-[10px] text-text-muted">{label}</span>
-          </div>
-        ))}
-      </div>
     </div>
   );
 }

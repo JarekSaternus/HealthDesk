@@ -70,6 +70,10 @@ export default function HomeEnhanced() {
 
   const takenBreaks = breaks.filter((b) => !b.skipped).length;
   const skippedBreaks = breaks.filter((b) => b.skipped).length;
+  const smallTaken = breaks.filter((b) => b.type === "small" && !b.skipped).length;
+  const smallSkipped = breaks.filter((b) => b.type === "small" && b.skipped).length;
+  const bigTaken = breaks.filter((b) => b.type === "big" && !b.skipped).length;
+  const bigSkipped = breaks.filter((b) => b.type === "big" && b.skipped).length;
   const waterGoal = config?.water_daily_goal ?? 8;
   const workStart = config?.work_hours_start ?? "08:00";
   const workEnd = config?.work_hours_end ?? "18:00";
@@ -253,49 +257,65 @@ export default function HomeEnhanced() {
           </div>
         </Card>
       ) : (
-        <div className="grid grid-cols-2 gap-4">
-          <Card>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-text-muted text-xs">{t("home.small_break")}</h3>
-              <span className="text-xs text-text-muted">{config?.small_break_interval_min ?? 25} min</span>
+        <Card>
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-text-muted text-xs">{t("home.small_break")}</h4>
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="text-accent">{smallTaken} ✓</span>
+                  {smallSkipped > 0 && <span className="text-danger">{smallSkipped} ✗</span>}
+                  <span className="text-text-muted">· {config?.small_break_interval_min ?? 25} min</span>
+                </div>
+              </div>
+              <div className="text-xl font-mono" style={{ color: "#3498db" }}>
+                {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
+              </div>
+              {schedulerState && (
+                <ProgressBar
+                  value={smallBreakMax - schedulerState.time_to_small_break}
+                  max={smallBreakMax}
+                  color="#3498db"
+                />
+              )}
             </div>
-            <div className="text-xl font-mono" style={{ color: "#3498db" }}>
-              {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
+            <div>
+              <div className="flex items-center justify-between mb-1">
+                <h4 className="text-text-muted text-xs">{t("home.big_break")}</h4>
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="text-accent">{bigTaken} ✓</span>
+                  {bigSkipped > 0 && <span className="text-danger">{bigSkipped} ✗</span>}
+                  <span className="text-text-muted">· {config?.big_break_interval_min ?? 100} min</span>
+                </div>
+              </div>
+              <div className="text-xl font-mono" style={{ color: "#e67e22" }}>
+                {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
+              </div>
+              {schedulerState && (
+                <ProgressBar
+                  value={bigBreakMax - schedulerState.time_to_big_break}
+                  max={bigBreakMax}
+                  color="#e67e22"
+                />
+              )}
             </div>
-            {schedulerState && (
-              <ProgressBar
-                value={smallBreakMax - schedulerState.time_to_small_break}
-                max={smallBreakMax}
-                color="#3498db"
-              />
-            )}
-          </Card>
-          <Card>
-            <div className="flex items-center justify-between mb-1">
-              <h3 className="text-text-muted text-xs">{t("home.big_break")}</h3>
-              <span className="text-xs text-text-muted">{config?.big_break_interval_min ?? 100} min</span>
-            </div>
-            <div className="text-xl font-mono" style={{ color: "#e67e22" }}>
-              {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
-            </div>
-            {schedulerState && (
-              <ProgressBar
-                value={bigBreakMax - schedulerState.time_to_big_break}
-                max={bigBreakMax}
-                color="#e67e22"
-              />
-            )}
-          </Card>
-        </div>
+          </div>
+        </Card>
       )}
 
       {/* Water */}
       <Card>
-        <div className="flex items-center justify-between mb-2">
+        <div className="flex items-center justify-between mb-1">
           <div className="flex items-center gap-2">
             <h3 className="text-text-muted text-xs">{t("home.water")}</h3>
             <span className="text-sm font-bold text-info">{waterToday}</span>
             <span className="text-xs text-text-muted">/ {waterGoal}</span>
+            {schedulerState && schedulerState.time_to_water > 0 && (
+              <>
+                <span className="text-text-muted text-xs">·</span>
+                <span className="text-xs text-text-muted">{t("home.next_water")} {formatCountdown(schedulerState.time_to_water)}</span>
+              </>
+            )}
           </div>
           <button
             onClick={() => useAppStore.getState().logWater()}
@@ -304,139 +324,109 @@ export default function HomeEnhanced() {
             +1
           </button>
         </div>
-        <div className="flex gap-1.5 mb-1">
-          {Array.from({ length: waterGoal }, (_, i) => (
-            <span key={i} className={`text-sm ${i < waterToday ? "text-info" : "text-card-hover"}`}>
-              {i < waterToday ? "●" : "○"}
-            </span>
-          ))}
-        </div>
         <ProgressBar value={waterToday} max={waterGoal} color="#3498db" />
-        {schedulerState && schedulerState.time_to_water > 0 && (
-          <div className="text-xs text-text-muted mt-1">
-            {t("home.next_water")} {formatCountdown(schedulerState.time_to_water)}
+      </Card>
+
+      {/* Sound */}
+      <Card className="relative">
+        <div className="flex items-center gap-2">
+          <h3 className="text-text-muted text-xs">{t("home.sound")}</h3>
+          <span className={`text-xs truncate flex-1 ${audioPlaying ? "text-accent" : "text-text-muted"}`}>
+            {audioPlaying ? config?.audio_last_type ?? "♫" : t("home.sound_off")}
+          </span>
+          <button
+            onClick={toggleAudio}
+            className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+          >
+            {audioPlaying ? "⏹" : "▶"}
+          </button>
+          <input
+            type="range"
+            min={0}
+            max={100}
+            value={config?.audio_last_volume ?? 10}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              if (config) {
+                useAppStore.getState().saveConfig({ ...config, audio_last_volume: v });
+              }
+            }}
+            onMouseUp={(e) => {
+              const v = Number((e.target as HTMLInputElement).value);
+              invoke("set_sound_volume", { volume: v });
+            }}
+            onTouchEnd={(e) => {
+              const v = Number((e.target as HTMLInputElement).value);
+              invoke("set_sound_volume", { volume: v });
+            }}
+            className="w-24 h-1"
+          />
+          <button
+            onClick={() => setShowSearch(!showSearch)}
+            className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+            title={t("home.search_music")}
+          >
+            🔍
+          </button>
+          <button
+            onClick={() => setPage("music")}
+            className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+          >
+            ♫
+          </button>
+        </div>
+
+        {/* Search modal */}
+        {showSearch && (
+          <div
+            ref={searchRef}
+            className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-hover rounded-lg shadow-lg z-20 p-3"
+          >
+            <div className="flex gap-2 mb-2">
+              <input
+                ref={searchInputRef}
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                onKeyDown={(e) => e.key === "Enter" && doSearch()}
+                placeholder={t("home.search_placeholder")}
+                className="flex-1 bg-content border border-card-hover rounded px-2 py-1 text-xs text-text outline-none focus:border-accent"
+              />
+              <button
+                onClick={doSearch}
+                disabled={searchLoading}
+                className="text-xs bg-accent/20 text-accent px-3 py-1 rounded hover:bg-accent/30 transition-colors disabled:opacity-50"
+              >
+                {searchLoading ? t("home.searching") : t("music.search")}
+              </button>
+            </div>
+            {searchResults.length > 0 ? (
+              <div className="space-y-1 max-h-[300px] overflow-y-auto">
+                {(showAllResults ? searchResults : searchResults.slice(0, 5)).map((r, i) => (
+                  <button
+                    key={i}
+                    onClick={() => playSearchResult(r)}
+                    className="w-full text-left p-1.5 rounded hover:bg-card-hover text-xs flex justify-between gap-2"
+                  >
+                    <span className="truncate">{r.title}</span>
+                    <span className="text-text-muted whitespace-nowrap">{r.duration}</span>
+                  </button>
+                ))}
+                {searchResults.length > 5 && (
+                  <button
+                    onClick={() => setShowAllResults(!showAllResults)}
+                    className="w-full text-center text-xs text-accent py-1 hover:bg-accent/10 rounded transition-colors"
+                  >
+                    {showAllResults ? t("home.show_less") : `${t("home.show_more")} (${searchResults.length - 5})`}
+                  </button>
+                )}
+              </div>
+            ) : searchLoading ? null : searchQuery && searchResults.length === 0 ? (
+              <div className="text-xs text-text-muted text-center py-2">{t("home.no_results")}</div>
+            ) : null}
           </div>
         )}
       </Card>
-
-      {/* Breaks taken/skipped + Sound */}
-      <div className="grid grid-cols-2 gap-4">
-        <Card>
-          <h3 className="text-text-muted text-xs mb-2">{t("home.breaks")}</h3>
-          <div className="flex gap-4">
-            <div>
-              <span className="text-2xl font-bold text-accent">{takenBreaks}</span>
-              <span className="text-text-muted text-xs ml-1">{t("home.breaks_taken")}</span>
-            </div>
-            <div>
-              <span className="text-2xl font-bold text-danger">{skippedBreaks}</span>
-              <span className="text-text-muted text-xs ml-1">{t("home.breaks_skipped")}</span>
-            </div>
-          </div>
-        </Card>
-
-        <Card className="relative">
-          <h3 className="text-text-muted text-xs mb-2">{t("home.sound")}</h3>
-          <div className="flex items-center gap-2">
-            <span className={`text-sm truncate ${audioPlaying ? "text-accent" : "text-text-muted"}`}>
-              {audioPlaying ? config?.audio_last_type ?? "♫" : t("home.sound_off")}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 mt-2">
-            <button
-              onClick={toggleAudio}
-              className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
-            >
-              {audioPlaying ? "⏹" : "▶"}
-            </button>
-            <input
-              type="range"
-              min={0}
-              max={100}
-              value={config?.audio_last_volume ?? 10}
-              onChange={(e) => {
-                const v = Number(e.target.value);
-                if (config) {
-                  useAppStore.getState().saveConfig({ ...config, audio_last_volume: v });
-                }
-              }}
-              onMouseUp={(e) => {
-                const v = Number((e.target as HTMLInputElement).value);
-                invoke("set_sound_volume", { volume: v });
-              }}
-              onTouchEnd={(e) => {
-                const v = Number((e.target as HTMLInputElement).value);
-                invoke("set_sound_volume", { volume: v });
-              }}
-              className="flex-1 h-1"
-            />
-            <button
-              onClick={() => setShowSearch(!showSearch)}
-              className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
-              title={t("home.search_music")}
-            >
-              🔍
-            </button>
-            <button
-              onClick={() => setPage("music")}
-              className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
-            >
-              ♫
-            </button>
-          </div>
-
-          {/* Search modal */}
-          {showSearch && (
-            <div
-              ref={searchRef}
-              className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-hover rounded-lg shadow-lg z-20 p-3"
-            >
-              <div className="flex gap-2 mb-2">
-                <input
-                  ref={searchInputRef}
-                  type="text"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === "Enter" && doSearch()}
-                  placeholder={t("home.search_placeholder")}
-                  className="flex-1 bg-content border border-card-hover rounded px-2 py-1 text-xs text-text outline-none focus:border-accent"
-                />
-                <button
-                  onClick={doSearch}
-                  disabled={searchLoading}
-                  className="text-xs bg-accent/20 text-accent px-3 py-1 rounded hover:bg-accent/30 transition-colors disabled:opacity-50"
-                >
-                  {searchLoading ? t("home.searching") : t("music.search")}
-                </button>
-              </div>
-              {searchResults.length > 0 ? (
-                <div className="space-y-1 max-h-[300px] overflow-y-auto">
-                  {(showAllResults ? searchResults : searchResults.slice(0, 5)).map((r, i) => (
-                    <button
-                      key={i}
-                      onClick={() => playSearchResult(r)}
-                      className="w-full text-left p-1.5 rounded hover:bg-card-hover text-xs flex justify-between gap-2"
-                    >
-                      <span className="truncate">{r.title}</span>
-                      <span className="text-text-muted whitespace-nowrap">{r.duration}</span>
-                    </button>
-                  ))}
-                  {searchResults.length > 5 && (
-                    <button
-                      onClick={() => setShowAllResults(!showAllResults)}
-                      className="w-full text-center text-xs text-accent py-1 hover:bg-accent/10 rounded transition-colors"
-                    >
-                      {showAllResults ? t("home.show_less") : `${t("home.show_more")} (${searchResults.length - 5})`}
-                    </button>
-                  )}
-                </div>
-              ) : searchLoading ? null : searchQuery && searchResults.length === 0 ? (
-                <div className="text-xs text-text-muted text-center py-2">{t("home.no_results")}</div>
-              ) : null}
-            </div>
-          )}
-        </Card>
-      </div>
     </div>
   );
 }
