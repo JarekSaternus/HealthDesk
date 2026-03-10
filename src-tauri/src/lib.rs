@@ -89,7 +89,9 @@ pub fn run() {
         .setup(move |app| {
             let app_handle = app.handle().clone();
 
-            // Sync autostart state from config
+            // Sync autostart state from config (skip in debug to avoid
+            // overwriting the production exe path in the registry)
+            #[cfg(not(debug_assertions))]
             if cfg.autostart {
                 use tauri_plugin_autostart::ManagerExt;
                 let _ = app_handle.autolaunch().enable();

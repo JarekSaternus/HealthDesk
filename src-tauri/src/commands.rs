@@ -82,12 +82,23 @@ pub fn save_config(
 
 #[tauri::command]
 pub fn set_autostart(app: tauri::AppHandle, enabled: bool) -> Result<(), String> {
-    use tauri_plugin_autostart::ManagerExt;
-    let autostart = app.autolaunch();
-    if enabled {
-        autostart.enable().map_err(|e| e.to_string())
-    } else {
-        autostart.disable().map_err(|e| e.to_string())
+    // In debug builds, skip autostart to avoid overwriting the
+    // production exe path in the registry with the debug exe path.
+    #[cfg(debug_assertions)]
+    {
+        let _ = (app, enabled);
+        return Ok(());
+    }
+
+    #[cfg(not(debug_assertions))]
+    {
+        use tauri_plugin_autostart::ManagerExt;
+        let autostart = app.autolaunch();
+        if enabled {
+            autostart.enable().map_err(|e| e.to_string())
+        } else {
+            autostart.disable().map_err(|e| e.to_string())
+        }
     }
 }
 
