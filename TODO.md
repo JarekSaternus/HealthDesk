@@ -12,40 +12,47 @@
 2. Założyć alias privacy@healthdesk.site w panelu hostingu (cyber-folks) → przekierowanie na główny email
 
 ### P1 — Duże feature'y
-3. Google Calendar OAuth — "Połącz z Google Calendar" w Settings, readonly scope, refresh token w config, auto-pauza przed spotkaniami, timeline na Home
+3. Google Calendar OAuth — "Połącz z Google Calendar" w Settings, readonly scope, refresh token w config
+   - Auto-pauza schedulera przed spotkaniami
+   - Inteligentne przesuwanie przerw na wolne sloty w kalendarzu
+   - Pre-meeting reminder ("Za 5 min spotkanie — czas na przerwę i wodę")
+   - Timeline na Home z widokiem spotkań + zaplanowanych przerw
    - PREP: Złożyć weryfikację aplikacji od razu (review 1-2 tyg)
-4. YouTube playlisty — import playlist usera (publiczne + unlisted), lista tracków, auto-next. Opcja cookies dla prywatnych.
-5. ~~Onboarding wizard~~ ✅ (v2.0.27)
+4. Harmonogram tygodniowy — osobny profil przerw na każdy dzień tygodnia
+   - Interaktywna oś czasu na Home z suwakiem do ad-hoc dostosowania przerw w danym dniu
+   - Zmiany z suwaka nie edytują globalnego harmonogramu (jednorazowe override)
+5. YouTube playlisty — import playlist usera (publiczne + unlisted), lista tracków, auto-next. Opcja cookies dla prywatnych.
+6. ~~Onboarding wizard~~ ✅ (v2.0.27)
 
 ### P2 — UX / quick wins
-6. Tooltip godzin pracy — wyjaśnienie w UI jak działa ustawienie
-7. Cotygodniowy summary — toast w poniedziałek z podsumowaniem
-8. Ctrl+Shift+W — globalny skrót na wodę
-9. Night mode / wind-down
+7. Tooltip godzin pracy — wyjaśnienie w UI jak działa ustawienie
+8. Cotygodniowy summary — toast w poniedziałek z podsumowaniem
+9. Ctrl+Shift+W — globalny skrót na wodę
+10. Night mode / wind-down
 
 ### P3 — Marketing / growth
-10. Reddit post (wymaga code signing)
-11. Product Hunt launch
-12. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
-13. AlternativeTo, Softpedia — katalogi + backlinki
-14. Blog SEO — artykuły
-15. Pitch do HR — one-pager "HealthDesk dla firm"
+11. Reddit post (wymaga code signing)
+12. Product Hunt launch
+13. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
+14. AlternativeTo, Softpedia — katalogi + backlinki
+15. Blog SEO — artykuły
+16. Pitch do HR — one-pager "HealthDesk dla firm"
 
 ### P4 — Backend / analytics
-16. Web dashboard dla telemetrii (backend FastAPI ✅ istnieje, brak UI — Chart.js)
-17. Blog Studio — zakładka Analytics (GA4 Data API + Chart.js)
-18. Crash reporting — rozbudowa o tracebacki (event type `error` ✅ istnieje)
+17. Web dashboard dla telemetrii (backend FastAPI ✅ istnieje, brak UI — Chart.js)
+18. Blog Studio — zakładka Analytics (GA4 Data API + Chart.js)
+19. Crash reporting — rozbudowa o tracebacki (event type `error` ✅ istnieje)
 
 ### P5 — Przyszłość
-19. macOS tracker (NSWorkspace + Accessibility API)
-20. Microsoft Store
-21. Achievements / odznaki
-22. Keyboard shortcuts — konfiguracja
-23. Cloud sync
-24. Roczne podsumowanie (Spotify Wrapped)
-25. Posture reminder (MediaPipe)
-26. Slack status — auto "Na przerwie"
-27. HealthDesk Pro (freemium)
+20. macOS tracker (NSWorkspace + Accessibility API)
+21. Microsoft Store
+22. Achievements / odznaki
+23. Keyboard shortcuts — konfiguracja
+24. Cloud sync
+25. Roczne podsumowanie (Spotify Wrapped)
+26. Posture reminder (MediaPipe)
+27. Slack status — auto "Na przerwie"
+28. HealthDesk Pro (freemium)
 
 ## Zrobione
 - ~~Trening oddechowy~~ ✅ (v2.0.21)
