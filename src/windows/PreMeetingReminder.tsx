@@ -78,14 +78,14 @@ export default function PreMeetingReminder() {
             onClick={handleOpenMeet}
             className="bg-blue-500/20 hover:bg-blue-500/30 text-blue-400 rounded px-4 py-1.5 text-sm font-medium transition-colors"
           >
-            🔗 Google Meet
+            🔗 {t("pre_meeting_join") || "Google Meet"}
           </button>
         )}
         <button
           onClick={handleClose}
           className="bg-card hover:bg-card-hover text-text-muted rounded px-4 py-1.5 text-sm transition-colors"
         >
-          OK
+          {t("pre_meeting_dismiss") || "OK"}
         </button>
       </div>
     </div>

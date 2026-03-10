@@ -186,6 +186,8 @@
   "pre_meeting_title": "Spotkanie za 5 minut",
   "pre_meeting_body": "Czas na przerwę i szklankę wody!",
   "status_in_meeting": "Na spotkaniu",
+  "pre_meeting_join": "Google Meet",
+  "pre_meeting_dismiss": "OK",
 
   "help": {
     "title": "Pomoc",
