@@ -4,6 +4,7 @@ use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
 use crate::config::{AppConfig, effective_intervals};
+use crate::calendar::{SharedCalendarState, is_in_meeting};
 
 #[cfg(windows)]
 fn get_system_idle_secs() -> u64 {
@@ -58,6 +59,7 @@ pub struct SchedulerState {
     pub outside_work_hours: bool,
     pub idle: bool,
     pub dnd: bool,
+    pub in_meeting: bool,
     pub time_to_small_break: f64,
     pub time_to_big_break: f64,
     pub time_to_water: f64,
@@ -80,6 +82,8 @@ pub struct SchedulerInner {
     pub include_eyes_in_big_break: bool,
     pub running: bool,
     pub current_weekday: u8,
+    pub pre_meeting_reminded_ids: std::collections::HashSet<String>,
+    pub meeting_since: Option<Instant>,
 }
 
 impl SchedulerInner {
@@ -123,6 +127,8 @@ impl SchedulerInner {
             include_eyes_in_big_break: false,
             running: true,
             current_weekday: chrono::Local::now().weekday().num_days_from_monday() as u8,
+            pre_meeting_reminded_ids: std::collections::HashSet::new(),
+            meeting_since: None,
         }
     }
 
@@ -239,8 +245,8 @@ impl SchedulerInner {
         let breathing_interval = eff.breathing_exercise_interval_min as f64 * 60.0;
         let outside = !self.in_work_hours(config);
 
-        // When paused or idle, show frozen timer values
-        let frozen_at = self.pause_start.or(self.idle_since);
+        // When paused, idle, or in meeting, show frozen timer values
+        let frozen_at = self.pause_start.or(self.idle_since).or(self.meeting_since);
         let (t_small, t_big, t_water, t_eye, t_breathing) = if let Some(frozen) = frozen_at {
             (
                 Self::time_to_next_frozen(self.last_small_break, small_interval, frozen),
@@ -265,6 +271,7 @@ impl SchedulerInner {
             outside_work_hours: outside,
             idle: self.idle_since.is_some(),
             dnd: false, // set by scheduler loop
+            in_meeting: false, // set by scheduler loop
             time_to_small_break: t_small,
             time_to_big_break: t_big,
             time_to_water: t_water,
@@ -281,6 +288,7 @@ pub fn start_scheduler(
     app: AppHandle,
     scheduler: SharedScheduler,
     config: Arc<Mutex<AppConfig>>,
+    calendar_state: SharedCalendarState,
 ) {
     tauri::async_runtime::spawn(async move {
         loop {
@@ -347,6 +355,80 @@ pub fn start_scheduler(
                 state.dnd = true;
                 let _ = app.emit("scheduler:state-update", &state);
                 continue;
+            }
+
+            // Google Calendar: smart scheduling + pre-meeting reminder
+            if cfg.google_calendar_enabled {
+                let cal_events = {
+                    let cal = calendar_state.lock().unwrap();
+                    cal.events.clone()
+                };
+
+                // Smart scheduling: freeze timers during meetings
+                if cfg.google_calendar_block_breaks {
+                    let in_meeting = is_in_meeting(&cal_events);
+                    if in_meeting && sched.meeting_since.is_none() {
+                        // Entered meeting — freeze timers
+                        sched.meeting_since = Some(Instant::now());
+                    } else if !in_meeting && sched.meeting_since.is_some() {
+                        // Left meeting — shift timers forward (like idle resume)
+                        let meeting_start = sched.meeting_since.unwrap();
+                        let meeting_duration = meeting_start.elapsed();
+                        let meeting_mins = meeting_duration.as_secs_f64() / 60.0;
+                        sched.last_small_break += meeting_duration;
+                        sched.last_big_break += meeting_duration;
+                        sched.last_water += meeting_duration;
+                        sched.last_eye += meeting_duration;
+                        sched.last_breathing += meeting_duration;
+                        sched.meeting_since = None;
+
+                        // Post-meeting break acceleration
+                        let now = Instant::now();
+                        let eff_post = effective_intervals(&cfg);
+                        let small_interval_sec = eff_post.small_break_interval_min as f64 * 60.0;
+                        if meeting_mins >= 45.0 {
+                            // Long meeting (>45 min): trigger break immediately
+                            sched.last_small_break = now - Duration::from_secs_f64(small_interval_sec);
+                        } else if meeting_mins >= 15.0 {
+                            // Medium meeting (15-45 min): accelerate break to 2 min
+                            let remaining = small_interval_sec - sched.last_small_break.elapsed().as_secs_f64();
+                            if remaining > 120.0 {
+                                sched.last_small_break = now - Duration::from_secs_f64(small_interval_sec - 120.0);
+                            }
+                        }
+                    }
+
+                    if sched.meeting_since.is_some() {
+                        let mut state = sched.get_state(&cfg);
+                        state.in_meeting = true;
+                        let _ = app.emit("scheduler:state-update", &state);
+                        continue;
+                    }
+                }
+
+                // Pre-meeting reminder: uses per-event reminder_minutes from Google Calendar (default 5 min)
+                if cfg.google_calendar_pre_meeting {
+                    // Find any event starting within its own reminder window
+                    let upcoming = cal_events.iter().find(|ev| {
+                        let within_secs = ev.reminder_minutes * 60;
+                        if let Ok(start) = chrono::DateTime::parse_from_rfc3339(&ev.start) {
+                            let until = start.signed_duration_since(chrono::Local::now()).num_seconds();
+                            until > 0 && until <= within_secs
+                        } else {
+                            false
+                        }
+                    });
+                    if let Some(upcoming) = upcoming {
+                        if !sched.pre_meeting_reminded_ids.contains(&upcoming.id) {
+                            sched.pre_meeting_reminded_ids.insert(upcoming.id.clone());
+                            let _ = app.emit("scheduler:pre-meeting", &upcoming);
+                        }
+                    }
+                }
+
+                // Clean up old reminded IDs (keep only current day's event IDs)
+                let current_ids: std::collections::HashSet<String> = cal_events.iter().map(|e| e.id.clone()).collect();
+                sched.pre_meeting_reminded_ids.retain(|id| current_ids.contains(id));
             }
 
             // Detect weekday change (e.g. midnight) — reset timers for new day profile

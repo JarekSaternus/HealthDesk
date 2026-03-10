@@ -9,6 +9,9 @@ interface MeetingBlock {
   startMin: number;
   endMin: number;
   summary: string;
+  organizer: string | null;
+  description: string | null;
+  meet_link: string | null;
 }
 
 interface TimelineEvent {
@@ -19,8 +22,8 @@ interface TimelineEvent {
 }
 
 function minutesToHHMM(min: number): string {
-  const h = Math.floor(min) % 24;
-  const m = Math.round((min % 1) * 60);
+  const h = Math.floor(min / 60) % 24;
+  const m = Math.round(min % 60);
   return `${h}:${m.toString().padStart(2, "0")}`;
 }
 
@@ -35,6 +38,7 @@ function generateEvents(
   nowMin: number,
   eff: EffectiveIntervals,
   schedulerState: any,
+  meetings: MeetingBlock[],
 ): TimelineEvent[] {
   const events: TimelineEvent[] = [];
   if (!schedulerState) return events;
@@ -55,13 +59,17 @@ function generateEvents(
   }
 
   for (const { key, interval, timer, color, label } of types) {
-    // First upcoming event time
     const nextMin = nowMin + timer / 60;
-    // Generate events from next occurrence until end of work day
     let eventMin = nextMin;
     while (eventMin <= endMin) {
       if (eventMin >= startMin) {
-        events.push({ type: key, time: eventMin, color, label });
+        // Always hide breaks that overlap with meetings on the timeline
+        const duringMeeting = meetings.some(
+          (m) => eventMin >= m.startMin && eventMin < m.endMin
+        );
+        if (!duringMeeting) {
+          events.push({ type: key, time: eventMin, color, label });
+        }
       }
       eventMin += interval;
     }
@@ -74,6 +82,7 @@ export default function DayTimeline() {
   const config = useAppStore((s) => s.config);
   const schedulerState = useAppStore((s) => s.schedulerState);
   const [eff, setEff] = useState<EffectiveIntervals | null>(null);
+  const [selectedMeeting, setSelectedMeeting] = useState<MeetingBlock | null>(null);
   const [meetings, setMeetings] = useState<MeetingBlock[]>([]);
   const [nowMin, setNowMin] = useState(() => {
     const now = new Date();
@@ -103,6 +112,9 @@ export default function DayTimeline() {
         startMin: s.getHours() * 60 + s.getMinutes(),
         endMin: e.getHours() * 60 + e.getMinutes(),
         summary: ev.summary,
+        organizer: ev.organizer,
+        description: ev.description,
+        meet_link: ev.meet_link,
       };
     }));
   };
@@ -122,7 +134,7 @@ export default function DayTimeline() {
   const totalRange = endMin - startMin;
   if (totalRange <= 0) return null;
 
-  const events = generateEvents(startMin, endMin, nowMin, eff, schedulerState);
+  const events = generateEvents(startMin, endMin, nowMin, eff, schedulerState, meetings);
   const nowPct = Math.max(0, Math.min(100, ((nowMin - startMin) / totalRange) * 100));
 
   // Generate hour markers
@@ -142,7 +154,6 @@ export default function DayTimeline() {
             { color: "#5dade2", label: t("home.water") },
             { color: "#9b59b6", label: t("settings.eye_section") },
             ...(eff.breathing_exercise_enabled ? [{ color: "#2ecc71", label: t("settings.breathing_section") }] : []),
-            ...(meetings.length > 0 ? [{ color: "#e74c3c", label: t("home.meetings") }] : []),
           ].map(({ color, label }) => (
             <span
               key={color}
@@ -171,18 +182,20 @@ export default function DayTimeline() {
           );
         })}
 
-        {/* Meeting blocks */}
+        {/* Meeting blocks — z-[5] so they're above break bars and clickable */}
         {meetings.map((m, i) => {
           const leftPct = Math.max(0, ((m.startMin - startMin) / totalRange) * 100);
           const rightPct = Math.min(100, ((m.endMin - startMin) / totalRange) * 100);
           const widthPct = rightPct - leftPct;
           if (widthPct <= 0) return null;
+          const meetingTitle = `${m.summary}\n${minutesToHHMM(m.startMin)}–${minutesToHHMM(m.endMin)}${m.organizer ? `\n${m.organizer}` : ""}`;
           return (
             <div
               key={`meeting-${i}`}
-              className="absolute top-0.5 bottom-0.5 rounded opacity-25 hover:opacity-40 transition-opacity"
+              className="absolute top-0.5 bottom-0.5 rounded opacity-30 hover:opacity-60 transition-opacity cursor-pointer z-[5]"
               style={{ left: `${leftPct}%`, width: `${widthPct}%`, backgroundColor: "#e74c3c" }}
-              title={`${m.summary} (${minutesToHHMM(m.startMin)}–${minutesToHHMM(m.endMin)})`}
+              title={meetingTitle}
+              onClick={() => setSelectedMeeting(selectedMeeting?.summary === m.summary ? null : m)}
             />
           );
         })}
@@ -212,18 +225,51 @@ export default function DayTimeline() {
         )}
       </div>
 
-      {/* Meeting list */}
-      {meetings.length > 0 && (
-        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1">
-          {meetings.map((m, i) => (
-            <span key={`ml-${i}`} className="text-[10px] text-text-muted">
-              <span style={{ color: "#e74c3c" }}>{minutesToHHMM(m.startMin)}</span>
-              {" "}
-              {m.summary}
+      {/* Meeting detail popup */}
+      {selectedMeeting && (
+        <div className="mt-1.5 p-2.5 bg-card-hover rounded-lg border border-red-500/20 text-xs">
+          <div className="flex items-start justify-between gap-2">
+            <div className="font-medium text-white">{selectedMeeting.summary}</div>
+            <button
+              className="text-text-muted hover:text-white text-sm leading-none"
+              onClick={() => setSelectedMeeting(null)}
+            >
+              ✕
+            </button>
+          </div>
+          <div className="text-text-muted mt-1">
+            {minutesToHHMM(selectedMeeting.startMin)}–{minutesToHHMM(selectedMeeting.endMin)}
+            <span className="ml-2 text-text-muted/60">
+              ({Math.round(selectedMeeting.endMin - selectedMeeting.startMin)} min)
             </span>
-          ))}
+          </div>
+          {selectedMeeting.organizer && (
+            <div className="mt-1 text-text-muted">
+              {t("settings.calendar_select") ? "👤" : "👤"} {selectedMeeting.organizer}
+            </div>
+          )}
+          {selectedMeeting.description && (
+            <div className="mt-1 text-text-muted/80 whitespace-pre-line line-clamp-3">
+              {selectedMeeting.description}
+            </div>
+          )}
+          {selectedMeeting.meet_link && (
+            <a
+              href={selectedMeeting.meet_link}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1 mt-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 rounded transition-colors"
+              onClick={(e) => {
+                e.preventDefault();
+                invoke("plugin:shell|open", { path: selectedMeeting.meet_link });
+              }}
+            >
+              🔗 Google Meet
+            </a>
+          )}
         </div>
       )}
+
     </div>
   );
 }

@@ -82,8 +82,8 @@ export default function HomeCompact() {
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      {/* Idle / DND status badge */}
-      {(schedulerState?.idle || schedulerState?.dnd) && (
+      {/* Idle / DND / Meeting status badge */}
+      {(schedulerState?.idle || schedulerState?.dnd || schedulerState?.in_meeting) && (
         <div className="col-span-2">
           <Card>
             <div className="flex items-center gap-2 py-0.5">
@@ -95,6 +95,11 @@ export default function HomeCompact() {
               {schedulerState?.dnd && (
                 <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
                   {t("home.dnd")}
+                </span>
+              )}
+              {schedulerState?.in_meeting && (
+                <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
+                  {t("status_in_meeting")}
                 </span>
               )}
             </div>

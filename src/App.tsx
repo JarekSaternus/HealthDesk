@@ -19,6 +19,7 @@ import EyeExercise from "./windows/EyeExercise";
 import StretchExercise from "./windows/StretchExercise";
 import WaterReminder from "./windows/WaterReminder";
 import BreathingExercise from "./windows/BreathingExercise";
+import PreMeetingReminder from "./windows/PreMeetingReminder";
 import OnboardingWizard from "./pages/OnboardingWizard";
 
 function UpdateModal({ version, onClose }: { version: string; onClose: () => void }) {
@@ -207,6 +208,7 @@ export default function App() {
   if (path.startsWith("/stretch-exercise")) return <StretchExercise />;
   if (path.startsWith("/breathing-exercise")) return <BreathingExercise />;
   if (path.startsWith("/water-reminder")) return <WaterReminder />;
+  if (path.startsWith("/pre-meeting")) return <PreMeetingReminder />;
 
   if (showOnboarding) {
     return (

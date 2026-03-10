@@ -110,7 +110,7 @@ pub fn run() {
             }
 
             // Start scheduler
-            scheduler::start_scheduler(app_handle.clone(), scheduler_clone.clone(), config_clone.clone());
+            scheduler::start_scheduler(app_handle.clone(), scheduler_clone.clone(), config_clone.clone(), calendar_state.clone());
 
             // Start tracker
             tracker::start_tracker(db_clone.clone(), config_clone.clone(), scheduler_clone.clone());

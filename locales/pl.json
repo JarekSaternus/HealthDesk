@@ -180,8 +180,12 @@
     "calendar_desc": "Synchronizuj kalendarz, aby automatycznie dostosować przerwy do spotkań",
     "calendar_block_breaks": "Blokuj przerwy podczas spotkań",
     "calendar_pre_meeting": "Przypomnienie 5 min przed spotkaniem",
-    "calendar_upcoming": "Najbliższe spotkania"
+    "calendar_upcoming": "Najbliższe spotkania",
+    "calendar_in_meeting": "W trakcie spotkania — przerwy wstrzymane"
   },
+  "pre_meeting_title": "Spotkanie za 5 minut",
+  "pre_meeting_body": "Czas na przerwę i szklankę wody!",
+  "status_in_meeting": "Na spotkaniu",
 
   "help": {
     "title": "Pomoc",

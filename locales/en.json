@@ -180,8 +180,12 @@
     "calendar_desc": "Sync your calendar to automatically adjust breaks around meetings",
     "calendar_block_breaks": "Block breaks during meetings",
     "calendar_pre_meeting": "Reminder 5 min before meeting",
-    "calendar_upcoming": "Upcoming meetings"
+    "calendar_upcoming": "Upcoming meetings",
+    "calendar_in_meeting": "In a meeting — breaks paused"
   },
+  "pre_meeting_title": "Meeting in 5 minutes",
+  "pre_meeting_body": "Time for a break and a glass of water!",
+  "status_in_meeting": "In a meeting",
 
   "help": {
     "title": "Help",

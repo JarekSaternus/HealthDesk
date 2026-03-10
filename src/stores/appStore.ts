@@ -2,7 +2,7 @@ import { create } from "zustand";
 import { invoke } from "@tauri-apps/api/core";
 import { listen } from "@tauri-apps/api/event";
 import { loadTranslations } from "../i18n";
-import type { AppConfig, SchedulerState, Page } from "../types";
+import type { AppConfig, CalendarEvent, SchedulerState, Page } from "../types";
 
 interface AppStore {
   config: AppConfig | null;
@@ -87,6 +87,31 @@ export const useAppStore = create<AppStore>((set, get) => ({
 
     await listen("water:logged", () => {
       get().refreshWater();
+    });
+
+    // Pre-meeting reminder — open popup window with meeting details
+    await listen<CalendarEvent>("scheduler:pre-meeting", async (event) => {
+      console.log("[Pre-meeting] Event received:", event.payload);
+      const ev = event.payload;
+      const params = new URLSearchParams({
+        summary: ev.summary,
+        start: ev.start,
+        end: ev.end,
+        ...(ev.organizer ? { organizer: ev.organizer } : {}),
+        ...(ev.description ? { description: ev.description } : {}),
+        ...(ev.meet_link ? { meet_link: ev.meet_link } : {}),
+      });
+      // Create popup window via Tauri WebviewWindow
+      const { WebviewWindow } = await import("@tauri-apps/api/webviewWindow");
+      new WebviewWindow("pre-meeting", {
+        url: `/pre-meeting?${params.toString()}`,
+        title: "HealthDesk - Meeting",
+        width: 400,
+        height: 300,
+        center: true,
+        alwaysOnTop: true,
+        resizable: false,
+      });
     });
 
     // Initial data load

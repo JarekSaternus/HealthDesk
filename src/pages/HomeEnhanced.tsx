@@ -227,8 +227,8 @@ export default function HomeEnhanced() {
         </Card>
       )}
 
-      {/* Idle / DND status badge */}
-      {(schedulerState?.idle || schedulerState?.dnd) && (
+      {/* Idle / DND / Meeting status badge */}
+      {(schedulerState?.idle || schedulerState?.dnd || schedulerState?.in_meeting) && (
         <Card>
           <div className="flex items-center gap-2 py-1">
             {schedulerState.idle && (
@@ -239,6 +239,11 @@ export default function HomeEnhanced() {
             {schedulerState.dnd && (
               <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
                 {t("home.dnd")}
+              </span>
+            )}
+            {schedulerState.in_meeting && (
+              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
+                {t("status_in_meeting")}
               </span>
             )}
             <span className="text-xs text-text-muted">

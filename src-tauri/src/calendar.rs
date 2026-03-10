@@ -19,6 +19,10 @@ pub struct CalendarEvent {
     pub start: String,
     pub end: String,
     pub is_all_day: bool,
+    pub organizer: Option<String>,
+    pub description: Option<String>,
+    pub meet_link: Option<String>,
+    pub reminder_minutes: i64, // from Google Calendar, or 5 default
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -294,12 +298,48 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
                     return None;
                 };
                 let end = item.end.date_time.or(item.end.date).unwrap_or_default();
+                let organizer = item.organizer.and_then(|o| {
+                    o.display_name.or(o.email)
+                });
+                // Trim description to first 200 chars, strip HTML tags
+                let description = item.description.map(|d| {
+                    let plain = d.replace("<br>", "\n")
+                        .replace("<br/>", "\n")
+                        .replace("&nbsp;", " ");
+                    // Simple HTML tag strip
+                    let mut result = String::new();
+                    let mut in_tag = false;
+                    for ch in plain.chars() {
+                        if ch == '<' { in_tag = true; }
+                        else if ch == '>' { in_tag = false; }
+                        else if !in_tag { result.push(ch); }
+                    }
+                    let trimmed = result.trim().to_string();
+                    if trimmed.len() > 200 { format!("{}…", &trimmed[..200]) } else { trimmed }
+                }).filter(|d| !d.is_empty());
+
+                // Get reminder minutes: use first popup override, or default 5 min
+                let reminder_minutes = item.reminders
+                    .and_then(|r| {
+                        r.overrides.and_then(|ovrs| {
+                            ovrs.iter()
+                                .find(|o| o.method.as_deref() == Some("popup"))
+                                .or_else(|| ovrs.first())
+                                .and_then(|o| o.minutes)
+                        })
+                    })
+                    .unwrap_or(5);
+
                 Some(CalendarEvent {
                     id: item.id.unwrap_or_default(),
                     summary,
                     start,
                     end,
                     is_all_day,
+                    organizer,
+                    description,
+                    meet_link: item.hangout_link,
+                    reminder_minutes,
                 })
             })
             .filter(|e| !e.is_all_day)
@@ -354,10 +394,44 @@ pub fn start_calendar_sync(
                     }
                 }
 
-                tokio::time::sleep(std::time::Duration::from_secs(300)).await; // 5 min
+                tokio::time::sleep(std::time::Duration::from_secs(60)).await; // 1 min (frequent for pre-meeting accuracy)
             }
         }
     });
+}
+
+/// Check if user is currently in a meeting
+pub fn is_in_meeting(events: &[CalendarEvent]) -> bool {
+    let now = chrono::Local::now();
+    events.iter().any(|e| {
+        if e.is_all_day {
+            return false;
+        }
+        if let (Ok(start), Ok(end)) = (
+            chrono::DateTime::parse_from_rfc3339(&e.start),
+            chrono::DateTime::parse_from_rfc3339(&e.end),
+        ) {
+            now >= start && now < end
+        } else {
+            false
+        }
+    })
+}
+
+/// Find the next meeting starting within `within_secs` seconds
+pub fn meeting_starting_soon(events: &[CalendarEvent], within_secs: i64) -> Option<CalendarEvent> {
+    let now = chrono::Local::now();
+    events.iter().find(|e| {
+        if e.is_all_day {
+            return false;
+        }
+        if let Ok(start) = chrono::DateTime::parse_from_rfc3339(&e.start) {
+            let until = start.signed_duration_since(now).num_seconds();
+            until > 0 && until <= within_secs
+        } else {
+            false
+        }
+    }).cloned()
 }
 
 // --- Internal helpers ---
@@ -441,8 +515,33 @@ struct GoogleCalendarListItem {
 struct GoogleCalendarItem {
     id: Option<String>,
     summary: Option<String>,
+    description: Option<String>,
+    organizer: Option<GoogleOrganizer>,
+    #[serde(rename = "hangoutLink")]
+    hangout_link: Option<String>,
+    reminders: Option<GoogleReminders>,
     start: GoogleDateTime,
     end: GoogleDateTime,
+}
+
+#[derive(Deserialize)]
+struct GoogleOrganizer {
+    #[serde(rename = "displayName")]
+    display_name: Option<String>,
+    email: Option<String>,
+}
+
+#[derive(Deserialize)]
+struct GoogleReminders {
+    #[serde(rename = "useDefault")]
+    use_default: Option<bool>,
+    overrides: Option<Vec<GoogleReminderOverride>>,
+}
+
+#[derive(Deserialize)]
+struct GoogleReminderOverride {
+    method: Option<String>,
+    minutes: Option<i64>,
 }
 
 #[derive(Deserialize)]

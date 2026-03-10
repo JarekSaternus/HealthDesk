@@ -70,6 +70,7 @@ export interface SchedulerState {
   outside_work_hours: boolean;
   idle: boolean;
   dnd: boolean;
+  in_meeting: boolean;
   time_to_small_break: number;
   time_to_big_break: number;
   time_to_water: number;
@@ -163,6 +164,10 @@ export interface CalendarEvent {
   start: string;
   end: string;
   is_all_day: boolean;
+  organizer: string | null;
+  description: string | null;
+  meet_link: string | null;
+  reminder_minutes: number;
 }
 
 export interface CalendarInfo {
