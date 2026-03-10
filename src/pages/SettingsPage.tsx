@@ -123,7 +123,7 @@ export default function SettingsPage() {
       <Card>
         <h3 className="text-sm font-medium mb-3">{t("settings.break_mode")}</h3>
         <div className="flex gap-3">
-          {(["moderate", "aggressive"] as const).map((mode) => (
+          {(["gentle", "moderate", "aggressive"] as const).map((mode) => (
             <label key={mode} className="flex items-center gap-2 text-sm cursor-pointer">
               <input
                 type="radio"

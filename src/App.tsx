@@ -19,6 +19,7 @@ import EyeExercise from "./windows/EyeExercise";
 import StretchExercise from "./windows/StretchExercise";
 import WaterReminder from "./windows/WaterReminder";
 import BreathingExercise from "./windows/BreathingExercise";
+import OnboardingWizard from "./pages/OnboardingWizard";
 
 function UpdateModal({ version, onClose }: { version: string; onClose: () => void }) {
   const [status, setStatus] = useState<"prompt" | "downloading" | "installing">("prompt");
@@ -124,6 +125,7 @@ export default function App() {
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [updateAvailable, setUpdateAvailable] = useState<string | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const loadConfig = useAppStore((s) => s.loadConfig);
   const initListeners = useAppStore((s) => s.initListeners);
 
@@ -134,6 +136,13 @@ export default function App() {
         await loadTranslations();
         await loadConfig();
         if (!isPopup) {
+          // Check if onboarding needed
+          const cfg = useAppStore.getState().config;
+          if (cfg && !cfg.onboarding_completed) {
+            setShowOnboarding(true);
+            setReady(true);
+            return;
+          }
           await initListeners();
           // Auto-resume music if enabled
           try {
@@ -198,6 +207,33 @@ export default function App() {
   if (path.startsWith("/stretch-exercise")) return <StretchExercise />;
   if (path.startsWith("/breathing-exercise")) return <BreathingExercise />;
   if (path.startsWith("/water-reminder")) return <WaterReminder />;
+
+  if (showOnboarding) {
+    return (
+      <OnboardingWizard
+        onComplete={async () => {
+          setShowOnboarding(false);
+          await initListeners();
+          // Auto-resume music if enabled
+          try {
+            const cfg = useAppStore.getState().config;
+            if (cfg?.audio_autoplay && cfg.audio_last_type) {
+              // Audio already started in wizard
+            }
+          } catch {}
+          // Auto-check for updates after 3 seconds
+          setTimeout(async () => {
+            try {
+              const cfg = useAppStore.getState().config;
+              if (cfg?.auto_update === false) return;
+              const update = await check();
+              if (update) setUpdateAvailable(update.version);
+            } catch {}
+          }, 3000);
+        }}
+      />
+    );
+  }
 
   return (
     <>

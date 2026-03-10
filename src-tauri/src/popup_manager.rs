@@ -197,7 +197,15 @@ fn show_popup_window(app: &AppHandle, popup_type: PopupType, break_mode: &str, d
                     .always_on_top(true)
                     .closable(false)
                     .build();
+            } else if break_mode == "gentle" {
+                let _ = WebviewWindowBuilder::new(app, label, url)
+                    .title("HealthDesk - Break!")
+                    .inner_size(460.0, 390.0)
+                    .center()
+                    .resizable(false)
+                    .build();
             } else {
+                // moderate (default)
                 let _ = WebviewWindowBuilder::new(app, label, url)
                     .title("HealthDesk - Break!")
                     .inner_size(460.0, 390.0)

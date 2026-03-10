@@ -4,7 +4,7 @@ export interface AppConfig {
   small_break_duration_sec: number;
   big_break_interval_min: number;
   big_break_duration_min: number;
-  break_mode: "moderate" | "aggressive";
+  break_mode: "gentle" | "moderate" | "aggressive";
   water_interval_min: number;
   water_daily_goal: number;
   eye_exercise_interval_min: number;
@@ -28,6 +28,7 @@ export interface AppConfig {
   breathing_exercise_enabled: boolean;
   idle_detection_enabled: boolean;
   idle_threshold_min: number;
+  onboarding_completed: boolean;
 }
 
 export interface SchedulerState {

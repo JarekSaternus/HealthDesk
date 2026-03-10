@@ -64,6 +64,8 @@ pub struct AppConfig {
     pub idle_detection_enabled: bool,
     #[serde(default = "default_idle_threshold")]
     pub idle_threshold_min: u32,
+    #[serde(default)]
+    pub onboarding_completed: bool,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -144,6 +146,14 @@ pub fn load_config() -> AppConfig {
     if path.exists() {
         if let Ok(data) = fs::read_to_string(&path) {
             if let Ok(mut cfg) = serde_json::from_str::<AppConfig>(&data) {
+                // Existing config file → user is not new, mark onboarding as done
+                // (handles migration from versions without this field)
+                if !cfg.onboarding_completed {
+                    let has_field = data.contains("onboarding_completed");
+                    if !has_field {
+                        cfg.onboarding_completed = true;
+                    }
+                }
                 apply_preset(&mut cfg);
                 return cfg;
             }
@@ -219,6 +229,7 @@ impl Default for AppConfig {
             breathing_exercise_enabled: true,
             idle_detection_enabled: true,
             idle_threshold_min: 5,
+            onboarding_completed: false,
         }
     }
 }
