@@ -1,8 +1,9 @@
 # TODO
 
-## v2.0.27 — w trakcie
+## v2.0.27
 - ✅ Fix: YouTube Radio retry (youtube.rs)
 - ✅ GA4 Consent Mode v2 + cookie table + link "Cookies" w footerze
+- ✅ Onboarding wizard (5-krokowy) + gentle break mode
 
 ## Do zrobienia
 
@@ -14,7 +15,7 @@
 3. Google Calendar OAuth — "Połącz z Google Calendar" w Settings, readonly scope, refresh token w config, auto-pauza przed spotkaniami, timeline na Home
    - PREP: Złożyć weryfikację aplikacji od razu (review 1-2 tyg)
 4. YouTube playlisty — import playlist usera (publiczne + unlisted), lista tracków, auto-next. Opcja cookies dla prywatnych.
-5. Onboarding wizard — personalizacja interwałów po 1. uruchomieniu
+5. ~~Onboarding wizard~~ ✅ (v2.0.27)
 
 ### P2 — UX / quick wins
 6. Tooltip godzin pracy — wyjaśnienie w UI jak działa ustawienie
