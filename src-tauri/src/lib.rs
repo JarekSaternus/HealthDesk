@@ -252,6 +252,7 @@ pub fn run() {
             commands::calendar_connect,
             commands::calendar_disconnect,
             commands::get_calendar_state,
+            commands::get_calendar_list,
             commands::calendar_refresh,
         ])
         .on_window_event(|window, event| {

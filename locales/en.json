@@ -86,6 +86,10 @@
 
   "settings": {
     "title": "Settings",
+    "tab_breaks": "Breaks",
+    "tab_wellness": "Wellness",
+    "tab_integrations": "Integrations",
+    "tab_system": "System",
     "work_method": "Work method",
     "method_pomodoro": "Pomodoro",
     "method_pomodoro_desc": "25 min work, 5 min break, big 15 min break every 4 cycles. Eye exercises every 25 min. Best for focused, intensive work in blocks.",
@@ -147,6 +151,11 @@
     "weekly_schedule": "Weekly schedule",
     "weekly_schedule_enabled": "Use weekly schedule",
     "weekly_schedule_desc": "Set different break intervals for each day of the week",
+    "schedule_mode_uniform": "Uniform",
+    "schedule_mode_workweek": "Workdays + Weekend",
+    "schedule_mode_individual": "Each day",
+    "schedule_weekdays": "Mon — Fri",
+    "schedule_weekend": "Sat — Sun",
     "day_enabled": "Day active",
     "day_mon": "Mon",
     "day_tue": "Tue",
@@ -155,7 +164,10 @@
     "day_fri": "Fri",
     "day_sat": "Sat",
     "day_sun": "Sun",
-    "copy_from": "Copy from:",
+    "apply_to": "Apply to:",
+    "apply_all": "All",
+    "apply_weekdays": "Mon–Fri",
+    "apply_weekend": "Sat–Sun",
     "eye_every": "Eye exercises every",
     "water_every": "Water every",
 
@@ -164,6 +176,7 @@
     "calendar_connecting": "Connecting...",
     "calendar_connected": "Connected",
     "calendar_disconnect": "Disconnect",
+    "calendar_select": "Calendars to sync",
     "calendar_desc": "Sync your calendar to automatically adjust breaks around meetings",
     "calendar_block_breaks": "Block breaks during meetings",
     "calendar_pre_meeting": "Reminder 5 min before meeting",
@@ -172,7 +185,7 @@
 
   "help": {
     "title": "Help",
-    "text": "HEALTHDESK - USER GUIDE\n\nSYSTEM TRAY ICON\n  Right-click the green icon next to the Windows clock:\n  \u2022 Open             - opens the main app window\n  \u2022 I drank a glass  - logs a glass in the water tracker\n  \u2022 Pause (30 min)   - pauses all reminders\n  \u2022 Quit             - closes the application\n\n  Double-click the icon also opens the window.\n\nWINDOW NAVIGATION\n  On the left side you'll find the navigation panel:\n  \u2022 Home       - dashboard with daily summary\n  \u2022 Statistics - detailed daily and weekly data\n  \u2022 Audio      - focus sounds (brown noise, rain, forest...)\n  \u2022 Settings   - configure intervals, modes, work hours\n  \u2022 Help       - this window\n\nBREAKS\n  The app reminds you about breaks in two modes:\n\n  Moderate mode (default):\n    A small always-on-top window with countdown.\n    You can click \"Skip\" or \"Taking a break!\".\n\n  Aggressive mode:\n    Full-screen block with countdown.\n    Emergency exit: click 3 times quickly (within 2 seconds).\n\n  Break types:\n    \u2022 Small break (20-20-20) - every 20 min, look 20 sec at distance\n    \u2022 Big break - every 60 min, 5 min rest + exercise\n\nEXERCISES\n  Eyes: blinking, eye movements, near/far focus, figure eights.\n  Stretching: neck, shoulders, torso, wrists, legs, back.\n  Exercises appear automatically during breaks.\n\nHYDRATION\n  The app reminds you to drink water (default: every 30 min).\n  Daily goal: 8 glasses (configurable in Settings).\n  You can quickly add a glass from the navigation panel (+1 water).\n\nACTIVITY TRACKING\n  The app checks the active window every 5 seconds and categorizes:\n    \u2022 Work         - IDE, Office, editors\n    \u2022 Entertainment - YouTube, games, media\n    \u2022 Communication - Teams, Slack, Zoom\n    \u2022 Browser      - Chrome, Firefox, Edge\n    \u2022 Other        - everything else\n\n  Data is visible in the Statistics tab.\n\nFOCUS SOUNDS\n  The Audio tab offers natively generated sounds (no internet):\n    \u2022 Brown Noise - deep, soothing noise\n    \u2022 Rain       - rain with droplets\n    \u2022 White/Pink Noise - even noise\n    \u2022 Ambient Drone - deep tone with modulation\n    \u2022 Forest     - wind in trees, birds\n\n  Sound plays in the background even after closing the window.\n\nYOUTUBE RADIO\n  Instrumental music without lyrics, streamed from YouTube:\n    \u2022 Lofi Girl - lofi hip hop beats\n    \u2022 Jazz Cafe - smooth jazz & bossa nova\n    \u2022 Classical Focus - classical music\n    \u2022 Synthwave Radio - synthwave instrumental\n    \u2022 Piano & Ambient - calm piano\n\n  You can also paste your own YouTube link.\n  Requires: yt-dlp (pip install yt-dlp) + ffmpeg on PATH.\n\nWORK HOURS\n  In Settings you can enable work hours (e.g. 8:00-18:00).\n  Outside these hours, reminders are paused.\n\nAUTOSTART\n  Settings > \"Start with Windows\" - the app will start\n  automatically after logging into the system.\n\nDATA\n  Configuration and database are in:\n    %APPDATA%\\HealthDesk\\\n  You can delete this folder to reset the application."
+    "text": "HEALTHDESK — USER GUIDE\n\nSYSTEM TRAY ICON\n  Right-click the green icon next to the Windows clock:\n  \u2022 Open — opens the main window\n  \u2022 I drank a glass — logs a glass in the water tracker\n  \u2022 Toggle music — starts or stops audio playback\n  \u2022 Pause / Resume — pauses or resumes all reminders\n  \u2022 Quit — closes the application\n  Double-click the icon also opens the window.\n\nNAVIGATION\n  Left panel:\n  \u2022 Home — dashboard: break timers, water, day timeline, sound\n  \u2022 Statistics — daily, weekly, and monthly data\n  \u2022 Audio — focus sounds, FM radio, YouTube\n  \u2022 Settings — configure everything\n  \u2022 Help — this page\n\nBREAKS\n  Three display modes:\n  \u2022 Gentle — small non-blocking window, easy to dismiss\n  \u2022 Moderate — always-on-top window with countdown\n  \u2022 Aggressive — full-screen block (exit: 3 clicks in 2s)\n\n  The \"Snooze\" button postpones the break by 5 minutes.\n\n  Break types:\n  \u2022 Small break — short eye rest\n  \u2022 Big break — longer rest + exercises\n\nWORK METHODS\n  Choose on the dashboard or in Settings:\n  \u2022 Pomodoro — 25 min work, 5 min break\n  \u2022 20-20-20 — every 20 min, 20 sec eye rest\n  \u2022 52-17 — 52 min work, 17 min break\n  \u2022 90-minute — 90 min work, 5 min break\n  \u2022 Custom — any intervals you like\n\nEXERCISES\n  \u2022 Eyes — blinking, eye movements, near/far focus, figure eights\n  \u2022 Stretching — neck, shoulders, torso, wrists, legs, back\n  \u2022 Box breathing — 4-4-4-4 breathing pattern (5 cycles)\n  Exercises appear automatically during breaks.\n\nHYDRATION\n  Reminder every 30 min (configurable). Goal: 8 glasses/day.\n  Add a glass: +1 button on dashboard or from the tray.\n\nWEEKLY SCHEDULE\n  Settings > Weekly schedule — separate break profile for each\n  day of the week (e.g. shorter intervals on Monday, longer\n  on Friday). The dashboard shows a day timeline.\n\nGOOGLE CALENDAR\n  Settings > Integrations > Google Calendar — connect your account\n  and meetings will appear on the day timeline as red blocks.\n  Syncs every 5 minutes.\n\nSMART IDLE DETECTION\n  The app detects inactivity (keyboard/mouse) and automatically\n  freezes break timers. When you return — timers resume.\n\nDO NOT DISTURB (DND)\n  When Windows Focus Assist is active, HealthDesk automatically\n  suppresses reminder popups.\n\nACTIVITY TRACKING\n  Checks the active window every 5 seconds and categorizes:\n  \u2022 Work — IDE, Office, editors\n  \u2022 Entertainment — YouTube, games, media\n  \u2022 Communication — Teams, Slack, Zoom\n  \u2022 Browser — Chrome, Firefox, Edge\n  \u2022 Other — everything else\n  Data in the Statistics tab (day/week/month).\n\nFOCUS SOUNDS\n  Natively generated (no internet needed):\n  \u2022 Brown Noise — deep, soothing noise\n  \u2022 Rain — rain with droplets\n  \u2022 White/Pink Noise — even noise\n  \u2022 Ambient Drone — deep tone with modulation\n  \u2022 Forest — wind in trees, birds\n\nFM RADIO\n  6 Polish stations streamed live:\n  RMF FM, RMF MAXX, Antyradio, Radio ZET, Eska, Chillizet.\n\nYOUTUBE RADIO\n  Instrumental stations (Lofi Girl, Jazz Cafe, Classical Focus...)\n  + YouTube search + custom link.\n  Requires: yt-dlp + ffplay on PATH.\n\n  Pausing the scheduler also pauses audio playback.\n\nWORK HOURS\n  Settings > Work hours (e.g. 8:00–18:00).\n  Outside these hours, reminders are paused.\n\nAUTOSTART\n  Settings > Start with Windows.\n\nAUTO-UPDATE\n  The app automatically checks for new versions.\n  When an update is available — a popup appears with install option.\n\nDATA\n  Configuration and database: %APPDATA%\\HealthDesk\\\n  Delete the folder to reset the application."
   },
 
   "break": {

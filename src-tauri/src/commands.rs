@@ -467,7 +467,21 @@ pub fn get_calendar_state(
     CalendarStateResponse {
         connected: cfg.google_calendar_enabled && cfg.google_refresh_token.is_some(),
         events: cal.events.clone(),
+        calendars: Vec::new(),
     }
+}
+
+#[tauri::command]
+pub async fn get_calendar_list(
+    config: State<'_, ConfigState>,
+) -> Result<Vec<calendar::CalendarInfo>, String> {
+    let config_arc = config.0.clone();
+    let token = calendar::ensure_valid_token(&config_arc).await?;
+    let selected_ids = {
+        let cfg = config_arc.lock().unwrap();
+        cfg.google_calendar_ids.clone()
+    };
+    calendar::fetch_calendar_list(&token, &selected_ids).await
 }
 
 #[tauri::command]
@@ -477,7 +491,11 @@ pub async fn calendar_refresh(
 ) -> Result<Vec<calendar::CalendarEvent>, String> {
     let config_arc = config.0.clone();
     let token = calendar::ensure_valid_token(&config_arc).await?;
-    let events = calendar::fetch_upcoming_events(&token).await?;
+    let cal_ids = {
+        let cfg = config_arc.lock().unwrap();
+        cfg.google_calendar_ids.clone()
+    };
+    let events = calendar::fetch_upcoming_events(&token, &cal_ids).await?;
     {
         let mut state = calendar.lock().unwrap();
         state.events = events.clone();

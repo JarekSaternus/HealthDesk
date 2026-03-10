@@ -1,15 +1,16 @@
 import { useState, useEffect } from "react";
 import { invoke } from "@tauri-apps/api/core";
-import { open } from "@tauri-apps/plugin-shell";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
 import { listen } from "@tauri-apps/api/event";
-import type { WorkMethodPreset, DaySchedule, WeeklySchedule, CalendarStateResponse } from "../types";
+import type { WorkMethodPreset, DaySchedule, WeeklySchedule, CalendarStateResponse, CalendarInfo } from "../types";
 
 const METHODS = ["pomodoro", "20-20-20", "52-17", "90-min", "custom"];
+const TABS = ["breaks", "wellness", "integrations", "system"] as const;
+type Tab = (typeof TABS)[number];
 
 export default function SettingsPage() {
   const config = useAppStore((s) => s.config);
@@ -17,6 +18,7 @@ export default function SettingsPage() {
   const [saved, setSaved] = useState(false);
   const [methods, setMethods] = useState<Record<string, WorkMethodPreset>>({});
   const [form, setForm] = useState(config!);
+  const [activeTab, setActiveTab] = useState<Tab>("breaks");
   const [updateStatus, setUpdateStatus] = useState<"idle" | "checking" | "available" | "downloading" | "installing" | "up_to_date" | "error">("idle");
   const [updateVersion, setUpdateVersion] = useState("");
   const [downloadProgress, setDownloadProgress] = useState(0);
@@ -44,271 +46,48 @@ export default function SettingsPage() {
 
   return (
     <div className="flex flex-col h-full max-w-2xl">
-    <div className="space-y-4 flex-1 overflow-y-auto pb-4">
-      {/* Dashboard layout */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.dashboard_layout")}</h3>
-        <div className="flex gap-3">
-          {(["enhanced", "compact"] as const).map((layout) => (
-            <label key={layout} className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="radio"
-                name="dashboard_layout"
-                checked={form.dashboard_layout === layout}
-                onChange={() => update("dashboard_layout", layout)}
-                className="accent-accent"
-              />
-              {t(`settings.layout_${layout}`)}
-            </label>
-          ))}
-        </div>
-      </Card>
+      {/* Tabs */}
+      <div className="flex gap-1 mb-4">
+        {TABS.map((tab) => (
+          <button
+            key={tab}
+            onClick={() => setActiveTab(tab)}
+            className={`flex-1 text-sm py-2 rounded-lg transition-colors ${
+              activeTab === tab
+                ? "bg-accent text-white font-medium"
+                : "bg-card hover:bg-card-hover text-text-muted"
+            }`}
+          >
+            {t(`settings.tab_${tab}`)}
+          </button>
+        ))}
+      </div>
 
-      {/* Work method */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.work_method")}</h3>
-        <select
-          value={form.work_method}
-          onChange={(e) => update("work_method", e.target.value)}
-          className="w-full bg-content border border-card-hover rounded px-3 py-2 text-sm text-text outline-none focus:border-accent"
-        >
-          {METHODS.map((m) => (
-            <option key={m} value={m}>
-              {t(`settings.method_${m.replace("-", "_").replace("-", "_")}`)}
-            </option>
-          ))}
-        </select>
-        <p className="text-xs text-text-muted mt-2">
-          {t(`settings.method_${form.work_method.replace("-", "_").replace("-", "_")}_desc`)}
-        </p>
-      </Card>
-
-      {/* Break intervals — only visible for custom method */}
-      {isCustom && (
-        <Card>
-          <h3 className="text-sm font-medium mb-3">{t("settings.breaks_section")}</h3>
-          <div className="space-y-3">
-            <SliderField
-              label={t("settings.small_break_every")}
-              value={form.small_break_interval_min}
-              min={5} max={120}
-              unit={t("settings.unit_min")}
-              onChange={(v) => update("small_break_interval_min", v)}
-            />
-            <SliderField
-              label={t("settings.small_break_duration")}
-              value={form.small_break_duration_sec}
-              min={10} max={1800} step={10}
-              unit={t("settings.unit_sec")}
-              onChange={(v) => update("small_break_duration_sec", v)}
-            />
-            <SliderField
-              label={t("settings.big_break_every")}
-              value={form.big_break_interval_min}
-              min={15} max={300}
-              unit={t("settings.unit_min")}
-              onChange={(v) => update("big_break_interval_min", v)}
-            />
-            <SliderField
-              label={t("settings.big_break_duration")}
-              value={form.big_break_duration_min}
-              min={1} max={30}
-              unit={t("settings.unit_min")}
-              onChange={(v) => update("big_break_duration_min", v)}
-            />
-          </div>
-        </Card>
-      )}
-
-      {/* Weekly schedule */}
-      <WeeklyScheduleSection form={form} update={update} />
-
-      {/* Break mode — always visible */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.break_mode")}</h3>
-        <div className="flex gap-3">
-          {(["gentle", "moderate", "aggressive"] as const).map((mode) => (
-            <label key={mode} className="flex items-center gap-2 text-sm cursor-pointer">
-              <input
-                type="radio"
-                name="break_mode"
-                checked={form.break_mode === mode}
-                onChange={() => update("break_mode", mode)}
-                className="accent-accent"
-              />
-              {t(`settings.mode_${mode}`)}
-            </label>
-          ))}
-        </div>
-      </Card>
-
-      {/* Hydration */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.hydration_section")}</h3>
-        <div className="space-y-3">
-          <SliderField
-            label={t("settings.reminder_every")}
-            value={form.water_interval_min}
-            min={10} max={120}
-            unit={t("settings.unit_min")}
-            onChange={(v) => update("water_interval_min", v)}
-          />
-          <SliderField
-            label={t("settings.daily_goal")}
-            value={form.water_daily_goal}
-            min={1} max={20}
-            unit={t("settings.unit_glasses")}
-            onChange={(v) => update("water_daily_goal", v)}
-          />
-        </div>
-      </Card>
-
-      {/* Eye exercises — only visible for custom method */}
-      {isCustom && (
-        <Card>
-          <h3 className="text-sm font-medium mb-3">{t("settings.eye_section")}</h3>
-          <SliderField
-            label={t("settings.small_break_every")}
-            value={form.eye_exercise_interval_min}
-            min={10} max={120}
-            unit={t("settings.unit_min")}
-            onChange={(v) => update("eye_exercise_interval_min", v)}
-          />
-        </Card>
-      )}
-
-      {/* Breathing exercise */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.breathing_section")}</h3>
-        <Checkbox
-          label={t("settings.breathing_enabled")}
-          checked={form.breathing_exercise_enabled}
-          onChange={(v) => update("breathing_exercise_enabled", v)}
-        />
-        {form.breathing_exercise_enabled && (
-          <div className="mt-3">
-            <SliderField
-              label={t("settings.breathing_every")}
-              value={form.breathing_exercise_interval_min}
-              min={15} max={120}
-              unit={t("settings.unit_min")}
-              onChange={(v) => update("breathing_exercise_interval_min", v)}
-            />
-          </div>
+      {/* Tab content */}
+      <div className="space-y-4 flex-1 overflow-y-auto pb-4">
+        {activeTab === "breaks" && (
+          <BreaksTab form={form} update={update} isCustom={isCustom} />
         )}
-      </Card>
-
-      {/* Idle detection */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.idle_section")}</h3>
-        <Checkbox
-          label={t("settings.idle_enabled")}
-          desc={t("settings.idle_enabled_desc")}
-          checked={form.idle_detection_enabled}
-          onChange={(v) => update("idle_detection_enabled", v)}
-        />
-        {form.idle_detection_enabled && (
-          <div className="mt-3">
-            <SliderField
-              label={t("settings.idle_threshold")}
-              value={form.idle_threshold_min}
-              min={1} max={30}
-              unit={t("settings.unit_min")}
-              onChange={(v) => update("idle_threshold_min", v)}
-            />
-          </div>
+        {activeTab === "wellness" && (
+          <WellnessTab form={form} update={update} isCustom={isCustom} />
         )}
-      </Card>
-
-      {/* Work hours */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.work_hours_section")}</h3>
-        <label className="flex items-center gap-2 text-sm mb-3 cursor-pointer">
-          <input
-            type="checkbox"
-            checked={form.work_hours_enabled}
-            onChange={(e) => update("work_hours_enabled", e.target.checked)}
-            className="accent-accent"
-          />
-          {t("settings.work_hours_only")}
-        </label>
-        {form.work_hours_enabled && (
-          <div className="flex items-center gap-3">
-            <span className="text-xs text-text-muted">{t("settings.from_hour")}</span>
-            <input
-              type="time"
-              value={form.work_hours_start}
-              onChange={(e) => update("work_hours_start", e.target.value)}
-              className="bg-content border border-card-hover rounded px-2 py-1 text-sm text-text"
-            />
-            <span className="text-xs text-text-muted">{t("settings.to_hour")}</span>
-            <input
-              type="time"
-              value={form.work_hours_end}
-              onChange={(e) => update("work_hours_end", e.target.value)}
-              className="bg-content border border-card-hover rounded px-2 py-1 text-sm text-text"
-            />
-          </div>
+        {activeTab === "integrations" && (
+          <IntegrationsTab form={form} update={update} />
         )}
-      </Card>
-
-      {/* Sound & Privacy & System */}
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.sound_section")}</h3>
-        <Checkbox
-          label={t("settings.sound_on_break")}
-          checked={form.sound_notifications}
-          onChange={(v) => update("sound_notifications", v)}
-        />
-        <Checkbox
-          label={t("settings.audio_autoplay")}
-          checked={form.audio_autoplay}
-          onChange={(v) => update("audio_autoplay", v)}
-        />
-      </Card>
-
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.privacy_section")}</h3>
-        <div className="space-y-2">
-          <Checkbox
-            label={t("settings.telemetry")}
-            desc={t("settings.telemetry_desc")}
-            checked={form.telemetry_enabled}
-            onChange={(v) => update("telemetry_enabled", v)}
-          />
-          <Checkbox
-            label={t("settings.track_titles")}
-            desc={t("settings.track_titles_desc")}
-            checked={form.track_window_titles}
-            onChange={(v) => update("track_window_titles", v)}
-          />
-        </div>
-      </Card>
-
-      <Card>
-        <h3 className="text-sm font-medium mb-3">{t("settings.system_section")}</h3>
-        <div className="space-y-2">
-          <Checkbox
-            label={t("settings.autostart")}
-            checked={form.autostart}
-            onChange={(v) => update("autostart", v)}
-          />
-          <Checkbox
-            label={t("settings.auto_update")}
-            checked={form.auto_update}
-            onChange={(v) => update("auto_update", v)}
-          />
-          <UpdateChecker
-            status={updateStatus}
-            version={updateVersion}
-            progress={downloadProgress}
+        {activeTab === "system" && (
+          <SystemTab
+            form={form}
+            update={update}
+            updateStatus={updateStatus}
+            updateVersion={updateVersion}
+            downloadProgress={downloadProgress}
             onCheck={async () => {
               setUpdateStatus("checking");
               try {
-                const update = await check();
-                if (update) {
-                  setUpdateVersion(update.version);
-                  setUpdateObj(update);
+                const upd = await check();
+                if (upd) {
+                  setUpdateVersion(upd.version);
+                  setUpdateObj(upd);
                   setUpdateStatus("available");
                 } else {
                   setUpdateStatus("up_to_date");
@@ -337,48 +116,232 @@ export default function SettingsPage() {
               await relaunch();
             }}
           />
-          <div>
-            <label className="text-xs text-text-muted">{t("settings.language")}</label>
-            <select
-              value={form.language}
-              onChange={(e) => update("language", e.target.value)}
-              className="ml-3 bg-content border border-card-hover rounded px-2 py-1 text-sm text-text"
-            >
-              <option value="pl">Polski</option>
-              <option value="en">English</option>
-              <option value="de">Deutsch</option>
-              <option value="es">Español</option>
-              <option value="fr">Français</option>
-              <option value="pt-BR">Português (Brasil)</option>
-              <option value="ja">日本語</option>
-              <option value="zh-CN">简体中文</option>
-              <option value="ko">한국어</option>
-              <option value="it">Italiano</option>
-              <option value="tr">Türkçe</option>
-              <option value="ru">Русский</option>
-            </select>
-            <span className="text-xs text-text-muted ml-2">{t("settings.language_restart")}</span>
-          </div>
-        </div>
-      </Card>
+        )}
+      </div>
 
-      {/* Google Calendar */}
-      <GoogleCalendarSection form={form} update={update} />
-    </div>
-
-    {/* Sticky footer */}
-    <div className="sticky bottom-0 bg-content pt-3 pb-1 border-t border-card-hover flex items-center gap-4">
-      <button
-        onClick={handleSave}
-        className="bg-accent hover:bg-accent-hover text-white rounded px-6 py-2 text-sm font-medium transition-colors"
-      >
-        {saved ? t("settings.saved") : t("settings.save")}
-      </button>
-      <span className="text-xs text-text-muted">HealthDesk v{APP_VERSION}</span>
-    </div>
+      {/* Sticky footer */}
+      <div className="sticky bottom-0 bg-content pt-3 pb-1 border-t border-card-hover flex items-center gap-4">
+        <button
+          onClick={handleSave}
+          className="bg-accent hover:bg-accent-hover text-white rounded px-6 py-2 text-sm font-medium transition-colors"
+        >
+          {saved ? t("settings.saved") : t("settings.save")}
+        </button>
+        <span className="text-xs text-text-muted">HealthDesk v{APP_VERSION}</span>
+      </div>
     </div>
   );
 }
+
+/* ─── TAB: Przerwy ─── */
+
+function BreaksTab({ form, update, isCustom }: { form: any; update: (k: string, v: any) => void; isCustom: boolean }) {
+  return (
+    <>
+      {/* Work method */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.work_method")}</h3>
+        <select
+          value={form.work_method}
+          onChange={(e) => update("work_method", e.target.value)}
+          className="w-full bg-content border border-card-hover rounded px-3 py-2 text-sm text-text outline-none focus:border-accent"
+        >
+          {METHODS.map((m) => (
+            <option key={m} value={m}>
+              {t(`settings.method_${m.replace("-", "_").replace("-", "_")}`)}
+            </option>
+          ))}
+        </select>
+        <p className="text-xs text-text-muted mt-2">
+          {t(`settings.method_${form.work_method.replace("-", "_").replace("-", "_")}_desc`)}
+        </p>
+      </Card>
+
+      {/* Break intervals — custom only */}
+      {isCustom && (
+        <Card>
+          <h3 className="text-sm font-medium mb-3">{t("settings.breaks_section")}</h3>
+          <div className="space-y-3">
+            <SliderField label={t("settings.small_break_every")} value={form.small_break_interval_min} min={5} max={120} unit={t("settings.unit_min")} onChange={(v) => update("small_break_interval_min", v)} />
+            <SliderField label={t("settings.small_break_duration")} value={form.small_break_duration_sec} min={10} max={1800} step={10} unit={t("settings.unit_sec")} onChange={(v) => update("small_break_duration_sec", v)} />
+            <SliderField label={t("settings.big_break_every")} value={form.big_break_interval_min} min={15} max={300} unit={t("settings.unit_min")} onChange={(v) => update("big_break_interval_min", v)} />
+            <SliderField label={t("settings.big_break_duration")} value={form.big_break_duration_min} min={1} max={30} unit={t("settings.unit_min")} onChange={(v) => update("big_break_duration_min", v)} />
+          </div>
+        </Card>
+      )}
+
+      {/* Break mode */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.break_mode")}</h3>
+        <div className="flex gap-3">
+          {(["gentle", "moderate", "aggressive"] as const).map((mode) => (
+            <label key={mode} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="radio" name="break_mode" checked={form.break_mode === mode} onChange={() => update("break_mode", mode)} className="accent-accent" />
+              {t(`settings.mode_${mode}`)}
+            </label>
+          ))}
+        </div>
+      </Card>
+
+      {/* Work hours */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.work_hours_section")}</h3>
+        <label className="flex items-center gap-2 text-sm mb-3 cursor-pointer">
+          <input type="checkbox" checked={form.work_hours_enabled} onChange={(e) => update("work_hours_enabled", e.target.checked)} className="accent-accent" />
+          {t("settings.work_hours_only")}
+        </label>
+        {form.work_hours_enabled && (
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-text-muted">{t("settings.from_hour")}</span>
+            <input type="time" value={form.work_hours_start} onChange={(e) => update("work_hours_start", e.target.value)} className="bg-content border border-card-hover rounded px-2 py-1 text-sm text-text" />
+            <span className="text-xs text-text-muted">{t("settings.to_hour")}</span>
+            <input type="time" value={form.work_hours_end} onChange={(e) => update("work_hours_end", e.target.value)} className="bg-content border border-card-hover rounded px-2 py-1 text-sm text-text" />
+          </div>
+        )}
+      </Card>
+
+      {/* Weekly schedule */}
+      <WeeklyScheduleSection form={form} update={update} />
+    </>
+  );
+}
+
+/* ─── TAB: Wellness ─── */
+
+function WellnessTab({ form, update, isCustom }: { form: any; update: (k: string, v: any) => void; isCustom: boolean }) {
+  return (
+    <>
+      {/* Hydration */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.hydration_section")}</h3>
+        <div className="space-y-3">
+          <SliderField label={t("settings.reminder_every")} value={form.water_interval_min} min={10} max={120} unit={t("settings.unit_min")} onChange={(v) => update("water_interval_min", v)} />
+          <SliderField label={t("settings.daily_goal")} value={form.water_daily_goal} min={1} max={20} unit={t("settings.unit_glasses")} onChange={(v) => update("water_daily_goal", v)} />
+        </div>
+      </Card>
+
+      {/* Eye exercises — custom only */}
+      {isCustom && (
+        <Card>
+          <h3 className="text-sm font-medium mb-3">{t("settings.eye_section")}</h3>
+          <SliderField label={t("settings.small_break_every")} value={form.eye_exercise_interval_min} min={10} max={120} unit={t("settings.unit_min")} onChange={(v) => update("eye_exercise_interval_min", v)} />
+        </Card>
+      )}
+
+      {/* Breathing exercise */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.breathing_section")}</h3>
+        <Checkbox label={t("settings.breathing_enabled")} checked={form.breathing_exercise_enabled} onChange={(v) => update("breathing_exercise_enabled", v)} />
+        {form.breathing_exercise_enabled && (
+          <div className="mt-3">
+            <SliderField label={t("settings.breathing_every")} value={form.breathing_exercise_interval_min} min={15} max={120} unit={t("settings.unit_min")} onChange={(v) => update("breathing_exercise_interval_min", v)} />
+          </div>
+        )}
+      </Card>
+
+      {/* Idle detection */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.idle_section")}</h3>
+        <Checkbox label={t("settings.idle_enabled")} desc={t("settings.idle_enabled_desc")} checked={form.idle_detection_enabled} onChange={(v) => update("idle_detection_enabled", v)} />
+        {form.idle_detection_enabled && (
+          <div className="mt-3">
+            <SliderField label={t("settings.idle_threshold")} value={form.idle_threshold_min} min={1} max={30} unit={t("settings.unit_min")} onChange={(v) => update("idle_threshold_min", v)} />
+          </div>
+        )}
+      </Card>
+    </>
+  );
+}
+
+/* ─── TAB: Integracje ─── */
+
+function IntegrationsTab({ form, update }: { form: any; update: (k: string, v: any) => void }) {
+  return (
+    <>
+      {/* Google Calendar */}
+      <GoogleCalendarSection form={form} update={update} />
+
+      {/* Sound */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.sound_section")}</h3>
+        <Checkbox label={t("settings.sound_on_break")} checked={form.sound_notifications} onChange={(v) => update("sound_notifications", v)} />
+        <Checkbox label={t("settings.audio_autoplay")} checked={form.audio_autoplay} onChange={(v) => update("audio_autoplay", v)} />
+      </Card>
+    </>
+  );
+}
+
+/* ─── TAB: System ─── */
+
+function SystemTab({
+  form, update, updateStatus, updateVersion, downloadProgress, onCheck, onDownload,
+}: {
+  form: any; update: (k: string, v: any) => void;
+  updateStatus: string; updateVersion: string; downloadProgress: number;
+  onCheck: () => void; onDownload: () => void;
+}) {
+  return (
+    <>
+      {/* Dashboard layout */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.dashboard_layout")}</h3>
+        <div className="flex gap-3">
+          {(["enhanced", "compact"] as const).map((layout) => (
+            <label key={layout} className="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="radio" name="dashboard_layout" checked={form.dashboard_layout === layout} onChange={() => update("dashboard_layout", layout)} className="accent-accent" />
+              {t(`settings.layout_${layout}`)}
+            </label>
+          ))}
+        </div>
+      </Card>
+
+      {/* Language */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.language")}</h3>
+        <select
+          value={form.language}
+          onChange={(e) => update("language", e.target.value)}
+          className="w-full bg-content border border-card-hover rounded px-3 py-2 text-sm text-text outline-none focus:border-accent"
+        >
+          <option value="pl">Polski</option>
+          <option value="en">English</option>
+          <option value="de">Deutsch</option>
+          <option value="es">Español</option>
+          <option value="fr">Français</option>
+          <option value="pt-BR">Português (Brasil)</option>
+          <option value="ja">日本語</option>
+          <option value="zh-CN">简体中文</option>
+          <option value="ko">한국어</option>
+          <option value="it">Italiano</option>
+          <option value="tr">Türkçe</option>
+          <option value="ru">Русский</option>
+        </select>
+        <p className="text-xs text-text-muted mt-1">{t("settings.language_restart")}</p>
+      </Card>
+
+      {/* System options */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.system_section")}</h3>
+        <div className="space-y-2">
+          <Checkbox label={t("settings.autostart")} checked={form.autostart} onChange={(v) => update("autostart", v)} />
+          <Checkbox label={t("settings.auto_update")} checked={form.auto_update} onChange={(v) => update("auto_update", v)} />
+          <UpdateChecker status={updateStatus} version={updateVersion} progress={downloadProgress} onCheck={onCheck} onDownload={onDownload} />
+        </div>
+      </Card>
+
+      {/* Privacy */}
+      <Card>
+        <h3 className="text-sm font-medium mb-3">{t("settings.privacy_section")}</h3>
+        <div className="space-y-2">
+          <Checkbox label={t("settings.telemetry")} desc={t("settings.telemetry_desc")} checked={form.telemetry_enabled} onChange={(v) => update("telemetry_enabled", v)} />
+          <Checkbox label={t("settings.track_titles")} desc={t("settings.track_titles_desc")} checked={form.track_window_titles} onChange={(v) => update("track_window_titles", v)} />
+        </div>
+      </Card>
+    </>
+  );
+}
+
+/* ─── Shared components ─── */
 
 function SliderField({
   label, value, min, max, step = 1, unit, disabled = false, onChange,
@@ -392,14 +355,7 @@ function SliderField({
         <span>{label}</span>
         <span>{value} {unit}</span>
       </div>
-      <input
-        type="range"
-        min={min} max={max} step={step}
-        value={value}
-        disabled={disabled}
-        onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full"
-      />
+      <input type="range" min={min} max={max} step={step} value={value} disabled={disabled} onChange={(e) => onChange(Number(e.target.value))} className="w-full" />
     </div>
   );
 }
@@ -411,12 +367,7 @@ function Checkbox({
 }) {
   return (
     <label className="flex items-start gap-2 cursor-pointer">
-      <input
-        type="checkbox"
-        checked={checked}
-        onChange={(e) => onChange(e.target.checked)}
-        className="accent-accent mt-0.5"
-      />
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} className="accent-accent mt-0.5" />
       <div>
         <span className="text-sm">{label}</span>
         {desc && <p className="text-xs text-text-muted">{desc}</p>}
@@ -466,7 +417,12 @@ function UpdateChecker({
   return null;
 }
 
+/* ─── Weekly Schedule ─── */
+
 const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+const WEEKDAYS = ["mon", "tue", "wed", "thu", "fri"] as const;
+const WEEKEND = ["sat", "sun"] as const;
+type ScheduleMode = "uniform" | "workweek" | "individual";
 
 function defaultDaySchedule(form: any): DaySchedule {
   return {
@@ -482,45 +438,85 @@ function defaultDaySchedule(form: any): DaySchedule {
   };
 }
 
+function DaySliders({ day, onUpdate }: { day: DaySchedule; onUpdate: (field: string, value: any) => void }) {
+  return (
+    <div className="space-y-3">
+      <SliderField label={t("settings.small_break_every")} value={day.small_break_interval_min} min={5} max={120} unit={t("settings.unit_min")} onChange={(v) => onUpdate("small_break_interval_min", v)} />
+      <SliderField label={t("settings.small_break_duration")} value={day.small_break_duration_sec} min={10} max={1800} step={10} unit={t("settings.unit_sec")} onChange={(v) => onUpdate("small_break_duration_sec", v)} />
+      <SliderField label={t("settings.big_break_every")} value={day.big_break_interval_min} min={15} max={300} unit={t("settings.unit_min")} onChange={(v) => onUpdate("big_break_interval_min", v)} />
+      <SliderField label={t("settings.big_break_duration")} value={day.big_break_duration_min} min={1} max={30} unit={t("settings.unit_min")} onChange={(v) => onUpdate("big_break_duration_min", v)} />
+      <SliderField label={t("settings.eye_every")} value={day.eye_exercise_interval_min} min={10} max={120} unit={t("settings.unit_min")} onChange={(v) => onUpdate("eye_exercise_interval_min", v)} />
+      <SliderField label={t("settings.water_every")} value={day.water_interval_min} min={10} max={120} unit={t("settings.unit_min")} onChange={(v) => onUpdate("water_interval_min", v)} />
+      <Checkbox label={t("settings.breathing_enabled")} checked={day.breathing_exercise_enabled} onChange={(v) => onUpdate("breathing_exercise_enabled", v)} />
+      {day.breathing_exercise_enabled && (
+        <SliderField label={t("settings.breathing_every")} value={day.breathing_exercise_interval_min} min={15} max={120} unit={t("settings.unit_min")} onChange={(v) => onUpdate("breathing_exercise_interval_min", v)} />
+      )}
+    </div>
+  );
+}
+
 function WeeklyScheduleSection({ form, update }: { form: any; update: (key: string, value: any) => void }) {
   const ws: WeeklySchedule = form.weekly_schedule ?? { enabled: false, days: {} };
   const [activeDay, setActiveDay] = useState<string>("mon");
+  const [scheduleMode, setScheduleMode] = useState<ScheduleMode>(() => {
+    // Detect mode from existing data
+    if (!ws.enabled || Object.keys(ws.days).length === 0) return "uniform";
+    const days = ws.days;
+    const allSame = DAY_KEYS.every((d) => JSON.stringify(days[d]) === JSON.stringify(days["mon"]));
+    if (allSame) return "uniform";
+    const wdSame = WEEKDAYS.every((d) => JSON.stringify(days[d]) === JSON.stringify(days["mon"]));
+    const weSame = WEEKEND.every((d) => JSON.stringify(days[d]) === JSON.stringify(days["sat"]));
+    if (wdSame && weSame) return "workweek";
+    return "individual";
+  });
 
   const setWs = (newWs: WeeklySchedule) => {
     update("weekly_schedule", newWs);
   };
 
+  const initDays = (): Record<string, DaySchedule> => {
+    const days: Record<string, DaySchedule> = {};
+    for (const day of DAY_KEYS) {
+      days[day] = ws.days[day] ?? defaultDaySchedule(form);
+    }
+    return days;
+  };
+
   const toggleEnabled = (enabled: boolean) => {
     if (enabled && Object.keys(ws.days).length === 0) {
-      // Initialize all days from current global settings
-      const days: Record<string, DaySchedule> = {};
-      for (const day of DAY_KEYS) {
-        days[day] = defaultDaySchedule(form);
-      }
-      setWs({ enabled: true, days });
+      setWs({ enabled: true, days: initDays() });
     } else {
       setWs({ ...ws, enabled });
     }
   };
 
-  const updateDay = (dayKey: string, field: string, value: any) => {
-    const day = ws.days[dayKey] ?? defaultDaySchedule(form);
-    const newDays = { ...ws.days, [dayKey]: { ...day, [field]: value } };
+  // Update multiple days at once
+  const updateDays = (dayKeys: readonly string[], field: string, value: any) => {
+    const newDays = { ...ws.days };
+    for (const dk of dayKeys) {
+      const day = newDays[dk] ?? defaultDaySchedule(form);
+      newDays[dk] = { ...day, [field]: value };
+    }
     setWs({ ...ws, days: newDays });
   };
 
-  const copyFrom = (sourceDay: string) => {
-    const source = ws.days[sourceDay] ?? defaultDaySchedule(form);
+  const updateDay = (dayKey: string, field: string, value: any) => {
+    updateDays([dayKey], field, value);
+  };
+
+  // Apply current day settings to a group
+  const applyTo = (targetKeys: readonly string[]) => {
+    const source = ws.days[activeDay] ?? defaultDaySchedule(form);
     const newDays = { ...ws.days };
-    for (const day of DAY_KEYS) {
-      if (day !== sourceDay) {
-        newDays[day] = { ...source };
-      }
+    for (const dk of targetKeys) {
+      newDays[dk] = { ...source };
     }
     setWs({ ...ws, days: newDays });
   };
 
   const currentDay = ws.days[activeDay] ?? defaultDaySchedule(form);
+  const weekdayRef = ws.days["mon"] ?? defaultDaySchedule(form);
+  const weekendRef = ws.days["sat"] ?? defaultDaySchedule(form);
 
   return (
     <Card>
@@ -534,127 +530,131 @@ function WeeklyScheduleSection({ form, update }: { form: any; update: (key: stri
 
       {ws.enabled && (
         <div className="mt-4 space-y-3">
-          {/* Day tabs */}
+          {/* Schedule mode selector */}
           <div className="flex gap-1">
-            {DAY_KEYS.map((day) => {
-              const dayData = ws.days[day];
-              const isDisabled = dayData && !dayData.enabled;
-              return (
-                <button
-                  key={day}
-                  onClick={() => setActiveDay(day)}
-                  className={`flex-1 text-xs py-1.5 rounded transition-colors ${
-                    activeDay === day
-                      ? "bg-accent text-white"
-                      : isDisabled
-                      ? "bg-card-hover/50 text-text-muted/50"
-                      : "bg-card-hover text-text-muted hover:bg-accent/20"
-                  }`}
-                >
-                  {t(`settings.day_${day}`)}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Day enabled toggle */}
-          <Checkbox
-            label={t("settings.day_enabled")}
-            checked={currentDay.enabled}
-            onChange={(v) => updateDay(activeDay, "enabled", v)}
-          />
-
-          {currentDay.enabled && (
-            <div className="space-y-3">
-              <SliderField
-                label={t("settings.small_break_every")}
-                value={currentDay.small_break_interval_min}
-                min={5} max={120}
-                unit={t("settings.unit_min")}
-                onChange={(v) => updateDay(activeDay, "small_break_interval_min", v)}
-              />
-              <SliderField
-                label={t("settings.small_break_duration")}
-                value={currentDay.small_break_duration_sec}
-                min={10} max={1800} step={10}
-                unit={t("settings.unit_sec")}
-                onChange={(v) => updateDay(activeDay, "small_break_duration_sec", v)}
-              />
-              <SliderField
-                label={t("settings.big_break_every")}
-                value={currentDay.big_break_interval_min}
-                min={15} max={300}
-                unit={t("settings.unit_min")}
-                onChange={(v) => updateDay(activeDay, "big_break_interval_min", v)}
-              />
-              <SliderField
-                label={t("settings.big_break_duration")}
-                value={currentDay.big_break_duration_min}
-                min={1} max={30}
-                unit={t("settings.unit_min")}
-                onChange={(v) => updateDay(activeDay, "big_break_duration_min", v)}
-              />
-              <SliderField
-                label={t("settings.eye_every")}
-                value={currentDay.eye_exercise_interval_min}
-                min={10} max={120}
-                unit={t("settings.unit_min")}
-                onChange={(v) => updateDay(activeDay, "eye_exercise_interval_min", v)}
-              />
-              <SliderField
-                label={t("settings.water_every")}
-                value={currentDay.water_interval_min}
-                min={10} max={120}
-                unit={t("settings.unit_min")}
-                onChange={(v) => updateDay(activeDay, "water_interval_min", v)}
-              />
-              <Checkbox
-                label={t("settings.breathing_enabled")}
-                checked={currentDay.breathing_exercise_enabled}
-                onChange={(v) => updateDay(activeDay, "breathing_exercise_enabled", v)}
-              />
-              {currentDay.breathing_exercise_enabled && (
-                <SliderField
-                  label={t("settings.breathing_every")}
-                  value={currentDay.breathing_exercise_interval_min}
-                  min={15} max={120}
-                  unit={t("settings.unit_min")}
-                  onChange={(v) => updateDay(activeDay, "breathing_exercise_interval_min", v)}
-                />
-              )}
-            </div>
-          )}
-
-          {/* Copy from button */}
-          <div className="flex items-center gap-2 pt-2 border-t border-card-hover">
-            <span className="text-xs text-text-muted">{t("settings.copy_from")}</span>
-            {DAY_KEYS.filter((d) => d !== activeDay).map((day) => (
+            {(["uniform", "workweek", "individual"] as const).map((mode) => (
               <button
-                key={day}
-                onClick={() => copyFrom(day)}
-                className="text-xs bg-card-hover px-2 py-0.5 rounded hover:bg-accent/20 transition-colors"
+                key={mode}
+                onClick={() => setScheduleMode(mode)}
+                className={`flex-1 text-xs py-1.5 rounded transition-colors ${
+                  scheduleMode === mode
+                    ? "bg-accent/20 text-accent border border-accent/40"
+                    : "bg-card-hover text-text-muted hover:bg-accent/10"
+                }`}
               >
-                {t(`settings.day_${day}`)}
+                {t(`settings.schedule_mode_${mode}`)}
               </button>
             ))}
           </div>
+
+          {/* UNIFORM — one set of sliders for all days */}
+          {scheduleMode === "uniform" && (
+            <DaySliders
+              day={weekdayRef}
+              onUpdate={(field, value) => updateDays(DAY_KEYS, field, value)}
+            />
+          )}
+
+          {/* WORKWEEK — two groups: weekdays + weekend */}
+          {scheduleMode === "workweek" && (
+            <>
+              <h4 className="text-xs font-medium text-accent mt-2">{t("settings.schedule_weekdays")}</h4>
+              <DaySliders
+                day={weekdayRef}
+                onUpdate={(field, value) => updateDays(WEEKDAYS, field, value)}
+              />
+              <div className="border-t border-card-hover" />
+              <div className="flex items-center justify-between">
+                <h4 className="text-xs font-medium text-accent">{t("settings.schedule_weekend")}</h4>
+                <Checkbox
+                  label={t("settings.day_enabled")}
+                  checked={weekendRef.enabled}
+                  onChange={(v) => updateDays(WEEKEND, "enabled", v)}
+                />
+              </div>
+              {weekendRef.enabled && (
+                <DaySliders
+                  day={weekendRef}
+                  onUpdate={(field, value) => updateDays(WEEKEND, field, value)}
+                />
+              )}
+            </>
+          )}
+
+          {/* INDIVIDUAL — day tabs */}
+          {scheduleMode === "individual" && (
+            <>
+              <div className="flex gap-1">
+                {DAY_KEYS.map((day) => {
+                  const dayData = ws.days[day];
+                  const isDisabled = dayData && !dayData.enabled;
+                  return (
+                    <button
+                      key={day}
+                      onClick={() => setActiveDay(day)}
+                      className={`flex-1 text-xs py-1.5 rounded transition-colors ${
+                        activeDay === day
+                          ? "bg-accent text-white"
+                          : isDisabled
+                          ? "bg-card-hover/50 text-text-muted/50"
+                          : "bg-card-hover text-text-muted hover:bg-accent/20"
+                      }`}
+                    >
+                      {t(`settings.day_${day}`)}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Checkbox label={t("settings.day_enabled")} checked={currentDay.enabled} onChange={(v) => updateDay(activeDay, "enabled", v)} />
+
+              {currentDay.enabled && (
+                <>
+                  <DaySliders day={currentDay} onUpdate={(field, value) => updateDay(activeDay, field, value)} />
+                  <div className="flex items-center gap-2 pt-2 border-t border-card-hover">
+                    <span className="text-xs text-text-muted">{t("settings.apply_to")}</span>
+                    <button onClick={() => applyTo(DAY_KEYS)} className="text-xs bg-card-hover px-2 py-0.5 rounded hover:bg-accent/20 transition-colors">{t("settings.apply_all")}</button>
+                    <button onClick={() => applyTo(WEEKDAYS)} className="text-xs bg-card-hover px-2 py-0.5 rounded hover:bg-accent/20 transition-colors">{t("settings.apply_weekdays")}</button>
+                    <button onClick={() => applyTo(WEEKEND)} className="text-xs bg-card-hover px-2 py-0.5 rounded hover:bg-accent/20 transition-colors">{t("settings.apply_weekend")}</button>
+                  </div>
+                </>
+              )}
+            </>
+          )}
         </div>
       )}
     </Card>
   );
 }
 
+/* ─── Google Calendar ─── */
+
 function GoogleCalendarSection({ form, update }: { form: any; update: (key: string, value: any) => void }) {
-  const [calState, setCalState] = useState<CalendarStateResponse>({ connected: false, events: [] });
+  const [calState, setCalState] = useState<CalendarStateResponse>({ connected: false, events: [], calendars: [] });
+  const [calendars, setCalendars] = useState<CalendarInfo[]>([]);
   const [connecting, setConnecting] = useState(false);
+  const [loadingCals, setLoadingCals] = useState(false);
   const [error, setError] = useState("");
 
+  const loadCalendars = async () => {
+    setLoadingCals(true);
+    try {
+      const cals = await invoke<CalendarInfo[]>("get_calendar_list");
+      setCalendars(cals);
+    } catch { /* ignore */ }
+    setLoadingCals(false);
+  };
+
   useEffect(() => {
-    invoke<CalendarStateResponse>("get_calendar_state").then(setCalState);
+    invoke<CalendarStateResponse>("get_calendar_state").then((s) => {
+      setCalState(s);
+      if (s.connected) loadCalendars();
+    });
     const unlisten = listen("calendar:connected", () => {
       invoke<CalendarStateResponse>("get_calendar_state").then((s) => {
         setCalState(s);
         setConnecting(false);
+        loadCalendars();
       });
     });
     return () => { unlisten.then((f) => f()); };
@@ -673,8 +673,33 @@ function GoogleCalendarSection({ form, update }: { form: any; update: (key: stri
 
   const handleDisconnect = async () => {
     await invoke("calendar_disconnect");
-    setCalState({ connected: false, events: [] });
+    setCalState({ connected: false, events: [], calendars: [] });
+    setCalendars([]);
     update("google_calendar_enabled", false);
+    update("google_calendar_ids", []);
+  };
+
+  const toggleCalendar = (calId: string, selected: boolean) => {
+    // Empty list means "all" — expand to full list first when unchecking
+    let currentIds: string[] = form.google_calendar_ids ?? [];
+    if (currentIds.length === 0) {
+      currentIds = calendars.map((c) => c.id);
+    }
+    let newIds: string[];
+    if (selected) {
+      newIds = [...currentIds, calId];
+    } else {
+      newIds = currentIds.filter((id: string) => id !== calId);
+    }
+    // If all are selected, store empty (= all)
+    if (newIds.length === calendars.length) {
+      newIds = [];
+    }
+    update("google_calendar_ids", newIds);
+    setCalendars((prev) => prev.map((c) => ({
+      ...c,
+      selected: newIds.length === 0 ? true : newIds.includes(c.id),
+    })));
   };
 
   return (
@@ -686,23 +711,37 @@ function GoogleCalendarSection({ form, update }: { form: any; update: (key: stri
           <div className="flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-accent inline-block" />
             <span className="text-sm text-accent">{t("settings.calendar_connected")}</span>
-            <button
-              onClick={handleDisconnect}
-              className="text-xs text-danger hover:text-danger/80 ml-auto"
-            >
+            <button onClick={handleDisconnect} className="text-xs text-danger hover:text-danger/80 ml-auto">
               {t("settings.calendar_disconnect")}
             </button>
           </div>
-          <Checkbox
-            label={t("settings.calendar_block_breaks")}
-            checked={form.google_calendar_block_breaks ?? true}
-            onChange={(v) => update("google_calendar_block_breaks", v)}
-          />
-          <Checkbox
-            label={t("settings.calendar_pre_meeting")}
-            checked={form.google_calendar_pre_meeting ?? true}
-            onChange={(v) => update("google_calendar_pre_meeting", v)}
-          />
+
+          {/* Calendar selection */}
+          {calendars.length > 0 && (
+            <div>
+              <span className="text-xs text-text-muted">{t("settings.calendar_select")}:</span>
+              <div className="mt-1 space-y-1 max-h-[150px] overflow-y-auto">
+                {calendars.map((cal) => (
+                  <label key={cal.id} className="flex items-center gap-2 text-xs cursor-pointer py-0.5">
+                    <input
+                      type="checkbox"
+                      checked={cal.selected}
+                      onChange={(e) => toggleCalendar(cal.id, e.target.checked)}
+                      className="accent-accent"
+                    />
+                    {cal.background_color && (
+                      <span className="w-2.5 h-2.5 rounded-sm inline-block flex-shrink-0" style={{ backgroundColor: cal.background_color }} />
+                    )}
+                    <span className="truncate">{cal.summary}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+          )}
+          {loadingCals && <span className="text-xs text-text-muted">{t("settings.calendar_connecting")}</span>}
+
+          <Checkbox label={t("settings.calendar_block_breaks")} checked={form.google_calendar_block_breaks ?? true} onChange={(v) => update("google_calendar_block_breaks", v)} />
+          <Checkbox label={t("settings.calendar_pre_meeting")} checked={form.google_calendar_pre_meeting ?? true} onChange={(v) => update("google_calendar_pre_meeting", v)} />
           {calState.events.length > 0 && (
             <div className="mt-2">
               <span className="text-xs text-text-muted">{t("settings.calendar_upcoming")}:</span>

@@ -172,6 +172,8 @@ pub struct AppConfig {
     pub google_calendar_block_breaks: bool,
     #[serde(default = "default_true")]
     pub google_calendar_pre_meeting: bool,
+    #[serde(default)]
+    pub google_calendar_ids: Vec<String>,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -343,6 +345,7 @@ impl Default for AppConfig {
             google_token_expires_at: None,
             google_calendar_block_breaks: true,
             google_calendar_pre_meeting: true,
+            google_calendar_ids: Vec::new(),
         }
     }
 }

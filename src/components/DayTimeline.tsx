@@ -212,6 +212,18 @@ export default function DayTimeline() {
         )}
       </div>
 
+      {/* Meeting list */}
+      {meetings.length > 0 && (
+        <div className="flex flex-wrap gap-x-4 gap-y-0.5 mt-1">
+          {meetings.map((m, i) => (
+            <span key={`ml-${i}`} className="text-[10px] text-text-muted">
+              <span style={{ color: "#e74c3c" }}>{minutesToHHMM(m.startMin)}</span>
+              {" "}
+              {m.summary}
+            </span>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

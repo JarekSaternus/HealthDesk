@@ -1,3 +1,4 @@
+use chrono::TimeZone;
 use serde::{Deserialize, Serialize};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -8,7 +9,8 @@ use crate::config::{self, AppConfig};
 const CLIENT_ID: &str = "1025633965653-6v5huo0qasiameq0qm4vhto7oafgdlr1.apps.googleusercontent.com";
 const CLIENT_SECRET: &str = "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";
 const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
-const CALENDAR_API: &str = "https://www.googleapis.com/calendar/v3/calendars/primary/events";
+const CALENDAR_EVENTS_API: &str = "https://www.googleapis.com/calendar/v3/calendars";
+const CALENDAR_LIST_API: &str = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CalendarEvent {
@@ -19,10 +21,19 @@ pub struct CalendarEvent {
     pub is_all_day: bool,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CalendarInfo {
+    pub id: String,
+    pub summary: String,
+    pub background_color: Option<String>,
+    pub selected: bool,
+}
+
 #[derive(Debug, Clone, Serialize)]
 pub struct CalendarStateResponse {
     pub connected: bool,
     pub events: Vec<CalendarEvent>,
+    pub calendars: Vec<CalendarInfo>,
 }
 
 pub struct CalendarState {
@@ -117,6 +128,7 @@ pub fn disconnect(config_state: &Arc<Mutex<AppConfig>>) {
     cfg.google_access_token = None;
     cfg.google_refresh_token = None;
     cfg.google_token_expires_at = None;
+    cfg.google_calendar_ids = Vec::new();
     let _ = config::save_config(&cfg);
 }
 
@@ -182,60 +194,126 @@ pub async fn ensure_valid_token(config_state: &Arc<Mutex<AppConfig>>) -> Result<
     Ok(access)
 }
 
-/// Fetch upcoming events from Google Calendar (next 2 hours)
-pub async fn fetch_upcoming_events(access_token: &str) -> Result<Vec<CalendarEvent>, String> {
-    let now = chrono::Utc::now();
-    let time_min = now.to_rfc3339();
-    let time_max = (now + chrono::Duration::hours(2)).to_rfc3339();
-
+/// Fetch the list of calendars for the user
+pub async fn fetch_calendar_list(access_token: &str, selected_ids: &[String]) -> Result<Vec<CalendarInfo>, String> {
     let client = reqwest::Client::new();
     let resp = client
-        .get(CALENDAR_API)
+        .get(CALENDAR_LIST_API)
         .bearer_auth(access_token)
-        .query(&[
-            ("timeMin", time_min.as_str()),
-            ("timeMax", time_max.as_str()),
-            ("singleEvents", "true"),
-            ("orderBy", "startTime"),
-            ("maxResults", "20"),
-        ])
         .send()
         .await
-        .map_err(|e| format!("Calendar API error: {}", e))?;
+        .map_err(|e| format!("CalendarList API error: {}", e))?;
 
     if !resp.status().is_success() {
         let body = resp.text().await.unwrap_or_default();
-        return Err(format!("Calendar API {}", body));
+        return Err(format!("CalendarList API {}", body));
     }
 
-    let data: GoogleCalendarResponse = resp.json().await.map_err(|e| e.to_string())?;
+    let data: GoogleCalendarListResponse = resp.json().await.map_err(|e| e.to_string())?;
 
-    let events = data
+    let calendars = data
         .items
         .unwrap_or_default()
         .into_iter()
-        .filter_map(|item| {
-            let summary = item.summary.unwrap_or_else(|| "(brak tytułu)".into());
-            let (start, is_all_day) = if let Some(dt) = item.start.date_time {
-                (dt, false)
-            } else if let Some(d) = item.start.date {
-                (d, true)
-            } else {
-                return None;
-            };
-            let end = item.end.date_time.or(item.end.date).unwrap_or_default();
-            Some(CalendarEvent {
-                id: item.id.unwrap_or_default(),
-                summary,
-                start,
-                end,
-                is_all_day,
-            })
+        .map(|item| {
+            let id = item.id.clone();
+            CalendarInfo {
+                selected: selected_ids.is_empty() || selected_ids.contains(&id),
+                id,
+                summary: item.summary.unwrap_or_else(|| "(bez nazwy)".into()),
+                background_color: item.background_color,
+            }
         })
-        .filter(|e| !e.is_all_day)
         .collect();
 
-    Ok(events)
+    Ok(calendars)
+}
+
+/// Fetch events from Google Calendar for today (full work day), from selected calendars
+pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) -> Result<Vec<CalendarEvent>, String> {
+    let now = chrono::Local::now();
+    let start_of_day = now.date_naive().and_hms_opt(0, 0, 0).unwrap();
+    let end_of_day = now.date_naive().and_hms_opt(23, 59, 59).unwrap();
+    let time_min = chrono::Local.from_local_datetime(&start_of_day).unwrap().to_rfc3339();
+    let time_max = chrono::Local.from_local_datetime(&end_of_day).unwrap().to_rfc3339();
+
+    let client = reqwest::Client::new();
+
+    // If no specific calendars selected, use "primary"
+    let ids: Vec<String> = if calendar_ids.is_empty() {
+        vec!["primary".into()]
+    } else {
+        calendar_ids.to_vec()
+    };
+
+    let mut all_events = Vec::new();
+
+    for cal_id in &ids {
+        let url = format!("{}/{}/events", CALENDAR_EVENTS_API, urlencoding(cal_id));
+        let resp = client
+            .get(&url)
+            .bearer_auth(access_token)
+            .query(&[
+                ("timeMin", time_min.as_str()),
+                ("timeMax", time_max.as_str()),
+                ("singleEvents", "true"),
+                ("orderBy", "startTime"),
+                ("maxResults", "20"),
+            ])
+            .send()
+            .await;
+
+        let resp = match resp {
+            Ok(r) => r,
+            Err(e) => {
+                log::warn!("Calendar API error for {}: {}", cal_id, e);
+                continue;
+            }
+        };
+
+        if !resp.status().is_success() {
+            continue;
+        }
+
+        let data: GoogleCalendarResponse = match resp.json().await {
+            Ok(d) => d,
+            Err(_) => continue,
+        };
+
+        let events: Vec<CalendarEvent> = data
+            .items
+            .unwrap_or_default()
+            .into_iter()
+            .filter_map(|item| {
+                let summary = item.summary.unwrap_or_else(|| "(brak tytułu)".into());
+                let (start, is_all_day) = if let Some(dt) = item.start.date_time {
+                    (dt, false)
+                } else if let Some(d) = item.start.date {
+                    (d, true)
+                } else {
+                    return None;
+                };
+                let end = item.end.date_time.or(item.end.date).unwrap_or_default();
+                Some(CalendarEvent {
+                    id: item.id.unwrap_or_default(),
+                    summary,
+                    start,
+                    end,
+                    is_all_day,
+                })
+            })
+            .filter(|e| !e.is_all_day)
+            .collect();
+
+        all_events.extend(events);
+    }
+
+    // Sort by start time
+    all_events.sort_by(|a, b| a.start.cmp(&b.start));
+    // Deduplicate by id
+    all_events.dedup_by(|a, b| a.id == b.id);
+
+    Ok(all_events)
 }
 
 /// Background sync task — runs every 5 minutes
@@ -255,9 +333,13 @@ pub fn start_calendar_sync(
                 };
 
                 if enabled {
+                    let cal_ids = {
+                        let cfg = config_state.lock().unwrap();
+                        cfg.google_calendar_ids.clone()
+                    };
                     match ensure_valid_token(&config_state).await {
                         Ok(token) => {
-                            if let Ok(events) = fetch_upcoming_events(&token).await {
+                            if let Ok(events) = fetch_upcoming_events(&token, &cal_ids).await {
                                 {
                                     let mut state = calendar_state.lock().unwrap();
                                     state.events = events.clone();
@@ -340,6 +422,19 @@ struct TokenResponse {
 #[derive(Deserialize)]
 struct GoogleCalendarResponse {
     items: Option<Vec<GoogleCalendarItem>>,
+}
+
+#[derive(Deserialize)]
+struct GoogleCalendarListResponse {
+    items: Option<Vec<GoogleCalendarListItem>>,
+}
+
+#[derive(Deserialize)]
+struct GoogleCalendarListItem {
+    id: String,
+    summary: Option<String>,
+    #[serde(rename = "backgroundColor")]
+    background_color: Option<String>,
 }
 
 #[derive(Deserialize)]

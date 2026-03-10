@@ -165,9 +165,17 @@ export interface CalendarEvent {
   is_all_day: boolean;
 }
 
+export interface CalendarInfo {
+  id: string;
+  summary: string;
+  background_color: string | null;
+  selected: boolean;
+}
+
 export interface CalendarStateResponse {
   connected: boolean;
   events: CalendarEvent[];
+  calendars: CalendarInfo[];
 }
 
 export type Page = "home" | "stats" | "music" | "settings" | "help";

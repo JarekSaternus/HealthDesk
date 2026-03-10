@@ -86,6 +86,10 @@
 
   "settings": {
     "title": "Ustawienia",
+    "tab_breaks": "Przerwy",
+    "tab_wellness": "Wellness",
+    "tab_integrations": "Integracje",
+    "tab_system": "System",
     "work_method": "Metoda pracy",
     "method_pomodoro": "Pomodoro",
     "method_pomodoro_desc": "25 min pracy, 5 min przerwy, co 4 cykle duża 15 min przerwa. Ćwiczenia oczu co 25 min. Najlepsza dla skupionej, intensywnej pracy w blokach.",
@@ -147,6 +151,11 @@
     "weekly_schedule": "Harmonogram tygodniowy",
     "weekly_schedule_enabled": "Użyj harmonogramu tygodniowego",
     "weekly_schedule_desc": "Ustaw różne interwały przerw na każdy dzień tygodnia",
+    "schedule_mode_uniform": "Jednolity",
+    "schedule_mode_workweek": "Robocze + Weekend",
+    "schedule_mode_individual": "Każdy dzień",
+    "schedule_weekdays": "Pn — Pt",
+    "schedule_weekend": "So — Nd",
     "day_enabled": "Dzień aktywny",
     "day_mon": "Pn",
     "day_tue": "Wt",
@@ -155,7 +164,10 @@
     "day_fri": "Pt",
     "day_sat": "So",
     "day_sun": "Nd",
-    "copy_from": "Kopiuj z:",
+    "apply_to": "Zastosuj do:",
+    "apply_all": "Wszystkich",
+    "apply_weekdays": "Pn–Pt",
+    "apply_weekend": "So–Nd",
     "eye_every": "Ćwiczenia oczu co",
     "water_every": "Woda co",
 
@@ -164,6 +176,7 @@
     "calendar_connecting": "Łączenie...",
     "calendar_connected": "Połączono",
     "calendar_disconnect": "Rozłącz",
+    "calendar_select": "Kalendarze do synchronizacji",
     "calendar_desc": "Synchronizuj kalendarz, aby automatycznie dostosować przerwy do spotkań",
     "calendar_block_breaks": "Blokuj przerwy podczas spotkań",
     "calendar_pre_meeting": "Przypomnienie 5 min przed spotkaniem",
@@ -172,7 +185,7 @@
 
   "help": {
     "title": "Pomoc",
-    "text": "HEALTHDESK — PORADNIK\n\nIKONA W ZASOBNIKU (TRAY)\n  Prawy klik na zieloną ikonę obok zegara Windows:\n  \u2022 Otwórz          — otwiera główne okno aplikacji\n  \u2022 Wypiłem szklankę wody — rejestruje szklankę w trackerze\n  \u2022 Pauza (30 min)       — wstrzymuje wszystkie przypomnienia\n  \u2022 Zakończ              — zamyka aplikację\n\n  Dwuklik na ikonę również otwiera okno.\n\nNAWIGACJA W OKNIE\n  Po lewej stronie znajduje się panel nawigacji:\n  \u2022 Home       — pulpit z podsumowaniem dnia\n  \u2022 Statystyki — szczegółowe dane dzienne i tygodniowe\n  \u2022 Audio      — dźwięki do skupienia (brown noise, deszcz, las...)\n  \u2022 Ustawienia — konfiguracja interwałów, trybów, godzin pracy\n  \u2022 Pomoc      — to okno\n\nPRZERWY\n  Aplikacja przypomina o przerwach w dwóch trybach:\n\n  Tryb umiarkowany (domyślny):\n    Niewielkie okno always-on-top z odliczaniem.\n    Możesz kliknąć \"Pomiń\" lub \"OK, robię przerwę!\".\n\n  Tryb agresywny:\n    Pełnoekranowa blokada z odliczaniem.\n    Awaryjne wyjście: kliknij 3 razy szybko (w 2 sekundy).\n\n  Rodzaje przerw:\n    \u2022 Mała przerwa — krótka przerwa na odpoczynek oczu\n    \u2022 Duża przerwa — dłuższy odpoczynek + ćwiczenia\n\nMETODY PRACY\n  W Ustawieniach możesz wybrać metodę pracy:\n    \u2022 Pomodoro — 25 min pracy, 5 min przerwy\n    \u2022 20-20-20 — co 20 min, 20 sek przerwy na oczy\n    \u2022 52-17 — 52 min pracy, 17 min przerwy\n    \u2022 90-minutowy — 90 min pracy, 5 min przerwy\n    \u2022 Własny — dowolne ustawienia\n\nĆWICZENIA\n  Oczy: mruganie, ruch gałkami, fokus bliski/daleki, ósemki.\n  Rozciąganie: szyja, ramiona, tułów, nadgarstki, nogi, plecy.\n  Ćwiczenia pojawiają się automatycznie przy przerwach.\n\nNAWODNIENIE\n  Aplikacja przypomina o piciu wody (domyślnie co 30 min).\n  Cel dzienny: 8 szklanek (konfigurowalne w Ustawieniach).\n  Możesz szybko dodać szklankę z panelu nawigacji (+1 woda).\n\nŚLEDZENIE AKTYWNOŚCI\n  Aplikacja co 5 sek sprawdza aktywne okno i kategoryzuje:\n    \u2022 Praca        — IDE, Office, edytory\n    \u2022 Rozrywka     — YouTube, gry, media\n    \u2022 Komunikacja  — Teams, Slack, Zoom\n    \u2022 Przeglądarka — Chrome, Firefox, Edge\n    \u2022 Inne         — pozostałe\n\n  Dane widoczne w zakładce Statystyki.\n\nDŹWIĘKI DO SKUPIENIA\n  Zakładka Audio oferuje dźwięki generowane natywnie (bez internetu):\n    \u2022 Brown Noise — głęboki, kojący szum\n    \u2022 Deszcz     — szum deszczu z kroplami\n    \u2022 White/Pink Noise — równomierny szum\n    \u2022 Ambient Drone — głęboki ton z modulacją\n    \u2022 Las        — wiatr w drzewach, ptaki\n\n  Dźwięk gra w tle nawet po zamknięciu okna.\n\nYOUTUBE RADIO\n  Muzyka instrumentalna bez słów, streamowana z YouTube:\n    \u2022 Lofi Girl — lofi hip hop beats\n    \u2022 Jazz Cafe — smooth jazz & bossa nova\n    \u2022 Classical Focus — muzyka klasyczna\n    \u2022 Synthwave Radio — synthwave instrumental\n    \u2022 Piano & Ambient — spokojne pianino\n\n  Możesz też wkleić własny link do YouTube.\n  Wymaga: yt-dlp (pip install yt-dlp) + ffmpeg na PATH.\n\nGODZINY PRACY\n  W Ustawieniach można włączyć godziny pracy (np. 8:00-18:00).\n  Poza tymi godzinami przypomnienia są wstrzymane.\n\nAUTOSTART\n  Ustawienia > \"Autostart z Windows\" — aplikacja uruchomi się\n  automatycznie po zalogowaniu do systemu.\n\nDANE\n  Konfiguracja i baza danych są w:\n    %APPDATA%\\HealthDesk\\\n  Możesz usunąć ten folder, aby zresetować aplikację."
+    "text": "HEALTHDESK — PORADNIK\n\nIKONA W ZASOBNIKU (TRAY)\n  Prawy klik na zieloną ikonę obok zegara Windows:\n  \u2022 Otwórz — otwiera główne okno\n  \u2022 Wypiłem szklankę wody — rejestruje szklankę\n  \u2022 Włącz/Wyłącz muzykę — steruje odtwarzaniem audio\n  \u2022 Pauza / Wznów — wstrzymuje lub wznawia przypomnienia\n  \u2022 Zakończ — zamyka aplikację\n  Dwuklik na ikonę otwiera okno.\n\nNAWIGACJA\n  Panel po lewej:\n  \u2022 Home — pulpit: timery przerw, woda, oś czasu dnia, dźwięk\n  \u2022 Statystyki — dane dzienne, tygodniowe i miesięczne\n  \u2022 Audio — dźwięki do skupienia, radio FM, YouTube\n  \u2022 Ustawienia — konfiguracja wszystkiego\n  \u2022 Pomoc — to okno\n\nPRZERWY\n  Trzy tryby wyświetlania:\n  \u2022 Delikatny — małe okno bez blokowania, łatwe do zamknięcia\n  \u2022 Umiarkowany — okno always-on-top z odliczaniem\n  \u2022 Agresywny — pełnoekranowa blokada (wyjście: 3 kliknięcia w 2s)\n\n  Przycisk \"Odłóż\" odkłada przerwę o 5 minut.\n\n  Rodzaje przerw:\n  \u2022 Mała przerwa — krótki odpoczynek oczu\n  \u2022 Duża przerwa — dłuższy odpoczynek + ćwiczenia\n\nMETODY PRACY\n  Wybierz na dashboardzie lub w Ustawieniach:\n  \u2022 Pomodoro — 25 min pracy, 5 min przerwy\n  \u2022 20-20-20 — co 20 min, 20 sek na oczy\n  \u2022 52-17 — 52 min pracy, 17 min przerwy\n  \u2022 90-minutowy — 90 min pracy, 5 min przerwy\n  \u2022 Własny — dowolne interwały\n\nĆWICZENIA\n  \u2022 Oczy — mruganie, ruch gałkami, fokus bliski/daleki, ósemki\n  \u2022 Rozciąganie — szyja, ramiona, tułów, nadgarstki, nogi, plecy\n  \u2022 Trening oddechowy — oddech pudełkowy 4-4-4-4 (5 cykli)\n  Ćwiczenia pojawiają się automatycznie przy przerwach.\n\nNAWODNIENIE\n  Przypomnienie co 30 min (konfigurowalne). Cel: 8 szklanek/dzień.\n  Dodaj szklankę: przycisk +1 na dashboardzie lub z traya.\n\nHARMONOGRAM TYGODNIOWY\n  Ustawienia > Harmonogram tygodniowy — osobny profil przerw\n  na każdy dzień tygodnia (np. krótsze interwały w poniedziałek,\n  dłuższe w piątek). Dashboard pokazuje oś czasu dnia.\n\nGOOGLE CALENDAR\n  Ustawienia > Integracje > Google Calendar — połącz konto,\n  a spotkania pojawią się na osi czasu dnia jako czerwone bloki.\n  Synchronizacja co 5 minut.\n\nINTELIGENTNA BEZCZYNNOŚĆ\n  Aplikacja wykrywa brak aktywności (klawiatura/mysz) i automatycznie\n  zamraża timery przerw. Po powrocie — timery wznawiają się.\n\nTRYB NIE PRZESZKADZAĆ (DND)\n  Gdy Windows Focus Assist jest aktywny, HealthDesk automatycznie\n  wstrzymuje wyskakujące okna przypomnień.\n\nŚLEDZENIE AKTYWNOŚCI\n  Co 5 sek sprawdza aktywne okno i kategoryzuje:\n  \u2022 Praca — IDE, Office, edytory\n  \u2022 Rozrywka — YouTube, gry, media\n  \u2022 Komunikacja — Teams, Slack, Zoom\n  \u2022 Przeglądarka — Chrome, Firefox, Edge\n  \u2022 Inne — pozostałe\n  Dane w zakładce Statystyki (dzień/tydzień/miesiąc).\n\nDŹWIĘKI DO SKUPIENIA\n  Generowane natywnie (bez internetu):\n  \u2022 Brown Noise — głęboki, kojący szum\n  \u2022 Deszcz — szum deszczu z kroplami\n  \u2022 White/Pink Noise — równomierny szum\n  \u2022 Ambient Drone — głęboki ton z modulacją\n  \u2022 Las — wiatr w drzewach, ptaki\n\nRADIO FM\n  6 polskich stacji streamowanych na żywo:\n  RMF FM, RMF MAXX, Antyradio, Radio ZET, Eska, Chillizet.\n\nYOUTUBE RADIO\n  Stacje instrumentalne (Lofi Girl, Jazz Cafe, Classical Focus...)\n  + wyszukiwarka YouTube + własny link.\n  Wymaga: yt-dlp + ffplay na PATH.\n\n  Pauza schedulera wstrzymuje też odtwarzanie audio.\n\nGODZINY PRACY\n  Ustawienia > Godziny pracy (np. 8:00–18:00).\n  Poza nimi przypomnienia są wstrzymane.\n\nAUTOSTART\n  Ustawienia > Autostart z Windows.\n\nAUTO-UPDATE\n  Aplikacja automatycznie sprawdza nowe wersje.\n  Gdy dostępna aktualizacja — pojawia się popup z opcją instalacji.\n\nDANE\n  Konfiguracja i baza: %APPDATA%\\HealthDesk\\\n  Usuń folder, aby zresetować aplikację."
   },
 
   "break": {
