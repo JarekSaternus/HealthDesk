@@ -6,7 +6,8 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
-import type { WorkMethodPreset, DaySchedule, WeeklySchedule } from "../types";
+import { listen } from "@tauri-apps/api/event";
+import type { WorkMethodPreset, DaySchedule, WeeklySchedule, CalendarStateResponse } from "../types";
 
 const METHODS = ["pomodoro", "20-20-20", "52-17", "90-min", "custom"];
 
@@ -360,6 +361,9 @@ export default function SettingsPage() {
           </div>
         </div>
       </Card>
+
+      {/* Google Calendar */}
+      <GoogleCalendarSection form={form} update={update} />
     </div>
 
     {/* Sticky footer */}
@@ -634,6 +638,96 @@ function WeeklyScheduleSection({ form, update }: { form: any; update: (key: stri
               </button>
             ))}
           </div>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function GoogleCalendarSection({ form, update }: { form: any; update: (key: string, value: any) => void }) {
+  const [calState, setCalState] = useState<CalendarStateResponse>({ connected: false, events: [] });
+  const [connecting, setConnecting] = useState(false);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    invoke<CalendarStateResponse>("get_calendar_state").then(setCalState);
+    const unlisten = listen("calendar:connected", () => {
+      invoke<CalendarStateResponse>("get_calendar_state").then((s) => {
+        setCalState(s);
+        setConnecting(false);
+      });
+    });
+    return () => { unlisten.then((f) => f()); };
+  }, []);
+
+  const handleConnect = async () => {
+    setConnecting(true);
+    setError("");
+    try {
+      await invoke("calendar_connect");
+    } catch (e: any) {
+      setError(String(e));
+      setConnecting(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    await invoke("calendar_disconnect");
+    setCalState({ connected: false, events: [] });
+    update("google_calendar_enabled", false);
+  };
+
+  return (
+    <Card>
+      <h3 className="text-sm font-medium mb-3">{t("settings.calendar_section")}</h3>
+
+      {calState.connected ? (
+        <div className="space-y-3">
+          <div className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-accent inline-block" />
+            <span className="text-sm text-accent">{t("settings.calendar_connected")}</span>
+            <button
+              onClick={handleDisconnect}
+              className="text-xs text-danger hover:text-danger/80 ml-auto"
+            >
+              {t("settings.calendar_disconnect")}
+            </button>
+          </div>
+          <Checkbox
+            label={t("settings.calendar_block_breaks")}
+            checked={form.google_calendar_block_breaks ?? true}
+            onChange={(v) => update("google_calendar_block_breaks", v)}
+          />
+          <Checkbox
+            label={t("settings.calendar_pre_meeting")}
+            checked={form.google_calendar_pre_meeting ?? true}
+            onChange={(v) => update("google_calendar_pre_meeting", v)}
+          />
+          {calState.events.length > 0 && (
+            <div className="mt-2">
+              <span className="text-xs text-text-muted">{t("settings.calendar_upcoming")}:</span>
+              {calState.events.slice(0, 3).map((ev) => (
+                <div key={ev.id} className="text-xs text-text mt-1 flex justify-between">
+                  <span className="truncate">{ev.summary}</span>
+                  <span className="text-text-muted ml-2 whitespace-nowrap">
+                    {new Date(ev.start).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      ) : (
+        <div>
+          <p className="text-xs text-text-muted mb-3">{t("settings.calendar_desc")}</p>
+          <button
+            onClick={handleConnect}
+            disabled={connecting}
+            className="bg-accent/20 text-accent hover:bg-accent/30 rounded px-4 py-2 text-sm transition-colors disabled:opacity-50"
+          >
+            {connecting ? t("settings.calendar_connecting") : t("settings.calendar_connect")}
+          </button>
+          {error && <p className="text-xs text-danger mt-2">{error}</p>}
         </div>
       )}
     </Card>

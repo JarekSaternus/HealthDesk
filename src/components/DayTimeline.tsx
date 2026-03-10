@@ -1,8 +1,15 @@
 import { useEffect, useState } from "react";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
-import type { EffectiveIntervals } from "../types";
+import type { EffectiveIntervals, CalendarEvent, CalendarStateResponse } from "../types";
+
+interface MeetingBlock {
+  startMin: number;
+  endMin: number;
+  summary: string;
+}
 
 interface TimelineEvent {
   type: string;
@@ -67,6 +74,7 @@ export default function DayTimeline() {
   const config = useAppStore((s) => s.config);
   const schedulerState = useAppStore((s) => s.schedulerState);
   const [eff, setEff] = useState<EffectiveIntervals | null>(null);
+  const [meetings, setMeetings] = useState<MeetingBlock[]>([]);
   const [nowMin, setNowMin] = useState(() => {
     const now = new Date();
     return now.getHours() * 60 + now.getMinutes();
@@ -75,6 +83,29 @@ export default function DayTimeline() {
   useEffect(() => {
     invoke<EffectiveIntervals>("get_effective_intervals").then(setEff);
   }, [config?.weekly_schedule]);
+
+  // Fetch calendar events
+  useEffect(() => {
+    invoke<CalendarStateResponse>("get_calendar_state").then((s) => {
+      if (s.connected) parseMeetings(s.events);
+    });
+    const unlisten = listen<CalendarEvent[]>("calendar:events-updated", (ev) => {
+      parseMeetings(ev.payload);
+    });
+    return () => { unlisten.then((f) => f()); };
+  }, []);
+
+  const parseMeetings = (events: CalendarEvent[]) => {
+    setMeetings(events.map((ev) => {
+      const s = new Date(ev.start);
+      const e = new Date(ev.end);
+      return {
+        startMin: s.getHours() * 60 + s.getMinutes(),
+        endMin: e.getHours() * 60 + e.getMinutes(),
+        summary: ev.summary,
+      };
+    }));
+  };
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -122,6 +153,22 @@ export default function DayTimeline() {
           );
         })}
 
+        {/* Meeting blocks */}
+        {meetings.map((m, i) => {
+          const leftPct = Math.max(0, ((m.startMin - startMin) / totalRange) * 100);
+          const rightPct = Math.min(100, ((m.endMin - startMin) / totalRange) * 100);
+          const widthPct = rightPct - leftPct;
+          if (widthPct <= 0) return null;
+          return (
+            <div
+              key={`meeting-${i}`}
+              className="absolute top-0.5 bottom-0.5 rounded opacity-25 hover:opacity-40 transition-opacity"
+              style={{ left: `${leftPct}%`, width: `${widthPct}%`, backgroundColor: "#e74c3c" }}
+              title={`${m.summary} (${minutesToHHMM(m.startMin)}–${minutesToHHMM(m.endMin)})`}
+            />
+          );
+        })}
+
         {/* Events */}
         {events.map((ev, i) => {
           const pct = ((ev.time - startMin) / totalRange) * 100;
@@ -155,6 +202,7 @@ export default function DayTimeline() {
           { color: "#2ecc71", label: t("home.water") },
           { color: "#9b59b6", label: t("settings.eye_section") },
           ...(eff.breathing_exercise_enabled ? [{ color: "#1abc9c", label: t("settings.breathing_section") }] : []),
+          ...(meetings.length > 0 ? [{ color: "#e74c3c", label: t("home.meetings") }] : []),
         ].map(({ color, label }) => (
           <div key={color} className="flex items-center gap-1">
             <span className="w-2 h-2 rounded-full inline-block" style={{ backgroundColor: color }} />

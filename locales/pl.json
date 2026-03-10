@@ -28,6 +28,7 @@
     "glasses_count": "{current} / {goal} szklanek",
     "day_progress": "dnia",
     "timeline": "Oś czasu dnia",
+    "meetings": "Spotkania",
     "breaks_taken": "wykonane",
     "breaks_skipped": "pominięte",
     "search_music": "Szukaj muzyki",
@@ -156,7 +157,17 @@
     "day_sun": "Nd",
     "copy_from": "Kopiuj z:",
     "eye_every": "Ćwiczenia oczu co",
-    "water_every": "Woda co"
+    "water_every": "Woda co",
+
+    "calendar_section": "Google Calendar",
+    "calendar_connect": "Połącz z Google Calendar",
+    "calendar_connecting": "Łączenie...",
+    "calendar_connected": "Połączono",
+    "calendar_disconnect": "Rozłącz",
+    "calendar_desc": "Synchronizuj kalendarz, aby automatycznie dostosować przerwy do spotkań",
+    "calendar_block_breaks": "Blokuj przerwy podczas spotkań",
+    "calendar_pre_meeting": "Przypomnienie 5 min przed spotkaniem",
+    "calendar_upcoming": "Najbliższe spotkania"
   },
 
   "help": {

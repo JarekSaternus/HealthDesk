@@ -3,6 +3,7 @@ dist/
 src-tauri/target/
 *.exe
 .DS_Store
+credentials.json
 .claude/
 landing/dist/
 landing/node_modules/

@@ -1,5 +1,6 @@
 pub mod ads;
 pub mod audio;
+pub mod calendar;
 pub mod commands;
 pub mod config;
 pub mod database;
@@ -52,6 +53,7 @@ pub fn run() {
     youtube::kill_orphan_ffplay();
     let yt_player = Arc::new(youtube::YouTubePlayer::new());
     let popup_mgr = popup_manager::create_popup_manager();
+    let calendar_state: calendar::SharedCalendarState = Arc::new(Mutex::new(calendar::CalendarState::new()));
 
     // Client UUID for telemetry/ads
     let client_uuid = get_client_uuid();
@@ -86,6 +88,7 @@ pub fn run() {
         .manage(i18n.clone())
         .manage(audio.clone())
         .manage(yt_player.clone())
+        .manage(calendar_state.clone())
         .setup(move |app| {
             let app_handle = app.handle().clone();
 
@@ -119,6 +122,13 @@ pub fn run() {
             ));
             app.manage(telemetry.clone());
             telemetry.track("app_start", None);
+
+            // Start Google Calendar sync
+            calendar::start_calendar_sync(
+                app_handle.clone(),
+                config_clone.clone(),
+                calendar_state.clone(),
+            );
 
             // Setup scheduler event listeners for popup creation
             let app2 = app_handle.clone();
@@ -239,6 +249,10 @@ pub fn run() {
             commands::get_translations,
             commands::change_language,
             commands::set_autostart,
+            commands::calendar_connect,
+            commands::calendar_disconnect,
+            commands::get_calendar_state,
+            commands::calendar_refresh,
         ])
         .on_window_event(|window, event| {
             match event {

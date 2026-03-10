@@ -2,6 +2,7 @@ use std::sync::Arc;
 use tauri::{Emitter, State};
 
 use crate::audio::AudioEngine;
+use crate::calendar::{self, SharedCalendarState, CalendarStateResponse};
 use crate::config::{AppConfig, ConfigState, EffectiveIntervals, effective_intervals};
 use crate::database::{self, Database};
 use crate::i18n::I18n;
@@ -440,4 +441,47 @@ pub fn get_translations(i18n: State<Arc<I18n>>) -> serde_json::Value {
 pub fn change_language(lang: String, i18n: State<Arc<I18n>>, app: tauri::AppHandle) {
     i18n.load_language(&lang);
     let _ = crate::tray::update_tray_language(&app, &i18n);
+}
+
+// ---- Google Calendar ----
+
+#[tauri::command]
+pub async fn calendar_connect(app: tauri::AppHandle, config: State<'_, ConfigState>) -> Result<(), String> {
+    let config_arc = config.0.clone();
+    calendar::oauth_connect(app, config_arc).await
+}
+
+#[tauri::command]
+pub fn calendar_disconnect(config: State<ConfigState>) -> Result<(), String> {
+    calendar::disconnect(&config.0);
+    Ok(())
+}
+
+#[tauri::command]
+pub fn get_calendar_state(
+    config: State<ConfigState>,
+    calendar: State<SharedCalendarState>,
+) -> CalendarStateResponse {
+    let cfg = config.0.lock().unwrap();
+    let cal = calendar.lock().unwrap();
+    CalendarStateResponse {
+        connected: cfg.google_calendar_enabled && cfg.google_refresh_token.is_some(),
+        events: cal.events.clone(),
+    }
+}
+
+#[tauri::command]
+pub async fn calendar_refresh(
+    config: State<'_, ConfigState>,
+    calendar: State<'_, SharedCalendarState>,
+) -> Result<Vec<calendar::CalendarEvent>, String> {
+    let config_arc = config.0.clone();
+    let token = calendar::ensure_valid_token(&config_arc).await?;
+    let events = calendar::fetch_upcoming_events(&token).await?;
+    {
+        let mut state = calendar.lock().unwrap();
+        state.events = events.clone();
+        state.last_fetched = Some(std::time::Instant::now());
+    }
+    Ok(events)
 }

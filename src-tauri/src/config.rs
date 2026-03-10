@@ -160,6 +160,18 @@ pub struct AppConfig {
     pub onboarding_completed: bool,
     #[serde(default)]
     pub weekly_schedule: Option<WeeklySchedule>,
+    #[serde(default)]
+    pub google_calendar_enabled: bool,
+    #[serde(default)]
+    pub google_access_token: Option<String>,
+    #[serde(default)]
+    pub google_refresh_token: Option<String>,
+    #[serde(default)]
+    pub google_token_expires_at: Option<i64>,
+    #[serde(default = "default_true")]
+    pub google_calendar_block_breaks: bool,
+    #[serde(default = "default_true")]
+    pub google_calendar_pre_meeting: bool,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -325,6 +337,12 @@ impl Default for AppConfig {
             idle_threshold_min: 5,
             onboarding_completed: false,
             weekly_schedule: None,
+            google_calendar_enabled: false,
+            google_access_token: None,
+            google_refresh_token: None,
+            google_token_expires_at: None,
+            google_calendar_block_breaks: true,
+            google_calendar_pre_meeting: true,
         }
     }
 }

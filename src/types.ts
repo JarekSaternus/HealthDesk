@@ -30,6 +30,9 @@ export interface AppConfig {
   idle_threshold_min: number;
   onboarding_completed: boolean;
   weekly_schedule: WeeklySchedule | null;
+  google_calendar_enabled: boolean;
+  google_calendar_block_breaks: boolean;
+  google_calendar_pre_meeting: boolean;
 }
 
 export interface DaySchedule {
@@ -152,6 +155,19 @@ export interface YTSearchResult {
   url: string;
   duration: string;
   channel: string;
+}
+
+export interface CalendarEvent {
+  id: string;
+  summary: string;
+  start: string;
+  end: string;
+  is_all_day: boolean;
+}
+
+export interface CalendarStateResponse {
+  connected: boolean;
+  events: CalendarEvent[];
 }
 
 export type Page = "home" | "stats" | "music" | "settings" | "help";

@@ -28,6 +28,7 @@
     "glasses_count": "{current} / {goal} glasses",
     "day_progress": "of day",
     "timeline": "Day timeline",
+    "meetings": "Meetings",
     "breaks_taken": "taken",
     "breaks_skipped": "skipped",
     "search_music": "Search music",
@@ -156,7 +157,17 @@
     "day_sun": "Sun",
     "copy_from": "Copy from:",
     "eye_every": "Eye exercises every",
-    "water_every": "Water every"
+    "water_every": "Water every",
+
+    "calendar_section": "Google Calendar",
+    "calendar_connect": "Connect Google Calendar",
+    "calendar_connecting": "Connecting...",
+    "calendar_connected": "Connected",
+    "calendar_disconnect": "Disconnect",
+    "calendar_desc": "Sync your calendar to automatically adjust breaks around meetings",
+    "calendar_block_breaks": "Block breaks during meetings",
+    "calendar_pre_meeting": "Reminder 5 min before meeting",
+    "calendar_upcoming": "Upcoming meetings"
   },
 
   "help": {
