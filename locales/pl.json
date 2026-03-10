@@ -27,6 +27,7 @@
     "outside_work_hours": "Poza godzinami pracy",
     "glasses_count": "{current} / {goal} szklanek",
     "day_progress": "dnia",
+    "timeline": "Oś czasu dnia",
     "breaks_taken": "wykonane",
     "breaks_skipped": "pominięte",
     "search_music": "Szukaj muzyki",
@@ -140,7 +141,22 @@
     "idle_section": "Wykrywanie bezczynności",
     "idle_enabled": "Wykrywaj bezczynność i zamrażaj timery",
     "idle_enabled_desc": "Gdy nie ruszasz myszą/klawiaturą przez ustawiony czas, timery się zatrzymają",
-    "idle_threshold": "Próg bezczynności"
+    "idle_threshold": "Próg bezczynności",
+
+    "weekly_schedule": "Harmonogram tygodniowy",
+    "weekly_schedule_enabled": "Użyj harmonogramu tygodniowego",
+    "weekly_schedule_desc": "Ustaw różne interwały przerw na każdy dzień tygodnia",
+    "day_enabled": "Dzień aktywny",
+    "day_mon": "Pn",
+    "day_tue": "Wt",
+    "day_wed": "Śr",
+    "day_thu": "Cz",
+    "day_fri": "Pt",
+    "day_sat": "So",
+    "day_sun": "Nd",
+    "copy_from": "Kopiuj z:",
+    "eye_every": "Ćwiczenia oczu co",
+    "water_every": "Woda co"
   },
 
   "help": {

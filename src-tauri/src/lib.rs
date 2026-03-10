@@ -196,6 +196,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
             commands::save_config,
+            commands::get_effective_intervals,
             commands::get_work_methods,
             commands::log_break,
             commands::get_breaks_today,

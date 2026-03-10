@@ -2,7 +2,7 @@ use std::sync::Arc;
 use tauri::{Emitter, State};
 
 use crate::audio::AudioEngine;
-use crate::config::{AppConfig, ConfigState};
+use crate::config::{AppConfig, ConfigState, EffectiveIntervals, effective_intervals};
 use crate::database::{self, Database};
 use crate::i18n::I18n;
 use crate::popup_manager::{self, SharedPopupManager};
@@ -100,6 +100,12 @@ pub fn set_autostart(app: tauri::AppHandle, enabled: bool) -> Result<(), String>
             autostart.disable().map_err(|e| e.to_string())
         }
     }
+}
+
+#[tauri::command]
+pub fn get_effective_intervals(config: State<ConfigState>) -> EffectiveIntervals {
+    let cfg = config.0.lock().unwrap();
+    effective_intervals(&cfg)
 }
 
 #[tauri::command]

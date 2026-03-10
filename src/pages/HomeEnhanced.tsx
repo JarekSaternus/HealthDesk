@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
+import DayTimeline from "../components/DayTimeline";
 import type { BreakRecord, YTSearchResult } from "../types";
 
 function formatDuration(seconds: number): string {
@@ -214,6 +215,13 @@ export default function HomeEnhanced() {
           </div>
         )}
       </Card>
+
+      {/* Day timeline */}
+      {config?.work_hours_enabled && !schedulerState?.outside_work_hours && (
+        <Card>
+          <DayTimeline />
+        </Card>
+      )}
 
       {/* Idle / DND status badge */}
       {(schedulerState?.idle || schedulerState?.dnd) && (

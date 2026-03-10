@@ -29,6 +29,36 @@ export interface AppConfig {
   idle_detection_enabled: boolean;
   idle_threshold_min: number;
   onboarding_completed: boolean;
+  weekly_schedule: WeeklySchedule | null;
+}
+
+export interface DaySchedule {
+  small_break_interval_min: number;
+  small_break_duration_sec: number;
+  big_break_interval_min: number;
+  big_break_duration_min: number;
+  eye_exercise_interval_min: number;
+  water_interval_min: number;
+  breathing_exercise_interval_min: number;
+  breathing_exercise_enabled: boolean;
+  enabled: boolean;
+}
+
+export interface WeeklySchedule {
+  enabled: boolean;
+  days: Record<string, DaySchedule>;
+}
+
+export interface EffectiveIntervals {
+  small_break_interval_min: number;
+  small_break_duration_sec: number;
+  big_break_interval_min: number;
+  big_break_duration_min: number;
+  eye_exercise_interval_min: number;
+  water_interval_min: number;
+  breathing_exercise_interval_min: number;
+  breathing_exercise_enabled: boolean;
+  day_enabled: boolean;
 }
 
 export interface SchedulerState {

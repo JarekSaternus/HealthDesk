@@ -27,6 +27,7 @@
     "outside_work_hours": "Outside work hours",
     "glasses_count": "{current} / {goal} glasses",
     "day_progress": "of day",
+    "timeline": "Day timeline",
     "breaks_taken": "taken",
     "breaks_skipped": "skipped",
     "search_music": "Search music",
@@ -140,7 +141,22 @@
     "idle_section": "Idle detection",
     "idle_enabled": "Detect idle and freeze timers",
     "idle_enabled_desc": "When you stop using mouse/keyboard for the set time, timers will freeze",
-    "idle_threshold": "Idle threshold"
+    "idle_threshold": "Idle threshold",
+
+    "weekly_schedule": "Weekly schedule",
+    "weekly_schedule_enabled": "Use weekly schedule",
+    "weekly_schedule_desc": "Set different break intervals for each day of the week",
+    "day_enabled": "Day active",
+    "day_mon": "Mon",
+    "day_tue": "Tue",
+    "day_wed": "Wed",
+    "day_thu": "Thu",
+    "day_fri": "Fri",
+    "day_sat": "Sat",
+    "day_sun": "Sun",
+    "copy_from": "Copy from:",
+    "eye_every": "Eye exercises every",
+    "water_every": "Water every"
   },
 
   "help": {

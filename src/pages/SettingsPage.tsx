@@ -6,7 +6,7 @@ import { relaunch } from "@tauri-apps/plugin-process";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import Card from "../components/Card";
-import type { WorkMethodPreset } from "../types";
+import type { WorkMethodPreset, DaySchedule, WeeklySchedule } from "../types";
 
 const METHODS = ["pomodoro", "20-20-20", "52-17", "90-min", "custom"];
 
@@ -118,6 +118,9 @@ export default function SettingsPage() {
           </div>
         </Card>
       )}
+
+      {/* Weekly schedule */}
+      <WeeklyScheduleSection form={form} update={update} />
 
       {/* Break mode — always visible */}
       <Card>
@@ -457,4 +460,182 @@ function UpdateChecker({
     return <span className="text-xs text-danger">{t("update.error")}</span>;
   }
   return null;
+}
+
+const DAY_KEYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+function defaultDaySchedule(form: any): DaySchedule {
+  return {
+    small_break_interval_min: form.small_break_interval_min ?? 25,
+    small_break_duration_sec: form.small_break_duration_sec ?? 300,
+    big_break_interval_min: form.big_break_interval_min ?? 100,
+    big_break_duration_min: form.big_break_duration_min ?? 15,
+    eye_exercise_interval_min: form.eye_exercise_interval_min ?? 25,
+    water_interval_min: form.water_interval_min ?? 30,
+    breathing_exercise_interval_min: form.breathing_exercise_interval_min ?? 45,
+    breathing_exercise_enabled: form.breathing_exercise_enabled ?? true,
+    enabled: true,
+  };
+}
+
+function WeeklyScheduleSection({ form, update }: { form: any; update: (key: string, value: any) => void }) {
+  const ws: WeeklySchedule = form.weekly_schedule ?? { enabled: false, days: {} };
+  const [activeDay, setActiveDay] = useState<string>("mon");
+
+  const setWs = (newWs: WeeklySchedule) => {
+    update("weekly_schedule", newWs);
+  };
+
+  const toggleEnabled = (enabled: boolean) => {
+    if (enabled && Object.keys(ws.days).length === 0) {
+      // Initialize all days from current global settings
+      const days: Record<string, DaySchedule> = {};
+      for (const day of DAY_KEYS) {
+        days[day] = defaultDaySchedule(form);
+      }
+      setWs({ enabled: true, days });
+    } else {
+      setWs({ ...ws, enabled });
+    }
+  };
+
+  const updateDay = (dayKey: string, field: string, value: any) => {
+    const day = ws.days[dayKey] ?? defaultDaySchedule(form);
+    const newDays = { ...ws.days, [dayKey]: { ...day, [field]: value } };
+    setWs({ ...ws, days: newDays });
+  };
+
+  const copyFrom = (sourceDay: string) => {
+    const source = ws.days[sourceDay] ?? defaultDaySchedule(form);
+    const newDays = { ...ws.days };
+    for (const day of DAY_KEYS) {
+      if (day !== sourceDay) {
+        newDays[day] = { ...source };
+      }
+    }
+    setWs({ ...ws, days: newDays });
+  };
+
+  const currentDay = ws.days[activeDay] ?? defaultDaySchedule(form);
+
+  return (
+    <Card>
+      <h3 className="text-sm font-medium mb-3">{t("settings.weekly_schedule")}</h3>
+      <Checkbox
+        label={t("settings.weekly_schedule_enabled")}
+        desc={t("settings.weekly_schedule_desc")}
+        checked={ws.enabled}
+        onChange={toggleEnabled}
+      />
+
+      {ws.enabled && (
+        <div className="mt-4 space-y-3">
+          {/* Day tabs */}
+          <div className="flex gap-1">
+            {DAY_KEYS.map((day) => {
+              const dayData = ws.days[day];
+              const isDisabled = dayData && !dayData.enabled;
+              return (
+                <button
+                  key={day}
+                  onClick={() => setActiveDay(day)}
+                  className={`flex-1 text-xs py-1.5 rounded transition-colors ${
+                    activeDay === day
+                      ? "bg-accent text-white"
+                      : isDisabled
+                      ? "bg-card-hover/50 text-text-muted/50"
+                      : "bg-card-hover text-text-muted hover:bg-accent/20"
+                  }`}
+                >
+                  {t(`settings.day_${day}`)}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Day enabled toggle */}
+          <Checkbox
+            label={t("settings.day_enabled")}
+            checked={currentDay.enabled}
+            onChange={(v) => updateDay(activeDay, "enabled", v)}
+          />
+
+          {currentDay.enabled && (
+            <div className="space-y-3">
+              <SliderField
+                label={t("settings.small_break_every")}
+                value={currentDay.small_break_interval_min}
+                min={5} max={120}
+                unit={t("settings.unit_min")}
+                onChange={(v) => updateDay(activeDay, "small_break_interval_min", v)}
+              />
+              <SliderField
+                label={t("settings.small_break_duration")}
+                value={currentDay.small_break_duration_sec}
+                min={10} max={1800} step={10}
+                unit={t("settings.unit_sec")}
+                onChange={(v) => updateDay(activeDay, "small_break_duration_sec", v)}
+              />
+              <SliderField
+                label={t("settings.big_break_every")}
+                value={currentDay.big_break_interval_min}
+                min={15} max={300}
+                unit={t("settings.unit_min")}
+                onChange={(v) => updateDay(activeDay, "big_break_interval_min", v)}
+              />
+              <SliderField
+                label={t("settings.big_break_duration")}
+                value={currentDay.big_break_duration_min}
+                min={1} max={30}
+                unit={t("settings.unit_min")}
+                onChange={(v) => updateDay(activeDay, "big_break_duration_min", v)}
+              />
+              <SliderField
+                label={t("settings.eye_every")}
+                value={currentDay.eye_exercise_interval_min}
+                min={10} max={120}
+                unit={t("settings.unit_min")}
+                onChange={(v) => updateDay(activeDay, "eye_exercise_interval_min", v)}
+              />
+              <SliderField
+                label={t("settings.water_every")}
+                value={currentDay.water_interval_min}
+                min={10} max={120}
+                unit={t("settings.unit_min")}
+                onChange={(v) => updateDay(activeDay, "water_interval_min", v)}
+              />
+              <Checkbox
+                label={t("settings.breathing_enabled")}
+                checked={currentDay.breathing_exercise_enabled}
+                onChange={(v) => updateDay(activeDay, "breathing_exercise_enabled", v)}
+              />
+              {currentDay.breathing_exercise_enabled && (
+                <SliderField
+                  label={t("settings.breathing_every")}
+                  value={currentDay.breathing_exercise_interval_min}
+                  min={15} max={120}
+                  unit={t("settings.unit_min")}
+                  onChange={(v) => updateDay(activeDay, "breathing_exercise_interval_min", v)}
+                />
+              )}
+            </div>
+          )}
+
+          {/* Copy from button */}
+          <div className="flex items-center gap-2 pt-2 border-t border-card-hover">
+            <span className="text-xs text-text-muted">{t("settings.copy_from")}</span>
+            {DAY_KEYS.filter((d) => d !== activeDay).map((day) => (
+              <button
+                key={day}
+                onClick={() => copyFrom(day)}
+                className="text-xs bg-card-hover px-2 py-0.5 rounded hover:bg-accent/20 transition-colors"
+              >
+                {t(`settings.day_${day}`)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </Card>
+  );
 }

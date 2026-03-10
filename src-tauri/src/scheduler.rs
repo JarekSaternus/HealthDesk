@@ -1,8 +1,9 @@
+use chrono::Datelike;
 use serde::Serialize;
 use std::sync::{Arc, Mutex};
 use std::time::{Duration, Instant};
 use tauri::{AppHandle, Emitter};
-use crate::config::AppConfig;
+use crate::config::{AppConfig, effective_intervals};
 
 #[cfg(windows)]
 fn get_system_idle_secs() -> u64 {
@@ -78,6 +79,7 @@ pub struct SchedulerInner {
     pub last_breathing: Instant,
     pub include_eyes_in_big_break: bool,
     pub running: bool,
+    pub current_weekday: u8,
 }
 
 impl SchedulerInner {
@@ -120,6 +122,7 @@ impl SchedulerInner {
             last_breathing: now,
             include_eyes_in_big_break: false,
             running: true,
+            current_weekday: chrono::Local::now().weekday().num_days_from_monday() as u8,
         }
     }
 
@@ -228,11 +231,12 @@ impl SchedulerInner {
     }
 
     pub fn get_state(&self, config: &AppConfig) -> SchedulerState {
-        let small_interval = config.small_break_interval_min as f64 * 60.0;
-        let big_interval = config.big_break_interval_min as f64 * 60.0;
-        let water_interval = config.water_interval_min as f64 * 60.0;
-        let eye_interval = config.eye_exercise_interval_min as f64 * 60.0;
-        let breathing_interval = config.breathing_exercise_interval_min as f64 * 60.0;
+        let eff = effective_intervals(config);
+        let small_interval = eff.small_break_interval_min as f64 * 60.0;
+        let big_interval = eff.big_break_interval_min as f64 * 60.0;
+        let water_interval = eff.water_interval_min as f64 * 60.0;
+        let eye_interval = eff.eye_exercise_interval_min as f64 * 60.0;
+        let breathing_interval = eff.breathing_exercise_interval_min as f64 * 60.0;
         let outside = !self.in_work_hours(config);
 
         // When paused or idle, show frozen timer values
@@ -345,6 +349,18 @@ pub fn start_scheduler(
                 continue;
             }
 
+            // Detect weekday change (e.g. midnight) — reset timers for new day profile
+            let today = chrono::Local::now().weekday().num_days_from_monday() as u8;
+            if today != sched.current_weekday {
+                sched.current_weekday = today;
+                let now = Instant::now();
+                sched.last_small_break = now;
+                sched.last_big_break = now;
+                sched.last_water = now;
+                sched.last_eye = now;
+                sched.last_breathing = now;
+            }
+
             if !sched.in_work_hours(&cfg) {
                 // Reset timers so they start fresh when work hours begin
                 let now = Instant::now();
@@ -358,11 +374,20 @@ pub fn start_scheduler(
                 continue;
             }
 
-            let small_interval = cfg.small_break_interval_min as f64 * 60.0;
-            let big_interval = cfg.big_break_interval_min as f64 * 60.0;
-            let water_interval = cfg.water_interval_min as f64 * 60.0;
-            let eye_interval = cfg.eye_exercise_interval_min as f64 * 60.0;
-            let breathing_interval = cfg.breathing_exercise_interval_min as f64 * 60.0;
+            let eff = effective_intervals(&cfg);
+
+            // If this day is disabled in weekly schedule, skip
+            if !eff.day_enabled {
+                let state = sched.get_state(&cfg);
+                let _ = app.emit("scheduler:state-update", &state);
+                continue;
+            }
+
+            let small_interval = eff.small_break_interval_min as f64 * 60.0;
+            let big_interval = eff.big_break_interval_min as f64 * 60.0;
+            let water_interval = eff.water_interval_min as f64 * 60.0;
+            let eye_interval = eff.eye_exercise_interval_min as f64 * 60.0;
+            let breathing_interval = eff.breathing_exercise_interval_min as f64 * 60.0;
 
             let time_to_small = SchedulerInner::time_to_next(sched.last_small_break, small_interval);
             let time_to_big = SchedulerInner::time_to_next(sched.last_big_break, big_interval);
@@ -419,7 +444,7 @@ pub fn start_scheduler(
             }
 
             // Breathing exercise
-            if cfg.breathing_exercise_enabled && time_to_breathing <= 0.0 {
+            if eff.breathing_exercise_enabled && time_to_breathing <= 0.0 {
                 if time_to_small <= PROTECTION_ZONE_SEC && time_to_small > 0.0 {
                     continue;
                 }

@@ -4,6 +4,98 @@ use std::fs;
 use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 
+/// Per-day break schedule profile
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DaySchedule {
+    #[serde(default = "default_small_break_interval")]
+    pub small_break_interval_min: u32,
+    #[serde(default = "default_small_break_duration")]
+    pub small_break_duration_sec: u32,
+    #[serde(default = "default_big_break_interval")]
+    pub big_break_interval_min: u32,
+    #[serde(default = "default_big_break_duration")]
+    pub big_break_duration_min: u32,
+    #[serde(default = "default_eye_interval")]
+    pub eye_exercise_interval_min: u32,
+    #[serde(default = "default_water_interval")]
+    pub water_interval_min: u32,
+    #[serde(default = "default_breathing_interval")]
+    pub breathing_exercise_interval_min: u32,
+    #[serde(default = "default_true")]
+    pub breathing_exercise_enabled: bool,
+    #[serde(default = "default_true")]
+    pub enabled: bool,
+}
+
+/// Weekly schedule configuration
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WeeklySchedule {
+    #[serde(default)]
+    pub enabled: bool,
+    #[serde(default)]
+    pub days: HashMap<String, DaySchedule>,
+}
+
+/// Resolved intervals for the current day (runtime helper, not persisted)
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct EffectiveIntervals {
+    pub small_break_interval_min: u32,
+    pub small_break_duration_sec: u32,
+    pub big_break_interval_min: u32,
+    pub big_break_duration_min: u32,
+    pub eye_exercise_interval_min: u32,
+    pub water_interval_min: u32,
+    pub breathing_exercise_interval_min: u32,
+    pub breathing_exercise_enabled: bool,
+    pub day_enabled: bool,
+}
+
+pub fn current_weekday_key() -> String {
+    use chrono::Datelike;
+    match chrono::Local::now().weekday() {
+        chrono::Weekday::Mon => "mon",
+        chrono::Weekday::Tue => "tue",
+        chrono::Weekday::Wed => "wed",
+        chrono::Weekday::Thu => "thu",
+        chrono::Weekday::Fri => "fri",
+        chrono::Weekday::Sat => "sat",
+        chrono::Weekday::Sun => "sun",
+    }.into()
+}
+
+pub fn effective_intervals(cfg: &AppConfig) -> EffectiveIntervals {
+    if let Some(ref ws) = cfg.weekly_schedule {
+        if ws.enabled {
+            let day_key = current_weekday_key();
+            if let Some(day) = ws.days.get(&day_key) {
+                return EffectiveIntervals {
+                    small_break_interval_min: day.small_break_interval_min,
+                    small_break_duration_sec: day.small_break_duration_sec,
+                    big_break_interval_min: day.big_break_interval_min,
+                    big_break_duration_min: day.big_break_duration_min,
+                    eye_exercise_interval_min: day.eye_exercise_interval_min,
+                    water_interval_min: day.water_interval_min,
+                    breathing_exercise_interval_min: day.breathing_exercise_interval_min,
+                    breathing_exercise_enabled: day.breathing_exercise_enabled,
+                    day_enabled: day.enabled,
+                };
+            }
+        }
+    }
+    // Fallback: global intervals
+    EffectiveIntervals {
+        small_break_interval_min: cfg.small_break_interval_min,
+        small_break_duration_sec: cfg.small_break_duration_sec,
+        big_break_interval_min: cfg.big_break_interval_min,
+        big_break_duration_min: cfg.big_break_duration_min,
+        eye_exercise_interval_min: cfg.eye_exercise_interval_min,
+        water_interval_min: cfg.water_interval_min,
+        breathing_exercise_interval_min: cfg.breathing_exercise_interval_min,
+        breathing_exercise_enabled: cfg.breathing_exercise_enabled,
+        day_enabled: true,
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AppConfig {
     #[serde(default = "default_work_method")]
@@ -66,6 +158,8 @@ pub struct AppConfig {
     pub idle_threshold_min: u32,
     #[serde(default)]
     pub onboarding_completed: bool,
+    #[serde(default)]
+    pub weekly_schedule: Option<WeeklySchedule>,
 }
 
 fn default_work_method() -> String { "pomodoro".into() }
@@ -230,6 +324,7 @@ impl Default for AppConfig {
             idle_detection_enabled: true,
             idle_threshold_min: 5,
             onboarding_completed: false,
+            weekly_schedule: None,
         }
     }
 }
