@@ -145,22 +145,26 @@ export default function App() {
             return;
           }
           await initListeners();
-          // Auto-resume music if enabled
-          try {
-            const cfg = useAppStore.getState().config;
-            if (cfg?.audio_autoplay && cfg.audio_last_type) {
-              const vol = cfg.audio_last_volume ?? 10;
-              if (cfg.audio_last_source === "youtube") {
-                await invoke("play_youtube_search", { query: cfg.audio_last_type, volume: vol });
-              } else if (cfg.audio_last_source === "radio") {
-                await invoke("play_radio", { url: cfg.audio_last_type, name: cfg.audio_last_name ?? "Radio", volume: vol });
-              } else {
-                await invoke("play_sound", { soundType: cfg.audio_last_type, volume: vol });
+          // Auto-resume music if enabled (delayed slightly to ensure backend is ready)
+          setTimeout(async () => {
+            try {
+              const cfg = useAppStore.getState().config;
+              if (cfg?.audio_autoplay && cfg.audio_last_type) {
+                const vol = cfg.audio_last_volume ?? 10;
+                console.log("[Audio] Auto-resuming:", cfg.audio_last_source, cfg.audio_last_type, "vol:", vol);
+                if (cfg.audio_last_source === "youtube") {
+                  await invoke("play_youtube_search", { query: cfg.audio_last_type, volume: vol });
+                } else if (cfg.audio_last_source === "radio") {
+                  await invoke("play_radio", { url: cfg.audio_last_type, name: cfg.audio_last_name ?? "Radio", volume: vol });
+                } else {
+                  await invoke("play_sound", { soundType: cfg.audio_last_type, volume: vol });
+                }
+                console.log("[Audio] Auto-resume successful");
               }
+            } catch (e) {
+              console.warn("[Audio] Auto-resume failed:", e);
             }
-          } catch (e) {
-            console.warn("Auto-resume audio failed:", e);
-          }
+          }, 1500);
           // Auto-check for updates after 3 seconds
           setTimeout(async () => {
             try {

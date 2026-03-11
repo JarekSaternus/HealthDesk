@@ -1946,27 +1946,66 @@ tbody tr:last-child .cmp-col-hl {
 
 /* ===== Mobile (max 767px) ===== */
 @media (max-width: 767px) {
+  .navbar .container {
+    flex-wrap: wrap;
+  }
+
   .navbar-links {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(13, 17, 23, 0.97);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 2rem;
+    align-items: stretch;
+    width: 100%;
+    order: 10;
+    gap: 0;
+    padding: 0;
+    max-height: 0;
+    overflow: hidden;
     opacity: 0;
-    visibility: hidden;
-    transition: opacity 0.3s ease, visibility 0.3s ease;
-    z-index: 999;
+    transition: max-height 0.35s ease, opacity 0.3s ease, padding 0.3s ease;
+  }
+
+  .navbar-links li {
+    width: 100%;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  }
+
+  .navbar-links li:first-child {
+    border-top: 1px solid rgba(255, 255, 255, 0.07);
   }
 
   .navbar-links a {
-    font-size: 1.2rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #e0e6ed;
+    display: block;
+    padding: 0.85rem 0.75rem;
+    transition: all 0.2s ease;
+  }
+
+  .navbar-links a::after {
+    display: none;
+  }
+
+  .navbar-links a:hover,
+  .navbar-links a:active {
+    background: rgba(46, 204, 113, 0.1);
+    color: #fff;
+  }
+
+  .navbar-links li:last-child {
+    border-bottom: none;
+    margin-top: 0.75rem;
+    text-align: center;
+  }
+
+  .navbar-links .btn.btn-primary {
+    padding: 0.75rem 2rem !important;
+    font-size: 0.95rem !important;
+    font-weight: 600 !important;
+    border-radius: 10px !important;
+    display: inline-block;
+    background: var(--accent) !important;
+    color: #fff !important;
+    box-shadow: 0 4px 16px rgba(46, 204, 113, 0.3);
   }
 
   .lang-switch {
@@ -1980,11 +2019,43 @@ tbody tr:last-child .cmp-col-hl {
 
   .nav-hamburger {
     display: flex;
+    margin-left: auto;
+    margin-right: 0.25rem;
+    width: 40px;
+    height: 40px;
+    padding: 6px;
+    border-radius: 8px;
+    transition: background 0.2s ease;
+  }
+
+  .nav-hamburger:hover,
+  .nav-hamburger:active {
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .nav-hamburger span {
+    height: 2.5px;
+    border-radius: 2px;
+    background: #fff;
   }
 
   .nav-toggle:checked ~ .navbar-links {
+    max-height: 80vh;
     opacity: 1;
-    visibility: visible;
+    padding: 1rem 0 0.5rem;
+    overflow-y: auto;
+  }
+
+  .navbar:has(.nav-toggle:checked) {
+    background: rgba(10, 14, 20, 0.98);
+  }
+
+  .nav-toggle:checked ~ .nav-hamburger {
+    background: rgba(46, 204, 113, 0.15);
+  }
+
+  .nav-toggle:checked ~ .nav-hamburger span {
+    background: var(--accent);
   }
 
   .nav-toggle:checked ~ .nav-hamburger span:nth-child(1) {

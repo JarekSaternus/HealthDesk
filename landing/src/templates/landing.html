@@ -326,6 +326,7 @@
                   </div>
                   <span class="mockup-water-btn" style="border:1px solid #3498db;border-radius:10px;padding:0 0.4rem;font-size:0.5rem;color:#3498db">+1</span>
                 </div>
+                <div id="mock-water-dots" style="display:flex;gap:3px;margin:2px 0;font-size:0.55rem;line-height:1"></div>
                 <div class="mockup-progress"><div class="mockup-progress-fill" style="width:0%;background:#3498db" id="mock-water-progress"></div></div>
               </div>
               <!-- Sound (single line) -->
@@ -902,7 +903,7 @@
       if (currentCard) currentCard.classList.add('platform-active');
 
       try {
-        fetch(API).then(function(r) { return r.json(); }).then(function(data) {
+        fetch(API).then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); }).then(function(data) {
           var assets = data.assets || [];
           var urls = { windows: '', macos: '', linux_deb: '', linux_appimage: '' };
 
@@ -936,17 +937,18 @@
 
           var DOWNLOAD_OFFSET = 501;
           fetch('https://api.github.com/repos/JarekSaternus/HealthDesk/releases')
-            .then(function(r) { return r.json(); })
+            .then(function(r) { if (!r.ok) throw new Error(r.status); return r.json(); })
             .then(function(allReleases) {
+              if (!Array.isArray(allReleases)) return;
               var total = DOWNLOAD_OFFSET;
-              (allReleases || []).forEach(function(rel) {
+              allReleases.forEach(function(rel) {
                 (rel.assets || []).forEach(function(a) { total += (a.download_count || 0); });
               });
               var countEl = document.getElementById('download-count');
               if (countEl) countEl.textContent = total.toLocaleString();
               var heroCount = document.getElementById('hero-download-count');
               if (heroCount) heroCount.textContent = '{{t.hero.downloads_prefix}}' + total.toLocaleString() + '{{t.hero.downloads_suffix}}';
-            });
+            }).catch(function(){});
 
           var tag = (data.tag_name || '').replace(/^v/i, '');
           if (tag) {
@@ -995,7 +997,7 @@
               }).catch(function(){});
             });
           }
-        });
+        }).catch(function(){});
       } catch(e) {}
     })();
   </script>
@@ -1051,6 +1053,7 @@
       function pad(n) { return n < 10 ? '0' + n : '' + n; }
 
       function updateWaterDots(count) {
+        if (!mWaterDots) return;
         var html = '';
         for (var i = 0; i < 8; i++) html += i < count ? '<span style="color:#3498db">\u25CF</span>' : '<span style="color:#394561">\u25CB</span>';
         mWaterDots.innerHTML = html;

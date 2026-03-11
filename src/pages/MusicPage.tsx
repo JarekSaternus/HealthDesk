@@ -70,6 +70,10 @@ export default function MusicPage() {
       await invoke("stop_sound");
       setNativePlaying(null);
       setNowPlaying(null);
+      // Clear last audio from config so it won't auto-resume on next startup
+      if (config) {
+        saveConfig({ ...config, audio_last_type: null, audio_last_source: null, audio_last_name: null });
+      }
     } else {
       await invoke("play_sound", { soundType: key, volume });
       setNativePlaying(key);
@@ -150,6 +154,10 @@ export default function MusicPage() {
     setYtPlaying(null);
     setNowPlaying(null);
     setError("");
+    // Clear last audio from config so it won't auto-resume on next startup
+    if (config) {
+      saveConfig({ ...config, audio_last_type: null, audio_last_source: null, audio_last_name: null });
+    }
   };
 
   const handleVolumeChange = async (v: number) => {

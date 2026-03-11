@@ -316,20 +316,84 @@ input[type=text]:focus,select:focus{border-color:var(--accent)}
 .water-dot{width:16px;height:16px;border-radius:50%;background:#3a3f4d;transition:background 0.3s}
 .water-dot.filled{background:var(--blue)}
 
+/* Tablet landscape */
+@media(max-width:1100px){
+  .sidebar{width:140px!important;min-width:140px!important}
+  .sidebar-header h1{font-size:14px!important}
+  .nav-item{padding:8px 10px;font-size:12px}
+  .stat-cards{grid-template-columns:repeat(3,1fr)!important;gap:10px!important}
+  .audio-grid{grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
+  .card-value{font-size:22px}
+  .stat-card .stat-value{font-size:24px}
+}
+
+/* Tablet portrait */
+@media(max-width:900px){
+  .sidebar{width:100px!important;min-width:100px!important}
+  .sidebar-header h1{font-size:13px!important}
+  .nav-item span:not(.nav-icon){font-size:11px}
+  .sidebar-bottom .sidebar-btn{font-size:11px;padding:6px}
+  .stat-cards{grid-template-columns:repeat(3,1fr)!important;gap:8px!important}
+  .chart-grid{grid-template-columns:1fr!important}
+  .audio-grid{grid-template-columns:1fr 1fr!important}
+  .tooltip-card .tooltip{width:180px}
+}
+
 /* Mobile */
 @media(max-width:768px){
   .desktop-icons,.win-taskbar,.mac-menubar,.mac-dock,.linux-panel{display:none!important}
   .desktop{background:var(--content)!important}
   .app-window{position:relative!important;width:100%!important;height:100%!important;top:0!important;left:0!important;border-radius:0!important;box-shadow:none!important}
   .titlebar{display:none!important}
-  .sidebar{width:60px!important;min-width:60px!important}
-  .sidebar-header h1{font-size:12px!important}
+  .sidebar{width:56px!important;min-width:56px!important}
+  .sidebar-header h1{font-size:10px!important}
+  .sidebar-header{padding:8px 4px!important}
+  .nav-item{padding:8px 6px;justify-content:center}
   .nav-item span:not(.nav-icon){display:none}
+  .nav-item .nav-icon{font-size:18px}
+  .sidebar-bottom{padding:8px 4px}
   .sidebar-bottom .sidebar-btn span{display:none}
+  .sidebar-bottom .sidebar-btn{padding:8px;font-size:14px}
   .timer-grid{grid-template-columns:1fr!important}
   .stat-cards{grid-template-columns:1fr!important}
   .chart-grid{grid-template-columns:1fr!important}
   .audio-grid{grid-template-columns:1fr 1fr!important}
+  .audio-btn{padding:10px!important}
+  .audio-btn .audio-icon{font-size:20px;margin-bottom:4px}
+  .page{padding:12px!important}
+  .card-value{font-size:22px}
+  .stat-card .stat-value{font-size:22px}
+  .popup-body .popup-emoji{font-size:36px}
+  .popup-body .popup-title{font-size:16px}
+  .popup-body .popup-timer{font-size:22px}
+  .tooltip-card .tooltip{width:160px;font-size:10px}
+  .demo-banner{font-size:10px;gap:4px;padding:5px 8px;flex-wrap:nowrap;height:34px;overflow:hidden}
+  .demo-banner>span{display:none}
+  .demo-banner a{padding:3px 8px;font-size:10px;white-space:nowrap;flex-shrink:0}
+  .demo-banner>div{flex-shrink:0}
+  .demo-banner>div button{font-size:10px!important;padding:3px 6px!important}
+  .demo-banner .close-banner{right:6px;font-size:14px}
+  .desktop{top:34px!important}
+  .desktop.no-banner{top:0!important}
+  .settings-tab{font-size:11px;padding:6px 2px}
+  .sound-row{flex-wrap:wrap;gap:6px}
+  .bottom-bar{padding:0 10px;font-size:10px}
+  .breath-circle{width:110px;height:110px}
+  .pie-chart{width:110px;height:110px}
+  .popup-window{position:fixed!important;left:50%!important;top:50%!important;transform:translate(-50%,-50%);width:calc(100vw - 32px)!important;max-width:340px!important;border-radius:12px!important}
+  .popup-body{padding:16px}
+}
+
+/* Small phones */
+@media(max-width:400px){
+  .sidebar{width:46px!important;min-width:46px!important}
+  .nav-item .nav-icon{font-size:16px}
+  .audio-grid{grid-template-columns:1fr!important}
+  .stat-cards{gap:6px!important}
+  .timer-grid{gap:8px!important}
+  .demo-banner a:last-of-type{display:none}
+  .period-tabs{gap:4px}
+  .period-tab{padding:5px 10px;font-size:11px}
 }
 </style>
 </head>
@@ -514,13 +578,17 @@ function buildLinuxPanel(){
 function getWindowPos(){
   const dw = desktop.clientWidth;
   const dh = desktop.clientHeight;
-  const ww = Math.min(960, dw * 0.88);
-  const wh = Math.min(680, dh * 0.82);
+  // Scale window proportionally — use more screen on smaller displays
+  const widthRatio = dw < 900 ? 0.95 : (dw < 1200 ? 0.92 : 0.88);
+  const heightRatio = dw < 900 ? 0.90 : 0.82;
+  const ww = Math.min(960, dw * widthRatio);
+  const wh = Math.min(680, dh * heightRatio);
   let topOffset = detectedOS==='mac' ? 28 : (detectedOS==='linux' ? 32 : 0);
   let bottomOffset = detectedOS==='windows' ? 48 : (detectedOS==='mac' ? 70 : 0);
   const availH = dh - topOffset - bottomOffset;
-  const left = Math.max(10, (dw - ww) / 2 + 30);
-  const top = topOffset + Math.max(10, (availH - wh) / 2 - 10);
+  const leftOffset = dw < 900 ? 0 : 30;
+  const left = Math.max(4, (dw - ww) / 2 + leftOffset);
+  const top = topOffset + Math.max(4, (availH - wh) / 2 - 10);
   return {left, top, ww, wh};
 }
 
@@ -1580,6 +1648,30 @@ function initApp(){
 
 // Build on load
 buildDesktop();
+
+// Reposition app window on resize
+let resizeTimer;
+window.addEventListener('resize', function(){
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(function(){
+    const win = document.getElementById('main-window');
+    if(!win) return;
+    const nowMobile = window.innerWidth <= 768;
+    if(nowMobile){
+      // Mobile: CSS handles full-width via media query
+      win.style.left = '0';
+      win.style.top = '0';
+      win.style.width = '100%';
+      win.style.height = '100%';
+    } else {
+      const pos = getWindowPos();
+      win.style.left = pos.left + 'px';
+      win.style.top = pos.top + 'px';
+      win.style.width = pos.ww + 'px';
+      win.style.height = pos.wh + 'px';
+    }
+  }, 150);
+});
 
 })();
 </script>
