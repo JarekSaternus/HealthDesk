@@ -1,0 +1,1587 @@
+<!DOCTYPE html>
+<html lang="{{html_lang}}">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{t.demo.page_title}}</title>
+<meta name="description" content="{{t.demo.meta_desc}}">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --sidebar:#141821;--content:#1a1f2b;--card:#222836;--card-hover:#2a3040;
+  --accent:#2ecc71;--blue:#3498db;--orange:#e67e22;--red:#e74c3c;--purple:#9b59b6;
+  --text:#e0e0e0;--text-dim:#8892a4;--border:#222836;
+  --radius:12px;--transition:0.25s ease;
+}
+html,body{height:100%;overflow:hidden;font-family:system-ui,-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:#0d1117;color:var(--text);font-size:14px;line-height:1.5;user-select:none}
+button{cursor:pointer;font-family:inherit;border:none;background:none;color:inherit;font-size:inherit}
+input[type=range]{-webkit-appearance:none;appearance:none;height:6px;border-radius:3px;background:#3a3f4d;outline:none;width:100%}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--accent);cursor:pointer}
+input[type=text],input[type=time],select{background:#1a1f2b;border:1px solid #2e3445;color:var(--text);border-radius:6px;padding:6px 10px;font-family:inherit;font-size:13px;outline:none}
+input[type=text]:focus,select:focus{border-color:var(--accent)}
+
+/* Banner */
+.demo-banner{position:fixed;top:0;left:0;right:0;z-index:9999;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;gap:12px;padding:8px 16px;font-size:13px;font-weight:500;height:40px}
+.demo-banner a{color:var(--accent);font-weight:700;background:#fff;padding:4px 14px;border-radius:6px;text-decoration:none}
+.demo-banner a:hover{background:#f0f0f0}
+.demo-banner .close-banner{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;color:rgba(255,255,255,0.7);font-size:18px;line-height:1;cursor:pointer}
+.demo-banner .close-banner:hover{color:#fff}
+.demo-banner.hidden{display:none}
+.hidden{display:none!important}
+#lang-dropdown a{display:block;padding:5px 10px;color:#aaa;text-decoration:none;font-size:12px;border-radius:4px;text-align:center;font-weight:600}
+#lang-dropdown a:hover{background:rgba(46,204,113,0.2);color:#2ecc71}
+#lang-dropdown a.current{background:rgba(46,204,113,0.15);color:#2ecc71}
+
+/* Desktop */
+.desktop{position:fixed;top:40px;left:0;right:0;bottom:0;overflow:hidden}
+.desktop.no-banner{top:0}
+
+/* Windows 11 Bloom wallpaper */
+.desktop.os-windows{
+  background:#04001e;
+  background-image:
+    radial-gradient(ellipse 60% 50% at 25% 80%, rgba(0,102,255,0.45) 0%, transparent 70%),
+    radial-gradient(ellipse 50% 60% at 70% 75%, rgba(0,55,200,0.4) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 45% at 50% 85%, rgba(80,120,255,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 35% 30% at 35% 70%, rgba(100,0,220,0.3) 0%, transparent 55%),
+    radial-gradient(ellipse 30% 35% at 65% 65%, rgba(0,180,255,0.25) 0%, transparent 50%),
+    radial-gradient(ellipse 80% 40% at 50% 100%, rgba(60,80,180,0.35) 0%, transparent 60%),
+    radial-gradient(ellipse 100% 60% at 50% 50%, rgba(5,5,40,0.8) 0%, transparent 100%);
+}
+/* macOS Sonoma dark */
+.desktop.os-mac{
+  background:#1a1a2e;
+  background-image:
+    radial-gradient(ellipse 70% 50% at 30% 60%, rgba(120,40,160,0.3) 0%, transparent 70%),
+    radial-gradient(ellipse 60% 50% at 70% 40%, rgba(40,60,140,0.25) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 50% 70%, rgba(200,80,120,0.15) 0%, transparent 60%),
+    radial-gradient(ellipse 90% 50% at 50% 50%, rgba(10,10,30,0.6) 0%, transparent 100%);
+}
+/* Linux GNOME dark */
+.desktop.os-linux{
+  background:#1a1a2e;
+  background-image:
+    radial-gradient(ellipse 60% 60% at 50% 50%, rgba(50,50,80,0.4) 0%, transparent 70%),
+    radial-gradient(ellipse 40% 40% at 30% 70%, rgba(80,60,120,0.2) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 40% at 70% 30%, rgba(40,80,100,0.2) 0%, transparent 60%);
+}
+
+/* Desktop Icons */
+.desktop-icons{position:absolute;top:20px;left:20px;display:flex;flex-direction:column;gap:16px}
+.desktop-icon{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px;border-radius:8px;cursor:default;width:76px;text-align:center;transition:background 0.2s}
+.desktop-icon:hover{background:rgba(255,255,255,0.08)}
+.desktop-icon .icon-img{font-size:32px;line-height:1}
+.desktop-icon .icon-label{font-size:11px;color:#ccc;text-shadow:0 1px 3px rgba(0,0,0,0.8)}
+
+/* Windows Taskbar */
+.win-taskbar{position:absolute;bottom:0;left:0;right:0;height:48px;background:rgba(26,26,46,0.85);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;z-index:100;border-top:1px solid rgba(255,255,255,0.06)}
+.win-taskbar-left{padding:0 12px}
+.win-taskbar-left button{font-size:20px;padding:8px 12px;border-radius:4px;color:#fff;transition:background 0.2s}
+.win-taskbar-left button:hover{background:rgba(255,255,255,0.1)}
+.win-taskbar-center{flex:1;display:flex;align-items:center;justify-content:center;gap:4px}
+.win-taskbar-center .taskbar-app{width:40px;height:40px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:18px;transition:background 0.2s;position:relative}
+.win-taskbar-center .taskbar-app:hover{background:rgba(255,255,255,0.1)}
+.win-taskbar-center .taskbar-app.active::after{content:'';position:absolute;bottom:2px;left:50%;transform:translateX(-50%);width:16px;height:2px;background:var(--accent);border-radius:1px}
+.win-taskbar-right{display:flex;align-items:center;gap:8px;padding:0 12px;font-size:12px;color:#aaa}
+.win-taskbar-right .tray-hd{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);margin:0 4px}
+.win-taskbar-right .tray-icons{display:flex;gap:6px;padding:0 8px;font-size:14px;color:#888}
+.win-taskbar-right .tray-clock{padding:6px 12px;border-radius:4px;text-align:right;line-height:1.3;transition:background 0.2s}
+.win-taskbar-right .tray-clock:hover{background:rgba(255,255,255,0.08)}
+.win-taskbar-right .tray-clock .clock-time{font-size:12px;color:#ccc}
+.win-taskbar-right .tray-clock .clock-date{font-size:11px;color:#888}
+
+/* macOS Menu Bar */
+.mac-menubar{position:absolute;top:0;left:0;right:0;height:28px;background:rgba(0,0,0,0.5);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);display:flex;align-items:center;z-index:100;font-size:13px;padding:0 8px}
+.mac-menubar-left{display:flex;align-items:center;gap:16px}
+.mac-menubar-left span{color:#ddd;cursor:default}
+.mac-menubar-left span:first-child{font-size:16px}
+.mac-menubar-left span.bold{font-weight:600}
+.mac-menubar-right{margin-left:auto;display:flex;align-items:center;gap:14px;color:#ccc;font-size:12px}
+
+/* macOS Dock */
+.mac-dock{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:6px;background:rgba(255,255,255,0.1);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-radius:18px;padding:4px 10px;z-index:100;border:1px solid rgba(255,255,255,0.1)}
+.mac-dock .dock-app{width:44px;height:44px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:24px;transition:transform 0.2s;cursor:default;position:relative}
+.mac-dock .dock-app:hover{transform:scale(1.3) translateY(-8px)}
+.mac-dock .dock-app.active::after{content:'';position:absolute;bottom:-3px;width:4px;height:4px;border-radius:50%;background:#fff}
+
+/* Linux Panel */
+.linux-panel{position:absolute;top:0;left:0;right:0;height:32px;background:#2d2d2d;display:flex;align-items:center;z-index:100;font-size:13px;padding:0 12px;border-bottom:1px solid #444}
+.linux-panel-left{display:flex;gap:20px;color:#ddd}
+.linux-panel-left span{cursor:default}
+.linux-panel-right{margin-left:auto;display:flex;align-items:center;gap:16px;color:#bbb;font-size:12px}
+
+/* App Window */
+.app-window{position:absolute;z-index:50;display:flex;flex-direction:column;border-radius:8px;overflow:hidden;box-shadow:0 25px 50px rgba(0,0,0,0.5);transition:box-shadow 0.3s}
+.app-window:hover{box-shadow:0 25px 60px rgba(0,0,0,0.6)}
+.app-window.focused{z-index:51}
+
+/* Window Title Bars */
+.titlebar{height:32px;display:flex;align-items:center;cursor:default;flex-shrink:0}
+.titlebar-win{background:#1a1f2b;padding:0 8px;border-bottom:1px solid #2e3445}
+.titlebar-win .tb-left{display:flex;align-items:center;gap:8px;font-size:12px;color:#8892a4}
+.titlebar-win .tb-left .tb-icon{width:16px;height:16px;background:var(--accent);border-radius:3px;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff}
+.titlebar-win .tb-right{margin-left:auto;display:flex}
+.titlebar-win .tb-right button{width:46px;height:32px;display:flex;align-items:center;justify-content:center;color:#8892a4;transition:background 0.15s,color 0.15s;font-size:13px}
+.titlebar-win .tb-right button:hover{background:rgba(255,255,255,0.1);color:#fff}
+.titlebar-win .tb-right button.close:hover{background:#e74c3c;color:#fff}
+
+.titlebar-mac{background:transparent;background-color:#1a1f2b;padding:0 12px;border-bottom:1px solid #2e3445}
+.titlebar-mac .tb-left{display:flex;align-items:center;gap:8px}
+.titlebar-mac .tb-left .traffic-light{width:12px;height:12px;border-radius:50%;cursor:default}
+.titlebar-mac .tb-left .tl-close{background:#ff5f57}
+.titlebar-mac .tb-left .tl-min{background:#febc2e}
+.titlebar-mac .tb-left .tl-max{background:#28c840}
+.titlebar-mac .tb-center{flex:1;text-align:center;font-size:12px;color:#8892a4}
+.titlebar-mac .tb-right{width:52px}
+
+.titlebar-linux{background:#2d2d2d;padding:0 12px;border-bottom:1px solid #444}
+.titlebar-linux .tb-left{font-size:12px;color:#ccc}
+.titlebar-linux .tb-right{margin-left:auto;display:flex;gap:4px}
+.titlebar-linux .tb-right button{width:28px;height:24px;display:flex;align-items:center;justify-content:center;color:#aaa;border-radius:4px;transition:background 0.15s;font-size:12px}
+.titlebar-linux .tb-right button:hover{background:rgba(255,255,255,0.15);color:#fff}
+.titlebar-linux .tb-right button.close:hover{background:#e74c3c;color:#fff}
+
+/* App Content */
+.app-body{display:flex;flex:1;overflow:hidden;background:var(--content)}
+
+/* Sidebar */
+.sidebar{width:180px;min-width:180px;background:var(--sidebar);display:flex;flex-direction:column;border-right:1px solid var(--border)}
+.sidebar-header{padding:12px;text-align:center;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:16px;font-weight:700;color:var(--accent)}
+.sidebar-nav{flex:1;display:flex;flex-direction:column;gap:1px;padding:6px}
+.nav-item{display:flex;align-items:center;gap:10px;padding:9px 14px;font-size:13px;color:var(--text-dim);cursor:pointer;transition:all var(--transition);border-right:2px solid transparent;border-radius:4px}
+.nav-item:hover{background:var(--card);color:var(--text)}
+.nav-item.active{background:var(--card);color:var(--accent);border-right-color:var(--accent)}
+.nav-item .nav-icon{font-size:16px;width:20px;text-align:center}
+.sidebar-bottom{padding:12px;border-top:1px solid var(--border);display:flex;flex-direction:column;gap:8px}
+.sidebar-btn{display:flex;align-items:center;justify-content:center;gap:6px;padding:8px;border-radius:8px;font-size:12px;font-weight:600;width:100%;transition:all var(--transition)}
+.water-btn{background:rgba(52,152,219,0.2);color:var(--blue)}
+.water-btn:hover{background:rgba(52,152,219,0.3)}
+.pause-btn{background:rgba(243,156,18,0.2);color:#f39c12}
+.pause-btn:hover{background:rgba(243,156,18,0.3)}
+.pause-btn.resumed{background:rgba(46,204,113,0.2);color:var(--accent)}
+
+/* Main Content */
+.main-content{flex:1;overflow-y:auto;scrollbar-width:thin;scrollbar-color:#2a3040 transparent}
+.main-content::-webkit-scrollbar{width:6px}
+.main-content::-webkit-scrollbar-track{background:transparent}
+.main-content::-webkit-scrollbar-thumb{background:#2a3040;border-radius:3px}
+
+/* Pages */
+.page{display:none;padding:16px}
+.page.active{display:block}
+.page-grid{display:grid;gap:10px}
+
+/* Cards */
+.card{background:var(--card);border-radius:var(--radius);padding:12px;transition:background var(--transition)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.card-label{font-size:12px;color:var(--text-dim)}
+.card-badge{font-size:11px;background:rgba(46,204,113,0.2);color:var(--accent);padding:2px 8px;border-radius:99px;cursor:pointer}
+.card-value{font-size:26px;font-weight:700;color:var(--accent);line-height:1.1}
+.progress-bar{height:8px;background:#2a3040;border-radius:99px;overflow:hidden;margin-top:8px}
+.progress-fill{height:100%;border-radius:99px;transition:width 1s linear}
+.progress-fill.green{background:var(--accent)}
+.progress-fill.blue{background:var(--blue)}
+.progress-fill.orange{background:var(--orange)}
+.card-sub{font-size:11px;color:var(--text-dim);text-align:right;margin-top:4px}
+
+/* Timeline */
+.timeline-pills{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.timeline-pill{font-size:10px;padding:2px 8px;border-radius:99px}
+.timeline-hours{display:flex;justify-content:space-between;margin-bottom:4px}
+.timeline-hours span{font-size:10px;color:#4a5568}
+.timeline-track{height:28px;background:#1a1f2b;border-radius:6px;position:relative;overflow:hidden}
+.timeline-marker{position:absolute;top:0;height:100%;border-radius:2px}
+.timeline-now{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;z-index:5;box-shadow:0 0 4px rgba(255,255,255,0.5)}
+
+/* Timer Cards */
+.timer-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.timer-value{font-size:20px;font-weight:700;font-family:'Courier New',monospace;margin:4px 0}
+.timer-meta{font-size:11px;color:#6b7a99}
+
+/* Water Card */
+.water-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.water-count{font-weight:700;color:var(--blue);font-size:16px}
+.water-add{border:1px solid var(--blue);color:var(--blue);border-radius:99px;padding:2px 10px;font-size:11px;cursor:pointer;transition:all 0.2s}
+.water-add:hover{background:var(--blue);color:#fff}
+
+/* Sound Card */
+.sound-row{display:flex;align-items:center;gap:8px}
+.sound-name{flex:1;font-size:13px;color:var(--accent);font-style:italic}
+.sound-btn{width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;cursor:pointer;transition:all 0.2s}
+
+/* Bottom Bar */
+.bottom-bar{height:40px;background:var(--sidebar);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 16px;font-size:11px;color:var(--text-dim);flex-shrink:0}
+.bottom-bar button{color:var(--text-dim);transition:color 0.2s;font-size:14px}
+.bottom-bar button:hover{color:var(--accent)}
+
+/* Stats Page */
+.period-tabs{display:flex;gap:8px;margin-bottom:16px}
+.period-tab{padding:6px 16px;border-radius:8px;font-size:13px;background:var(--card);color:var(--text-dim);cursor:pointer;transition:all 0.2s}
+.period-tab.active{background:var(--accent);color:#fff}
+.stat-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:16px}
+.stat-card{text-align:center}
+.stat-card .stat-value{font-size:28px;font-weight:700;margin:4px 0}
+.stat-card .stat-sub{font-size:11px;color:var(--text-dim)}
+
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.pie-chart{width:140px;height:140px;border-radius:50%;margin:16px auto;position:relative}
+.pie-chart .demo-badge{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.7);color:var(--accent);font-size:10px;font-weight:700;padding:4px 10px;border-radius:4px;letter-spacing:1px}
+.app-list{display:flex;flex-direction:column;gap:8px;padding:8px 0}
+.app-row{display:flex;align-items:center;gap:8px;font-size:13px}
+.app-dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+
+.bar-chart{display:flex;align-items:flex-end;gap:12px;height:120px;padding:16px 0}
+.bar-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:4px}
+.bar-col .bar{width:100%;border-radius:4px 4px 0 0;background:var(--accent);min-height:4px;transition:height 0.5s}
+.bar-col .bar-label{font-size:10px;color:var(--text-dim)}
+
+/* Audio Page */
+.audio-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px}
+.audio-btn{background:var(--card);border-radius:var(--radius);padding:16px;text-align:center;cursor:pointer;transition:all 0.2s;border:1px solid transparent}
+.audio-btn:hover{background:var(--card-hover)}
+.audio-btn.playing{background:rgba(46,204,113,0.15);border-color:var(--accent)}
+.audio-btn .audio-icon{font-size:24px;margin-bottom:6px}
+.audio-btn .audio-label{font-size:12px;color:var(--text-dim)}
+.audio-section-title{font-size:14px;font-weight:600;margin-bottom:12px;color:var(--text)}
+.volume-control{display:flex;align-items:center;gap:12px;margin-bottom:24px;padding:0 4px}
+.volume-control label{font-size:12px;color:var(--text-dim);white-space:nowrap}
+.tooltip-card{position:relative}
+.tooltip-card .tooltip{display:none;position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:#333;color:#ddd;font-size:11px;padding:8px 12px;border-radius:8px;width:220px;text-align:center;z-index:10;box-shadow:0 4px 12px rgba(0,0,0,0.4);pointer-events:none}
+.tooltip-card:hover .tooltip{display:block}
+
+/* Settings Page */
+.settings-tabs{display:flex;gap:4px;margin-bottom:20px;background:var(--card);border-radius:8px;padding:4px}
+.settings-tab{flex:1;padding:8px 4px;text-align:center;font-size:12px;border-radius:6px;cursor:pointer;color:var(--text-dim);transition:all 0.2s}
+.settings-tab.active{background:var(--accent);color:#fff}
+.settings-panel{display:none}
+.settings-panel.active{display:block}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid rgba(255,255,255,0.05)}
+.setting-row:last-child{border-bottom:none}
+.setting-label{font-size:13px}
+.setting-desc{font-size:11px;color:var(--text-dim);margin-top:2px}
+.toggle{width:40px;height:22px;border-radius:11px;background:#3a3f4d;cursor:pointer;position:relative;transition:background 0.2s;flex-shrink:0}
+.toggle.on{background:var(--accent)}
+.toggle::after{content:'';position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:transform 0.2s}
+.toggle.on::after{transform:translateX(18px)}
+.save-btn{background:var(--accent);color:#fff;padding:10px 24px;border-radius:8px;font-weight:600;width:100%;margin-top:16px;transition:background 0.2s}
+.save-btn:hover{background:#27ae60}
+.integration-card{background:#1a1f2b;border-radius:8px;padding:16px;margin-bottom:12px}
+.integration-card h4{font-size:14px;margin-bottom:8px}
+.integration-status{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text-dim);margin-bottom:8px}
+.integration-status .dot{width:8px;height:8px;border-radius:50%;background:#666}
+.int-btn{background:var(--card);color:var(--text-dim);padding:6px 16px;border-radius:6px;font-size:12px;cursor:not-allowed;opacity:0.6}
+.radio-group{display:flex;flex-direction:column;gap:6px}
+.radio-opt{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer}
+.radio-dot{width:16px;height:16px;border-radius:50%;border:2px solid #4a5568;display:flex;align-items:center;justify-content:center;transition:border-color 0.2s}
+.radio-dot.selected{border-color:var(--accent)}
+.radio-dot.selected::after{content:'';width:8px;height:8px;border-radius:50%;background:var(--accent)}
+
+/* Help Page */
+.faq-item{background:var(--card);border-radius:var(--radius);margin-bottom:8px;overflow:hidden}
+.faq-q{padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;font-size:14px;transition:background 0.2s}
+.faq-q:hover{background:var(--card-hover)}
+.faq-q .arrow{transition:transform 0.2s;color:var(--text-dim)}
+.faq-item.open .faq-q .arrow{transform:rotate(180deg)}
+.faq-a{max-height:0;overflow:hidden;transition:max-height 0.3s ease;font-size:13px;color:var(--text-dim);line-height:1.6}
+.faq-item.open .faq-a{max-height:300px}
+.faq-a-inner{padding:0 16px 14px}
+.cta-btn{display:inline-block;background:var(--accent);color:#fff;padding:12px 28px;border-radius:8px;font-weight:600;margin-top:16px;cursor:pointer;transition:background 0.2s;text-decoration:none;font-size:14px}
+.cta-btn:hover{background:#27ae60}
+
+/* Popup Windows */
+.popup-window{position:absolute;z-index:200;border-radius:8px;box-shadow:0 20px 50px rgba(0,0,0,0.6);display:none;flex-direction:column;background:var(--content)}
+.popup-window.visible{display:flex}
+.popup-body{background:var(--content);padding:24px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:12px;border-radius:0 0 8px 8px}
+.popup-body .popup-emoji{font-size:48px}
+.popup-body .popup-title{font-size:18px;font-weight:700;color:var(--accent)}
+.popup-body .popup-desc{font-size:13px;color:var(--text-dim);line-height:1.5;white-space:pre-line}
+.popup-body .popup-timer{font-size:28px;font-weight:700;font-family:'Courier New',monospace;color:var(--accent)}
+.popup-body .popup-btn{padding:10px 24px;border-radius:8px;font-weight:600;font-size:13px;cursor:pointer;transition:all 0.2s}
+.popup-body .popup-btn.green{background:var(--accent);color:#fff}
+.popup-body .popup-btn.green:hover{background:#27ae60}
+.popup-body .popup-btn.blue{background:var(--blue);color:#fff}
+.popup-body .popup-btn.blue:hover{background:#2980b9}
+.popup-body .popup-btn.gray{background:rgba(255,255,255,0.1);color:var(--text-dim)}
+.popup-body .popup-btn.gray:hover{background:rgba(255,255,255,0.15)}
+.popup-body .popup-actions{display:flex;flex-direction:column;gap:8px;width:100%}
+
+/* Breathing Circle */
+.breath-circle{width:140px;height:140px;border-radius:50%;background:radial-gradient(circle,rgba(46,204,113,0.6),rgba(46,204,113,0.15));display:flex;flex-direction:column;align-items:center;justify-content:center;transition:transform 4s ease-in-out;margin:8px 0}
+.breath-circle .breath-phase{font-size:13px;color:#fff;font-weight:600}
+.breath-circle .breath-count{font-size:28px;color:#fff;font-weight:700}
+
+/* Water Dots */
+.water-dots{display:flex;gap:6px;margin:8px 0}
+.water-dot{width:16px;height:16px;border-radius:50%;background:#3a3f4d;transition:background 0.3s}
+.water-dot.filled{background:var(--blue)}
+
+/* Mobile */
+@media(max-width:768px){
+  .desktop-icons,.win-taskbar,.mac-menubar,.mac-dock,.linux-panel{display:none!important}
+  .desktop{background:var(--content)!important}
+  .app-window{position:relative!important;width:100%!important;height:100%!important;top:0!important;left:0!important;border-radius:0!important;box-shadow:none!important}
+  .titlebar{display:none!important}
+  .sidebar{width:60px!important;min-width:60px!important}
+  .sidebar-header h1{font-size:12px!important}
+  .nav-item span:not(.nav-icon){display:none}
+  .sidebar-bottom .sidebar-btn span{display:none}
+  .timer-grid{grid-template-columns:1fr!important}
+  .stat-cards{grid-template-columns:1fr!important}
+  .chart-grid{grid-template-columns:1fr!important}
+  .audio-grid{grid-template-columns:1fr 1fr!important}
+}
+</style>
+</head>
+<body>
+
+<!-- Banner -->
+<div class="demo-banner" id="banner">
+  <a href="/{{lang}}/">&larr; {{t.demo.back}}</a>
+  <span style="flex:1;text-align:center">&#128421; {{t.demo.banner}}</span>
+  <a href="/{{lang}}/#download">{{t.demo.download_full}} &rarr;</a>
+  <div style="position:relative">
+    <button onclick="this.nextElementSibling.classList.toggle('hidden')" style="background:#fff;color:var(--accent);font-weight:700;padding:4px 10px;border-radius:6px;font-size:12px;cursor:pointer" title="{{t.demo.language}}">&#127760; {{lang_label}}</button>
+    <div class="hidden" id="lang-dropdown" style="position:absolute;right:0;top:calc(100% + 6px);background:#222836;border:1px solid #2e3445;border-radius:8px;padding:4px;display:grid;grid-template-columns:1fr 1fr;gap:2px;min-width:160px;z-index:10000;box-shadow:0 8px 24px rgba(0,0,0,0.5)">
+      {{demo_lang_links}}
+    </div>
+  </div>
+  <button class="close-banner" onclick="document.getElementById('banner').classList.add('hidden');document.getElementById('desktop').classList.add('no-banner')">&#10005;</button>
+</div>
+
+<!-- Desktop -->
+<div class="desktop" id="desktop"></div>
+
+<script>
+(function(){
+'use strict';
+
+// === OS Detection ===
+const ua = navigator.userAgent;
+let detectedOS = 'windows';
+if(/Mac|iPhone|iPad/.test(ua)) detectedOS = 'mac';
+else if(/Linux|Ubuntu|Fedora|X11/.test(ua)) detectedOS = 'linux';
+
+const desktop = document.getElementById('desktop');
+desktop.classList.add('os-' + detectedOS);
+const isMobile = window.innerWidth <= 768;
+
+// === State ===
+const state = {
+  page: 'home',
+  paused: false,
+  waterCount: 0,
+  waterGoal: 8,
+  eyeTimer: 536, // 8:56 in seconds (demo starts here)
+  moveTimer: 2936, // 48:56
+  eyesDone: 8,
+  moveDone: 4,
+  workSeconds: 16140, // 4h29m in seconds
+  waterTimer: 609, // ~10:09
+  activeSound: null,
+  audioCtx: null,
+  audioNode: null,
+  gainNode: null,
+  volume: 0.5,
+  settingsTab: 0,
+  statsTab: 0,
+  breathPhase: 0,
+  breathCycle: 1,
+  breathTimer: null,
+  popupTimers: {},
+  eyePopupTimer: null,
+  waterPopupTimer: null,
+  method: '20-20-20',
+  breakMode: 1,
+  dragTarget: null,
+  dragOffsetX: 0,
+  dragOffsetY: 0
+};
+
+// Time formatting
+function fmt(s){const m=Math.floor(s/60),sec=s%60;return m+':'+String(sec).padStart(2,'0')}
+function fmtHM(s){const h=Math.floor(s/3600),m=Math.floor((s%3600)/60);return h+'h '+String(m).padStart(2,'0')+'m'}
+
+// === Build Desktop ===
+function buildDesktop(){
+  let html = '';
+
+  // Desktop icons (all OS)
+  if(!isMobile){
+    html += '<div class="desktop-icons">';
+    if(detectedOS==='windows'){
+      html += '<div class="desktop-icon"><span class="icon-img">&#128187;</span><span class="icon-label">This PC</span></div>';
+      html += '<div class="desktop-icon"><span class="icon-img">&#128465;</span><span class="icon-label">Recycle Bin</span></div>';
+      html += '<div class="desktop-icon"><span class="icon-img" style="font-size:24px">&#9752;</span><span class="icon-label">HealthDesk</span></div>';
+    } else if(detectedOS==='mac'){
+      html += '<div class="desktop-icon"><span class="icon-img">&#128196;</span><span class="icon-label">Macintosh HD</span></div>';
+    } else {
+      html += '<div class="desktop-icon"><span class="icon-img">&#128193;</span><span class="icon-label">Home</span></div>';
+      html += '<div class="desktop-icon"><span class="icon-img">&#128465;</span><span class="icon-label">Trash</span></div>';
+    }
+    html += '</div>';
+  }
+
+  // OS-specific chrome
+  if(!isMobile){
+    if(detectedOS==='windows'){
+      html += buildWindowsTaskbar();
+    } else if(detectedOS==='mac'){
+      html += buildMacMenubar();
+      html += buildMacDock();
+    } else {
+      html += buildLinuxPanel();
+    }
+  }
+
+  // Main app window
+  html += buildAppWindow();
+
+  // Popup windows
+  html += buildEyePopup();
+  html += buildBreathPopup();
+  html += buildWaterPopup();
+
+  desktop.innerHTML = html;
+
+  initDragging();
+  initApp();
+  startTimers();
+  updateClock();
+}
+
+function buildWindowsTaskbar(){
+  return `<div class="win-taskbar">
+    <div class="win-taskbar-left"><button title="Start">&#8862;</button></div>
+    <div class="win-taskbar-center">
+      <div class="taskbar-app" title="Edge">&#127760;</div>
+      <div class="taskbar-app" title="Eksplorator">&#128193;</div>
+      <div class="taskbar-app" title="Terminal">&#9000;</div>
+      <div class="taskbar-app active" title="HealthDesk">&#9752;</div>
+    </div>
+    <div class="win-taskbar-right">
+      <span class="tray-hd" title="HealthDesk działa w tle"></span>
+      <div class="tray-icons">
+        <span>&#128246;</span><span>&#128266;</span><span>&#128267;</span>
+      </div>
+      <div class="tray-clock">
+        <div class="clock-time" id="clock-time"></div>
+        <div class="clock-date" id="clock-date"></div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildMacMenubar(){
+  return `<div class="mac-menubar">
+    <div class="mac-menubar-left">
+      <span>&#63743;</span>
+      <span class="bold">HealthDesk</span>
+      <span>File</span><span>Edit</span><span>View</span><span>Window</span><span>Help</span>
+    </div>
+    <div class="mac-menubar-right">
+      <span>&#128246;</span><span>&#128266;</span><span>&#128267;</span>
+      <span id="clock-time"></span>
+      <span>&#128269;</span>
+    </div>
+  </div>`;
+}
+
+function buildMacDock(){
+  return `<div class="mac-dock">
+    <div class="dock-app" title="Finder">&#128269;</div>
+    <div class="dock-app" title="Safari">&#127760;</div>
+    <div class="dock-app" title="Terminal">&#9000;</div>
+    <div class="dock-app active" title="HealthDesk">&#9752;</div>
+    <div class="dock-app" title="Ustawienia">&#9881;</div>
+  </div>`;
+}
+
+function buildLinuxPanel(){
+  return `<div class="linux-panel">
+    <div class="linux-panel-left">
+      <span>Activities</span>
+      <span style="font-weight:600">HealthDesk</span>
+    </div>
+    <div class="linux-panel-right">
+      <span>&#128246;</span><span>&#128266;</span>
+      <span id="clock-time"></span>
+      <span>&#9211;</span>
+    </div>
+  </div>`;
+}
+
+function getWindowPos(){
+  const dw = desktop.clientWidth;
+  const dh = desktop.clientHeight;
+  const ww = Math.min(960, dw * 0.88);
+  const wh = Math.min(680, dh * 0.82);
+  let topOffset = detectedOS==='mac' ? 28 : (detectedOS==='linux' ? 32 : 0);
+  let bottomOffset = detectedOS==='windows' ? 48 : (detectedOS==='mac' ? 70 : 0);
+  const availH = dh - topOffset - bottomOffset;
+  const left = Math.max(10, (dw - ww) / 2 + 30);
+  const top = topOffset + Math.max(10, (availH - wh) / 2 - 10);
+  return {left, top, ww, wh};
+}
+
+function getTitlebar(title){
+  if(detectedOS==='mac'){
+    return `<div class="titlebar titlebar-mac" data-drag="true">
+      <div class="tb-left">
+        <div class="traffic-light tl-close"></div>
+        <div class="traffic-light tl-min"></div>
+        <div class="traffic-light tl-max"></div>
+      </div>
+      <div class="tb-center">${title}</div>
+      <div class="tb-right"></div>
+    </div>`;
+  } else if(detectedOS==='linux'){
+    return `<div class="titlebar titlebar-linux" data-drag="true">
+      <div class="tb-left">${title}</div>
+      <div class="tb-right">
+        <button>&#8722;</button><button>&#9634;</button><button class="close">&#10005;</button>
+      </div>
+    </div>`;
+  }
+  return `<div class="titlebar titlebar-win" data-drag="true">
+    <div class="tb-left">
+      <div class="tb-icon">H</div>
+      <span>${title}</span>
+    </div>
+    <div class="tb-right">
+      <button>&#8722;</button><button>&#9634;</button><button class="close">&#10005;</button>
+    </div>
+  </div>`;
+}
+
+function buildAppWindow(){
+  const {left, top, ww, wh} = getWindowPos();
+  return `<div class="app-window focused" id="main-window" style="left:${left}px;top:${top}px;width:${ww}px;height:${wh}px">
+    ${getTitlebar('HealthDesk')}
+    <div class="app-body">
+      ${buildSidebar()}
+      <div style="display:flex;flex-direction:column;flex:1;overflow:hidden">
+        <div class="main-content" id="main-content">
+          ${buildHomePage()}
+          ${buildStatsPage()}
+          ${buildAudioPage()}
+          ${buildSettingsPage()}
+          ${buildHelpPage()}
+        </div>
+        <div class="bottom-bar">
+          <span id="bottom-timer">&#9201; ${fmt(state.eyeTimer)} {{t.mock.to_break}}</span>
+          <button onclick="resetTimers()" title="{{t.demo.reset}}">&#8635;</button>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildSidebar(){
+  const items = [
+    {id:'home',icon:'&#127968;',label:'{{t.mock.nav_home}}',color:'#e67e22'},
+    {id:'stats',icon:'&#128202;',label:'{{t.mock.nav_stats}}',color:'#3498db'},
+    {id:'audio',icon:'&#127925;',label:'{{t.demo.nav_audio}}',color:'#9b59b6'},
+    {id:'settings',icon:'&#9881;',label:'{{t.mock.nav_settings}}',color:'#8892a4'},
+    {id:'help',icon:'&#10067;',label:'{{t.mock.nav_help}}',color:'#e74c3c'}
+  ];
+  let nav = items.map(it=>
+    `<div class="nav-item ${it.id===state.page?'active':''}" onclick="switchPage('${it.id}')">
+      <span class="nav-icon" style="color:${state.page===it.id?'var(--accent)':it.color}">${it.icon}</span>
+      <span>${it.label}</span>
+    </div>`
+  ).join('');
+
+  return `<div class="sidebar">
+    <div class="sidebar-header"><h1>HealthDesk</h1></div>
+    <div class="sidebar-nav">${nav}</div>
+    <div class="sidebar-bottom">
+      <button class="sidebar-btn water-btn" id="water-sidebar-btn" onclick="addWater()">
+        <span>&#128167; {{t.demo.water_plus}} (${state.waterCount}/${state.waterGoal})</span>
+      </button>
+      <button class="sidebar-btn pause-btn ${state.paused?'resumed':''}" id="pause-btn" onclick="togglePause()">
+        <span>${state.paused?'&#9654; {{t.demo.resume}}':'&#9208; {{t.mock.pause}}'}</span>
+      </button>
+    </div>
+  </div>`;
+}
+
+function buildHomePage(){
+  return `<div class="page active" id="page-home">
+    <!-- Meeting badge -->
+    <div id="meeting-badge" style="display:none;margin-bottom:8px">
+      <span style="font-size:11px;background:rgba(231,76,60,0.2);color:#e74c3c;padding:3px 10px;border-radius:99px">📅 {{t.demo.meeting_badge}}</span>
+    </div>
+
+    <!-- Work Time -->
+    <div class="card" style="margin-bottom:10px">
+      <div class="card-header">
+        <span class="card-label">{{t.mock.work_today}}</span>
+        <span class="card-badge" id="method-badge">${state.method} &#9662;</span>
+      </div>
+      <div class="card-value" id="work-time">${fmtHM(state.workSeconds)}</div>
+      <div class="progress-bar"><div class="progress-fill green" id="work-progress" style="width:67%"></div></div>
+      <div class="card-sub">67% {{t.mock.of_day}} (07:00\u201316:00)</div>
+    </div>
+
+    <!-- Timeline -->
+    <div class="card" style="margin-bottom:10px;padding:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:6px;margin-bottom:8px">
+        <span class="card-label">{{t.mock.timeline}}</span>
+        <div class="timeline-pills">
+          <span class="timeline-pill" style="background:rgba(52,152,219,0.2);color:#3498db">{{t.mock.eye_break}}</span>
+          <span class="timeline-pill" style="background:rgba(230,126,34,0.2);color:#e67e22">{{t.mock.move_break}}</span>
+          <span class="timeline-pill" style="background:rgba(133,193,233,0.2);color:#85c1e9">{{t.mock.water}}</span>
+          <span class="timeline-pill" style="background:rgba(155,89,182,0.2);color:#9b59b6">{{t.mock.eye_exercises}}</span>
+          <span class="timeline-pill" style="background:rgba(46,204,113,0.2);color:#2ecc71">{{t.mock.breathing_ex}}</span>
+        </div>
+        <span class="card-label">07:00 — 16:00</span>
+      </div>
+      <div class="timeline-hours">
+        <span>7</span><span>8</span><span>9</span><span>10</span><span>11</span><span>12</span><span>13</span><span>14</span><span>15</span><span>16</span>
+      </div>
+      <div class="timeline-track">
+        <!-- Meeting block -->
+        <div class="timeline-marker" style="left:58%;width:14%;background:rgba(231,76,60,0.3);border-radius:4px"></div>
+        <!-- Eye breaks (blue) -->
+        <div class="timeline-marker" style="left:8%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:19%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:30%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:41%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:52%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:76%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:87%;width:3px;background:#3498db"></div>
+        <div class="timeline-marker" style="left:95%;width:3px;background:#3498db"></div>
+        <!-- Movement breaks (orange) -->
+        <div class="timeline-marker" style="left:22%;width:5px;background:#e67e22"></div>
+        <div class="timeline-marker" style="left:44%;width:5px;background:#e67e22"></div>
+        <div class="timeline-marker" style="left:78%;width:5px;background:#e67e22"></div>
+        <div class="timeline-marker" style="left:97%;width:5px;background:#e67e22"></div>
+        <!-- Eye exercises (purple) -->
+        <div class="timeline-marker" style="left:15%;width:3px;background:#9b59b6"></div>
+        <div class="timeline-marker" style="left:48%;width:3px;background:#9b59b6"></div>
+        <div class="timeline-marker" style="left:82%;width:3px;background:#9b59b6"></div>
+        <!-- Breathing (green) -->
+        <div class="timeline-marker" style="left:35%;width:3px;background:#2ecc71"></div>
+        <div class="timeline-marker" style="left:90%;width:3px;background:#2ecc71"></div>
+        <!-- Now line -->
+        <div class="timeline-now" id="timeline-now" style="left:67%"></div>
+      </div>
+    </div>
+
+    <!-- Meeting simulation button -->
+    <div style="margin-bottom:10px;text-align:center">
+      <button id="meeting-sim-btn" onclick="toggleMeeting()" style="font-size:11px;background:rgba(231,76,60,0.15);color:#e74c3c;border-radius:6px;padding:5px 14px;cursor:pointer;transition:all 0.2s">📅 {{t.demo.meeting_start}}</button>
+    </div>
+
+    <!-- Timers -->
+    <div class="timer-grid" style="margin-bottom:10px">
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">{{t.mock.eye_break}}</span>
+          <span class="timer-meta">${state.eyesDone} &#10003; &middot; 20 min</span>
+        </div>
+        <div class="timer-value" id="eye-timer" style="color:#3498db">${fmt(state.eyeTimer)}</div>
+        <div class="progress-bar"><div class="progress-fill blue" id="eye-progress" style="width:${((1200-state.eyeTimer)/1200*100).toFixed(0)}%"></div></div>
+      </div>
+      <div class="card">
+        <div class="card-header">
+          <span class="card-label">{{t.mock.move_break}}</span>
+          <span class="timer-meta">${state.moveDone} &#10003; &middot; 60 min</span>
+        </div>
+        <div class="timer-value" id="move-timer" style="color:#e67e22">${fmt(state.moveTimer)}</div>
+        <div class="progress-bar"><div class="progress-fill orange" id="move-progress" style="width:${((3600-state.moveTimer)/3600*100).toFixed(0)}%"></div></div>
+      </div>
+    </div>
+
+    <!-- Water -->
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;align-items:center;justify-content:space-between">
+        <div class="water-row">
+          <span class="card-label">{{t.mock.water}}</span>
+          <span class="water-count" id="water-display">${state.waterCount}</span>
+          <span class="card-label" id="water-meta">/ ${state.waterGoal} &middot; {{t.mock.reminder_in}} <span id="water-timer-display">${fmt(state.waterTimer)}</span></span>
+        </div>
+        <button class="water-add" onclick="addWater()">+1</button>
+      </div>
+      <div class="progress-bar" style="margin-top:8px"><div class="progress-fill blue" id="water-progress" style="width:${(state.waterCount/state.waterGoal*100)}%"></div></div>
+    </div>
+
+    <!-- Sound -->
+    <div class="card">
+      <div class="sound-row">
+        <span class="card-label">{{t.mock.sound}}</span>
+        <span class="sound-name" id="sound-label">chillhop radio beats chill study music</span>
+        <button class="sound-btn" style="background:rgba(255,255,255,0.1)" onclick="stopAllAudio()" title="Stop">&#9209;</button>
+        <span style="width:12px;height:12px;border-radius:50%;background:var(--accent);flex-shrink:0"></span>
+        <input type="range" min="0" max="100" value="50" style="width:60px" onchange="setVolume(this.value/100)">
+        <span class="sound-btn" style="color:#3498db;font-size:16px" onclick="switchPage('audio')" title="Szukaj">&#128269;</span>
+        <span class="sound-btn" style="color:#9b59b6;font-size:16px" onclick="switchPage('audio')" title="Muzyka">&#9835;</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildStatsPage(){
+  return `<div class="page" id="page-stats">
+    <div class="period-tabs">
+      <div class="period-tab active" onclick="setStatsTab(0,this)">{{t.demo.today}}</div>
+      <div class="period-tab" onclick="setStatsTab(1,this)">{{t.demo.week}}</div>
+      <div class="period-tab" onclick="setStatsTab(2,this)">{{t.demo.month}}</div>
+      <div class="period-tab" onclick="setStatsTab(3,this)">{{t.demo.year}}</div>
+    </div>
+
+    <div class="stat-cards">
+      <div class="card stat-card">
+        <div class="card-label">{{t.mock.breaks}}</div>
+        <div class="stat-value" style="color:var(--accent)">12</div>
+        <div class="stat-sub">8 {{t.mock.done}} &middot; 4 {{t.mock.skipped}}</div>
+      </div>
+      <div class="card stat-card">
+        <div class="card-label">{{t.mock.water}}</div>
+        <div class="stat-value" style="color:var(--blue)">5</div>
+        <div class="stat-sub">{{t.demo.glasses}}</div>
+      </div>
+      <div class="card stat-card">
+        <div class="card-label">{{t.demo.work_time}}</div>
+        <div class="stat-value" style="color:var(--accent)" id="stats-work-time">4h 29m</div>
+        <div class="stat-sub">{{t.demo.today_label}}</div>
+      </div>
+    </div>
+
+    <div id="stats-today">
+      <div class="chart-grid">
+        <div class="card tooltip-card">
+          <div class="card-label" style="margin-bottom:8px">{{t.demo.app_activity}}</div>
+          <div class="pie-chart" style="background:conic-gradient(var(--accent) 0% 45%, var(--blue) 45% 75%, var(--purple) 75% 90%, var(--red) 90% 100%)">
+            <span class="demo-badge">DEMO</span>
+          </div>
+          <div class="tooltip">{{t.demo.tooltip_activity}}</div>
+        </div>
+        <div class="card tooltip-card">
+          <div class="card-label" style="margin-bottom:12px">{{t.demo.most_used}}</div>
+          <div class="app-list">
+            <div class="app-row"><span class="app-dot" style="background:var(--accent)"></span><span>VS Code</span><span style="margin-left:auto;color:var(--text-dim)">2h 01m</span></div>
+            <div class="app-row"><span class="app-dot" style="background:var(--blue)"></span><span>Chrome</span><span style="margin-left:auto;color:var(--text-dim)">1h 21m</span></div>
+            <div class="app-row"><span class="app-dot" style="background:var(--purple)"></span><span>Slack</span><span style="margin-left:auto;color:var(--text-dim)">0h 40m</span></div>
+            <div class="app-row"><span class="app-dot" style="background:var(--red)"></span><span>Spotify</span><span style="margin-left:auto;color:var(--text-dim)">0h 27m</span></div>
+            <div class="app-row"><span class="app-dot" style="background:var(--orange)"></span><span>Terminal</span><span style="margin-left:auto;color:var(--text-dim)">0h 12m</span></div>
+          </div>
+          <div class="tooltip">{{t.demo.tooltip_activity}}</div>
+        </div>
+      </div>
+    </div>
+
+    <div id="stats-week" style="display:none">
+      <div class="card">
+        <div class="card-label" style="margin-bottom:8px">{{t.demo.week_chart}}</div>
+        <div class="bar-chart">
+          <div class="bar-col"><div class="bar" style="height:80%"></div><div class="bar-label">{{t.demo.mon}}</div></div>
+          <div class="bar-col"><div class="bar" style="height:90%"></div><div class="bar-label">{{t.demo.tue}}</div></div>
+          <div class="bar-col"><div class="bar" style="height:65%"></div><div class="bar-label">{{t.demo.wed}}</div></div>
+          <div class="bar-col"><div class="bar" style="height:100%"></div><div class="bar-label">{{t.demo.thu}}</div></div>
+          <div class="bar-col"><div class="bar" style="height:70%"></div><div class="bar-label">{{t.demo.fri}}</div></div>
+          <div class="bar-col"><div class="bar" style="height:30%"></div><div class="bar-label">{{t.demo.sat}}</div></div>
+          <div class="bar-col"><div class="bar" style="height:10%"></div><div class="bar-label">{{t.demo.sun}}</div></div>
+        </div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildAudioPage(){
+  const sounds = [
+    {id:'brown',icon:'&#128996;',label:'Brown Noise'},
+    {id:'rain',icon:'&#127783;&#65039;',label:'{{t.demo.rain}}'},
+    {id:'white',icon:'&#11036;',label:'{{t.demo.white_noise}}'},
+    {id:'pink',icon:'&#128151;',label:'{{t.demo.pink_noise}}'},
+    {id:'drone',icon:'&#127925;',label:'Ambient Drone'},
+    {id:'forest',icon:'&#127794;',label:'{{t.demo.forest}}'}
+  ];
+  const radioStations = ['RMF FM','RMF MAXX','Antyradio','Radio ZET','Eska','Chillizet'];
+  const ytPresets = ['Lo-fi','Jazz','Classical','Nature','Piano','Synthwave'];
+
+  let soundGrid = sounds.map(s=>
+    `<div class="audio-btn" id="audio-${s.id}" onclick="toggleSound('${s.id}')">
+      <div class="audio-icon">${s.icon}</div>
+      <div class="audio-label">${s.label}</div>
+    </div>`
+  ).join('');
+
+  let radioGrid = radioStations.map(r=>
+    `<div class="audio-btn tooltip-card" style="padding:12px">
+      <div class="audio-label" style="font-size:13px">${r}</div>
+      <div class="tooltip">{{t.demo.tooltip_radio}}</div>
+    </div>`
+  ).join('');
+
+  let ytGrid = ytPresets.map(y=>
+    `<div class="audio-btn tooltip-card" style="padding:12px">
+      <div class="audio-label" style="font-size:13px">${y}</div>
+      <div class="tooltip">{{t.demo.tooltip_yt}}</div>
+    </div>`
+  ).join('');
+
+  return `<div class="page" id="page-audio">
+    <div class="audio-section-title">{{t.demo.focus_sounds}}</div>
+    <div class="audio-grid">${soundGrid}</div>
+
+    <div class="volume-control">
+      <label>&#128266; {{t.demo.volume}}</label>
+      <input type="range" min="0" max="100" value="50" onchange="setVolume(this.value/100)">
+    </div>
+
+    <div class="audio-section-title">{{t.demo.fm_radio}}</div>
+    <div class="audio-grid">${radioGrid}</div>
+
+    <div class="audio-section-title" style="margin-top:24px">{{t.demo.yt_radio}}</div>
+    <div class="audio-grid">${ytGrid}</div>
+
+    <div class="audio-section-title" style="margin-top:24px">{{t.demo.custom_link}}</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px">
+      <input type="text" placeholder="{{t.demo.paste_url}}" style="flex:1">
+      <div class="tooltip-card">
+        <button style="background:var(--accent);color:#fff;padding:8px 16px;border-radius:8px;font-size:13px">&#9654; {{t.demo.play}}</button>
+        <div class="tooltip">{{t.demo.tooltip_yt_custom}}</div>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildSettingsPage(){
+  const tabs = ['{{t.demo.tab_breaks}}','{{t.demo.tab_wellness}}','{{t.demo.tab_integrations}}','{{t.demo.tab_system}}'];
+  let tabsHtml = tabs.map((t,i)=>
+    `<div class="settings-tab ${i===0?'active':''}" onclick="switchSettingsTab(${i},this)">${t}</div>`
+  ).join('');
+
+  return `<div class="page" id="page-settings">
+    <div class="settings-tabs">${tabsHtml}</div>
+
+    <!-- Przerwy -->
+    <div class="settings-panel active" id="sp-0">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.work_method}}</div>
+          <div class="setting-desc">{{t.demo.work_method_desc}}</div>
+        </div>
+        <select onchange="changeMethod(this.value)" style="width:160px">
+          <option value="20-20-20" selected>20-20-20</option>
+          <option value="Pomodoro">Pomodoro (25/5)</option>
+          <option value="52-17">52-17</option>
+          <option value="90-20">90-20</option>
+          <option value="custom">{{t.demo.custom_method}}</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.work_hours}}</div>
+          <div class="setting-desc">{{t.demo.work_hours_desc}}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <input type="time" value="07:00" style="width:90px"> — <input type="time" value="16:00" style="width:90px">
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.break_mode}}</div>
+          <div class="setting-desc">{{t.demo.break_mode_desc}}</div>
+        </div>
+        <div class="radio-group">
+          <label class="radio-opt" onclick="selectRadio(this,0)"><span class="radio-dot">&#8203;</span> {{t.demo.gentle}}</label>
+          <label class="radio-opt" onclick="selectRadio(this,1)"><span class="radio-dot selected">&#8203;</span> {{t.demo.moderate}}</label>
+          <label class="radio-opt" onclick="selectRadio(this,2)"><span class="radio-dot">&#8203;</span> {{t.demo.aggressive}}</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Wellness -->
+    <div class="settings-panel" id="sp-1">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.water_reminder}}</div>
+          <div class="setting-desc">{{t.demo.water_reminder_desc}}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;width:180px">
+          <input type="range" min="10" max="120" value="45" style="flex:1" oninput="this.nextElementSibling.textContent=this.value+' min'">
+          <span style="font-size:12px;color:var(--text-dim);width:45px">45 min</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.daily_goal}}</div>
+          <div class="setting-desc">{{t.demo.daily_goal_desc}}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;width:180px">
+          <input type="range" min="1" max="20" value="8" style="flex:1" oninput="this.nextElementSibling.textContent=this.value">
+          <span style="font-size:12px;color:var(--text-dim);width:20px">8</span>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.mock.eye_exercises}}</div>
+          <div class="setting-desc">{{t.demo.eye_ex_desc}}</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.breath_train}}</div>
+          <div class="setting-desc">{{t.demo.breath_train_desc}}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+          <div style="display:flex;align-items:center;gap:8px;width:160px">
+            <input type="range" min="30" max="120" value="60" style="flex:1" oninput="this.nextElementSibling.textContent=this.value+' min'">
+            <span style="font-size:12px;color:var(--text-dim);width:45px">60 min</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Integracje -->
+    <div class="settings-panel" id="sp-2">
+      <div class="integration-card tooltip-card">
+        <h4>&#128197; {{t.demo.gcal}}</h4>
+        <div class="integration-status"><span class="dot"></span> {{t.demo.not_connected}}</div>
+        <button class="int-btn">{{t.demo.connect}}</button>
+        <div class="tooltip" style="width:280px">{{t.demo.tooltip_gcal}}</div>
+      </div>
+      <div class="integration-card tooltip-card">
+        <h4>&#128421; {{t.demo.sys_tray}}</h4>
+        <p style="font-size:12px;color:var(--text-dim);margin-top:4px">{{t.demo.sys_tray_desc}}</p>
+        <div class="tooltip">{{t.demo.tooltip_tray}}</div>
+      </div>
+    </div>
+
+    <!-- System -->
+    <div class="settings-panel" id="sp-3">
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.dash_layout}}</div>
+        </div>
+        <div class="radio-group" style="flex-direction:row;gap:12px">
+          <label class="radio-opt" onclick="selectRadio(this,0)"><span class="radio-dot selected">&#8203;</span> Enhanced</label>
+          <label class="radio-opt" onclick="selectRadio(this,1)"><span class="radio-dot">&#8203;</span> Compact</label>
+        </div>
+      </div>
+      <div class="setting-row">
+        <div><div class="setting-label">{{t.demo.language}}</div></div>
+        <select style="width:160px">
+          <option>Polski</option><option>English</option><option>Deutsch</option><option>Español</option>
+          <option>Français</option><option>Italiano</option><option>日本語</option><option>한국어</option>
+          <option>Português (BR)</option><option>Русский</option><option>Türkçe</option><option>中文</option>
+        </select>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.autostart}}</div>
+          <div class="setting-desc">{{t.demo.autostart_desc}}</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="setting-row">
+        <div>
+          <div class="setting-label">{{t.demo.telemetry}}</div>
+          <div class="setting-desc">{{t.demo.telemetry_desc}}</div>
+        </div>
+        <div class="toggle on" onclick="this.classList.toggle('on')"></div>
+      </div>
+      <div class="setting-row" style="border-bottom:none">
+        <div>
+          <div class="setting-label" style="color:var(--text-dim)">HealthDesk v2.0.29</div>
+        </div>
+      </div>
+      <button class="save-btn" onclick="showSaveConfirm(this)">{{t.demo.save}}</button>
+    </div>
+  </div>`;
+}
+
+function buildHelpPage(){
+  const faqs = [
+    {q:'{{t.demo.faq1_q}}',a:'{{t.demo.faq1_a}}'},
+    {q:'{{t.demo.faq2_q}}',a:'{{t.demo.faq2_a}}'},
+    {q:'{{t.demo.faq3_q}}',a:'{{t.demo.faq3_a}}'},
+    {q:'{{t.demo.faq4_q}}',a:'{{t.demo.faq4_a}}'},
+    {q:'{{t.demo.faq5_q}}',a:'{{t.demo.faq5_a}}'},
+    {q:'{{t.demo.faq6_q}}',a:'{{t.demo.faq6_a}}'}
+  ];
+
+  let faqHtml = faqs.map((f,i)=>
+    `<div class="faq-item" onclick="this.classList.toggle('open')">
+      <div class="faq-q"><span>${f.q}</span><span class="arrow">&#9660;</span></div>
+      <div class="faq-a"><div class="faq-a-inner">${f.a}</div></div>
+    </div>`
+  ).join('');
+
+  return `<div class="page" id="page-help">
+    ${faqHtml}
+    <div style="text-align:center;margin-top:24px">
+      <a href="/{{lang}}/#download" class="cta-btn">{{t.demo.download_cta}}</a>
+    </div>
+  </div>`;
+}
+
+// Popup windows
+function buildEyePopup(){
+  const pos = getPopupPos(350, 380, 'right');
+  return `<div class="popup-window" id="popup-eye" style="left:${pos.left}px;top:${pos.top}px;width:350px">
+    ${getTitlebar('HealthDesk — {{t.mock.break_title}}')}
+    <div class="popup-body" style="flex:1">
+      <div class="popup-emoji">&#9200;</div>
+      <div class="popup-title">{{t.mock.eye_break}}</div>
+      <div class="popup-desc">{{t.demo.eye_desc}}</div>
+      <div class="popup-timer" id="eye-popup-timer">0:20</div>
+      <div class="progress-bar" style="width:100%"><div class="progress-fill green" id="eye-popup-progress" style="width:0%"></div></div>
+      <div class="popup-actions">
+        <button class="popup-btn green" onclick="closePopup('eye')">{{t.mock.take_break}}</button>
+        <button class="popup-btn gray" onclick="snoozeEyePopup()">{{t.demo.snooze}}</button>
+        <button class="popup-btn gray" onclick="closePopup('eye')">{{t.mock.skip}}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function buildBreathPopup(){
+  const pos = getPopupPos(320, 420, 'left');
+  return `<div class="popup-window" id="popup-breath" style="left:${pos.left}px;top:${pos.top}px;width:320px">
+    ${getTitlebar('HealthDesk — {{t.mock.breathing_title}}')}
+    <div class="popup-body" style="flex:1">
+      <div class="popup-title">{{t.demo.breathing_title}}</div>
+      <div class="breath-circle" id="breath-circle">
+        <span class="breath-phase" id="breath-phase-label">{{t.breathing.inhale}}</span>
+        <span class="breath-count" id="breath-count">4</span>
+      </div>
+      <div id="breath-cycle" style="font-size:12px;color:var(--text-dim)">{{t.demo.cycle}} 1 / 5</div>
+      <button class="popup-btn gray" onclick="closePopup('breath');stopBreathing()">{{t.mock.skip}}</button>
+    </div>
+  </div>`;
+}
+
+function buildWaterPopup(){
+  const pos = getPopupPos(300, 320, 'center');
+  return `<div class="popup-window" id="popup-water" style="left:${pos.left}px;top:${pos.top}px;width:300px">
+    ${getTitlebar('HealthDesk — {{t.mock.water}}')}
+    <div class="popup-body" style="flex:1">
+      <div class="popup-emoji">&#128167;</div>
+      <div class="popup-title" style="color:var(--blue)">{{t.demo.water_popup_title}}</div>
+      <div class="water-dots" id="popup-water-dots"></div>
+      <div id="popup-water-count" style="font-size:14px;color:var(--text-dim)">${state.waterCount} / ${state.waterGoal} {{t.demo.glasses}}</div>
+      <div class="popup-actions">
+        <button class="popup-btn blue" onclick="addWater();closePopup('water')">{{t.demo.drinking}} &#128167;</button>
+        <button class="popup-btn gray" onclick="closePopup('water')">{{t.demo.later}}</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function getPopupPos(w, h, align){
+  const {left: wl, top: wt, ww, wh} = getWindowPos();
+  let left, top;
+  if(align === 'right'){
+    left = wl + ww - w - 40;
+    top = wt + 60;
+  } else if(align === 'left'){
+    left = wl + 40;
+    top = wt + 60;
+  } else {
+    left = wl + (ww - w) / 2;
+    top = wt + (wh - h) / 2 - 20;
+  }
+  return {left: Math.max(10, left), top: Math.max(50, top)};
+}
+
+// === Global Functions ===
+window.switchPage = function(page){
+  state.page = page;
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach((n,i)=>{
+    const pages = ['home','stats','audio','settings','help'];
+    n.classList.toggle('active', pages[i]===page);
+    const icon = n.querySelector('.nav-icon');
+    if(icon){
+      const colors = ['#e67e22','#3498db','#9b59b6','#8892a4','#e74c3c'];
+      icon.style.color = pages[i]===page ? 'var(--accent)' : colors[i];
+    }
+  });
+};
+
+window.togglePause = function(){
+  state.paused = !state.paused;
+  const btn = document.getElementById('pause-btn');
+  if(btn){
+    btn.className = 'sidebar-btn pause-btn' + (state.paused ? ' resumed' : '');
+    btn.querySelector('span').innerHTML = state.paused ? '&#9654; {{t.demo.resume}}' : '&#9208; {{t.mock.pause}}';
+  }
+};
+
+window.addWater = function(){
+  if(state.waterCount < state.waterGoal) state.waterCount++;
+  updateWaterUI();
+};
+
+// Meeting simulation
+state.inMeeting = false;
+state.meetingPausedTimers = false;
+
+window.toggleMeeting = function(){
+  state.inMeeting = !state.inMeeting;
+  const badge = document.getElementById('meeting-badge');
+  const btn = document.getElementById('meeting-sim-btn');
+  if(state.inMeeting){
+    // Start meeting — pause timers
+    if(!state.paused){
+      state.meetingPausedTimers = true;
+      state.paused = true;
+      const pb = document.getElementById('pause-btn');
+      if(pb){ pb.className='sidebar-btn pause-btn'+(state.paused?' resumed':''); pb.querySelector('span').innerHTML=state.paused?'&#9654; {{t.demo.resume}}':'&#9208; {{t.mock.pause}}'; }
+    }
+    if(badge) badge.style.display = 'block';
+    if(btn) btn.innerHTML = '📅 {{t.demo.meeting_end}}';
+    if(btn) btn.style.background = 'rgba(231,76,60,0.3)';
+  } else {
+    // End meeting — resume timers, accelerate break
+    if(state.meetingPausedTimers){
+      state.paused = false;
+      state.meetingPausedTimers = false;
+      const pb = document.getElementById('pause-btn');
+      if(pb){ pb.className='sidebar-btn pause-btn'+(state.paused?' resumed':''); pb.querySelector('span').innerHTML=state.paused?'&#9654; {{t.demo.resume}}':'&#9208; {{t.mock.pause}}'; }
+      // Post-meeting break acceleration
+      state.eyeTimer = Math.min(state.eyeTimer, 12); // ~2 min demo speed
+      state.moveTimer = Math.min(state.moveTimer, 12);
+    }
+    if(badge) badge.style.display = 'none';
+    if(btn) btn.innerHTML = '📅 {{t.demo.meeting_start}}';
+    if(btn) btn.style.background = 'rgba(231,76,60,0.15)';
+  }
+};
+
+function updateWaterUI(){
+  const d = document.getElementById('water-display');
+  if(d) d.textContent = state.waterCount;
+  const p = document.getElementById('water-progress');
+  if(p) p.style.width = (state.waterCount/state.waterGoal*100)+'%';
+  const sb = document.getElementById('water-sidebar-btn');
+  if(sb) sb.querySelector('span').innerHTML = '&#128167; {{t.demo.water_plus}} ('+state.waterCount+'/'+state.waterGoal+')';
+  // Update popup dots
+  const dots = document.getElementById('popup-water-dots');
+  if(dots){
+    let html = '';
+    for(let i=0;i<state.waterGoal;i++){
+      html += '<div class="water-dot '+(i<state.waterCount?'filled':'')+'"></div>';
+    }
+    dots.innerHTML = html;
+  }
+  const pc = document.getElementById('popup-water-count');
+  if(pc) pc.textContent = state.waterCount+' / '+state.waterGoal+' {{t.demo.glasses}}';
+}
+
+window.resetTimers = function(){
+  state.eyeTimer = 1200;
+  state.moveTimer = 3600;
+  state.waterTimer = 609;
+};
+
+window.setStatsTab = function(tab, el){
+  document.querySelectorAll('.period-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  const today = document.getElementById('stats-today');
+  const week = document.getElementById('stats-week');
+  if(today) today.style.display = (tab===0)?'block':'none';
+  if(week) week.style.display = (tab>=1)?'block':'none';
+};
+
+window.switchSettingsTab = function(idx, el){
+  document.querySelectorAll('.settings-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  for(let i=0;i<4;i++){
+    const p = document.getElementById('sp-'+i);
+    if(p) p.classList.toggle('active', i===idx);
+  }
+};
+
+window.selectRadio = function(label, idx){
+  const group = label.closest('.radio-group');
+  group.querySelectorAll('.radio-dot').forEach(d=>{d.classList.remove('selected');d.innerHTML='&#8203;'});
+  label.querySelector('.radio-dot').classList.add('selected');
+};
+
+window.changeMethod = function(val){
+  state.method = val;
+  const badge = document.getElementById('method-badge');
+  if(badge) badge.innerHTML = val + ' &#9662;';
+  // Update timers based on method
+  const methods = {
+    '20-20-20': {eye:1200, move:3600},
+    'Pomodoro': {eye:1500, move:1500},
+    '52-17':    {eye:3120, move:3120},
+    '90-20':    {eye:5400, move:5400},
+    'custom':   {eye:1200, move:3600}
+  };
+  const m = methods[val] || methods['20-20-20'];
+  state.eyeTimer = m.eye;
+  state.moveTimer = m.move;
+};
+
+window.showSaveConfirm = function(btn){
+  const orig = btn.textContent;
+  btn.textContent = '{{t.demo.saved}}';
+  btn.style.background = '#27ae60';
+  setTimeout(()=>{btn.textContent=orig;btn.style.background=''},1500);
+};
+
+// === Audio (Web Audio API) ===
+window.toggleSound = function(id){
+  if(state.activeSound === id){
+    stopAllAudio();
+    return;
+  }
+  stopAllAudio();
+  state.activeSound = id;
+
+  if(!state.audioCtx) state.audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+  const ctx = state.audioCtx;
+  state.gainNode = ctx.createGain();
+  state.gainNode.gain.value = state.volume;
+  state.gainNode.connect(ctx.destination);
+
+  const generators = {
+    brown: ()=>{
+      const bufSize = 4096;
+      const node = ctx.createScriptProcessor(bufSize,1,1);
+      let last = 0;
+      node.onaudioprocess = (e)=>{
+        const out = e.outputBuffer.getChannelData(0);
+        for(let i=0;i<bufSize;i++){
+          const w = Math.random()*2-1;
+          last = (last + 0.02*w) / 1.02;
+          out[i] = last * 3.5;
+        }
+      };
+      return node;
+    },
+    white: ()=>{
+      const bufSize = 4096;
+      const node = ctx.createScriptProcessor(bufSize,1,1);
+      node.onaudioprocess = (e)=>{
+        const out = e.outputBuffer.getChannelData(0);
+        for(let i=0;i<bufSize;i++) out[i] = Math.random()*2-1;
+      };
+      return node;
+    },
+    pink: ()=>{
+      const bufSize = 4096;
+      const node = ctx.createScriptProcessor(bufSize,1,1);
+      let b0=0,b1=0,b2=0,b3=0,b4=0,b5=0,b6=0;
+      node.onaudioprocess = (e)=>{
+        const out = e.outputBuffer.getChannelData(0);
+        for(let i=0;i<bufSize;i++){
+          const w = Math.random()*2-1;
+          b0 = 0.99886*b0+w*0.0555179;
+          b1 = 0.99332*b1+w*0.0750759;
+          b2 = 0.96900*b2+w*0.1538520;
+          b3 = 0.86650*b3+w*0.3104856;
+          b4 = 0.55000*b4+w*0.5329522;
+          b5 = -0.7616*b5-w*0.0168980;
+          out[i] = (b0+b1+b2+b3+b4+b5+b6+w*0.5362)*0.11;
+          b6 = w*0.115926;
+        }
+      };
+      return node;
+    },
+    rain: ()=>{
+      const bufSize = 4096;
+      const node = ctx.createScriptProcessor(bufSize,1,1);
+      let phase = 0;
+      node.onaudioprocess = (e)=>{
+        const out = e.outputBuffer.getChannelData(0);
+        for(let i=0;i<bufSize;i++){
+          phase += 0.001;
+          const env = 0.3 + 0.7*Math.abs(Math.sin(phase*0.2));
+          out[i] = (Math.random()*2-1)*env*0.5;
+        }
+      };
+      return node;
+    },
+    drone: ()=>{
+      const osc1 = ctx.createOscillator();
+      const osc2 = ctx.createOscillator();
+      const osc3 = ctx.createOscillator();
+      osc1.type='sine'; osc1.frequency.value=55;
+      osc2.type='sine'; osc2.frequency.value=82.5;
+      osc3.type='sine'; osc3.frequency.value=110;
+      const mix = ctx.createGain();
+      mix.gain.value = 0.3;
+      osc1.connect(mix); osc2.connect(mix); osc3.connect(mix);
+      osc1.start(); osc2.start(); osc3.start();
+      return mix;
+    },
+    forest: ()=>{
+      const bufSize = 4096;
+      const node = ctx.createScriptProcessor(bufSize,1,1);
+      let t=0;
+      node.onaudioprocess = (e)=>{
+        const out = e.outputBuffer.getChannelData(0);
+        for(let i=0;i<bufSize;i++){
+          t++;
+          const wind = Math.sin(t/ctx.sampleRate*0.3)*0.2 + 0.3;
+          const noise = (Math.random()*2-1)*wind;
+          const bird = (t%(ctx.sampleRate*3|0) < 500) ? Math.sin(t/ctx.sampleRate*2000)*0.05*Math.random() : 0;
+          out[i] = noise*0.4 + bird;
+        }
+      };
+      return node;
+    }
+  };
+
+  if(generators[id]){
+    state.audioNode = generators[id]();
+    state.audioNode.connect(state.gainNode);
+  }
+
+  document.querySelectorAll('.audio-btn').forEach(b=>b.classList.remove('playing'));
+  const el = document.getElementById('audio-'+id);
+  if(el) el.classList.add('playing');
+
+  const labels = {brown:'Brown Noise',rain:'{{t.demo.rain}}',white:'{{t.demo.white_noise}}',pink:'{{t.demo.pink_noise}}',drone:'Ambient Drone',forest:'{{t.demo.forest}}'};
+  const sl = document.getElementById('sound-label');
+  if(sl) sl.textContent = labels[id] || id;
+};
+
+window.stopAllAudio = function(){
+  if(state.audioNode){
+    try{
+      if(state.audioNode.stop) state.audioNode.stop();
+      state.audioNode.disconnect();
+    }catch(e){}
+    state.audioNode = null;
+  }
+  state.activeSound = null;
+  document.querySelectorAll('.audio-btn').forEach(b=>b.classList.remove('playing'));
+  const sl = document.getElementById('sound-label');
+  if(sl) sl.textContent = '{{t.demo.no_sound}}';
+};
+
+window.setVolume = function(v){
+  state.volume = v;
+  if(state.gainNode) state.gainNode.gain.value = v;
+};
+
+// === Popups ===
+window.closePopup = function(id){
+  const el = document.getElementById('popup-'+id);
+  if(el) el.classList.remove('visible');
+  if(id==='eye') clearInterval(state.eyePopupTimer);
+  if(id==='water') state.waterTimer = 450; // reset ~45s in demo time
+};
+
+window.snoozeEyePopup = function(){
+  closePopup('eye');
+  state.eyeTimer = 300; // 5 min snooze (=30s real)
+};
+
+function showEyePopup(){
+  const el = document.getElementById('popup-eye');
+  if(!el) return;
+  el.classList.add('visible');
+  let sec = 20;
+  const timerEl = document.getElementById('eye-popup-timer');
+  const progEl = document.getElementById('eye-popup-progress');
+  clearInterval(state.eyePopupTimer);
+  state.eyePopupTimer = setInterval(()=>{
+    sec--;
+    if(timerEl) timerEl.textContent = '0:'+String(sec).padStart(2,'0');
+    if(progEl) progEl.style.width = ((20-sec)/20*100)+'%';
+    if(sec<=0){
+      clearInterval(state.eyePopupTimer);
+      closePopup('eye');
+      state.eyesDone++;
+      state.eyeTimer = 1200;
+    }
+  },1000);
+}
+
+function showWaterPopup(){
+  updateWaterUI();
+  const el = document.getElementById('popup-water');
+  if(el) el.classList.add('visible');
+}
+
+function showBreathPopup(){
+  const el = document.getElementById('popup-breath');
+  if(!el) return;
+  el.classList.add('visible');
+  state.breathCycle = 1;
+  state.breathPhase = 0;
+  runBreathCycle();
+}
+
+window.stopBreathing = function(){
+  clearInterval(state.breathTimer);
+};
+
+function runBreathCycle(){
+  const phases = ['{{t.breathing.inhale}}','{{t.breathing.hold}}','{{t.breathing.exhale}}','{{t.breathing.hold}}'];
+  const scales = [1.3, 1.3, 1.0, 1.0];
+  let phaseIdx = 0;
+  let countdown = 4;
+
+  const circle = document.getElementById('breath-circle');
+  const label = document.getElementById('breath-phase-label');
+  const count = document.getElementById('breath-count');
+  const cycleEl = document.getElementById('breath-cycle');
+
+  function updateBreath(){
+    if(label) label.textContent = phases[phaseIdx];
+    if(count) count.textContent = countdown;
+    if(circle) circle.style.transform = 'scale('+scales[phaseIdx]+')';
+    if(cycleEl) cycleEl.textContent = '{{t.demo.cycle}} '+state.breathCycle+' / 5';
+  }
+
+  clearInterval(state.breathTimer);
+  updateBreath();
+
+  state.breathTimer = setInterval(()=>{
+    countdown--;
+    if(countdown <= 0){
+      phaseIdx++;
+      if(phaseIdx >= 4){
+        phaseIdx = 0;
+        state.breathCycle++;
+        if(state.breathCycle > 5){
+          clearInterval(state.breathTimer);
+          closePopup('breath');
+          return;
+        }
+      }
+      countdown = 4;
+    }
+    updateBreath();
+  }, 1000);
+}
+
+// === Clock ===
+function updateClock(){
+  const now = new Date();
+  const hm = String(now.getHours()).padStart(2,'0')+':'+String(now.getMinutes()).padStart(2,'0');
+  const dmy = String(now.getDate()).padStart(2,'0')+'.'+String(now.getMonth()+1).padStart(2,'0')+'.'+now.getFullYear();
+
+  const ct = document.getElementById('clock-time');
+  if(ct) ct.textContent = hm;
+  const cd = document.getElementById('clock-date');
+  if(cd) cd.textContent = dmy;
+}
+
+// === Timers (10x speed) ===
+function startTimers(){
+  // Main tick every 100ms = 1 demo second (10x)
+  setInterval(()=>{
+    if(state.paused) return;
+
+    // Decrement timers
+    state.eyeTimer = Math.max(0, state.eyeTimer - 1);
+    state.moveTimer = Math.max(0, state.moveTimer - 1);
+    state.waterTimer = Math.max(0, state.waterTimer - 1);
+
+    // Eye timer hit 0
+    if(state.eyeTimer === 0 && !document.getElementById('popup-eye').classList.contains('visible')){
+      showEyePopup();
+      state.eyeTimer = 1200;
+    }
+
+    // Water timer hit 0
+    if(state.waterTimer === 0 && !document.getElementById('popup-water').classList.contains('visible')){
+      showWaterPopup();
+      state.waterTimer = 450;
+    }
+
+    // Movement timer hit 0 -> show breathing
+    if(state.moveTimer === 0 && !document.getElementById('popup-breath').classList.contains('visible')){
+      showBreathPopup();
+      state.moveDone++;
+      state.moveTimer = 3600;
+    }
+
+    // Update UI elements
+    const et = document.getElementById('eye-timer');
+    if(et) et.textContent = fmt(state.eyeTimer);
+    const ep = document.getElementById('eye-progress');
+    if(ep) ep.style.width = ((1200-state.eyeTimer)/1200*100)+'%';
+
+    const mt = document.getElementById('move-timer');
+    if(mt) mt.textContent = fmt(state.moveTimer);
+    const mp = document.getElementById('move-progress');
+    if(mp) mp.style.width = ((3600-state.moveTimer)/3600*100)+'%';
+
+    const wt = document.getElementById('water-timer-display');
+    if(wt) wt.textContent = fmt(state.waterTimer);
+
+    const bt = document.getElementById('bottom-timer');
+    if(bt) bt.innerHTML = '&#9201; '+fmt(Math.min(state.eyeTimer,state.moveTimer))+' {{t.mock.to_break}}';
+
+  }, 100);
+
+  // Real-time work counter (1 real second)
+  setInterval(()=>{
+    if(state.paused) return;
+    state.workSeconds++;
+    const wt = document.getElementById('work-time');
+    if(wt) wt.textContent = fmtHM(state.workSeconds);
+    const swt = document.getElementById('stats-work-time');
+    if(swt) swt.textContent = fmtHM(state.workSeconds);
+  }, 1000);
+
+  // Clock update
+  setInterval(updateClock, 10000);
+}
+
+// === Dragging ===
+function initDragging(){
+  document.addEventListener('mousedown', (e)=>{
+    const titlebar = e.target.closest('[data-drag="true"]');
+    if(!titlebar) return;
+    const win = titlebar.closest('.app-window, .popup-window');
+    if(!win) return;
+    e.preventDefault();
+    state.dragTarget = win;
+    const rect = win.getBoundingClientRect();
+    const desktopRect = desktop.getBoundingClientRect();
+    state.dragOffsetX = e.clientX - rect.left + desktopRect.left;
+    state.dragOffsetY = e.clientY - rect.top + desktopRect.top;
+
+    // Focus
+    document.querySelectorAll('.app-window,.popup-window').forEach(w=>w.style.zIndex='50');
+    win.style.zIndex = '200';
+  });
+
+  document.addEventListener('mousemove', (e)=>{
+    if(!state.dragTarget) return;
+    const desktopRect = desktop.getBoundingClientRect();
+    const x = e.clientX - state.dragOffsetX + desktopRect.left;
+    const y = e.clientY - state.dragOffsetY + desktopRect.top;
+    state.dragTarget.style.left = Math.max(0, x) + 'px';
+    state.dragTarget.style.top = Math.max(0, y) + 'px';
+  });
+
+  document.addEventListener('mouseup', ()=>{
+    state.dragTarget = null;
+  });
+
+  // Make popup titlebars draggable too
+  document.querySelectorAll('.popup-window .titlebar').forEach(tb=>{
+    tb.setAttribute('data-drag','true');
+  });
+}
+
+function initApp(){
+  updateWaterUI();
+}
+
+// Build on load
+buildDesktop();
+
+})();
+</script>
+</body>
+</html>

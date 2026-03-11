@@ -638,6 +638,38 @@ function build() {
 </body>
 </html>`, 'utf8');
 
+  // 5b. Demo page (per language)
+  const demoSrc = path.join(SRC, 'templates', 'demo.html');
+  if (fs.existsSync(demoSrc)) {
+    const demoTemplate = fs.readFileSync(demoSrc, 'utf8');
+    for (const lang of LANGUAGES) {
+      const resolve = createResolver(lang, translations);
+      const htmlLang = HTML_LANGS[lang] || lang;
+      const demoLangLinks = LANGUAGES.map(l => {
+        const label = LANG_LABELS[l] || l.toUpperCase();
+        const cls = l === lang ? ' class="current"' : '';
+        return `<a href="/${l}/demo/"${cls}>${label}</a>`;
+      }).join('\n      ');
+      const demoHtml = renderTemplate(demoTemplate, { _resolve: resolve, lang, html_lang: htmlLang, lang_label: LANG_LABELS[lang] || lang.toUpperCase(), demo_lang_links: demoLangLinks });
+      const demoDir = path.join(DIST, lang, 'demo');
+      ensureDir(demoDir);
+      fs.writeFileSync(path.join(demoDir, 'index.html'), demoHtml, 'utf8');
+    }
+    // Root /demo/ redirect to default lang
+    const rootDemoDir = path.join(DIST, 'demo');
+    ensureDir(rootDemoDir);
+    fs.writeFileSync(path.join(rootDemoDir, 'index.html'), `<!DOCTYPE html>
+<html><head><meta charset="UTF-8">
+<script>
+var l=navigator.language||'en';var m=l.match(/^(pl|de|es|fr|it|ja|ko|ru|tr|zh|pt)/);
+var lang=m?({'zh':'zh-CN','pt':'pt-BR'}[m[1]]||m[1]):'en';
+location.replace('/'+lang+'/demo/');
+</script>
+<meta http-equiv="refresh" content="0;url=/en/demo/">
+</head><body></body></html>`, 'utf8');
+    console.log('Generated demo pages (12 languages)');
+  }
+
   // 6. .htaccess
   generateHtaccess();
 

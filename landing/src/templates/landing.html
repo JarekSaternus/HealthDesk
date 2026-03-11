@@ -17,6 +17,7 @@
         <li><a href="#why" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.why}}</a></li>
         <li><a href="#comparison" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.comparison}}</a></li>
         <li><a href="#faq" onclick="document.getElementById('nav-toggle').checked=false">FAQ</a></li>
+        <li><a href="/{{lang}}/demo/" onclick="document.getElementById('nav-toggle').checked=false">{{t.nav.demo}}</a></li>
         <li><a href="#download" onclick="document.getElementById('nav-toggle').checked=false" class="btn btn-primary" style="padding:0.5rem 1.25rem;font-size:0.85rem;border-radius:8px;">{{t.nav.download}}</a></li>
       </ul>
       {{lang_links}}
@@ -653,10 +654,16 @@
         <h2>{{t.cta.title}}</h2>
         <p>{{t.cta.subtitle}}</p>
 
-        <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="bottom-download" data-download="true" class="btn btn-primary btn-lg cta-btn">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          <span id="bottom-download-label">{{t.cta.download}}</span>
-        </a>
+        <div style="display:flex;gap:0.75rem;justify-content:center;align-items:center;flex-wrap:wrap">
+          <a href="https://github.com/JarekSaternus/HealthDesk/releases/latest" id="bottom-download" data-download="true" class="btn btn-primary btn-lg cta-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span id="bottom-download-label">{{t.cta.download}}</span>
+          </a>
+          <a href="/{{lang}}/demo/" class="btn" style="background:transparent;border:2px solid rgba(46,204,113,0.5);color:#2ecc71;padding:0.65rem 1.5rem;border-radius:10px;font-size:0.95rem;transition:all 0.2s;text-decoration:none;display:inline-flex;align-items:center;gap:0.4rem" onmouseover="this.style.background='#2ecc71';this.style.color='#fff';this.style.borderColor='#2ecc71'" onmouseout="this.style.background='transparent';this.style.color='#2ecc71';this.style.borderColor='rgba(46,204,113,0.5)'">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            {{t.cta.demo}}
+          </a>
+        </div>
 
         <div class="cta-platforms">
           <span class="cta-platform">⊞ Windows</span>
