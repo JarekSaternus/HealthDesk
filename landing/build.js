@@ -146,7 +146,7 @@ function generateLandingSchema(lang, resolve) {
     description: stripHtml(resolve('hero.subtitle')),
     url: `${SITE_URL}/${lang}/`,
     downloadUrl: 'https://github.com/JarekSaternus/HealthDesk/releases/latest',
-    softwareVersion: '2.0.24',
+    softwareVersion: '2.0.29',
     author: { '@type': 'Organization', name: 'HealthDesk' }
   };
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
@@ -387,7 +387,7 @@ function build() {
     // Version label
     const vLabels = { pl:'Wersja', en:'Version', de:'Version', es:'Versión', fr:'Version', 'pt-BR':'Versão', ja:'バージョン', 'zh-CN':'版本', ko:'버전', it:'Versione', tr:'Sürüm', ru:'Версия' };
     t['cta.version_label'] = vLabels[lang] || vLabels.en;
-    t['cta.version_fallback'] = (vLabels[lang] || vLabels.en) + ' 2.0.24';
+    t['cta.version_fallback'] = (vLabels[lang] || vLabels.en) + ' 2.0.29';
 
     // Breathing cycle
     const cycleTexts = { pl:'Cykl ', en:'Cycle ', de:'Zyklus ', es:'Ciclo ', fr:'Cycle ', 'pt-BR':'Ciclo ', ja:'サイクル ', 'zh-CN':'循环 ', ko:'사이클 ', it:'Ciclo ', tr:'Döngü ', ru:'Цикл ' };
