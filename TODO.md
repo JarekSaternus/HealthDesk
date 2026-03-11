@@ -1,67 +1,49 @@
 # TODO
 
-## v2.0.27
-- ✅ Fix: YouTube Radio retry (youtube.rs)
-- ✅ GA4 Consent Mode v2 + cookie table + link "Cookies" w footerze
-- ✅ Onboarding wizard (5-krokowy) + gentle break mode
+## Niewydane na masterze (v2.0.28-dev)
+- ✅ Autostart fix (#[cfg(not(debug_assertions))])
+- ✅ Harmonogram tygodniowy (3 tryby + DayTimeline)
+- ✅ Google Calendar OAuth (multi-cal, smart scheduling, pre-meeting reminders)
+- ✅ Settings: 4 zakładki (Przerwy, Wellness, Integracje, System)
+- ✅ Dashboard: kompaktowy layout
+- ✅ Help page: nowe sekcje
 
-## Do zrobienia
+## P0 — Blokery
+1. **Certum Code Signing** — karta cryptoCertum do kupienia, aktywacja certyfikatu w toku
+2. **Weryfikacja Google OAuth** — złożyć wniosek (review 1-2 tyg)
+3. Alias privacy@healthdesk.site (panel cyber-folks)
 
-### P0 — Blokery / infrastruktura
-1. Certum Code Signing (~25€/rok) — eliminuje SmartScreen, odblokowuje Reddit/marketing
-2. Założyć alias privacy@healthdesk.site w panelu hostingu (cyber-folks) → przekierowanie na główny email
+## P1 — Duże feature'y
+4. YouTube playlisty — import playlist, lista tracków, auto-next, opcja cookies
+5. Suwak drag na timeline — ad-hoc przesuwanie przerw (jednorazowe override)
 
-### P1 — Duże feature'y
-3. Google Calendar OAuth ✅ (v2.0.28-dev) — OAuth loopback flow, sync co 5 min, bloki spotkań na timeline
-   - ✅ Multi-calendar picker — wybór kalendarzy do synchronizacji
-   - ✅ Full-day fetch — eventy z całego dnia na osi czasu + lista spotkań
-   - ✅ Smart scheduling — timer freeze podczas spotkań, post-meeting break acceleration
-   - ✅ Pre-meeting reminder — popup HealthDesk z detalami, per-event timing z Google Calendar
-   - ⬜ Złożyć weryfikację aplikacji Google (review 1-2 tyg)
-4. Harmonogram tygodniowy ✅ (v2.0.28-dev) — per-day profil przerw + DayTimeline na Home
-   - ✅ 3 tryby: Jednolity / Robocze+Weekend / Każdy dzień + "Zastosuj do"
-   - ⬜ Suwak drag do ad-hoc przesuwania przerw (jednorazowe override)
-5. ~~Przebudowa Settings / Dashboard~~ ✅ (v2.0.28-dev):
-   - ✅ Settings: 4 zakładki (Przerwy, Wellness, Integracje, System)
-   - ✅ Dashboard: kompaktowy layout (merge kart, inline stats, jednoliniowy sound)
-   - ✅ Timeline: pilulki legend w nagłówku, cieńsze markery, lista spotkań
-6. YouTube playlisty — import playlist usera (publiczne + unlisted), lista tracków, auto-next. Opcja cookies dla prywatnych.
-7. ~~Onboarding wizard~~ ✅ (v2.0.27)
+## P2 — UX / quick wins
+6. Tooltip godzin pracy
+7. Cotygodniowy summary (toast w poniedziałek)
+8. Ctrl+Shift+W — globalny skrót na wodę
+9. Night mode / wind-down
 
-### P2 — UX / quick wins
-7. Tooltip godzin pracy — wyjaśnienie w UI jak działa ustawienie
-8. Cotygodniowy summary — toast w poniedziałek z podsumowaniem
-9. Ctrl+Shift+W — globalny skrót na wodę
-10. Night mode / wind-down
+## P3 — Marketing / growth
+10. Reddit post (wymaga code signing)
+11. Product Hunt launch
+12. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
+13. AlternativeTo, Softpedia — katalogi + backlinki
+14. Blog SEO — artykuły
+15. Pitch do HR — one-pager "HealthDesk dla firm"
 
-### P3 — Marketing / growth
-11. Reddit post (wymaga code signing)
-12. Product Hunt launch
-13. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
-14. AlternativeTo, Softpedia — katalogi + backlinki
-15. Blog SEO — artykuły
-16. Pitch do HR — one-pager "HealthDesk dla firm"
+## P4 — Backend / analytics
+16. Web dashboard telemetrii (Chart.js)
+17. Blog Studio Analytics (GA4 Data API)
+18. Crash reporting — rozbudowa o tracebacki
 
-### P4 — Backend / analytics
-17. Web dashboard dla telemetrii (backend FastAPI ✅ istnieje, brak UI — Chart.js)
-18. Blog Studio — zakładka Analytics (GA4 Data API + Chart.js)
-19. Crash reporting — rozbudowa o tracebacki (event type `error` ✅ istnieje)
-
-### P5 — Przyszłość
-20. macOS tracker (NSWorkspace + Accessibility API)
-21. Microsoft Store
-22. **HealthDesk Lite — Chrome/Edge Extension** — przerwy, woda, ćwiczenia, dźwięki (Web Audio), Google Calendar (Chrome Identity API). ~80% funkcji desktop bez trackera aktywności. React reuse ~60-70%. Chrome Web Store = 140M+ userów.
-23. Achievements / odznaki
-24. Keyboard shortcuts — konfiguracja
-25. Cloud sync
-26. Roczne podsumowanie (Spotify Wrapped)
-27. Posture reminder (MediaPipe)
-28. Slack status — auto "Na przerwie"
-29. HealthDesk Pro (freemium)
-
-## Zrobione
-- ~~Trening oddechowy~~ ✅ (v2.0.21)
-- ~~Analytics na LP~~ ✅ GA4 + Consent Mode v2 (2026-03-01)
-- ~~Telemetria backend~~ ✅ FastAPI endpoints działają
-- ~~Licznik pobrań na LP~~ ✅ GitHub Releases API
-- ~~Natywne powiadomienia~~ ✅ plugin zainstalowany
+## P5 — Przyszłość
+19. macOS tracker (NSWorkspace + Accessibility API)
+20. Microsoft Store
+21. **HealthDesk Lite — Chrome Extension** (~80% funkcji, Chrome Web Store = 140M+ userów)
+22. Achievements / odznaki
+23. Keyboard shortcuts — konfiguracja
+24. Cloud sync
+25. Roczne podsumowanie (Spotify Wrapped)
+26. Posture reminder (MediaPipe)
+27. Slack status — auto "Na przerwie"
+28. HealthDesk Pro (freemium)
