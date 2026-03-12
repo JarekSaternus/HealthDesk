@@ -811,6 +811,7 @@ Return ONLY valid JSON:
         faqYaml,
         '---'
       ].filter(Boolean).join('\n');
+      // Note: tags populated later by autopilot's final save step
       fs.writeFileSync(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
       console.log(`[AI Draft] Auto-saved to ${lang}/${slug}.md`);
     } catch (saveErr) {
@@ -2546,15 +2547,28 @@ function autoSlugify(text) {
     .replace(/[э]/g,'e').replace(/[ю]/g,'yu').replace(/[я]/g,'ya').replace(/[ё]/g,'yo')
     // Turkish special chars
     .replace(/[ğ]/g,'g').replace(/[ı]/g,'i').replace(/[ş]/g,'s').replace(/[ç]/g,'c')
-    .replace(/[^a-z0-9\u3000-\u9fff\uac00-\ud7af\u3040-\u309f\u30a0-\u30ff]+/g, '-')
+    .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 80);
-  // For CJK-only slugs (ja, zh, ko), if no latin chars, use a hash-based slug
-  if (!slug.match(/[a-z]/)) {
-    const hash = text.split('').reduce((a, c) => ((a << 5) - a + c.charCodeAt(0)) | 0, 0);
-    slug = 'article-' + Math.abs(hash).toString(36);
-  }
   return slug;
+}
+
+// ─── Helper: AI-based slug for CJK languages ───
+async function aiSlugify(keyword, lang) {
+  const isCJK = ['ja', 'ko', 'zh-CN'].includes(lang);
+  if (!isCJK) return autoSlugify(keyword);
+  try {
+    const result = await callClaude(
+      'You generate URL slugs. Return ONLY the slug, nothing else.',
+      `Generate a descriptive English URL slug (3-6 words, lowercase, hyphens) for this ${lang} blog topic:\n"${keyword}"\n\nReturn ONLY the slug like: desk-exercises-back-pain`,
+      100, { model: 'haiku' }
+    );
+    const slug = result.trim().toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
+    return slug || autoSlugify(keyword);
+  } catch (e) {
+    console.error('[aiSlugify] Failed, using fallback:', e.message);
+    return autoSlugify(keyword);
+  }
 }
 
 // ─── Autopilot: single topic pipeline ───
@@ -2586,7 +2600,7 @@ async function runAutopilot(lang, topic, persona) {
     steps[2].status = 'done';
 
     const title = outline.title || analysis.suggestedTitle || topic;
-    const slug = autoSlugify(title);
+    const slug = await aiSlugify(topic, lang);
     const description = outline.description || '';
 
     // Step 4: Create Article
@@ -2673,8 +2687,35 @@ async function runAutopilot(lang, topic, persona) {
       steps[9].detail = imgErr.message;
     }
 
-    // Step 11: Save final article
+    // Step 11: Save final article (with siblings auto-detection)
     updateStep(11, 'Save Article', 'running');
+
+    // Auto-detect siblings: find posts in other languages with the same keyword in the same cluster
+    const siblingsMap = {};
+    try {
+      const cal = loadCalendar();
+      for (const cluster of cal.clusters) {
+        // Check if this keyword exists in this cluster for the current lang
+        const currentLangKws = (cluster.keywords[lang] || []).map(k => k.keyword.toLowerCase());
+        if (!currentLangKws.includes(topic.toLowerCase())) continue;
+        // Found our cluster — look for published siblings in other languages
+        for (const [otherLang, kwList] of Object.entries(cluster.keywords)) {
+          if (otherLang === lang) continue;
+          const published = kwList.find(k => k.status === 'published' && k.slug);
+          if (published) {
+            siblingsMap[otherLang] = published.slug;
+          }
+        }
+        break;
+      }
+    } catch (sibErr) {
+      console.error('[Autopilot] Siblings detection failed:', sibErr.message);
+    }
+
+    const siblingsYaml = Object.keys(siblingsMap).length > 0
+      ? 'siblings:\n' + Object.entries(siblingsMap).map(([l, s]) => `  ${l}: "${s}"`).join('\n')
+      : null;
+
     const finalFrontmatter = [
       '---',
       `title: "${title.replace(/"/g, '\\"')}"`,
@@ -2684,6 +2725,7 @@ async function runAutopilot(lang, topic, persona) {
       `keyword: "${topic.replace(/"/g, '\\"')}"`,
       `tags: [${(outline.tags || []).map(t => `"${t}"`).join(', ')}]`,
       `lang: ${lang}`,
+      siblingsYaml,
       heroResult?.altText ? `image_alt: "${heroResult.altText}"` : null,
       draftResult.faqYaml || null,
       '---'
@@ -2691,7 +2733,35 @@ async function runAutopilot(lang, topic, persona) {
 
     fs.writeFileSync(filePath, finalFrontmatter + '\n' + currentMarkdown, 'utf8');
     syncArticleKeyword(lang, slug, topic);
+
+    // Update siblings in existing posts to include this new one
+    for (const [sibLang, sibSlug] of Object.entries(siblingsMap)) {
+      try {
+        const sibFile = findArticleFile(sibLang, sibSlug);
+        if (sibFile) {
+          let sibContent = fs.readFileSync(sibFile, 'utf8');
+          if (!sibContent.includes(`  ${lang}:`)) {
+            if (sibContent.includes('siblings:')) {
+              sibContent = sibContent.replace(/siblings:\n/, `siblings:\n  ${lang}: "${slug}"\n`);
+            } else {
+              const fmEnd = sibContent.indexOf('---', 4);
+              if (fmEnd > 0) {
+                sibContent = sibContent.slice(0, fmEnd) + `siblings:\n  ${lang}: "${slug}"\n` + sibContent.slice(fmEnd);
+              }
+            }
+            fs.writeFileSync(sibFile, sibContent, 'utf8');
+            console.log(`[Autopilot] Updated sibling ${sibLang}/${sibSlug} with ${lang}/${slug}`);
+          }
+        }
+      } catch (sibErr) {
+        console.error(`[Autopilot] Failed to update sibling ${sibLang}/${sibSlug}:`, sibErr.message);
+      }
+    }
+
     steps[10].status = 'done';
+    if (Object.keys(siblingsMap).length > 0) {
+      steps[10].detail = `${Object.keys(siblingsMap).length} siblings linked`;
+    }
 
     const wordCount = currentMarkdown.split(/\s+/).filter(Boolean).length;
     return {
@@ -3620,6 +3690,84 @@ app.post('/api/calendar/schedule', (req, res) => {
 
   saveCalendar(cal);
   res.json({ scheduled, rounds: round });
+});
+
+// ─── Content Calendar: Reschedule (reset scheduled → pending, then re-schedule with new interval) ───
+
+app.post('/api/calendar/reschedule', (req, res) => {
+  const { interval_days } = req.body;
+  const cal = loadCalendar();
+
+  // Update interval if provided
+  if (interval_days !== undefined) {
+    cal.interval_days = parseInt(interval_days) || 3;
+  }
+  const intervalDays = cal.interval_days || 3;
+
+  // Reset all 'scheduled' keywords back to 'pending'
+  let resetCount = 0;
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'scheduled') {
+          kw.status = 'pending';
+          kw.scheduled_date = null;
+          resetCount++;
+        }
+      }
+    }
+  }
+
+  // Now re-schedule using the same rotation logic
+  const pendingPerCluster = [];
+  for (const cluster of cal.clusters) {
+    const byLang = {};
+    for (const l of Object.keys(cluster.keywords || {})) {
+      byLang[l] = cluster.keywords[l]
+        .filter(k => k.status === 'pending' && k.serp_verified)
+        .sort((a, b) => (a.serp_score || 5) - (b.serp_score || 5));
+    }
+    pendingPerCluster.push({ cluster, byLang });
+  }
+
+  const occupied = new Set();
+  for (const cluster of cal.clusters) {
+    for (const l of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[l]) {
+        if (kw.status === 'published' && kw.published_date) occupied.add(`${kw.published_date}|${l}`);
+      }
+    }
+  }
+
+  let scheduled = 0, round = 0, emptyRoundsInRow = 0;
+  const startDate = new Date();
+
+  while (emptyRoundsInRow < pendingPerCluster.length) {
+    const clusterIdx = round % pendingPerCluster.length;
+    const { byLang } = pendingPerCluster[clusterIdx];
+    const schedDate = new Date(startDate);
+    schedDate.setDate(schedDate.getDate() + round * intervalDays);
+    const dateStr = schedDate.toISOString().split('T')[0];
+
+    let anyScheduled = false;
+    for (const l of Object.keys(byLang)) {
+      if (occupied.has(`${dateStr}|${l}`)) continue;
+      const kw = byLang[l].shift();
+      if (kw) {
+        kw.status = 'scheduled';
+        kw.scheduled_date = dateStr;
+        occupied.add(`${dateStr}|${l}`);
+        scheduled++;
+        anyScheduled = true;
+      }
+    }
+    if (anyScheduled) emptyRoundsInRow = 0;
+    else emptyRoundsInRow++;
+    round++;
+  }
+
+  saveCalendar(cal);
+  res.json({ ok: true, reset: resetCount, scheduled, rounds: round, interval_days: intervalDays });
 });
 
 // ─── Content Calendar: Import keywords ───

@@ -2383,9 +2383,15 @@ function calRender() {
     clustersEl.innerHTML = '<p style="color:var(--text-dim);padding:16px;">No clusters yet. Click "Add Cluster" to start.</p>';
   } else {
     // Global actions bar
-    const globalBar = `<div class="cal-global-actions" style="display:flex;gap:8px;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:12px;">
+    const globalBar = `<div class="cal-global-actions" style="display:flex;gap:8px;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:12px;flex-wrap:wrap;align-items:center;">
       <button class="btn btn-sm" onclick="calVerifyAll()" title="Verify SERP for all unverified keywords across all clusters">🔍 Verify ALL SERP</button>
       <button class="btn btn-sm" onclick="calScheduleAll()" title="Schedule keywords with cluster rotation">📅 Schedule ALL</button>
+      <span style="display:inline-flex;align-items:center;gap:4px;">
+        <label style="color:var(--text-dim);font-size:12px;">every</label>
+        <input type="number" id="cal-reschedule-days" value="${calData.interval_days || 3}" min="1" max="30" style="width:48px;padding:2px 4px;background:var(--bg-card);border:1px solid var(--border);border-radius:4px;color:var(--text);text-align:center;font-size:13px;">
+        <label style="color:var(--text-dim);font-size:12px;">days</label>
+        <button class="btn btn-sm" onclick="calRescheduleAll()" title="Reset all scheduled keywords and re-schedule with new interval">🔄 Reschedule</button>
+      </span>
       <button class="btn btn-sm" onclick="calResetVerify()" title="Reset all SERP scores to re-verify with improved scoring" style="margin-left:auto;opacity:0.7">🔄 Reset Verify</button>
       <span id="cal-rotation" style="color:var(--text-dim);font-size:12px;align-self:center;margin-left:8px;"></span>
     </div>`;
@@ -2669,6 +2675,20 @@ async function calScheduleAll() {
     });
     const data = await res.json();
     showToast(`Scheduled ${data.scheduled} keywords (rotation across all clusters)`);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calRescheduleAll() {
+  const days = parseInt(document.getElementById('cal-reschedule-days').value) || 3;
+  if (!confirm(`Reschedule ALL keywords? This will reset all "scheduled" to "pending" and re-schedule every ${days} days with cluster rotation.`)) return;
+  try {
+    const res = await fetch('/api/calendar/reschedule', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ interval_days: days })
+    });
+    const data = await res.json();
+    showToast(`Reschedule: reset ${data.reset}, scheduled ${data.scheduled} keywords (every ${data.interval_days} days)`);
     calLoad();
   } catch (err) { showToast('Error: ' + err.message); }
 }
