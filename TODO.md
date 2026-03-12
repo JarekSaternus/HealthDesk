@@ -28,22 +28,25 @@
 11. Product Hunt launch
 12. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
 13. AlternativeTo, Softpedia — katalogi + backlinki
-14. Blog SEO — artykuły
-15. Pitch do HR — one-pager "HealthDesk dla firm"
+14. ✅ Blog SEO — audyt 35 postów, naprawione: UTF-8, hreflang, FAQ, slugi, cross-links, reading time
+15. ✅ Blog Studio — content calendar (629 kw, 6 klastrów, SERP scoring v2, cluster rotation, reschedule)
+16. ✅ Blog autopilot pipeline — AI draft, humanize, grammar, hero image, auto-siblings, AI CJK slugs
+17. Pitch do HR — one-pager "HealthDesk dla firm"
+18. SEO nice-to-have: Author schema (E-E-A-T), lazy loading images
 
 ## P4 — Backend / analytics
-16. Web dashboard telemetrii (Chart.js)
-17. Blog Studio Analytics (GA4 Data API)
-18. Crash reporting — rozbudowa o tracebacki
+19. Web dashboard telemetrii (Chart.js)
+20. Blog Studio Analytics (GA4 Data API)
+21. Crash reporting — rozbudowa o tracebacki
 
 ## P5 — Przyszłość
-19. macOS tracker (NSWorkspace + Accessibility API)
-20. Microsoft Store
-21. **HealthDesk Lite — Chrome Extension** (~80% funkcji, Chrome Web Store = 140M+ userów)
-22. Achievements / odznaki
-23. Keyboard shortcuts — konfiguracja
-24. Cloud sync
-25. Roczne podsumowanie (Spotify Wrapped)
-26. Posture reminder (MediaPipe)
-27. Slack status — auto "Na przerwie"
-28. HealthDesk Pro (freemium)
+22. macOS tracker (NSWorkspace + Accessibility API)
+23. Microsoft Store
+24. **HealthDesk Lite — Chrome Extension** (~80% funkcji, Chrome Web Store = 140M+ userów)
+25. Achievements / odznaki
+26. Keyboard shortcuts — konfiguracja
+27. Cloud sync
+28. Roczne podsumowanie (Spotify Wrapped)
+29. Posture reminder (MediaPipe)
+30. Slack status — auto "Na przerwie"
+31. HealthDesk Pro (freemium)
