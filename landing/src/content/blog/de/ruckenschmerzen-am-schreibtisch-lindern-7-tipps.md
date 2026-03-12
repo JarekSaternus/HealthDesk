@@ -6,6 +6,18 @@ description: "Rückenschmerzen am Schreibtisch loswerden? Mit diesen 7 bewährte
 keyword: "Rückenschmerzen durch langes Sitzen am Schreibtisch lindern"
 tags: ["Rückenschmerzen", "Bürogesundheit", "Schreibtisch", "Ergonomie", "Rückenübungen"]
 lang: de
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Rückenschmerzen am Schreibtisch lindern: 7 Tipps"
 ---
 ## Warum entstehen Rückenschmerzen am Schreibtisch?
@@ -180,6 +192,8 @@ Taubheitsgefühle in Beinen oder Füßen, Schmerzen, die nachts schlimmer werden
 Kurze Arztbesuche zur Abklärung lohnen sich schon bei wiederholten Beschwerden – nicht erst bei akuten Krisen. Physiotherapie, gezielte Kräftigung und angepasste Ergonomie verhindern, dass aus gelegentlichen Schmerzen ein dauerhaftes Problem wird. Wer früh handelt, hat die meisten Optionen.
 
 ---
+
+Strukturierte Pausen helfen nicht nur dem Rücken, sondern auch der Produktivität. Wie du deinen Arbeitstag mit der Pomodoro-Technik in fokussierte Intervalle aufteilst und dabei regelmäßige Bewegungspausen einbaust, erfährst du in unserem Artikel [Pomodoro-Technik: Schritt für Schritt erklärt & starten](/de/blog/pomodoro-technik-schritt-fur-schritt-erklart-starten/).
 
 ## Rückenschmerzen sind kein Schicksal
 

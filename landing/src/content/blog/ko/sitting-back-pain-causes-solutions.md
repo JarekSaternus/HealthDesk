@@ -1,11 +1,23 @@
 ---
 title: "하루 종일 앉아 일하면 허리 아픈 이유와 해결법 5가지"
-slug: "article-p7b2m"
+slug: "sitting-back-pain-causes-solutions"
 date: 2026-03-09
 description: "장시간 앉아서 일할 때 허리 통증이 생기는 근본 원인과 실천 가능한 해결법 5가지를 알아보세요. 올바른 자세, 스트레칭, 스마트 휴식 관리로 허리 건강을 지키는 방법을 소개합니다."
 keyword: "하루 종일 앉아서 일하면 허리 아픈 이유와 해결법"
 tags: ["허리 통증", "사무실 건강", "앉아서 일하기", "자세 교정", "직장인 스트레칭"]
 lang: ko
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 faq:
   - q: "앉아 있으면 왜 서 있을 때보다 허리가 더 아픈가요?"
     a: "앉은 자세는 서 있을 때보다 허리 디스크 압력이 약 40% 더 높아 척추에 더 큰 부담을 줍니다."

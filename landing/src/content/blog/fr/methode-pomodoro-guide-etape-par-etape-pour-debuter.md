@@ -3,9 +3,16 @@ title: "Méthode Pomodoro : guide étape par étape pour débuter"
 slug: "methode-pomodoro-guide-etape-par-etape-pour-debuter"
 date: 2026-03-01
 description: "Découvrez la méthode Pomodoro : guide complet pour booster votre productivité en quelques étapes simples et enfin vaincre la procrastination."
-keyword: "M�thode Pomodoro �tape par �tape � commencez aujourd hui"
+keyword: "Méthode Pomodoro étape par étape – commencez aujourd'hui"
 tags: ["méthode Pomodoro", "productivité", "gestion du temps", "concentration", "bien-être au travail"]
 lang: fr
+siblings:
+  pl: "metoda-pomodoro-krok-po-kroku-zacznij-dzis"
+  de: "pomodoro-technik-schritt-fur-schritt-erklart-starten"
+  es: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo"
+  it: "tecnica-pomodoro-per-principianti-guida-completa"
+  pt-BR: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo"
+  tr: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber"
 faq:
   - q: "Qu'est-ce que la méthode Pomodoro ?"
     a: "C'est une technique de gestion du temps basée sur des blocs de 25 minutes de travail concentré, suivis de 5 minutes de pause."
@@ -15,7 +22,7 @@ faq:
     a: "Un Pomodoro dure 25 minutes de travail intensif, suivi d'une pause de 5 minutes."
   - q: "Pourquoi la méthode Pomodoro est-elle efficace ?"
     a: "Elle respecte les limites naturelles de la concentration humaine et structure le travail à l'avance, évitant les décisions improvisées."
-image_alt: "M�thode Pomodoro : guide �tape par �tape pour d�buter"
+image_alt: "Méthode Pomodoro : guide étape par étape pour débuter"
 ---
 ## Qu'est-ce que la méthode Pomodoro ?
 
@@ -220,6 +227,8 @@ La méthode Pomodoro structure le temps, mais elle ne s'occupe pas de ce qui se 
 En combinant une structure temporelle solide avec des signaux corporels réguliers, on ne gère plus seulement sa productivité — on gère son énergie sur la durée.
 
 ---
+
+Les pauses Pomodoro sont aussi l'occasion de prendre soin de votre dos. Découvrez comment dans notre article [Douleurs dorsales au bureau : soulagez-les dès aujourd'hui](/fr/blog/douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui/) — des exercices simples à intégrer directement dans vos pauses.
 
 ## Pour finir
 

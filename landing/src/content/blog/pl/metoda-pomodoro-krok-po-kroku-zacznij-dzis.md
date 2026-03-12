@@ -6,6 +6,22 @@ description: "Poznaj metodę Pomodoro krok po kroku i zwiększ swoją produktywn
 keyword: "metoda pomodoro"
 tags: ["metoda pomodoro", "produktywność", "zarządzanie czasem", "przerwy w pracy", "technika pomodoro"]
 lang: pl
+siblings:
+  de: "pomodoro-technik-schritt-fur-schritt-erklart-starten"
+  es: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo"
+  fr: "methode-pomodoro-guide-etape-par-etape-pour-debuter"
+  it: "tecnica-pomodoro-per-principianti-guida-completa"
+  pt-BR: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo"
+  tr: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber"
+faq:
+  - q: "Ile powinno trwać jedno pomodoro — czy 25 minut to optymalny czas?"
+    a: "25 minut to klasyczna długość, ale nie jedyna skuteczna. Badania pokazują, że sesje 25–50 minut działają dobrze — kluczowe jest dopasowanie do rodzaju zadania. Przy pracy kreatywnej wielu ekspertów zaleca dłuższe bloki (45–50 min)."
+  - q: "Co robić podczas przerwy w metodzie Pomodoro?"
+    a: "Wstań od biurka, rozciągnij się, napij wody lub wyjrzyj przez okno. Unikaj scrollowania telefonu — ekran nie daje mózgowi prawdziwego odpoczynku. Najlepsze przerwy angażują ciało, nie kolejny ekran."
+  - q: "Czy metoda Pomodoro sprawdza się przy pracy kreatywnej?"
+    a: "Częściowo — 25-minutowe bloki pomagają zacząć, ale mogą przerywać stan flow. Rozwiązaniem jest elastyczne podejście: jeśli czujesz flow, pomiń przerwę i dokończ pomodoro dopiero po naturalnym spadku koncentracji."
+  - q: "Czy można modyfikować długość interwałów Pomodoro?"
+    a: "Tak, i wielu doświadczonych użytkowników to robi. Popularne warianty to 30/5, 45/10 i 50/10. Sam Francesco Cirillo zaleca, by zacząć od klasycznych 25/5 i eksperymentować po opanowaniu metody."
 ---
 ## Czym jest metoda Pomodoro i skąd pochodzi?
 

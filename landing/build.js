@@ -22,6 +22,9 @@ const SRC = path.join(ROOT, 'src');
 const DIST = path.join(ROOT, 'dist');
 const ASSETS = path.join(ROOT, 'assets');
 
+// Read version from package.json
+const PKG_VERSION = JSON.parse(fs.readFileSync(path.join(ROOT, '..', 'package.json'), 'utf8')).version;
+
 // ─── Helpers ───
 function ensureDir(dir) {
   fs.mkdirSync(dir, { recursive: true });
@@ -146,7 +149,7 @@ function generateLandingSchema(lang, resolve) {
     description: stripHtml(resolve('hero.subtitle')),
     url: `${SITE_URL}/${lang}/`,
     downloadUrl: 'https://github.com/JarekSaternus/HealthDesk/releases/latest',
-    softwareVersion: '2.0.29',
+    softwareVersion: PKG_VERSION,
     author: { '@type': 'Organization', name: 'HealthDesk' }
   };
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
@@ -158,6 +161,7 @@ function generateBlogPostSchema(meta, lang, articleHtml) {
     '@type': 'BlogPosting',
     headline: meta.title,
     datePublished: meta.date,
+    dateModified: meta.updated || meta.date,
     description: meta.description || '',
     author: { '@type': 'Organization', name: 'HealthDesk' },
     publisher: { '@type': 'Organization', name: 'HealthDesk', logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo-color.svg` } },
@@ -387,7 +391,7 @@ function build() {
     // Version label
     const vLabels = { pl:'Wersja', en:'Version', de:'Version', es:'Versión', fr:'Version', 'pt-BR':'Versão', ja:'バージョン', 'zh-CN':'版本', ko:'버전', it:'Versione', tr:'Sürüm', ru:'Версия' };
     t['cta.version_label'] = vLabels[lang] || vLabels.en;
-    t['cta.version_fallback'] = (vLabels[lang] || vLabels.en) + ' 2.0.29';
+    t['cta.version_fallback'] = (vLabels[lang] || vLabels.en) + ' ' + PKG_VERSION;
 
     // Breathing cycle
     const cycleTexts = { pl:'Cykl ', en:'Cycle ', de:'Zyklus ', es:'Ciclo ', fr:'Cycle ', 'pt-BR':'Ciclo ', ja:'サイクル ', 'zh-CN':'循环 ', ko:'사이클 ', it:'Ciclo ', tr:'Döngü ', ru:'Цикл ' };
@@ -451,6 +455,7 @@ function build() {
       meta_keywords: resolve('meta.keywords'),
       canonical_url: `${SITE_URL}/${lang}/`,
       og_locale: OG_LOCALES[lang] || 'en_US',
+      og_type: 'website',
       og_image: `${SITE_URL}/og-image.png`,
       og_image_alt: `HealthDesk — ${resolve('hero.title_plain')}`,
       og_image_type: 'image/png',
@@ -491,6 +496,7 @@ function build() {
         meta_keywords: resolve('meta.keywords'),
         canonical_url: `${SITE_URL}/${lang}/blog/`,
         og_locale: OG_LOCALES[lang] || 'en_US',
+        og_type: 'website',
         og_image: `${SITE_URL}/og-image.png`,
         og_image_alt: `Blog — HealthDesk`,
         og_image_type: 'image/png',
@@ -530,6 +536,10 @@ function build() {
             ).join('')}</div></section>`
           : '';
 
+        // Calculate reading time from word count
+        const wordCount = post.body.split(/\s+/).filter(w => w.length > 0).length;
+        const readingTime = Math.ceil(wordCount / 200);
+
         const postVars = {
           _resolve: resolve,
           lang,
@@ -537,6 +547,7 @@ function build() {
           article_title: post.title,
           article_date: post.date,
           article_date_formatted: formatDate(post.date, lang),
+          article_reading_time: String(readingTime),
           article_html: post.html + visibleFaqHtml,
           article_tags: tagsHtml,
           article_hero_image: heroImageHtml
@@ -551,6 +562,7 @@ function build() {
           meta_keywords: (post.tags || []).join(', ') || resolve('meta.keywords'),
           canonical_url: `${SITE_URL}/${lang}/blog/${post.slug}/`,
           og_locale: OG_LOCALES[lang] || 'en_US',
+          og_type: 'article',
           og_image: post.image ? `${SITE_URL}${post.image}` : `${SITE_URL}/og-image.png`,
           og_image_alt: post.image_alt || post.title,
           og_image_type: post.image ? 'image/webp' : 'image/png',
@@ -611,6 +623,7 @@ function build() {
         meta_keywords: resolve('meta.keywords'),
         canonical_url: `${SITE_URL}/${lang}/privacy/`,
         og_locale: OG_LOCALES[lang] || 'en_US',
+        og_type: 'website',
         og_image: `${SITE_URL}/og-image.png`,
         og_image_alt: `${privacyMeta.title} — HealthDesk`,
         og_image_type: 'image/png',

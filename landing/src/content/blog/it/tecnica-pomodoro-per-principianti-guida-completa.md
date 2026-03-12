@@ -6,6 +6,13 @@ description: "Scopri la Tecnica Pomodoro: il metodo semplice per lavorare meglio
 keyword: "tecnica pomodoro guida completa per principianti"
 tags: ["Tecnica Pomodoro", "Produttività", "Gestione del tempo", "Benessere al lavoro", "Focus e concentrazione"]
 lang: it
+siblings:
+  pl: "metoda-pomodoro-krok-po-kroku-zacznij-dzis"
+  de: "pomodoro-technik-schritt-fur-schritt-erklart-starten"
+  es: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo"
+  fr: "methode-pomodoro-guide-etape-par-etape-pour-debuter"
+  pt-BR: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo"
+  tr: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber"
 faq:
   - q: "Cos'è la Tecnica Pomodoro?"
     a: "È un metodo che alterna 25 minuti di lavoro concentrato a pause di 5 minuti, con una pausa lunga ogni 4 cicli."
@@ -221,6 +228,8 @@ Le interruzioni sono inevitabili — fingere il contrario è solo teoria. La tec
 Se un'interruzione è davvero urgente e rompe la sessione, Cirillo dice una cosa semplice: azzerare il timer. Non si conta un Pomodoro incompleto.
 
 ---
+
+Le pause Pomodoro sono anche il momento giusto per prendersi cura della schiena. Se lavori molte ore al PC, leggi anche il nostro articolo [Mal di schiena al PC: esercizi e pause per alleviarlo](/it/blog/mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo/) — esercizi semplici da fare durante le pause.
 
 ## Come iniziare davvero
 

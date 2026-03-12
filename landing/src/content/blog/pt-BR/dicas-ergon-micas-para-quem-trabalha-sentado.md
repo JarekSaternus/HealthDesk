@@ -6,6 +6,18 @@ description: "Trabalha sentado o dia todo? Descubra dicas ergonômicas essenciai
 keyword: "dicas ergonômicas para quem trabalha sentado o dia inteiro"
 tags: ["ergonomia no trabalho", "saúde no escritório", "trabalho sentado", "postura correta", "bem-estar digital"]
 lang: pt-BR
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Foto em close de mãos no teclado em uma mesa de escritório ergonômica com luz natural e planta."
 faq:
   - q: "Por que a ergonomia é importante para quem trabalha sentado?"
@@ -196,6 +208,8 @@ Vamos ser honestos: nem todo mundo pode investir em tudo de uma vez. A ordem de 
 Comece pelo suporte de monitor e, se seus pés ficam suspensos, pelo repouso. O restante pode entrar gradualmente. Pilhas de livros para elevar o monitor funcionam como solução temporária — não são ideais, mas são melhores do que nada enquanto você planeja o investimento.
 
 ---
+
+Para estruturar melhor suas pausas ao longo do dia, a [Técnica Pomodoro](/pt-BR/blog/tecnica-pomodoro-para-iniciantes-guia-passo-a-passo/) é um complemento natural: intervalos de 25 minutos de trabalho focado seguidos de pausas curtas, ideais para encaixar alongamentos e hidratação.
 
 ## Um último ponto antes de fechar
 

@@ -6,6 +6,15 @@ description: "Ból nadgarstków przy komputerze? Poznaj 7 prostych ćwiczeń, kt
 keyword: "najlepsze ćwiczenia na nadgarstki przy komputerze"
 tags: ["ćwiczenia nadgarstki", "praca przy komputerze", "zdrowie w pracy", "zespół cieśni nadgarstka", "ergonomia"]
 lang: pl
+faq:
+  - q: "Jak często robić ćwiczenia na nadgarstki przy komputerze?"
+    a: "Optymalna częstotliwość to co 60–90 minut pracy przy klawiaturze. Każda sesja ćwiczeń powinna trwać 2–3 minuty. Jeśli odczuwasz napięcie wcześniej, nie czekaj — zrób krótką przerwę natychmiast."
+  - q: "Jakie objawy wskazują, że potrzebujesz ćwiczeń na nadgarstki?"
+    a: "Drętwienie palców po dłuższym pisaniu, sztywność nadgarstków rano, ból przy zginaniu dłoni i uczucie zmęczonych rąk po pracy. Jeśli objawy nie ustępują po odpoczynku lub budzą w nocy — koniecznie skonsultuj się z lekarzem."
+  - q: "Czy ćwiczenia nadgarstków mogą zapobiec zespołowi cieśni nadgarstka?"
+    a: "Regularne ćwiczenia rozciągające i wzmacniające zmniejszają ryzyko rozwoju zespołu cieśni nadgarstka, ale nie eliminują go całkowicie. Ważna jest też ergonomia stanowiska — neutralna pozycja nadgarstków przy klawiaturze i właściwa wysokość biurka."
+  - q: "Czy ćwiczenia pomagają na ból od mysz komputerowej (mouse hand)?"
+    a: "Tak — ból związany z intensywnym używaniem myszy wynika z napięcia mięśni przedramienia i nadgarstka. Ćwiczenia rozciągające zginacze i prostowniki nadgarstka oraz krążenia nadgarstkami skutecznie łagodzą te dolegliwości."
 ---
 ## Dlaczego nadgarstki bolą przy pracy przy komputerze?
 

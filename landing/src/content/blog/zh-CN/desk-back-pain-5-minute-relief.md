@@ -1,11 +1,23 @@
 ---
 title: "办公久坐腰背痛？5分钟桌边缓解法立即见效"
-slug: "article-bo0q5u"
+slug: "desk-back-pain-5-minute-relief"
 date: 2026-03-09
 description: "办公久坐腰背痛怎么办？学习5分钟桌边缓解法，立即见效。了解久坐腰痛原因及改善姿势技巧，恢复脊椎健康。"
 keyword: "久坐办公如何缓解腰背疼痛的方法"
 tags: ["腰背痛缓解", "办公室健康", "桌边运动", "久坐保健", "职场wellness"]
 lang: zh-CN
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
 faq:
   - q: "为什么久坐会引发腰背痛？"
     a: "坐姿时腰椎压力比站立大1.5倍，深层肌群长期被动失去张力，脊椎稳定性下降导致疼痛。"

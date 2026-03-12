@@ -6,6 +6,18 @@ description: "Masada çalışırken bel ağrısı yaşıyor musunuz? HealthDesk 
 keyword: "masa başında çalışırken bel ağrısı nasıl önlenir"
 tags: ["bel ağrısı", "masa başı sağlığı", "ergonomi", "HealthDesk", "ofis sağlığı"]
 lang: tr
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Ergonomik ofis sandalyesinde ve ayarlanabilir masada doğru duruşla çalışan bir kadın."
 faq:
   - q: "Masa başında bel ağrısı neden olur?"
@@ -140,6 +152,8 @@ Ağrı birkaç haftadan uzun sürüyorsa, bacağa yayılıyorsa ya da uyuşma hi
 Bir anekdot paylaşmak istiyorum: tanıdığım bir tasarımcı aylarca "bu geçer" diyerek sağ bacağına yayılan ağrıyı erteledi. Sonunda gittiğinde L4-L5 diskinde baskı çıktı. Erken gitmiş olsaydı fizyoterapi yeterliydi; geç kalınca süreç çok daha uzadı.
 
 ---
+
+Düzenli mola alışkanlığı kazanmak istiyorsanız, [Pomodoro Tekniği](/tr/blog/pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber/) bel sağlığınız için de mükemmel bir yapı sunuyor: 25 dakikalık odaklanmış çalışma blokları arasına esneme ve hareket molaları yerleştirmek çok daha kolay hale geliyor.
 
 ## Son Söz
 

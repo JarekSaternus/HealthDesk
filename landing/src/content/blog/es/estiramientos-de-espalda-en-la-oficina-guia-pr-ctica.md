@@ -6,6 +6,18 @@ description: "Alivia el dolor con estos estiramientos de espalda en la oficina. 
 keyword: "ejercicios de estiramiento para la espalda en la oficina"
 tags: ["estiramientos de espalda", "ejercicios en la oficina", "dolor de espalda trabajo", "bienestar laboral", "salud postural"]
 lang: es
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Estiramientos de espalda en la oficina: guía práctica"
 faq:
   - q: "¿Por qué duele la espalda al trabajar sentado?"
@@ -203,6 +215,8 @@ Un [estudio publicado en el *Journal of Physical Activity and Health* (2021)](ht
 Con semanas, el dolor cervical y lumbar pierde frecuencia. La concentración se sostiene más tiempo sin esfuerzo. Y llegas al final del día con menos rigidez acumulada — que es, al final, lo que hace que esto valga la pena.
 
 ---
+
+Para estructurar mejor tus pausas y asegurarte de que realmente las haces, el [método Pomodoro](/es/blog/metodo-pomodoro-paso-a-paso-empieza-hoy-mismo/) es un complemento ideal: intervalos de trabajo de 25 minutos con descansos programados donde encajar tus estiramientos.
 
 ## Una última reflexión
 

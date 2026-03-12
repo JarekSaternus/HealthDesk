@@ -2371,12 +2371,25 @@ function calRender() {
     nextRunEl.innerHTML = `<span style="color:var(--text-dim)">Autopilot OFF</span>`;
   }
 
+  // Rotation info
+  const rotationEl = document.getElementById('cal-rotation');
+  if (rotationEl && calData.rotation) {
+    rotationEl.innerHTML = `Next publish: <strong>${calData.rotation.next_cluster_name || '—'}</strong> (cluster ${(calData.rotation.next_cluster_index || 0) + 1}/${calData.rotation.cluster_count || 0})`;
+  }
+
   // Clusters
   const clustersEl = document.getElementById('cal-clusters');
   if (!calData.clusters || calData.clusters.length === 0) {
     clustersEl.innerHTML = '<p style="color:var(--text-dim);padding:16px;">No clusters yet. Click "Add Cluster" to start.</p>';
   } else {
-    clustersEl.innerHTML = calData.clusters.map(cluster => {
+    // Global actions bar
+    const globalBar = `<div class="cal-global-actions" style="display:flex;gap:8px;padding:12px 0;border-bottom:1px solid var(--border);margin-bottom:12px;">
+      <button class="btn btn-sm" onclick="calVerifyAll()" title="Verify SERP for all unverified keywords across all clusters">🔍 Verify ALL SERP</button>
+      <button class="btn btn-sm" onclick="calScheduleAll()" title="Schedule keywords with cluster rotation">📅 Schedule ALL</button>
+      <button class="btn btn-sm" onclick="calResetVerify()" title="Reset all SERP scores to re-verify with improved scoring" style="margin-left:auto;opacity:0.7">🔄 Reset Verify</button>
+      <span id="cal-rotation" style="color:var(--text-dim);font-size:12px;align-self:center;margin-left:8px;"></span>
+    </div>`;
+    clustersEl.innerHTML = globalBar + calData.clusters.map(cluster => {
       let totalKw = 0, publishedKw = 0, scheduledKw = 0, pendingKw = 0;
       for (const lang of Object.keys(cluster.keywords || {})) {
         for (const kw of cluster.keywords[lang]) {
@@ -2617,6 +2630,25 @@ async function calVerifyKeywords(clusterId) {
   } catch (err) { showToast('Error: ' + err.message); }
 }
 
+async function calVerifyAll() {
+  if (!calData || !calData.clusters) return;
+  const clusters = calData.clusters;
+  let totalVerified = 0;
+  showToast(`Verifying all ${clusters.length} clusters... This may take a few minutes.`);
+  for (const cluster of clusters) {
+    try {
+      const res = await fetch('/api/calendar/verify-keywords', {
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cluster_id: cluster.id })
+      });
+      const data = await res.json();
+      if (!data.error) totalVerified += data.verified;
+    } catch (err) { /* continue */ }
+  }
+  showToast(`Verified ${totalVerified} keywords across all clusters`);
+  calLoad();
+}
+
 async function calScheduleKeywords(clusterId) {
   try {
     const res = await fetch('/api/calendar/schedule', {
@@ -2625,6 +2657,28 @@ async function calScheduleKeywords(clusterId) {
     });
     const data = await res.json();
     showToast(`Scheduled ${data.scheduled} keywords`);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calScheduleAll() {
+  try {
+    const res = await fetch('/api/calendar/schedule', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({})
+    });
+    const data = await res.json();
+    showToast(`Scheduled ${data.scheduled} keywords (rotation across all clusters)`);
+    calLoad();
+  } catch (err) { showToast('Error: ' + err.message); }
+}
+
+async function calResetVerify() {
+  if (!confirm('Reset SERP verification for ALL keywords? They will need to be re-verified.')) return;
+  try {
+    const res = await fetch('/api/calendar/reset-verify', { method: 'POST' });
+    const data = await res.json();
+    showToast(`Reset ${data.reset} keywords — ready for re-verification`);
     calLoad();
   } catch (err) { showToast('Error: ' + err.message); }
 }

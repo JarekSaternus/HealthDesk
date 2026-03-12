@@ -6,6 +6,18 @@ description: "Mal di schiena al PC? Scopri gli esercizi e le pause strategiche p
 keyword: "come alleviare il mal di schiena da lavoro al computer"
 tags: ["mal di schiena", "postura al PC", "esercizi per la schiena", "pause attive", "lavoro da seduti"]
 lang: it
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Persona seduta alla scrivania che fa stretching alla schiena davanti al computer con luce naturale."
 faq:
   - q: "Perché il lavoro al PC causa mal di schiena?"
@@ -205,6 +217,8 @@ Non esiste un'unica risposta giusta — dipende dal tipo di dolore e dalla sua d
 La fisioterapia, in particolare, ha solide prove di efficacia per il mal di schiena aspecifico: una revisione sistematica pubblicata su [The Lancet](https://doi.org/10.1016/S0140-6736(18)30480-X) nel 2018 ha identificato l'esercizio terapeutico come uno degli interventi più efficaci a lungo termine — con un'enfasi sul fatto che l'azione precoce riduce significativamente il rischio di cronicizzazione.
 
 ---
+
+Per strutturare meglio le pause durante la giornata, la [Tecnica Pomodoro](/it/blog/tecnica-pomodoro-per-principianti-guida-completa/) offre un metodo semplice ed efficace: intervalli di lavoro da 25 minuti seguiti da pause regolari, perfette per inserire gli esercizi per la schiena.
 
 ## Un ultimo pensiero
 

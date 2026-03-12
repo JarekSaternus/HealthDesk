@@ -6,6 +6,18 @@ description: "Souffrez-vous de douleurs dorsales au bureau ? Découvrez les caus
 keyword: "comment soulager les douleurs dorsales dues à la position assise"
 tags: ["douleurs dorsales", "travail au bureau", "ergonomie", "posture assise", "santé au travail"]
 lang: fr
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 faq:
   - q: "Pourquoi ressent-on des douleurs dorsales après plusieurs heures de bureau ?"
     a: "La position assise prolongée comprime les disques intervertébraux et réduit la circulation sanguine, causant raideur et douleur."
@@ -196,6 +208,8 @@ Le suivi médical et les outils numériques ne s'opposent pas — ils se complè
 C'est précisément là qu'un outil comme [HealthDesk](https://healthdesk.site/fr/) joue un rôle concret. Les rappels de mouvement, le suivi des pauses actives et les alertes posturales maintiennent l'effort entre deux consultations — là où la plupart des patients décrochent. Une [étude publiée dans le Journal of Occupational Rehabilitation](https://doi.org/10.1007/s10926-017-9729-6) a montré que les interventions combinant exercice supervisé et autogestion comportementale réduisaient les rechutes de lombalgie de manière significativement plus durable que l'une ou l'autre approche seule. Ce n'est pas une surprise : changer une posture ou une habitude de mouvement demande une répétition quotidienne que seul le suivi continu permet d'ancrer.
 
 ---
+
+Pour structurer vos pauses et ne plus les oublier, la [méthode Pomodoro](/fr/blog/methode-pomodoro-guide-etape-par-etape-pour-debuter/) offre un cadre simple et efficace : des intervalles de travail de 25 minutes suivis de pauses régulières, idéales pour intégrer vos exercices de dos.
 
 ## Ce qu'il faut retenir avant de retourner à votre bureau
 

@@ -3,9 +3,16 @@ title: "Técnica Pomodoro para Iniciantes: Guia Passo a Passo"
 slug: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo"
 date: 2026-03-01
 description: "Aprenda a Técnica Pomodoro do zero e aumente seu foco com este guia passo a passo. Simples, eficaz e ideal para iniciantes!"
-keyword: "t�cnica pomodoro passo a passo para iniciantes"
+keyword: "técnica pomodoro passo a passo para iniciantes"
 tags: ["técnica pomodoro", "produtividade no trabalho", "gestão de tempo", "foco e concentração", "saúde no trabalho"]
 lang: pt-BR
+siblings:
+  pl: "metoda-pomodoro-krok-po-kroku-zacznij-dzis"
+  de: "pomodoro-technik-schritt-fur-schritt-erklart-starten"
+  es: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo"
+  fr: "methode-pomodoro-guide-etape-par-etape-pour-debuter"
+  it: "tecnica-pomodoro-per-principianti-guida-completa"
+  tr: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber"
 image_alt: "Técnica Pomodoro para Iniciantes: Guia Passo a Passo"
 faq:
   - q: "O que é a Técnica Pomodoro?"
@@ -203,6 +210,8 @@ Uma forma de contornar isso é revisar periodicamente a duração dos seus ciclo
 O [HealthDesk](https://healthdesk.site/pt-BR/) pode ajudar nessa fase mais madura do uso, especialmente para manter a disciplina dos intervalos e os lembretes de movimento — que costumam ser os primeiros a serem ignorados quando a motivação cai.
 
 ---
+
+As pausas do Pomodoro tambem sao o momento ideal para cuidar da postura. Se voce trabalha sentado por longas horas, confira nossas [dicas ergonomicas para quem trabalha sentado](/pt-BR/blog/dicas-ergon-micas-para-quem-trabalha-sentado/) — exercicios e ajustes simples que fazem diferenca real.
 
 ## Um último ponto
 

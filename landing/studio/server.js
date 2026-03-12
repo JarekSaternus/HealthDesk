@@ -2786,6 +2786,7 @@ function loadCalendar() {
       interval_days: 3,
       next_run: null,
       auto_enabled: false,
+      last_cluster_index: -1,
       clusters: []
     };
     saveStudioData(studio);
@@ -2829,10 +2830,20 @@ function findNextKeyword(cal) {
 }
 
 function findNextBatch(cal) {
-  // Pick 1 keyword per language — skip langs that already have a 'writing' or
-  // were published today (avoid duplicates within same run day)
+  // Cluster rotation: each run picks keywords from ONE cluster, then rotates
+  // to the next cluster on the following run (1→2→3→4→5→1→...)
   const today = new Date().toISOString().split('T')[0];
   const skipLangs = new Set();
+
+  if (!cal.clusters || cal.clusters.length === 0) return [];
+
+  // Determine which cluster to use (round-robin)
+  const clusterCount = cal.clusters.length;
+  const lastIdx = typeof cal.last_cluster_index === 'number' ? cal.last_cluster_index : -1;
+  const currentIdx = (lastIdx + 1) % clusterCount;
+  const activeCluster = cal.clusters[currentIdx];
+
+  console.log(`[Calendar] Rotation: cluster ${currentIdx + 1}/${clusterCount} — "${activeCluster.name}"`);
 
   // Find languages already published/writing today
   for (const cluster of cal.clusters) {
@@ -2847,15 +2858,13 @@ function findNextBatch(cal) {
   const seenLangs = new Set(skipLangs);
   const batch = [];
 
-  // First pass: scheduled keywords (earliest date first)
+  // First pass: scheduled keywords from active cluster (earliest date first)
   const scheduled = [];
-  for (const cluster of cal.clusters) {
-    for (const lang of Object.keys(cluster.keywords || {})) {
-      if (seenLangs.has(lang)) continue;
-      for (const kw of cluster.keywords[lang]) {
-        if (kw.status === 'scheduled') {
-          scheduled.push({ ...kw, lang, cluster_id: cluster.id });
-        }
+  for (const lang of Object.keys(activeCluster.keywords || {})) {
+    if (seenLangs.has(lang)) continue;
+    for (const kw of activeCluster.keywords[lang]) {
+      if (kw.status === 'scheduled') {
+        scheduled.push({ ...kw, lang, cluster_id: activeCluster.id });
       }
     }
   }
@@ -2867,22 +2876,30 @@ function findNextBatch(cal) {
     }
   }
 
-  // Second pass: pending keywords for missing langs
-  for (const cluster of cal.clusters) {
-    for (const lang of Object.keys(cluster.keywords || {})) {
-      if (seenLangs.has(lang)) continue;
-      for (const kw of cluster.keywords[lang]) {
-        if (kw.status === 'pending') {
-          seenLangs.add(lang);
-          batch.push({ ...kw, lang, cluster_id: cluster.id });
-          break;
-        }
+  // Second pass: pending keywords from active cluster for missing langs
+  for (const lang of Object.keys(activeCluster.keywords || {})) {
+    if (seenLangs.has(lang)) continue;
+    for (const kw of activeCluster.keywords[lang]) {
+      if (kw.status === 'pending') {
+        seenLangs.add(lang);
+        batch.push({ ...kw, lang, cluster_id: activeCluster.id });
+        break;
       }
     }
   }
 
+  // Save rotation index so next run picks the next cluster
+  cal.last_cluster_index = currentIdx;
+
   if (skipLangs.size > 0) {
     console.log(`[Calendar] Skipping langs (already done today): ${[...skipLangs].join(', ')}`);
+  }
+
+  if (batch.length === 0) {
+    // Active cluster exhausted — try next cluster
+    console.log(`[Calendar] Cluster "${activeCluster.name}" has no pending/scheduled keywords, trying next...`);
+    cal.last_cluster_index = currentIdx; // skip this one
+    return findNextBatch(cal);
   }
 
   return batch;
@@ -2918,7 +2935,13 @@ app.get('/api/calendar', (req, res) => {
       }
     }
   }
-  res.json({ ...cal, stats: { pending: totalPending, scheduled: totalScheduled, writing: totalWriting, published: totalPublished, tracking: totalTracking } });
+  // Rotation info
+  const clusterCount = cal.clusters.length;
+  const lastIdx = typeof cal.last_cluster_index === 'number' ? cal.last_cluster_index : -1;
+  const nextClusterIdx = clusterCount > 0 ? (lastIdx + 1) % clusterCount : 0;
+  const nextClusterName = clusterCount > 0 ? cal.clusters[nextClusterIdx].name : null;
+
+  res.json({ ...cal, stats: { pending: totalPending, scheduled: totalScheduled, writing: totalWriting, published: totalPublished, tracking: totalTracking }, rotation: { next_cluster_index: nextClusterIdx, next_cluster_name: nextClusterName, cluster_count: clusterCount } });
 });
 
 app.post('/api/calendar/cluster', (req, res) => {
@@ -3072,30 +3095,84 @@ app.post('/api/calendar/verify-keywords', async (req, res) => {
           q: kw.keyword, gl: locale.gl, hl: locale.hl, num: 10
         });
 
-        // Analyze SERP difficulty
+        // Analyze SERP difficulty (enhanced scoring v2)
         const organic = serpData.organic || [];
+        const paa = serpData.peopleAlsoAsk || [];
+        const relatedSearches = serpData.relatedSearches || [];
+        const kwLower = kw.keyword.toLowerCase();
+
         const domains = organic.map(r => {
           try { return new URL(r.link).hostname; } catch { return ''; }
         });
-        const bigDomains = ['wikipedia.org','reddit.com','quora.com','webmd.com','healthline.com','mayoclinic.org','nhs.uk','who.int','nih.gov','medium.com'];
-        const bigCount = domains.filter(d => bigDomains.some(bd => d.includes(bd))).length;
-        const totalResults = serpData.searchInformation?.totalResults || 0;
+
+        // 1. Authority domains (hard to outrank)
+        const authorityDomains = ['wikipedia.org','webmd.com','healthline.com','mayoclinic.org','nhs.uk','who.int','nih.gov','clevelandclinic.org','hopkinsmedicine.org'];
+        const authorityCount = domains.filter(d => authorityDomains.some(bd => d.includes(bd))).length;
+
+        // 2. Forum/UGC domains (weak content = opportunity)
+        const forumDomains = ['reddit.com','quora.com','forum','community','answers','stackexchange.com'];
+        const forumCount = domains.filter(d => forumDomains.some(bd => d.includes(bd))).length;
+
+        // 3. Exact keyword match in titles (fewer matches = easier)
+        const kwWords = kwLower.split(/\s+/).filter(w => w.length > 3);
+        const titleMatchScores = organic.map(r => {
+          const title = (r.title || '').toLowerCase();
+          const matched = kwWords.filter(w => title.includes(w)).length;
+          return kwWords.length > 0 ? matched / kwWords.length : 0;
+        });
+        const strongTitleMatches = titleMatchScores.filter(s => s >= 0.6).length;
+
+        // 4. Check if healthdesk.site already ranks
+        const healthdeskRank = domains.findIndex(d => d.includes('healthdesk.site'));
+
+        // 5. Total results count
+        const totalResults = parseInt(serpData.searchInformation?.totalResults || '0');
 
         // Score: 1 (easy) to 10 (hard)
         let score = 3; // baseline
-        if (bigCount >= 5) score += 4;
-        else if (bigCount >= 3) score += 2;
-        else if (bigCount >= 1) score += 1;
+
+        // Authority domains push score up
+        if (authorityCount >= 4) score += 3;
+        else if (authorityCount >= 2) score += 2;
+        else if (authorityCount >= 1) score += 1;
+
+        // Forums in top 10 = weak competition = opportunity
+        if (forumCount >= 3) score -= 2;
+        else if (forumCount >= 2) score -= 1;
+
+        // Few title matches = competitors don't target this exact phrase
+        if (strongTitleMatches <= 2) score -= 1;
+        else if (strongTitleMatches >= 7) score += 1;
+
+        // Total results volume
         if (totalResults > 10000000) score += 2;
         else if (totalResults > 1000000) score += 1;
-        if (organic.length < 5) score -= 2; // thin SERP = opportunity
+
+        // Thin SERP = opportunity
+        if (organic.length < 5) score -= 2;
+
+        // PAA present = featured snippet opportunity (bonus traffic)
+        const hasPAA = paa.length > 0;
+
         score = Math.max(1, Math.min(10, score));
 
         kw.serp_verified = true;
         kw.serp_score = score;
         kw.kd = score <= 3 ? 'low' : score <= 6 ? 'medium' : 'high';
 
-        results.push({ lang: currentLang, keyword: kw.keyword, score, kd: kw.kd, bigDomains: bigCount, totalResults });
+        // Store extra SERP intel
+        kw.serp_details = {
+          authority_domains: authorityCount,
+          forum_domains: forumCount,
+          title_matches: strongTitleMatches,
+          has_paa: hasPAA,
+          paa_count: paa.length,
+          related_searches: relatedSearches.length,
+          total_results: totalResults,
+          healthdesk_rank: healthdeskRank >= 0 ? healthdeskRank + 1 : null
+        };
+
+        results.push({ lang: currentLang, keyword: kw.keyword, score, kd: kw.kd, details: kw.serp_details });
 
         // Rate limit Serper
         await new Promise(r => setTimeout(r, 300));
@@ -3107,6 +3184,29 @@ app.post('/api/calendar/verify-keywords', async (req, res) => {
 
   saveCalendar(cal);
   res.json({ verified: results.length, results });
+});
+
+// ─── Content Calendar: Reset SERP verification ───
+
+app.post('/api/calendar/reset-verify', (req, res) => {
+  const cal = loadCalendar();
+  let resetCount = 0;
+  for (const cluster of cal.clusters) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.serp_verified) {
+          kw.serp_verified = false;
+          kw.serp_score = null;
+          kw.kd = null;
+          delete kw.serp_details;
+          resetCount++;
+        }
+      }
+    }
+  }
+  saveCalendar(cal);
+  console.log(`[Calendar] Reset SERP verification for ${resetCount} keywords`);
+  res.json({ reset: resetCount });
 });
 
 // ─── Content Calendar: Settings ───
@@ -3450,19 +3550,23 @@ app.post('/api/calendar/schedule', (req, res) => {
   const cal = loadCalendar();
   const intervalDays = cal.interval_days || 3;
 
-  // Collect pending keywords per language, sorted by KD (low first)
-  const pendingByLang = {};
+  // Collect pending keywords PER CLUSTER, per language, sorted by KD (low first)
+  const pendingPerCluster = [];
   for (const cluster of cal.clusters) {
     if (cluster_id && cluster.id !== cluster_id) continue;
+    const byLang = {};
     const langsToProcess = lang ? [lang] : Object.keys(cluster.keywords || {});
     for (const l of langsToProcess) {
-      if (!pendingByLang[l]) pendingByLang[l] = [];
       const kwList = cluster.keywords[l] || [];
-      const pending = kwList
+      byLang[l] = kwList
         .filter(k => k.status === 'pending' && k.serp_verified)
         .sort((a, b) => (a.serp_score || 5) - (b.serp_score || 5));
-      pendingByLang[l].push(...pending);
     }
+    pendingPerCluster.push({ cluster, byLang });
+  }
+
+  if (pendingPerCluster.length === 0) {
+    return res.json({ scheduled: 0, rounds: 0 });
   }
 
   // Build set of date+lang combos already published or scheduled
@@ -3476,22 +3580,27 @@ app.post('/api/calendar/schedule', (req, res) => {
     }
   }
 
-  // Schedule in rounds: each round = 1 keyword per language, same date
-  // Skip date+lang combos that already have published/scheduled article
+  // Schedule with cluster rotation:
+  // Round 0 → cluster 0, Round 1 → cluster 1, ... Round N → cluster N%count, ...
+  // Each round = 1 keyword per language from ONE cluster, same date
   const maxRounds = count || 9999;
   let scheduled = 0;
   let round = 0;
+  let emptyRoundsInRow = 0;
   const startDate = new Date();
 
-  while (round < maxRounds) {
-    let anyScheduled = false;
+  while (round < maxRounds && emptyRoundsInRow < pendingPerCluster.length) {
+    const clusterIdx = round % pendingPerCluster.length;
+    const { byLang } = pendingPerCluster[clusterIdx];
+
     const schedDate = new Date(startDate);
     schedDate.setDate(schedDate.getDate() + round * intervalDays);
     const dateStr = schedDate.toISOString().split('T')[0];
 
-    for (const l of Object.keys(pendingByLang)) {
-      if (occupied.has(`${dateStr}|${l}`)) continue; // skip — already has article on this date
-      const kw = pendingByLang[l].shift();
+    let anyScheduled = false;
+    for (const l of Object.keys(byLang)) {
+      if (occupied.has(`${dateStr}|${l}`)) continue;
+      const kw = byLang[l].shift();
       if (kw) {
         kw.status = 'scheduled';
         kw.scheduled_date = dateStr;
@@ -3501,7 +3610,11 @@ app.post('/api/calendar/schedule', (req, res) => {
       }
     }
 
-    if (!anyScheduled) break;
+    if (anyScheduled) {
+      emptyRoundsInRow = 0;
+    } else {
+      emptyRoundsInRow++;
+    }
     round++;
   }
 

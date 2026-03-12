@@ -6,6 +6,18 @@ description: "Боль в спине при работе за компьютер
 keyword: "как избавиться от боли в спине при работе за компьютером"
 tags: ["боль в спине", "упражнения в офисе", "здоровье позвоночника", "профилактика боли", "рабочее место"]
 lang: ru
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Боль в спине при работе: упражнения и перерывы"
 faq:
   - q: "Почему болит спина при работе за компьютером?"
@@ -197,6 +209,8 @@ faq:
 Простые техники — прогрессивная мышечная релаксация по Джекобсону, диафрагмальное дыхание, 10 минут медитации перед сном — реально снижают мышечный спазм. Я бы не назвал это «альтернативной медициной»: это физиология. Когда нервная система выходит из режима «бей или беги», мышечные зажимы ослабевают сами.
 
 ---
+
+Если вы хотите узнать больше о том, как сохранить здоровье при офисной работе — от зрения до водного баланса — читайте также нашу статью [Здоровье за компьютером: советы для офисных работников](/ru/blog/zdorove-za-kompyuterom-sovety-dlya-ofisnykh-rabotnikov/).
 
 ## Начните с малого — и это уже много
 

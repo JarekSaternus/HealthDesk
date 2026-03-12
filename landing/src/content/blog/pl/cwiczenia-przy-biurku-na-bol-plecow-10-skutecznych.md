@@ -8,6 +8,25 @@ tags: ["ćwiczenia przy biurku", "ból pleców", "praca siedząca", "zdrowie w p
 lang: pl
 siblings:
   en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
+faq:
+  - q: "Jak często wykonywać ćwiczenia przy biurku na ból pleców?"
+    a: "Najlepsze efekty daje wykonywanie krótkich zestawów ćwiczeń co 60–90 minut pracy siedzącej. Nawet 5-minutowa przerwa na rozciąganie co godzinę znacząco zmniejsza napięcie mięśniowe i ryzyko bólu pleców."
+  - q: "Czy ćwiczenia przy biurku mogą zastąpić trening na siłowni?"
+    a: "Nie — ćwiczenia przy biurku łagodzą skutki siedzenia i mobilizują kręgosłup, ale nie budują siły ani wytrzymałości na poziomie pełnego treningu. Traktuj je jako uzupełnienie aktywności fizycznej, nie zamiennik."
+  - q: "O jakiej porze dnia najlepiej robić ćwiczenia przy biurku?"
+    a: "Kluczowa jest regularność, nie pora dnia. Jednak szczególnie ważne są ćwiczenia po 2–3 godzinach pracy, gdy napięcie mięśniowe jest najwyższe. Warto też zacząć dzień od krótkiej mobilizacji kręgosłupa."
+  - q: "Które ćwiczenie najlepiej pomaga na ból dolnego odcinka pleców?"
+    a: "Cat-cow (koci grzbiet) i odchylenie miednicy w pozycji siedzącej to dwa najskuteczniejsze ćwiczenia na ból lędźwiowy przy biurku. Mobilizują krążki międzykręgowe i rozluźniają napięte zginacze bioder."
 ---
 ## Dlaczego praca przy biurku powoduje ból pleców?
 

@@ -3,9 +3,16 @@ title: "Método Pomodoro paso a paso: empieza hoy mismo"
 slug: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo"
 date: 2026-03-01
 description: "Aprende el método Pomodoro paso a paso y mejora tu productividad hoy mismo. Técnica sencilla y probada para concentrarte y rendir más."
-keyword: "M�todo Pomodoro paso a paso � empieza hoy"
+keyword: "Método Pomodoro paso a paso – empieza hoy"
 tags: ["método pomodoro", "productividad", "técnicas de concentración", "bienestar laboral", "gestión del tiempo"]
 lang: es
+siblings:
+  pl: "metoda-pomodoro-krok-po-kroku-zacznij-dzis"
+  de: "pomodoro-technik-schritt-fur-schritt-erklart-starten"
+  fr: "methode-pomodoro-guide-etape-par-etape-pour-debuter"
+  it: "tecnica-pomodoro-per-principianti-guida-completa"
+  pt-BR: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo"
+  tr: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber"
 image_alt: "Método Pomodoro paso a paso: empieza hoy mismo"
 faq:
   - q: "¿Qué es el método Pomodoro?"
@@ -215,6 +222,8 @@ Un [estudio de 2022 publicado en *Frontiers in Psychology*](https://doi.org/10.3
 Con el tiempo, también notarás que estimas mejor cuánto tiempo te lleva realmente una tarea — y eso, en sí mismo, es una forma de productividad que pocas personas cultivan conscientemente.
 
 ---
+
+Si además de gestionar tu tiempo quieres cuidar tu espalda durante la jornada, te recomendamos nuestra [guía práctica de estiramientos de espalda en la oficina](/es/blog/estiramientos-de-espalda-en-la-oficina-guia-pr-ctica/) — ejercicios que encajan perfectamente en las pausas del Pomodoro.
 
 ## Una última reflexión
 

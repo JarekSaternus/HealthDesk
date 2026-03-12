@@ -1,11 +1,23 @@
 ---
 title: "腰痛を防ぐ休憩の取り方｜デスクワーカー必見の完全ガイド"
-slug: "article-isphmo"
+slug: "back-pain-prevention-breaks-guide"
 date: 2026-03-09
 description: "デスクワーカー必見！腰痛の原因から効果的な休憩法まで徹底解説。座り続けることで椎間板への圧力が増す理由と、今日から実践できる予防策を紹介。"
 keyword: "仕事中に定期的に休憩を取ると腰痛が改善される理由"
 tags: ["腰痛対策", "デスクワーク健康", "休憩の取り方", "姿勢改善", "オフィスストレッチ"]
 lang: ja
+siblings:
+  pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  en: "desk-exercises-for-back-pain"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "自然光が差し込む清潔感のあるモダンなオフィスで、 ergonomic なデスクチェアに座りながら背筋を伸ばしてストレッチをするデスクワーカーの様子。腰への負担を和らげる効果的な休憩をイメージ。"
 faq:
   - q: "デスクワークでなぜ腰痛が起きるの？"

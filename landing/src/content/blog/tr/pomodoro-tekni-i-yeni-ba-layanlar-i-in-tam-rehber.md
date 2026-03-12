@@ -3,9 +3,16 @@ title: "Pomodoro Tekniği: Yeni Başlayanlar İçin Tam Rehber"
 slug: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber"
 date: 2026-03-01
 description: "Pomodoro Tekniği nedir, nasıl uygulanır? Yeni başlayanlar için adım adım rehberimizle verimliliğinizi artırın ve odaklanma sürenizi uzatın."
-keyword: "Pomodoro teknigi yeni ba�layanlar i�in rehber"
+keyword: "Pomodoro tekniği yeni başlayanlar için rehber"
 tags: []
 lang: tr
+siblings:
+  pl: "metoda-pomodoro-krok-po-kroku-zacznij-dzis"
+  de: "pomodoro-technik-schritt-fur-schritt-erklart-starten"
+  es: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo"
+  fr: "methode-pomodoro-guide-etape-par-etape-pour-debuter"
+  it: "tecnica-pomodoro-per-principianti-guida-completa"
+  pt-BR: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo"
 faq:
   - q: "Pomodoro Tekniği nedir?"
     a: "Çalışma süresini odaklanılmış bloklara bölen bir zaman yönetimi yöntemidir. Francesco Cirillo tarafından 1987'de geliştirilmiştir."
@@ -15,7 +22,7 @@ faq:
     a: "İtalyan Francesco Cirillo, 1987'de Roma'da üniversite öğrencisiyken geliştirdi ve 1992'de resmi olarak belgeledi."
   - q: "Pomodoro Tekniğinin temel felsefesi nedir?"
     a: "Zamanı tehdit değil müttefik olarak görür; çalışmayı somut, yönetilebilir bloklara bölerek odaklanmayı kolaylaştırır."
-image_alt: "Pomodoro Teknigi: Yeni Ba�layanlar I�in Tam Rehber"
+image_alt: "Pomodoro Tekniği: Yeni Başlayanlar İçin Tam Rehber"
 ---
 ## Pomodoro Tekniği Nedir ve Nasıl Ortaya Çıktı?
 
@@ -221,6 +228,8 @@ Sürdürülebilirlik için en işe yarayan şey, Pomodoro'yu mevcut rutininize b
 Bir de şunu ekleyeyim: Pomodoro yapmadığınız günler için kendinizi suçlamayın. Yoğun toplantılarla dolu bir gün, sosyal bir akşam, hasta olduğunuz bir sabah — bunların hepsinde tekniği bırakmak normaldir. Önemli olan ertesi sabah yeniden başlayabilmek.
 
 ---
+
+Pomodoro molalarını sadece zihinsel değil, fiziksel dinlenme için de değerlendirmek istiyorsanız, [masa başında bel ağrısını önleme rehberimizi](/tr/blog/masa-basinda-bel-agrisi-healthdesk-ile-onleme/) de okuyun — mola aralarında yapabileceğiniz basit egzersizler ve ergonomi ipuçları.
 
 ## Son Söz
 

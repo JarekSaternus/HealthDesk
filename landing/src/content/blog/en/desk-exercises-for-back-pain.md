@@ -8,6 +8,16 @@ tags: ["desk exercises", "back pain relief", "office stretches", "sitting all da
 lang: en
 siblings:
   pl: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych"
+  de: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps"
+  es: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica"
+  fr: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui"
+  it: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo"
+  ja: "back-pain-prevention-breaks-guide"
+  ko: "sitting-back-pain-causes-solutions"
+  pt-BR: "dicas-ergon-micas-para-quem-trabalha-sentado"
+  ru: "bol-v-spine-pri-rabote-uprazhneniya-i-pereryvy"
+  tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
+  zh-CN: "desk-back-pain-5-minute-relief"
 faq:
   - q: "How often should you do desk exercises for back pain?"
     a: "For best results, do 2-3 exercises every 45-60 minutes of sitting. Research published in Medicine & Science in Sport & Exercise found that regular micro-breaks reduce back pain by 54% compared to uninterrupted sitting."
