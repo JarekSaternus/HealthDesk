@@ -10,8 +10,16 @@ function formatTime(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
+function formatDuration(seconds: number): string {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  if (h > 0) return `${h}h ${m}m`;
+  return `${m}m`;
+}
+
 export default function BottomBar() {
   const schedulerState = useAppStore((s) => s.schedulerState);
+  const totalTimeToday = useAppStore((s) => s.totalTimeToday);
   const [confirmReset, setConfirmReset] = useState(false);
 
   const nextBreak = schedulerState
@@ -30,14 +38,25 @@ export default function BottomBar() {
   };
 
   return (
-    <div className="h-10 bg-sidebar border-t border-card flex items-center justify-between px-4 text-xs text-text-muted">
-      <span>
-        {isPaused
-          ? `⏸ ${t("status.pause")}`
-          : outsideWorkHours
-            ? `🌙 ${t("status.outside_work_hours")}`
-            : `⏱ ${t("status.to_break", { time: formatTime(nextBreak) })}`}
-      </span>
+    <div className="h-9 bg-sidebar/80 border-t border-card/30 flex items-center justify-between px-4 text-[11px] text-text-muted">
+      <div className="flex items-center gap-3">
+        <span className={`inline-flex items-center gap-1 ${isPaused ? "text-warning" : outsideWorkHours ? "text-text-muted" : "text-accent"}`}>
+          <span className={`w-1.5 h-1.5 rounded-full ${isPaused ? "bg-warning" : outsideWorkHours ? "bg-text-muted" : "bg-accent"}`} />
+          {isPaused
+            ? t("status.pause")
+            : outsideWorkHours
+              ? t("status.outside_work_hours")
+              : t("status.active") || "Session active"}
+        </span>
+        <span>·</span>
+        <span>{formatDuration(totalTimeToday)} {t("status.elapsed") || "elapsed"}</span>
+        {!isPaused && !outsideWorkHours && (
+          <>
+            <span>·</span>
+            <span>{t("status.to_break", { time: formatTime(nextBreak) })}</span>
+          </>
+        )}
+      </div>
       <div className="flex items-center gap-2">
         {confirmReset ? (
           <>

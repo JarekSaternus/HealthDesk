@@ -2,9 +2,8 @@ import { useEffect, useState, useRef } from "react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
-import Card from "../components/Card";
 import DayTimeline from "../components/DayTimeline";
-import type { BreakRecord, YTSearchResult } from "../types";
+import type { BreakRecord, YTSearchResult, ActivitySummary } from "../types";
 
 function formatDuration(seconds: number): string {
   const h = Math.floor(seconds / 3600);
@@ -20,15 +19,6 @@ function formatCountdown(seconds: number): string {
   return `${m}:${s.toString().padStart(2, "0")}`;
 }
 
-function ProgressBar({ value, max, color }: { value: number; max: number; color: string }) {
-  const pct = max > 0 ? Math.min((value / max) * 100, 100) : 0;
-  return (
-    <div className="w-full h-2 bg-card-hover rounded-full overflow-hidden mt-1">
-      <div className="h-full rounded-full transition-all" style={{ width: `${pct}%`, backgroundColor: color }} />
-    </div>
-  );
-}
-
 function getDayProgress(start: string, end: string): number {
   const now = new Date();
   const [sh, sm] = start.split(":").map(Number);
@@ -38,6 +28,39 @@ function getDayProgress(start: string, end: string): number {
   const nowMin = now.getHours() * 60 + now.getMinutes();
   if (endMin <= startMin) return 0;
   return Math.max(0, Math.min(100, ((nowMin - startMin) / (endMin - startMin)) * 100));
+}
+
+/* Circular progress ring */
+function CircularProgress({
+  value, max, size = 80, strokeWidth = 6, color, children,
+}: {
+  value: number; max: number; size?: number; strokeWidth?: number; color: string; children?: React.ReactNode;
+}) {
+  const pct = max > 0 ? Math.min(value / max, 1) : 0;
+  const radius = (size - strokeWidth) / 2;
+  const circumference = 2 * Math.PI * radius;
+  const offset = circumference * (1 - pct);
+  return (
+    <div className="relative inline-flex items-center justify-center" style={{ width: size, height: size }}>
+      <svg width={size} height={size} className="-rotate-90">
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke="currentColor" strokeWidth={strokeWidth} className="text-card-hover" />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={color} strokeWidth={strokeWidth} strokeDasharray={circumference} strokeDashoffset={offset} strokeLinecap="round" className="transition-all duration-500" />
+      </svg>
+      <div className="absolute inset-0 flex items-center justify-center">{children}</div>
+    </div>
+  );
+}
+
+function getGreeting(): string {
+  const h = new Date().getHours();
+  if (h < 12) return t("home.good_morning") || "Good morning";
+  if (h < 18) return t("home.good_afternoon") || "Good afternoon";
+  return t("home.good_evening") || "Good evening";
+}
+
+function getDateString(): string {
+  const now = new Date();
+  return now.toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" });
 }
 
 export default function HomeEnhanced() {
@@ -54,6 +77,7 @@ export default function HomeEnhanced() {
   const [searchResults, setSearchResults] = useState<YTSearchResult[]>([]);
   const [searchLoading, setSearchLoading] = useState(false);
   const [showAllResults, setShowAllResults] = useState(false);
+  const [topApps, setTopApps] = useState<ActivitySummary[]>([]);
   const methodRef = useRef<HTMLDivElement>(null);
   const searchRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -61,15 +85,18 @@ export default function HomeEnhanced() {
   useEffect(() => {
     invoke<BreakRecord[]>("get_breaks_today").then(setBreaks);
     invoke<{ playing: boolean }>("get_audio_state").then((s) => setAudioPlaying(s.playing));
+    invoke<ActivitySummary[]>("get_activity_today").then((apps) => setTopApps(apps.slice(0, 5)));
     const interval = setInterval(() => {
       invoke<BreakRecord[]>("get_breaks_today").then(setBreaks);
       invoke<{ playing: boolean }>("get_audio_state").then((s) => setAudioPlaying(s.playing));
-    }, 2000);
+      invoke<ActivitySummary[]>("get_activity_today").then((apps) => setTopApps(apps.slice(0, 5)));
+    }, 5000);
     return () => clearInterval(interval);
   }, []);
 
   const takenBreaks = breaks.filter((b) => !b.skipped).length;
   const skippedBreaks = breaks.filter((b) => b.skipped).length;
+  const totalBreaks = takenBreaks + skippedBreaks;
   const smallTaken = breaks.filter((b) => b.type === "small" && !b.skipped).length;
   const smallSkipped = breaks.filter((b) => b.type === "small" && b.skipped).length;
   const bigTaken = breaks.filter((b) => b.type === "big" && !b.skipped).length;
@@ -79,12 +106,14 @@ export default function HomeEnhanced() {
   const workEnd = config?.work_hours_end ?? "18:00";
   const dayPct = getDayProgress(workStart, workEnd);
 
-  const methodLabel = config?.work_method === "custom"
-    ? t("settings.method_custom")
-    : config?.work_method ?? "pomodoro";
-
   const smallBreakMax = (config?.small_break_interval_min ?? 25) * 60;
   const bigBreakMax = (config?.big_break_interval_min ?? 100) * 60;
+  const nextBreakSeconds = schedulerState
+    ? Math.min(schedulerState.time_to_small_break, schedulerState.time_to_big_break)
+    : 0;
+  const nextBreakMax = schedulerState
+    ? (schedulerState.time_to_small_break <= schedulerState.time_to_big_break ? smallBreakMax : bigBreakMax)
+    : 1;
 
   const METHODS = ["pomodoro", "20-20-20", "52-17", "90-min", "custom"];
 
@@ -180,168 +209,199 @@ export default function HomeEnhanced() {
     }
   };
 
+  // Max activity time for bar width
+  const maxActivitySec = topApps.length > 0 ? topApps[0].total_sec : 1;
+
   return (
-    <div className="space-y-4">
-      {/* Work time + method badge + day progress */}
-      <Card>
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-text-muted text-sm">{t("home.work_time_today")}</h2>
-          <div className="relative" ref={methodRef}>
-            <button
-              onClick={() => setShowMethodPicker(!showMethodPicker)}
-              className="text-xs bg-accent/20 text-accent px-2 py-0.5 rounded-full hover:bg-accent/30 transition-colors cursor-pointer"
-              title={t(`settings.method_${(config?.work_method ?? "pomodoro").replace(/-/g, "_")}_desc`)}
-            >
-              {methodLabel} ▾
-            </button>
-            {showMethodPicker && (
-              <div className="absolute right-0 top-7 bg-card border border-card-hover rounded-lg shadow-lg z-10 py-1 min-w-[140px]">
-                {METHODS.map((m) => (
-                  <button
-                    key={m}
-                    onClick={() => changeMethod(m)}
-                    className={`block w-full text-left text-xs px-3 py-1.5 hover:bg-card-hover transition-colors ${
-                      config?.work_method === m ? "text-accent" : "text-text"
-                    }`}
-                  >
-                    {t(`settings.method_${m.replace(/-/g, "_")}`)}
-                  </button>
-                ))}
-              </div>
-            )}
+    <div className="space-y-5">
+      {/* Greeting bar */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-semibold text-text">{getGreeting()}</h1>
+          <p className="text-sm text-text-muted mt-0.5">{getDateString()}</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {/* Status badges */}
+          {schedulerState?.idle && (
+            <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2.5 py-1 rounded-full">
+              {t("home.idle")}
+            </span>
+          )}
+          {schedulerState?.dnd && (
+            <span className="text-xs bg-purple-500/20 text-purple-400 px-2.5 py-1 rounded-full">
+              {t("home.dnd")}
+            </span>
+          )}
+          {schedulerState?.in_meeting && (
+            <span className="text-xs bg-red-500/20 text-red-400 px-2.5 py-1 rounded-full">
+              {t("status_in_meeting")}
+            </span>
+          )}
+          <div className="text-right">
+            <div className="text-lg font-bold text-accent">{formatDuration(totalTimeToday)}</div>
+            <div className="text-[10px] text-text-muted">{t("home.work_time_today")}</div>
           </div>
         </div>
-        <div className="text-3xl font-bold text-accent">{formatDuration(totalTimeToday)}</div>
-        {config?.work_hours_enabled && (
-          <div className="flex items-center gap-2 mt-2">
-            <ProgressBar value={dayPct} max={100} color="#2ecc71" />
-            <span className="text-xs text-text-muted whitespace-nowrap">{Math.round(dayPct)}% {t("home.day_progress")} ({workStart}–{workEnd})</span>
+      </div>
+
+      {/* 3 stat cards */}
+      {schedulerState?.outside_work_hours ? (
+        <div className="bg-card rounded-xl p-6 text-center">
+          <span className="text-text-muted text-sm">{t("home.outside_work_hours")}</span>
+          <div className="text-xs text-text-muted mt-1">{workStart}–{workEnd}</div>
+        </div>
+      ) : schedulerState ? (
+        <div className="grid grid-cols-3 gap-4">
+          {/* Next break */}
+          <div className="bg-card rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs text-text-muted font-medium">{t("home.next_break") || "Next break"}</h3>
+              <span className="text-[10px] text-text-muted">
+                {schedulerState.time_to_small_break <= schedulerState.time_to_big_break ? t("home.small_break") : t("home.big_break")}
+              </span>
+            </div>
+            <div className="flex items-center justify-center">
+              <CircularProgress value={nextBreakMax - nextBreakSeconds} max={nextBreakMax} size={90} strokeWidth={7} color="#2ecc71">
+                <span className="text-xl font-mono font-bold text-text">{formatCountdown(nextBreakSeconds)}</span>
+              </CircularProgress>
+            </div>
+            <div className="flex justify-between mt-3 text-[10px] text-text-muted">
+              <span>{t("home.small_break")}: {formatCountdown(schedulerState.time_to_small_break)}</span>
+              <span>{t("home.big_break")}: {formatCountdown(schedulerState.time_to_big_break)}</span>
+            </div>
           </div>
-        )}
-      </Card>
+
+          {/* Breaks taken */}
+          <div className="bg-card rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs text-text-muted font-medium">{t("home.breaks")}</h3>
+              <span className="text-[10px] text-text-muted">{t("home.daily_goal") || "Daily"}</span>
+            </div>
+            <div className="flex items-center justify-center">
+              <CircularProgress value={takenBreaks} max={Math.max(takenBreaks + skippedBreaks, 8)} size={90} strokeWidth={7} color="#2ecc71">
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-text">{takenBreaks}</span>
+                  <span className="text-sm text-text-muted">/{takenBreaks + skippedBreaks || "0"}</span>
+                </div>
+              </CircularProgress>
+            </div>
+            <div className="flex justify-between mt-3 text-[10px] text-text-muted">
+              <span className="text-accent">{smallTaken}+{bigTaken} {t("home.breaks_taken")}</span>
+              {(smallSkipped + bigSkipped) > 0 && <span className="text-danger">{smallSkipped + bigSkipped} {t("home.breaks_skipped")}</span>}
+            </div>
+          </div>
+
+          {/* Water intake */}
+          <div className="bg-card rounded-xl p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-xs text-text-muted font-medium">{t("home.water")}</h3>
+              <button
+                onClick={() => useAppStore.getState().logWater()}
+                className="text-[10px] bg-info/20 text-info px-2 py-0.5 rounded-full hover:bg-info/30 transition-colors"
+              >
+                +1
+              </button>
+            </div>
+            <div className="flex items-center justify-center">
+              <CircularProgress value={waterToday} max={waterGoal} size={90} strokeWidth={7} color="#3498db">
+                <div className="text-center">
+                  <span className="text-2xl font-bold text-text">{waterToday}</span>
+                  <span className="text-sm text-text-muted">/{waterGoal}</span>
+                </div>
+              </CircularProgress>
+            </div>
+            <div className="text-center mt-3 text-[10px] text-text-muted">
+              {schedulerState && schedulerState.time_to_water > 0 && (
+                <span>{t("home.next_water")} {formatCountdown(schedulerState.time_to_water)}</span>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
+
+      {/* Work method pills */}
+      <div className="bg-card rounded-xl p-4" ref={methodRef}>
+        <h3 className="text-xs text-text-muted font-medium mb-3">{t("home.work_method") || "Work Method"}</h3>
+        <div className="flex gap-2 flex-wrap">
+          {METHODS.map((m) => (
+            <button
+              key={m}
+              onClick={() => changeMethod(m)}
+              className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                config?.work_method === m
+                  ? "bg-accent text-white"
+                  : "bg-card-hover text-text-muted hover:text-text hover:bg-card-hover/80"
+              }`}
+            >
+              {t(`settings.method_${m.replace(/-/g, "_")}`)}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* Day timeline */}
       {config?.work_hours_enabled && !schedulerState?.outside_work_hours && (
-        <Card>
+        <div className="bg-card rounded-xl p-4">
           <DayTimeline />
-        </Card>
-      )}
-
-      {/* Idle / DND / Meeting status badge */}
-      {(schedulerState?.idle || schedulerState?.dnd || schedulerState?.in_meeting) && (
-        <Card>
-          <div className="flex items-center gap-2 py-1">
-            {schedulerState.idle && (
-              <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">
-                {t("home.idle")}
-              </span>
-            )}
-            {schedulerState.dnd && (
-              <span className="text-xs bg-purple-500/20 text-purple-400 px-2 py-0.5 rounded-full">
-                {t("home.dnd")}
-              </span>
-            )}
-            {schedulerState.in_meeting && (
-              <span className="text-xs bg-red-500/20 text-red-400 px-2 py-0.5 rounded-full">
-                {t("status_in_meeting")}
-              </span>
-            )}
-            <span className="text-xs text-text-muted">
-              {schedulerState.idle ? t("settings.idle_enabled_desc") : ""}
-            </span>
-          </div>
-        </Card>
-      )}
-
-      {/* Break timers side by side */}
-      {schedulerState?.outside_work_hours ? (
-        <Card>
-          <div className="text-center py-2">
-            <span className="text-text-muted text-sm">{t("home.outside_work_hours")}</span>
-            <div className="text-xs text-text-muted mt-1">{workStart}–{workEnd}</div>
-          </div>
-        </Card>
-      ) : (
-        <Card>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="text-text-muted text-xs">{t("home.small_break")}</h4>
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <span className="text-accent">{smallTaken} ✓</span>
-                  {smallSkipped > 0 && <span className="text-danger">{smallSkipped} ✗</span>}
-                  <span className="text-text-muted">· {config?.small_break_interval_min ?? 25} min</span>
-                </div>
-              </div>
-              <div className="text-xl font-mono" style={{ color: "#3498db" }}>
-                {schedulerState ? formatCountdown(schedulerState.time_to_small_break) : "--:--"}
-              </div>
-              {schedulerState && (
-                <ProgressBar
-                  value={smallBreakMax - schedulerState.time_to_small_break}
-                  max={smallBreakMax}
-                  color="#3498db"
-                />
-              )}
-            </div>
-            <div>
-              <div className="flex items-center justify-between mb-1">
-                <h4 className="text-text-muted text-xs">{t("home.big_break")}</h4>
-                <div className="flex items-center gap-1.5 text-[10px]">
-                  <span className="text-accent">{bigTaken} ✓</span>
-                  {bigSkipped > 0 && <span className="text-danger">{bigSkipped} ✗</span>}
-                  <span className="text-text-muted">· {config?.big_break_interval_min ?? 100} min</span>
-                </div>
-              </div>
-              <div className="text-xl font-mono" style={{ color: "#e67e22" }}>
-                {schedulerState ? formatCountdown(schedulerState.time_to_big_break) : "--:--"}
-              </div>
-              {schedulerState && (
-                <ProgressBar
-                  value={bigBreakMax - schedulerState.time_to_big_break}
-                  max={bigBreakMax}
-                  color="#e67e22"
-                />
-              )}
-            </div>
-          </div>
-        </Card>
-      )}
-
-      {/* Water */}
-      <Card>
-        <div className="flex items-center justify-between mb-1">
-          <div className="flex items-center gap-2">
-            <h3 className="text-text-muted text-xs">{t("home.water")}</h3>
-            <span className="text-sm font-bold text-info">{waterToday}</span>
-            <span className="text-xs text-text-muted">/ {waterGoal}</span>
-            {schedulerState && schedulerState.time_to_water > 0 && (
-              <>
-                <span className="text-text-muted text-xs">·</span>
-                <span className="text-xs text-text-muted">{t("home.next_water")} {formatCountdown(schedulerState.time_to_water)}</span>
-              </>
-            )}
-          </div>
-          <button
-            onClick={() => useAppStore.getState().logWater()}
-            className="text-xs bg-info/20 text-info px-2 py-0.5 rounded hover:bg-info/30 transition-colors"
-          >
-            +1
-          </button>
         </div>
-        <ProgressBar value={waterToday} max={waterGoal} color="#3498db" />
-      </Card>
+      )}
 
-      {/* Sound */}
-      <Card className="relative">
-        <div className="flex items-center gap-2">
-          <h3 className="text-text-muted text-xs">{t("home.sound")}</h3>
+      {/* Day progress bar */}
+      {config?.work_hours_enabled && (
+        <div className="bg-card rounded-xl p-4">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-xs text-text-muted font-medium">{t("home.day_progress")}</span>
+            <span className="text-xs text-text-muted">{workStart} — {workEnd}</span>
+          </div>
+          <div className="w-full h-2 bg-card-hover rounded-full overflow-hidden">
+            <div
+              className="h-full bg-accent rounded-full transition-all duration-500"
+              style={{ width: `${dayPct}%` }}
+            />
+          </div>
+          <div className="text-right mt-1">
+            <span className="text-xs text-accent font-medium">{Math.round(dayPct)}%</span>
+          </div>
+        </div>
+      )}
+
+      {/* Top Activities */}
+      {topApps.length > 0 && (
+        <div className="bg-card rounded-xl p-4">
+          <h3 className="text-xs text-text-muted font-medium mb-3">{t("stats.top_apps") || "Top Activities"}</h3>
+          <div className="space-y-2.5">
+            {topApps.map((app) => (
+              <div key={app.process_name} className="flex items-center gap-3">
+                <span className="text-sm w-6 text-center">
+                  {app.category === "browser" ? "🌐" : app.category === "communication" ? "💬" : app.category === "development" ? "💻" : "📄"}
+                </span>
+                <span className="text-sm text-text truncate w-24">{app.process_name}</span>
+                <div className="flex-1 h-2 bg-card-hover rounded-full overflow-hidden">
+                  <div
+                    className="h-full rounded-full transition-all"
+                    style={{
+                      width: `${(app.total_sec / maxActivitySec) * 100}%`,
+                      backgroundColor: app.category === "development" ? "#2ecc71" : app.category === "browser" ? "#f39c12" : app.category === "communication" ? "#9b59b6" : "#3498db",
+                    }}
+                  />
+                </div>
+                <span className="text-xs text-text-muted whitespace-nowrap">{formatDuration(app.total_sec)}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Sound mini-player */}
+      <div className="bg-card rounded-xl p-4 relative">
+        <div className="flex items-center gap-3">
+          <h3 className="text-xs text-text-muted font-medium">{t("home.sound")}</h3>
           <span className={`text-xs truncate flex-1 ${audioPlaying ? "text-accent" : "text-text-muted"}`}>
-            {audioPlaying ? config?.audio_last_type ?? "♫" : t("home.sound_off")}
+            {audioPlaying ? config?.audio_last_name || config?.audio_last_type || "♫" : t("home.sound_off")}
           </span>
           <button
             onClick={toggleAudio}
-            className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+            className="w-7 h-7 rounded-full bg-card-hover flex items-center justify-center hover:bg-accent/20 transition-colors text-sm"
           >
             {audioPlaying ? "⏹" : "▶"}
           </button>
@@ -364,18 +424,18 @@ export default function HomeEnhanced() {
               const v = Number((e.target as HTMLInputElement).value);
               invoke("set_sound_volume", { volume: v });
             }}
-            className="w-24 h-1"
+            className="w-20 h-1"
           />
           <button
             onClick={() => setShowSearch(!showSearch)}
-            className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+            className="w-7 h-7 rounded-full bg-card-hover flex items-center justify-center hover:bg-accent/20 transition-colors text-xs"
             title={t("home.search_music")}
           >
             🔍
           </button>
           <button
             onClick={() => setPage("music")}
-            className="text-xs bg-card-hover px-2 py-1 rounded hover:bg-accent/20 transition-colors"
+            className="w-7 h-7 rounded-full bg-card-hover flex items-center justify-center hover:bg-accent/20 transition-colors text-sm"
           >
             ♫
           </button>
@@ -385,7 +445,7 @@ export default function HomeEnhanced() {
         {showSearch && (
           <div
             ref={searchRef}
-            className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-hover rounded-lg shadow-lg z-20 p-3"
+            className="absolute left-0 right-0 top-full mt-1 bg-card border border-card-hover rounded-xl shadow-lg z-20 p-3"
           >
             <div className="flex gap-2 mb-2">
               <input
@@ -395,12 +455,12 @@ export default function HomeEnhanced() {
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && doSearch()}
                 placeholder={t("home.search_placeholder")}
-                className="flex-1 bg-content border border-card-hover rounded px-2 py-1 text-xs text-text outline-none focus:border-accent"
+                className="flex-1 bg-content border border-card-hover rounded-lg px-3 py-1.5 text-xs text-text outline-none focus:border-accent"
               />
               <button
                 onClick={doSearch}
                 disabled={searchLoading}
-                className="text-xs bg-accent/20 text-accent px-3 py-1 rounded hover:bg-accent/30 transition-colors disabled:opacity-50"
+                className="text-xs bg-accent/20 text-accent px-3 py-1.5 rounded-lg hover:bg-accent/30 transition-colors disabled:opacity-50"
               >
                 {searchLoading ? t("home.searching") : t("music.search")}
               </button>
@@ -411,7 +471,7 @@ export default function HomeEnhanced() {
                   <button
                     key={i}
                     onClick={() => playSearchResult(r)}
-                    className="w-full text-left p-1.5 rounded hover:bg-card-hover text-xs flex justify-between gap-2"
+                    className="w-full text-left p-2 rounded-lg hover:bg-card-hover text-xs flex justify-between gap-2"
                   >
                     <span className="truncate">{r.title}</span>
                     <span className="text-text-muted whitespace-nowrap">{r.duration}</span>
@@ -420,7 +480,7 @@ export default function HomeEnhanced() {
                 {searchResults.length > 5 && (
                   <button
                     onClick={() => setShowAllResults(!showAllResults)}
-                    className="w-full text-center text-xs text-accent py-1 hover:bg-accent/10 rounded transition-colors"
+                    className="w-full text-center text-xs text-accent py-1 hover:bg-accent/10 rounded-lg transition-colors"
                   >
                     {showAllResults ? t("home.show_less") : `${t("home.show_more")} (${searchResults.length - 5})`}
                   </button>
@@ -431,7 +491,7 @@ export default function HomeEnhanced() {
             ) : null}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }

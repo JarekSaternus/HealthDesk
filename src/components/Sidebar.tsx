@@ -2,7 +2,7 @@ import { useAppStore } from "../stores/appStore";
 import { t } from "../i18n";
 import type { Page } from "../types";
 
-const navItems: { key: Page; icon: string }[] = [
+const navItems: { key: Page; icon: string; }[] = [
   { key: "home", icon: "🏠" },
   { key: "stats", icon: "📊" },
   { key: "music", icon: "🎵" },
@@ -22,44 +22,49 @@ export default function Sidebar() {
   const isPaused = schedulerState?.paused ?? false;
 
   return (
-    <div className="w-52 bg-sidebar flex flex-col h-full">
+    <div className="w-48 bg-sidebar flex flex-col h-full border-r border-card/50">
       {/* Logo */}
-      <div className="p-4 text-center border-b border-card">
-        <h1 className="text-accent text-lg font-bold">HealthDesk</h1>
+      <div className="px-4 py-5">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 rounded-lg bg-accent/20 flex items-center justify-center">
+            <span className="text-accent font-bold text-sm">HD</span>
+          </div>
+          <span className="text-accent font-semibold text-sm">HealthDesk</span>
+        </div>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 py-2">
+      <nav className="flex-1 px-2 space-y-0.5">
         {navItems.map((item) => (
           <button
             key={item.key}
             onClick={() => setPage(item.key)}
-            className={`w-full text-left px-4 py-3 flex items-center gap-3 transition-colors
+            className={`w-full text-left px-3 py-2.5 flex items-center gap-3 rounded-lg transition-all
               ${currentPage === item.key
-                ? "bg-card text-accent border-r-2 border-accent"
-                : "text-text-muted hover:bg-card hover:text-text"
+                ? "bg-accent/15 text-accent"
+                : "text-text-muted hover:bg-card/50 hover:text-text"
               }`}
           >
-            <span className="text-lg">{item.icon}</span>
+            <span className="text-base">{item.icon}</span>
             <span className="text-sm">{t(`nav.${item.key}`)}</span>
           </button>
         ))}
       </nav>
 
-      {/* Quick actions */}
-      <div className="p-3 border-t border-card space-y-2">
+      {/* Bottom actions */}
+      <div className="p-3 space-y-2">
         <button
           onClick={logWater}
-          className="w-full bg-info/20 text-info hover:bg-info/30 rounded px-3 py-2 text-sm transition-colors"
+          className="w-full bg-info/10 text-info hover:bg-info/20 rounded-lg px-3 py-2 text-xs transition-colors flex items-center justify-center gap-1.5"
         >
-          💧 {t("nav.water_plus")} ({waterToday}/{config?.water_daily_goal ?? 8})
+          💧 +1 ({waterToday}/{config?.water_daily_goal ?? 8})
         </button>
         <button
           onClick={togglePause}
-          className={`w-full rounded px-3 py-2 text-sm transition-colors ${
+          className={`w-full rounded-lg px-3 py-2.5 text-xs transition-colors flex items-center justify-center gap-1.5 ${
             isPaused
-              ? "bg-accent/20 text-accent hover:bg-accent/30"
-              : "bg-warning/20 text-warning hover:bg-warning/30"
+              ? "bg-accent/15 text-accent hover:bg-accent/25"
+              : "bg-card/50 text-text-muted hover:bg-card"
           }`}
         >
           {isPaused ? `▶ ${t("nav.resume")}` : `⏸ ${t("nav.pause")}`}
