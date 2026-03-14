@@ -82,7 +82,7 @@ export default function OnboardingWizard({ onComplete }: Props) {
       work_hours_start: workHoursStart,
       work_hours_end: workHoursEnd,
       break_mode: breakMode,
-      audio_autoplay: audioAutoplay && audioType !== null,
+      audio_autoplay: audioAutoplay,
       audio_last_type: audioType,
       audio_last_source: audioType ? "native" : null,
       audio_last_name: audioType ? (SOUNDS.find((s) => s.type === audioType)?.type ?? null) : null,
