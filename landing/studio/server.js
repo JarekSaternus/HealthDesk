@@ -2384,6 +2384,57 @@ app.post('/api/gsc/submit', async (req, res) => {
   });
 });
 
+// ─── GSC URL Inspection ───
+
+app.get('/api/gsc/inspect', async (req, res) => {
+  if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ error: 'No GSC key' });
+
+  try {
+    const { google } = require('googleapis');
+    const auth = new google.auth.GoogleAuth({
+      keyFile: GSC_KEY_PATH,
+      scopes: ['https://www.googleapis.com/auth/webmasters.readonly']
+    });
+    const searchconsole = google.searchconsole({ version: 'v1', auth });
+    const sitemapUrls = parseSitemapUrls().map(u => u.url);
+
+    const results = [];
+    for (const url of sitemapUrls) {
+      try {
+        const r = await searchconsole.urlInspection.index.inspect({
+          requestBody: { inspectionUrl: url, siteUrl: SITE_URL_GSC }
+        });
+        const ir = r.data.inspectionResult?.indexStatusResult || {};
+        results.push({
+          url,
+          verdict: ir.verdict || 'UNKNOWN',
+          coverageState: ir.coverageState || '',
+          robotsTxtState: ir.robotsTxtState || '',
+          lastCrawlTime: ir.lastCrawlTime || null
+        });
+      } catch (e) {
+        results.push({ url, verdict: 'ERROR', coverageState: e.message });
+      }
+      // Rate limit: 600 req/min for URL Inspection API
+      await new Promise(r => setTimeout(r, 200));
+    }
+
+    const indexed = results.filter(r => r.verdict === 'PASS');
+    const notIndexed = results.filter(r => r.verdict !== 'PASS' && r.verdict !== 'ERROR');
+    const errors = results.filter(r => r.verdict === 'ERROR');
+
+    res.json({
+      total: results.length,
+      indexed: indexed.length,
+      not_indexed: notIndexed.length,
+      errors: errors.length,
+      results
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── GSC Search Analytics ───
 
 function getGscAuth() {

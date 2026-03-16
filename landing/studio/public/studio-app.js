@@ -2764,7 +2764,7 @@ async function calRefreshGSC() {
     const res = await fetch('/api/calendar/refresh-gsc', { method: 'POST' });
     const data = await res.json();
     if (data.error) throw new Error(data.error);
-    showToast(`GSC updated: ${data.updated} keywords`);
+    showToast(`GSC: ${data.updated} keywords matched (${data.total_gsc_rows} queries in GSC)`);
     calLoad();
   } catch (err) { showToast('Error: ' + err.message); }
   btn.disabled = false; btn.textContent = '📊 Refresh GSC';
