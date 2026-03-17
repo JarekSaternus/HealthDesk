@@ -6,5 +6,6 @@ description: "Узнайте, почему болит спина после ра
 keyword: "как снять боль в пояснице после долгого сидения за компьютером"
 tags: ["боль в спине", "упражнения для спины", "здоровье на работе", "профилактика боли", "рабочее место"]
 lang: ru
+image_alt: "Back pain after long sitting at computer exercises and breaks"
 ---
 

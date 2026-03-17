@@ -8,8 +8,10 @@ User=www-data
 Group=www-data
 WorkingDirectory=/opt/healthdesk-api/server
 Environment="PATH=/opt/healthdesk-api/venv/bin"
-Environment="API_SECRET_KEY=change-me-in-production"
-Environment="ADMIN_PASSWORD_HASH=change-me-in-production"
+# REQUIRED: set a strong random key, e.g.: python3 -c "import secrets; print(secrets.token_urlsafe(32))"
+Environment="API_SECRET_KEY=CHANGE_ME_GENERATE_WITH_SECRETS_MODULE"
+# REQUIRED: set bcrypt hash, e.g.: python3 -c "from passlib.context import CryptContext; print(CryptContext(schemes=['bcrypt']).hash('your-password'))"
+Environment="ADMIN_PASSWORD_HASH=CHANGE_ME_GENERATE_BCRYPT_HASH"
 ExecStart=/opt/healthdesk-api/venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2
 Restart=always
 RestartSec=5

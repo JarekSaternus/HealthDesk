@@ -6,5 +6,6 @@ description: "Masa başında sağlıklı oturma pozisyonunu öğrenin. Ergonomik
 keyword: "masabaşı çalışırken doğru oturma pozisyonu nasıl olmalı"
 tags: ["ergonomi", "ofis sağlığı", "doğru oturma pozisyonu", "masa başında çalışma", "iş sağlığı"]
 lang: tr
+image_alt: "Modern ofiste ergonomik çalışma sandalyesinde oturan ve laptop kullanan kadının duruşu."
 ---
 

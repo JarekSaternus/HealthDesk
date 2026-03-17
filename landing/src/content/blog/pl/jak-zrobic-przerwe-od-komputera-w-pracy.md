@@ -27,6 +27,7 @@ siblings:
   es: "como-hacer-pausas-activas-en-el-trabajo-de-oficina"
   de: "wie-oft-sollte-man-am-schreibtisch-pause-machen"
   en: "how-much-water-should-you-drink-while-working-at-a-computer"
+image_alt: "Przerwy od komputera w pracy: praktyczny poradnik"
 ---
 ## Dlaczego przerwy od komputera są niezbędne w pracy?
 

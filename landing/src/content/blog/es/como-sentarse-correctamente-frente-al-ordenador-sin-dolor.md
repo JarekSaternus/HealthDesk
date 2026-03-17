@@ -18,6 +18,7 @@ faq:
     a: "Cada centímetro que la cabeza avanza añade 4-5 kg de carga sobre el cuello, causando cervicalgia crónica."
   - q: "¿Cómo evitar el dolor lumbar al estar sentado mucho tiempo?"
     a: "Usa una silla con respaldo adecuado o un cojín lumbar justo por encima de la pelvis para mantener la curva natural."
+image_alt: "Postura correcta al ordenador: Evita dolor sin esfuerzo"
 ---
 ## ¿Cuál es la postura correcta al trabajar en el ordenador?
 

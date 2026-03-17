@@ -27,6 +27,7 @@ faq:
     a: "Anche solo cinque minuti di movimento sono sufficienti per migliorare la capacità di tornare su compiti cognitivamente impegnativi."
   - q: "Quali sono i benefici fisici delle pause attive?"
     a: "Aiutano a mantenere la pressione stabile, ridurre la rigidità muscolare e migliorare la mobilità articolare nel tempo."
+image_alt: "Pause Attive al Lavoro: Esercizi Semplici da Fare"
 ---
 ## Perché le Pause Attive sono Importanti al Lavoro?
 

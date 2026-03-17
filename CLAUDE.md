@@ -113,7 +113,8 @@ GitHub Actions workflow (`.github/workflows/release.yml`) triggers on tag push `
 Static site in `landing/` deployed to `healthdesk.site` via FTP.
 - Multilingual (12 langs), dark theme matching the app
 - Build: `node landing/build.js` — generates `landing/dist/` with locale dirs
-- Deploy: `find landing/dist -type f | while IFS= read -r file; do remote="${file#landing/dist/}"; curl -s --ftp-create-dirs -T "$file" "ftp://s9.cyber-folks.pl/public_html/$remote" -u "healthdesk@healthdesk.site:9qc-[N1TgA-U#6u*"; echo "OK: $remote"; done`
+- Deploy: `find landing/dist -type f | while IFS= read -r file; do remote="${file#landing/dist/}"; curl -s --ftp-create-dirs -T "$file" "ftp://s9.cyber-folks.pl/public_html/$remote" -u "$FTP_USER:$FTP_PASS"; echo "OK: $remote"; done`
+- FTP credentials: przechowywane w prywatnej pamięci Claude (~/.claude/projects/), NIE commitować do repo
 
 ## Blog Studio
 

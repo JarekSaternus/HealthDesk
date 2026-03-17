@@ -6,5 +6,6 @@ description: "Scopri come mantenere una postura corretta alla scrivania per evit
 keyword: "come sedersi correttamente alla scrivania senza mal di schiena"
 tags: ["postura corretta", "mal di schiena", "ergonomia scrivania", "salute ufficio", "esercizi posturali"]
 lang: it
+image_alt: "Postura corretta alla scrivania: guida senza mal di schiena"
 ---
 

@@ -1,31 +1,26 @@
-import hashlib
 import os
+import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Cookie, HTTPException, Request, status
 from jose import JWTError, jwt
+from passlib.context import CryptContext
 
 # ---------------------------------------------------------------------------
 # Configuration
 # ---------------------------------------------------------------------------
 
-SECRET_KEY = os.environ.get("API_SECRET_KEY", "dev-secret-change-me")
+SECRET_KEY = os.environ.get("API_SECRET_KEY")
+if not SECRET_KEY:
+    SECRET_KEY = secrets.token_urlsafe(32)
+
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24
 
-# Simple SHA256-based password hashing (no bcrypt dependency issues)
-_SALT = "healthdesk-api-salt-2026"
+pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
-
-def _hash_password(password: str) -> str:
-    return hashlib.sha256(f"{_SALT}{password}".encode()).hexdigest()
-
-
-# Admin password hash — set via env or fall back to hash of "admin"
-ADMIN_PASSWORD_HASH = os.environ.get(
-    "ADMIN_PASSWORD_HASH",
-    _hash_password("admin"),
-)
+# Admin password hash — MUST be set via env variable
+ADMIN_PASSWORD_HASH = os.environ.get("ADMIN_PASSWORD_HASH")
 
 # ---------------------------------------------------------------------------
 # Password helpers
@@ -33,11 +28,11 @@ ADMIN_PASSWORD_HASH = os.environ.get(
 
 
 def verify_password(plain_password: str, hashed_password: str) -> bool:
-    return _hash_password(plain_password) == hashed_password
+    return pwd_context.verify(plain_password, hashed_password)
 
 
 def get_password_hash(password: str) -> str:
-    return _hash_password(password)
+    return pwd_context.hash(password)
 
 
 # ---------------------------------------------------------------------------

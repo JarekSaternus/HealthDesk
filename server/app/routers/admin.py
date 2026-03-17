@@ -3,6 +3,8 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -16,6 +18,7 @@ from ..database import get_db
 from ..models import Ad, AdImpression, Download, TelemetryEvent
 
 router = APIRouter(prefix="/admin", tags=["admin"])
+limiter = Limiter(key_func=get_remote_address)
 
 templates = Jinja2Templates(directory="app/templates")
 
@@ -30,8 +33,9 @@ def login_page(request: Request):
 
 
 @router.post("/login", response_class=HTMLResponse)
+@limiter.limit("5/minute")
 def login_action(request: Request, password: str = Form(...)):
-    if not verify_password(password, ADMIN_PASSWORD_HASH):
+    if not ADMIN_PASSWORD_HASH or not verify_password(password, ADMIN_PASSWORD_HASH):
         return templates.TemplateResponse(
             "login.html", {"request": request, "error": "Nieprawidlowe haslo"}
         )

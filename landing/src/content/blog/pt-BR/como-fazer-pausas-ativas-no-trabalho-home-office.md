@@ -29,6 +29,7 @@ faq:
     a: "Não. Parar para se mover parece contraintuitivo, mas melhora concentração e reduz o desconforto que prejudica o foco."
   - q: "Quais problemas físicos surgem sem movimento no trabalho remoto?"
     a: "Estudos apontam aumento de dores musculoesqueléticas, especialmente em pescoço e lombar, entre trabalhadores remotos."
+image_alt: "Pausas Ativas no Home Office: Guia Prático"
 ---
 ## O que são pausas ativas e por que são importantes no home office?
 

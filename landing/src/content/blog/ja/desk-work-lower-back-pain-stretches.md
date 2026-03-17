@@ -6,5 +6,6 @@ description: "デスク作業中の腰痛に悩む方へ。座ったままでき
 keyword: "デスクワークによる腰痛を和らげるストレッチ方法"
 tags: ["デスクワーク腰痛", "座ったままストレッチ", "オフィス運動", "腰痛対策", "健康習慣"]
 lang: ja
+image_alt: "Desk work lower back pain stretches you can do sitting"
 ---
 
