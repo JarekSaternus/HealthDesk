@@ -3,8 +3,6 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, Depends, Form, Request
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
-from slowapi import Limiter
-from slowapi.util import get_remote_address
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -15,10 +13,10 @@ from ..auth import (
     verify_password,
 )
 from ..database import get_db
+from ..limiter import limiter
 from ..models import Ad, AdImpression, Download, TelemetryEvent
 
 router = APIRouter(prefix="/admin", tags=["admin"])
-limiter = Limiter(key_func=get_remote_address)
 
 templates = Jinja2Templates(directory="app/templates")
 

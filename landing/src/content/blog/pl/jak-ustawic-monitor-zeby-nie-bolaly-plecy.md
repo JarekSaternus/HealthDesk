@@ -15,7 +15,7 @@ faq:
     a: "Chroniczne przeciążenie mięśni może prowadzić do dyskopatii, bólów barku i głów napięciowych."
   - q: "Jak powszechne są bóle pleców u pracowników biurowych?"
     a: "Według europejskich danych dolegliwości mięśniowo-szkieletowe dotykają ponad 60% pracowników biurowych."
-image_alt: "Monitor a b�le plec�w: Prawid�owe ustawienie stanowiska"
+image_alt: "Monitor a bóle pleców: Prawidłowe ustawienie stanowiska"
 ---
 ## Jak prawidłowe ustawienie monitora wpływa na zdrowie pleców?
 

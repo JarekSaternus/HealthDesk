@@ -6,6 +6,6 @@ description: "Descubra exercícios eficazes para fortalecer sua coluna no escrit
 keyword: "exercícios para coluna vertebral para quem trabalha no escritório"
 tags: ["exercícios para coluna", "saúde no trabalho", "ergonomia", "bem-estar corporativo", "alongamento"]
 lang: pt-BR
-image_alt: "Exerc�cios para coluna no escrit�rio: guia pr�tico"
+image_alt: "Exercícios para coluna no escritório: guia prático"
 ---
 
