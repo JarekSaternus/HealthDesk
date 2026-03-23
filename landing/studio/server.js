@@ -4304,7 +4304,7 @@ function startCalendarScheduler() {
   } catch (e) {
     console.error('[Calendar Scheduler] Recovery failed:', e.message);
   }
-  calendarSchedulerInterval = setInterval(async () => {
+  const schedulerCheck = async () => {
     try {
       const cal = loadCalendar();
       if (!cal.auto_enabled) return;
@@ -4603,8 +4603,13 @@ function startCalendarScheduler() {
     setTimeout(() => {
       if (calendarProgress && calendarProgress.status !== 'running') calendarProgress = null;
     }, 120000);
-  }, 3600000); // Check every hour
-  console.log('[Calendar Scheduler] Started (checking every hour)');
+  };
+  calendarSchedulerInterval = setInterval(schedulerCheck, 3600000); // Check every hour
+
+  // Run first check 30s after startup (don't wait a full hour)
+  setTimeout(schedulerCheck, 30000);
+
+  console.log('[Calendar Scheduler] Started (checking every hour, first check in 30s)');
 }
 
 // ─── Start ───
