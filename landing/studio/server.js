@@ -4341,6 +4341,13 @@ function startCalendarScheduler() {
       saveCalendar(cal);
 
       // Per-keyword full pipeline: write → build → deploy → GSC → next
+      // Resilient: continues on error, skips existing files, logs everything
+      const SCHEDULER_LOG = path.join(__dirname, 'scheduler_log.json');
+      let schedulerLog;
+      try { schedulerLog = JSON.parse(fs.readFileSync(SCHEDULER_LOG, 'utf-8')); }
+      catch { schedulerLog = { runs: [] }; }
+      const runLog = { date: new Date().toISOString(), batch_size: batch.length, results: [] };
+
       let completed = 0;
       for (let i = 0; i < batch.length; i++) {
         const item = batch[i];
@@ -4350,6 +4357,49 @@ function startCalendarScheduler() {
         calendarProgress.lang = item.lang;
 
         try {
+          // Check if article file already exists (skip duplicate writes)
+          const existingFiles = fs.readdirSync(path.join(BLOG_DIR, item.lang)).filter(f => f.endsWith('.md'));
+          const studio = loadStudioData();
+          let existingSlug = null;
+          for (const [key, art] of Object.entries(studio.articles || {})) {
+            if (key.startsWith(item.lang + '/') && art.keyword === item.keyword) {
+              existingSlug = key.split('/')[1];
+              break;
+            }
+          }
+          if (!existingSlug) {
+            // Also check by matching keyword in frontmatter of existing files
+            for (const f of existingFiles) {
+              try {
+                const content = fs.readFileSync(path.join(BLOG_DIR, item.lang, f), 'utf-8');
+                const kwMatch = content.match(/^keyword:\s*["']?(.+?)["']?\s*$/m);
+                if (kwMatch && kwMatch[1].toLowerCase() === item.keyword.toLowerCase()) {
+                  existingSlug = f.replace('.md', '');
+                  break;
+                }
+              } catch {}
+            }
+          }
+
+          if (existingSlug) {
+            // File already exists — skip writing, just update status
+            console.log(`${label} SKIP — already exists: ${existingSlug}`);
+            const cal2 = loadCalendar();
+            updateKeywordStatus(cal2, item.lang, item.keyword, {
+              status: 'published', slug: existingSlug, published_date: new Date().toISOString().split('T')[0]
+            });
+            saveCalendar(cal2);
+            const studio2 = loadStudioData();
+            if (!studio2.articles[`${item.lang}/${existingSlug}`]) {
+              studio2.articles[`${item.lang}/${existingSlug}`] = { status: 'published' };
+              saveStudioData(studio2);
+            }
+            calendarProgress.results.push({ lang: item.lang, slug: existingSlug, status: 'skipped' });
+            runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'skipped', slug: existingSlug });
+            completed++;
+            continue;
+          }
+
           // Step 1: Write article
           calendarProgress.step = `writing (${i + 1}/${batch.length})`;
           console.log(`${label} Autopilot: ${item.keyword}`);
@@ -4392,22 +4442,33 @@ function startCalendarScheduler() {
           });
           saveCalendar(cal2);
 
-          const studio = loadStudioData();
-          studio.articles[`${item.lang}/${slug}`] = { status: 'published' };
-          saveStudioData(studio);
+          const studio3 = loadStudioData();
+          studio3.articles[`${item.lang}/${slug}`] = { status: 'published' };
+          saveStudioData(studio3);
 
           calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
+          runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'ok', slug });
           completed++;
           console.log(`${label} DONE — ${slug} is LIVE (${completed}/${batch.length})`);
 
         } catch (err) {
           console.error(`${label} Error: ${err.message}`);
           calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
+          runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
+          // Reset to scheduled so it retries next time (continue with rest of batch)
           const cal2 = loadCalendar();
           updateKeywordStatus(cal2, item.lang, item.keyword, { status: 'scheduled' });
           saveCalendar(cal2);
         }
       }
+
+      // Save scheduler log
+      runLog.completed = completed;
+      runLog.errors = runLog.results.filter(r => r.status === 'error').length;
+      schedulerLog.runs.push(runLog);
+      if (schedulerLog.runs.length > 50) schedulerLog.runs = schedulerLog.runs.slice(-50);
+      fs.writeFileSync(SCHEDULER_LOG, JSON.stringify(schedulerLog, null, 2), 'utf-8');
+      console.log(`[Scheduler] Log saved: ${completed} ok, ${runLog.errors} errors`);
 
       // Set next_run to the next scheduled date (date-only, no time component)
       const cal3 = loadCalendar();
