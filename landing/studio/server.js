@@ -2585,6 +2585,78 @@ app.get('/api/gsc/discover-keywords', async (req, res) => {
   }
 });
 
+// ─── GA4 Analytics ───
+
+const GA4_PROPERTY = 'properties/526378138';
+
+app.get('/api/ga4/overview', async (req, res) => {
+  try {
+    const { google } = require('googleapis');
+    const auth = new google.auth.GoogleAuth({
+      keyFile: GSC_KEY_PATH,
+      scopes: ['https://www.googleapis.com/auth/analytics.readonly']
+    });
+    const analyticsdata = google.analyticsdata({ version: 'v1beta', auth });
+    const days = parseInt(req.query.days) || 30;
+
+    const [overview, pages, sources] = await Promise.all([
+      analyticsdata.properties.runReport({
+        property: GA4_PROPERTY,
+        requestBody: {
+          dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+          metrics: [
+            { name: 'sessions' }, { name: 'totalUsers' }, { name: 'screenPageViews' },
+            { name: 'averageSessionDuration' }, { name: 'bounceRate' }
+          ]
+        }
+      }),
+      analyticsdata.properties.runReport({
+        property: GA4_PROPERTY,
+        requestBody: {
+          dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+          dimensions: [{ name: 'pagePath' }],
+          metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }],
+          orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+          limit: 20
+        }
+      }),
+      analyticsdata.properties.runReport({
+        property: GA4_PROPERTY,
+        requestBody: {
+          dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+          dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+          metrics: [{ name: 'sessions' }, { name: 'totalUsers' }],
+          orderBys: [{ metric: { metricName: 'sessions' }, desc: true }]
+        }
+      })
+    ]);
+
+    const vals = overview.data.rows?.[0]?.metricValues || [];
+    res.json({
+      period: `${days} dni`,
+      overview: {
+        sessions: parseInt(vals[0]?.value || 0),
+        users: parseInt(vals[1]?.value || 0),
+        pageviews: parseInt(vals[2]?.value || 0),
+        avg_session_duration: Math.round(parseFloat(vals[3]?.value || 0)),
+        bounce_rate: Math.round(parseFloat(vals[4]?.value || 0) * 1000) / 10
+      },
+      top_pages: (pages.data.rows || []).map(r => ({
+        path: r.dimensionValues[0].value,
+        views: parseInt(r.metricValues[0].value),
+        users: parseInt(r.metricValues[1].value)
+      })),
+      sources: (sources.data.rows || []).map(r => ({
+        channel: r.dimensionValues[0].value,
+        sessions: parseInt(r.metricValues[0].value),
+        users: parseInt(r.metricValues[1].value)
+      }))
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // ─── Insights: GSC Opportunities ───
 
 const INSIGHTS_PATH = path.join(__dirname, 'insights.json');
