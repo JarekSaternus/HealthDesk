@@ -1,0 +1,20 @@
+{
+  "entries": [
+    {
+      "id": "opp-1774264673770-0",
+      "date": "2026-03-23",
+      "type": "new-keyword",
+      "query": "healthdesk",
+      "position": 10.2,
+      "impressions": 13,
+      "clicks": 0,
+      "ctr": 0,
+      "page": "/en/",
+      "matched_article": null,
+      "suggestion": "Nowa fraza \"healthdesk\" — 13 impresji, nie mamy posta. Dodaj do kalendarza.",
+      "priority": "high",
+      "status": "new"
+    }
+  ],
+  "last_run": "2026-03-23T11:17:53.770Z"
+}

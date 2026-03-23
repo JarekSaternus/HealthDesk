@@ -2585,6 +2585,155 @@ app.get('/api/gsc/discover-keywords', async (req, res) => {
   }
 });
 
+// ─── Insights: GSC Opportunities ───
+
+const INSIGHTS_PATH = path.join(__dirname, 'insights.json');
+
+function loadInsights() {
+  try { return JSON.parse(fs.readFileSync(INSIGHTS_PATH, 'utf-8')); }
+  catch { return { entries: [] }; }
+}
+function saveInsights(data) {
+  fs.writeFileSync(INSIGHTS_PATH, JSON.stringify(data, null, 2), 'utf-8');
+}
+
+async function runOpportunitiesAnalysis() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return [];
+
+  const { google } = require('googleapis');
+  const auth = getGscAuth();
+  const searchconsole = google.searchconsole({ version: 'v1', auth });
+
+  const endDate = new Date();
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() - 90);
+
+  const result = await searchconsole.searchanalytics.query({
+    siteUrl: SITE_URL_GSC,
+    requestBody: {
+      startDate: startDate.toISOString().slice(0, 10),
+      endDate: endDate.toISOString().slice(0, 10),
+      dimensions: ['query', 'page'],
+      rowLimit: 500
+    }
+  });
+
+  const rows = result.data.rows || [];
+  const studio = loadStudioData();
+  const articles = studio.articles || {};
+
+  // Build article URL -> key map
+  const urlToArticle = {};
+  for (const [key, art] of Object.entries(articles)) {
+    const [lang, slug] = key.split('/');
+    const url = `https://healthdesk.site/${lang}/blog/${slug}/`;
+    urlToArticle[url] = { key, lang, slug, title: art.title || key, status: art.status };
+  }
+
+  // Collect existing blog keywords
+  const existingKeywords = new Set();
+  for (const cl of (studio.content_calendar?.clusters || [])) {
+    for (const [lang, kws] of Object.entries(cl.keywords || {})) {
+      for (const k of kws) {
+        existingKeywords.add(k.keyword.toLowerCase());
+      }
+    }
+  }
+
+  const today = new Date().toISOString().split('T')[0];
+  const opportunities = [];
+
+  for (const row of rows) {
+    const query = row.keys[0];
+    const page = row.keys[1];
+    const pos = Math.round(row.position * 10) / 10;
+    const imp = row.impressions;
+    const clk = row.clicks;
+    const ctr = Math.round((row.ctr || 0) * 1000) / 10;
+
+    // Low-hanging fruit: position 5-50, some impressions, low CTR
+    if (pos < 5 || pos > 50 || imp < 2) continue;
+
+    const matched = urlToArticle[page] || null;
+    const isNewKeyword = !existingKeywords.has(query.toLowerCase());
+
+    let type, priority, suggestion;
+
+    if (matched && pos <= 20) {
+      type = 'improve';
+      priority = pos <= 10 ? 'high' : 'medium';
+      suggestion = pos <= 10
+        ? `Post "${matched.title}" na pozycji ${pos} — blisko top 10. Rozbuduj treść, dodaj FAQ, wzmocnij nagłówki.`
+        : `Post "${matched.title}" na pozycji ${pos}. Dodaj sekcję o "${query}", rozbuduj do 2000+ słów.`;
+    } else if (matched && pos > 20) {
+      type = 'improve';
+      priority = 'low';
+      suggestion = `Post "${matched.title}" na pozycji ${pos}. Daleko od top 10 — rozważ nowy, lepiej zoptymalizowany post.`;
+    } else if (isNewKeyword) {
+      type = 'new-keyword';
+      priority = imp >= 10 ? 'high' : imp >= 5 ? 'medium' : 'low';
+      suggestion = `Nowa fraza "${query}" — ${imp} impresji, nie mamy posta. Dodaj do kalendarza.`;
+    } else {
+      type = 'opportunity';
+      priority = 'low';
+      suggestion = `Fraza "${query}" jest w kalendarzu ale post jeszcze nie napisany.`;
+    }
+
+    opportunities.push({
+      id: `opp-${Date.now()}-${opportunities.length}`,
+      date: today,
+      type, query, position: pos, impressions: imp, clicks: clk, ctr,
+      page: page.replace('https://healthdesk.site', ''),
+      matched_article: matched ? { lang: matched.lang, slug: matched.slug, title: matched.title } : null,
+      suggestion, priority, status: 'new'
+    });
+  }
+
+  // Sort: high priority first, then by impressions
+  const priorityOrder = { high: 0, medium: 1, low: 2 };
+  opportunities.sort((a, b) => (priorityOrder[a.priority] - priorityOrder[b.priority]) || (b.impressions - a.impressions));
+
+  // Save to insights.json (append, keep max 500)
+  const insights = loadInsights();
+  // Remove old entries from today (re-run)
+  insights.entries = insights.entries.filter(e => e.date !== today);
+  insights.entries.push(...opportunities);
+  // Cap at 500
+  if (insights.entries.length > 500) insights.entries = insights.entries.slice(-500);
+  insights.last_run = new Date().toISOString();
+  saveInsights(insights);
+
+  return opportunities;
+}
+
+app.post('/api/insights/opportunities', async (req, res) => {
+  try {
+    const opps = await runOpportunitiesAnalysis();
+    res.json({ ok: true, count: opps.length, opportunities: opps });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/insights', (req, res) => {
+  const insights = loadInsights();
+  const { type, status: filterStatus } = req.query;
+  let entries = insights.entries || [];
+  if (type) entries = entries.filter(e => e.type === type);
+  if (filterStatus) entries = entries.filter(e => e.status === filterStatus);
+  res.json({ last_run: insights.last_run, count: entries.length, entries });
+});
+
+app.post('/api/insights/:id/action', (req, res) => {
+  const { status } = req.body;
+  const insights = loadInsights();
+  const entry = insights.entries.find(e => e.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: 'Not found' });
+  entry.status = status || 'actioned';
+  saveInsights(insights);
+  res.json({ ok: true, entry });
+});
+
 // ─── Autopilot: progress tracking ───
 let autopilotProgress = null;
 // { status, currentStep, totalSteps, stepName, currentTopic, totalTopics, completedTopics, results[], error }
@@ -4047,6 +4196,25 @@ function startCalendarScheduler() {
           ? `Języki: ${langs}. Błędy: ${errResults.length}. Następny: ${cal3.next_run}`
           : `Języki: ${langs}. Następny run: ${cal3.next_run}`
       );
+
+      // Run GSC opportunities analysis after batch
+      setTimeout(async () => {
+        try {
+          console.log('[Calendar Scheduler] Analiza GSC opportunities...');
+          const opps = await runOpportunitiesAnalysis();
+          if (opps.length > 0) {
+            const top3 = opps.slice(0, 3).map(o =>
+              `• [${o.priority}] "${o.query}" — poz. ${o.position}, ${o.impressions} imp`
+            ).join('\n');
+            showNotification(
+              `Insights: ${opps.length} okazji znalezionych`,
+              `Top frazy:\n${top3}\n\nSzczegóły: http://localhost:4000 → Insights`
+            );
+          }
+        } catch (e) {
+          console.error('[Insights] Błąd analizy:', e.message);
+        }
+      }, 30000);
 
       // If there are still overdue batches (missed multiple days), schedule another check soon
       if (isOverdue) {

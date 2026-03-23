@@ -1665,6 +1665,7 @@ switchView = function(view) {
   origSwitchView(view);
   if (view === 'build') gscRefresh();
   if (view === 'keywords') loadTrackedKeywords();
+  if (view === 'insights') loadInsights();
 };
 
 // ─── Keyword Rank Tracker ───
@@ -2860,4 +2861,109 @@ async function calAutoRefresh() {
     calLoad();
   } catch (err) { showToast('Error: ' + err.message); }
   btn.disabled = false; btn.textContent = '🔄 Auto-Refresh Underperforming';
+}
+
+// ─── Insights ───
+
+async function loadInsights() {
+  const filter = document.getElementById('insights-filter')?.value || '';
+  const url = '/api/insights' + (filter ? `?type=${filter}` : '');
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    renderInsightsStats(data);
+    renderInsightsFeed(data.entries || []);
+  } catch (err) {
+    document.getElementById('insights-feed').innerHTML =
+      `<p style="color:var(--red);padding:20px;">Błąd: ${err.message}</p>`;
+  }
+}
+
+function renderInsightsStats(data) {
+  const entries = data.entries || [];
+  const improve = entries.filter(e => e.type === 'improve').length;
+  const newKw = entries.filter(e => e.type === 'new-keyword').length;
+  const high = entries.filter(e => e.priority === 'high').length;
+  const lastRun = data.last_run ? new Date(data.last_run).toLocaleDateString('pl') : 'nigdy';
+
+  document.getElementById('insights-stats').innerHTML = `
+    <div class="stat-card"><div class="stat-value">${entries.length}</div><div class="stat-label">Łącznie</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--orange)">${improve}</div><div class="stat-label">Do poprawienia</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--green)">${newKw}</div><div class="stat-label">Nowe frazy</div></div>
+    <div class="stat-card"><div class="stat-value" style="color:var(--red)">${high}</div><div class="stat-label">Wysoki priorytet</div></div>
+    <div class="stat-card"><div class="stat-value" style="font-size:14px;">${lastRun}</div><div class="stat-label">Ostatnia analiza</div></div>
+  `;
+}
+
+function renderInsightsFeed(entries) {
+  const feed = document.getElementById('insights-feed');
+  if (!entries.length) {
+    feed.innerHTML = '<p style="color:var(--text-dim);text-align:center;padding:40px;">Brak danych. Kliknij "Analizuj GSC".</p>';
+    return;
+  }
+
+  // Group by date
+  const byDate = {};
+  for (const e of entries) {
+    if (!byDate[e.date]) byDate[e.date] = [];
+    byDate[e.date].push(e);
+  }
+
+  let html = '';
+  for (const date of Object.keys(byDate).sort().reverse()) {
+    html += `<div class="insight-date-group"><div class="insight-date-label">${date}</div>`;
+    for (const e of byDate[date]) {
+      const typeLabel = e.type === 'improve' ? 'POPRAW' : e.type === 'new-keyword' ? 'NOWA FRAZA' : 'OKAZJA';
+      const typeClass = e.type === 'improve' ? 'orange' : e.type === 'new-keyword' ? 'green' : 'blue';
+      const prioIcon = e.priority === 'high' ? '🔴' : e.priority === 'medium' ? '🟡' : '⚪';
+      const dismissed = e.status === 'dismissed' ? ' insight-dismissed' : '';
+
+      html += `
+        <div class="insight-entry${dismissed}">
+          <div class="insight-header">
+            <span class="insight-badge insight-badge-${typeClass}">${typeLabel}</span>
+            <span class="insight-prio">${prioIcon} ${e.priority}</span>
+            <span class="insight-metrics">${e.impressions} imp · ${e.clicks} clk · poz. ${e.position}</span>
+          </div>
+          <div class="insight-query">"${escapeHtml(e.query)}"</div>
+          <div class="insight-suggestion">${escapeHtml(e.suggestion)}</div>
+          ${e.matched_article ? `<div class="insight-article">Post: [${e.matched_article.lang}] ${escapeHtml(e.matched_article.slug)}</div>` : ''}
+          <div class="insight-actions">
+            ${e.status !== 'dismissed' ? `<button class="btn btn-sm" onclick="insightAction('${e.id}','dismissed')">Odrzuć</button>` : '<span style="color:var(--text-dim)">Odrzucone</span>'}
+          </div>
+        </div>`;
+    }
+    html += '</div>';
+  }
+  feed.innerHTML = html;
+}
+
+function escapeHtml(s) {
+  return (s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+async function runOpportunities() {
+  const btn = document.getElementById('btn-run-opps');
+  btn.disabled = true; btn.textContent = 'Analizuję...';
+  try {
+    const res = await fetch('/api/insights/opportunities', { method: 'POST' });
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+    showToast(`Znaleziono ${data.count} okazji`);
+    loadInsights();
+  } catch (err) {
+    showToast('Błąd: ' + err.message);
+  }
+  btn.disabled = false; btn.textContent = 'Analizuj GSC';
+}
+
+async function insightAction(id, status) {
+  try {
+    await fetch(`/api/insights/${id}/action`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status })
+    });
+    loadInsights();
+  } catch (err) { showToast('Błąd: ' + err.message); }
 }
