@@ -12,7 +12,7 @@ const fs = require('fs');
 
 const FTP_HOST = 's9.cyber-folks.pl';
 const FTP_USER = 'healthdesk@healthdesk.site';
-const FTP_PASS = process.env.FTP_PASS || '9qc-[N1TgA-U#6u*';
+const FTP_PASS = process.env.FTP_PASS || 'ka6upL-ey4R-mNRW';
 const REMOTE_DIR = '/public_html';
 const LOCAL_DIR = path.join(__dirname, 'dist');
 

@@ -4324,10 +4324,26 @@ function startCalendarScheduler() {
       // Compare dates only (ignore time), so scheduler triggers on the right DAY regardless of hour
       const today = new Date().toISOString().split('T')[0];
       const nextRunDate = new Date(cal.next_run).toISOString().split('T')[0];
-      if (today < nextRunDate) return;
 
-      // If next_run date is in the past (missed days), catch up — process all overdue batches
-      const isOverdue = today > nextRunDate;
+      // Also check if there are overdue scheduled keywords (failed batch retry)
+      let hasOverdueKeywords = false;
+      for (const cluster of cal.clusters) {
+        for (const lang of Object.keys(cluster.keywords || {})) {
+          for (const kw of cluster.keywords[lang]) {
+            if (kw.status === 'scheduled' && kw.scheduled_date && kw.scheduled_date <= today) {
+              hasOverdueKeywords = true;
+              break;
+            }
+          }
+          if (hasOverdueKeywords) break;
+        }
+        if (hasOverdueKeywords) break;
+      }
+
+      if (today < nextRunDate && !hasOverdueKeywords) return;
+
+      // If next_run date is in the past (missed days) or overdue keywords exist, catch up
+      const isOverdue = today > nextRunDate || hasOverdueKeywords;
       console.log(`[Calendar Scheduler] Time to run! next_run was ${nextRunDate}, today is ${today}${isOverdue ? ' (catching up!)' : ''}`);
 
       // Trigger batch (1 per language)
