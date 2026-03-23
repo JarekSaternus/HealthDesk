@@ -7,6 +7,14 @@ keyword: "cómo sentarse correctamente frente al ordenador sin dolor"
 tags: ["postura correcta", "dolor de espalda", "ergonomía", "salud laboral", "bienestar en el trabajo"]
 lang: es
 siblings:
+  ru: "profilaktika-boli-v-spine-dlya-ofisnykh-rabotnikov-sovety"
+  tr: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
+  ko: "simple-exercises-neck-back-pain-relief"
+  zh-CN: "how-to-improve-posture-work-from-home"
+  ja: "tips-prevent-back-pain-sitting"
+  pt-BR: "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
+  it: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
+  pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
   en: "desk-job-back-pain-prevention-tips-and-exercises"
   de: "wie-man-richtig-am-schreibtisch-sitzt-wirbelsaule-schonen"
 faq:

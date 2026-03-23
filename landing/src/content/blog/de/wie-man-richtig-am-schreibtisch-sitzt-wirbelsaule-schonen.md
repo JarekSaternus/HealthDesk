@@ -7,6 +7,14 @@ keyword: "wie man richtig am Schreibtisch sitzt Wirbelsäule schonen"
 tags: ["Ergonomie", "Schreibtischhaltung", "Rückenschmerzen", "Bürogesundheit", "Wirbelsäule"]
 lang: de
 siblings:
+  ru: "profilaktika-boli-v-spine-dlya-ofisnykh-rabotnikov-sovety"
+  tr: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
+  ko: "simple-exercises-neck-back-pain-relief"
+  zh-CN: "how-to-improve-posture-work-from-home"
+  ja: "tips-prevent-back-pain-sitting"
+  pt-BR: "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
+  it: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
+  pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
   es: "como-sentarse-correctamente-frente-al-ordenador-sin-dolor"
   en: "desk-job-back-pain-prevention-tips-and-exercises"
 faq:

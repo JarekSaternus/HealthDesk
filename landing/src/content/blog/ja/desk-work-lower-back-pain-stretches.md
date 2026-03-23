@@ -7,5 +7,15 @@ keyword: "デスクワークによる腰痛を和らげるストレッチ方法"
 tags: ["デスクワーク腰痛", "座ったままストレッチ", "オフィス運動", "腰痛対策", "健康習慣"]
 lang: ja
 image_alt: "Desk work lower back pain stretches you can do sitting"
+siblings:
+  ru: "profilaktika-boli-v-spine-dlya-ofisnykh-rabotnikov-sovety"
+  tr: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
+  ko: "simple-exercises-neck-back-pain-relief"
+  zh-CN: "how-to-improve-posture-work-from-home"
+  pt-BR: "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
+  it: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
+  de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
+  en: "why-does-my-back-hurt-after-sitting-all-day"
+  pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
 ---
 

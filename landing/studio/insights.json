@@ -1,7 +1,7 @@
 {
   "entries": [
     {
-      "id": "opp-1774264673770-0",
+      "id": "opp-1774279827121-0",
       "date": "2026-03-23",
       "type": "new-keyword",
       "query": "healthdesk",
@@ -14,7 +14,55 @@
       "suggestion": "Nowa fraza \"healthdesk\" — 13 impresji, nie mamy posta. Dodaj do kalendarza.",
       "priority": "high",
       "status": "new"
+    },
+    {
+      "id": "opp-1774279827743-ga4lang-1",
+      "date": "2026-03-23",
+      "type": "opportunity",
+      "priority": "medium",
+      "query": "Ruch na /zh-CN/ (13 views) bez blogów",
+      "position": 0,
+      "impressions": 13,
+      "clicks": 3,
+      "ctr": 0,
+      "page": "/zh-CN/",
+      "matched_article": null,
+      "suggestion": "Strona główna zh-CN ma 13 odsłon ale żaden blog zh-CN nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
+      "status": "new",
+      "action": "promote"
+    },
+    {
+      "id": "opp-1774279827743-ga4lang-2",
+      "date": "2026-03-23",
+      "type": "opportunity",
+      "priority": "medium",
+      "query": "Ruch na /ja/ (10 views) bez blogów",
+      "position": 0,
+      "impressions": 10,
+      "clicks": 1,
+      "ctr": 0,
+      "page": "/ja/",
+      "matched_article": null,
+      "suggestion": "Strona główna ja ma 10 odsłon ale żaden blog ja nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
+      "status": "new",
+      "action": "promote"
+    },
+    {
+      "id": "opp-1774279827743-ga4lang-3",
+      "date": "2026-03-23",
+      "type": "opportunity",
+      "priority": "medium",
+      "query": "Ruch na /ko/ (5 views) bez blogów",
+      "position": 0,
+      "impressions": 5,
+      "clicks": 3,
+      "ctr": 0,
+      "page": "/ko/",
+      "matched_article": null,
+      "suggestion": "Strona główna ko ma 5 odsłon ale żaden blog ko nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
+      "status": "new",
+      "action": "promote"
     }
   ],
-  "last_run": "2026-03-23T11:17:53.770Z"
+  "last_run": "2026-03-23T15:30:27.744Z"
 }

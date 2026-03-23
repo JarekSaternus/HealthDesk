@@ -51,6 +51,264 @@
       "conclusions": [
         "Pierwszy snapshot — brak danych porównawczych"
       ]
+    },
+    {
+      "date": "2026-03-23",
+      "ga4": {
+        "sessions": 80,
+        "users": 24,
+        "pageviews": 451,
+        "avg_session_duration": 910,
+        "bounce_rate": 40
+      },
+      "ga4_top_pages": [
+        {
+          "path": "/pl/",
+          "views": 222,
+          "users": 22,
+          "bounce_rate": 34.2
+        },
+        {
+          "path": "/pl/blog/",
+          "views": 56,
+          "users": 4,
+          "bounce_rate": 21.4
+        },
+        {
+          "path": "/pl/blog/jak-unikac-bolu-kregoslupa-przy-pracy-biurowej/",
+          "views": 41,
+          "users": 2,
+          "bounce_rate": 25
+        },
+        {
+          "path": "/zh-CN/",
+          "views": 13,
+          "users": 3,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/fr/",
+          "views": 11,
+          "users": 2,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/pl/blog/jak-zrobic-przerwe-od-komputera-w-pracy/",
+          "views": 11,
+          "users": 1,
+          "bounce_rate": 50
+        },
+        {
+          "path": "/ja/",
+          "views": 10,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/en/",
+          "views": 6,
+          "users": 5,
+          "bounce_rate": 33.3
+        },
+        {
+          "path": "/en/blog/desk-job-back-pain-prevention-tips-and-exercises/",
+          "views": 6,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/ko/",
+          "views": 5,
+          "users": 3,
+          "bounce_rate": 0
+        }
+      ],
+      "ga4_sources": [
+        {
+          "channel": "Direct",
+          "sessions": 75,
+          "users": 20
+        },
+        {
+          "channel": "Organic Social",
+          "sessions": 4,
+          "users": 4
+        },
+        {
+          "channel": "Unassigned",
+          "sessions": 4,
+          "users": 2
+        }
+      ],
+      "gsc": {
+        "total_impressions": 42,
+        "total_clicks": 0,
+        "queries": 5,
+        "top_queries": [
+          {
+            "query": "\"smart communication tool\" -site:reddit.com -site:twitter.com -site:x.com -site:wykop.pl -site:tripadvisor.com -site:youtube.com -site:yelp.com -site:booking.com -site:facebook.com -site:instagram.com -site:tiktok.com",
+            "impressions": 5,
+            "clicks": 0,
+            "position": 1.4
+          },
+          {
+            "query": "health desk",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 6.3
+          },
+          {
+            "query": "health desk app",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 2.7
+          },
+          {
+            "query": "healthdesk",
+            "impressions": 15,
+            "clicks": 0,
+            "position": 10.5
+          },
+          {
+            "query": "healthydesk",
+            "impressions": 16,
+            "clicks": 0,
+            "position": 64.5
+          }
+        ]
+      },
+      "conclusions": []
+    },
+    {
+      "date": "2026-03-23",
+      "ga4": {
+        "sessions": 80,
+        "users": 24,
+        "pageviews": 451,
+        "avg_session_duration": 910,
+        "bounce_rate": 40
+      },
+      "ga4_top_pages": [
+        {
+          "path": "/pl/",
+          "views": 222,
+          "users": 22,
+          "bounce_rate": 34.2
+        },
+        {
+          "path": "/pl/blog/",
+          "views": 56,
+          "users": 4,
+          "bounce_rate": 21.4
+        },
+        {
+          "path": "/pl/blog/jak-unikac-bolu-kregoslupa-przy-pracy-biurowej/",
+          "views": 41,
+          "users": 2,
+          "bounce_rate": 25
+        },
+        {
+          "path": "/zh-CN/",
+          "views": 13,
+          "users": 3,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/fr/",
+          "views": 11,
+          "users": 2,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/pl/blog/jak-zrobic-przerwe-od-komputera-w-pracy/",
+          "views": 11,
+          "users": 1,
+          "bounce_rate": 50
+        },
+        {
+          "path": "/ja/",
+          "views": 10,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/en/",
+          "views": 6,
+          "users": 5,
+          "bounce_rate": 33.3
+        },
+        {
+          "path": "/en/blog/desk-job-back-pain-prevention-tips-and-exercises/",
+          "views": 6,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/ko/",
+          "views": 5,
+          "users": 3,
+          "bounce_rate": 0
+        }
+      ],
+      "ga4_sources": [
+        {
+          "channel": "Direct",
+          "sessions": 75,
+          "users": 20
+        },
+        {
+          "channel": "Organic Social",
+          "sessions": 4,
+          "users": 4
+        },
+        {
+          "channel": "Unassigned",
+          "sessions": 4,
+          "users": 2
+        }
+      ],
+      "gsc": {
+        "total_impressions": 42,
+        "total_clicks": 0,
+        "queries": 5,
+        "top_queries": [
+          {
+            "query": "\"smart communication tool\" -site:reddit.com -site:twitter.com -site:x.com -site:wykop.pl -site:tripadvisor.com -site:youtube.com -site:yelp.com -site:booking.com -site:facebook.com -site:instagram.com -site:tiktok.com",
+            "impressions": 5,
+            "clicks": 0,
+            "position": 1.4
+          },
+          {
+            "query": "health desk",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 6.3
+          },
+          {
+            "query": "health desk app",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 2.7
+          },
+          {
+            "query": "healthdesk",
+            "impressions": 15,
+            "clicks": 0,
+            "position": 10.5
+          },
+          {
+            "query": "healthydesk",
+            "impressions": 16,
+            "clicks": 0,
+            "position": 64.5
+          }
+        ]
+      },
+      "conclusions": [
+        "Sesje: 80 → 80 (+0)",
+        "Odsłony: 451 → 451 (+0)",
+        "GSC impresje: 42 → 42 (+0)"
+      ]
     }
   ]
 }

@@ -16,6 +16,16 @@ faq:
   - q: "Jak powszechne są bóle pleców u pracowników biurowych?"
     a: "Według europejskich danych dolegliwości mięśniowo-szkieletowe dotykają ponad 60% pracowników biurowych."
 image_alt: "Monitor a bóle pleców: Prawidłowe ustawienie stanowiska"
+siblings:
+  ru: "profilaktika-boli-v-spine-dlya-ofisnykh-rabotnikov-sovety"
+  tr: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
+  ko: "simple-exercises-neck-back-pain-relief"
+  zh-CN: "how-to-improve-posture-work-from-home"
+  ja: "tips-prevent-back-pain-sitting"
+  pt-BR: "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
+  it: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
+  de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
+  en: "why-does-my-back-hurt-after-sitting-all-day"
 ---
 ## Jak prawidłowe ustawienie monitora wpływa na zdrowie pleców?
 

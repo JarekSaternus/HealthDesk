@@ -7,5 +7,15 @@ keyword: "久坐办公族如何缓解腰背疼痛的方法"
 tags: ["办公室健康", "腰背疼痛缓解", "工作间隙运动", "颈椎保护", "久坐危害"]
 lang: zh-CN
 image_alt: "在明亮现代的办公室里，一位穿着深蓝色毛衣的男士正坐在人体工学椅上进行背部拉伸放松。"
+siblings:
+  ru: "profilaktika-boli-v-spine-dlya-ofisnykh-rabotnikov-sovety"
+  tr: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
+  ko: "simple-exercises-neck-back-pain-relief"
+  ja: "tips-prevent-back-pain-sitting"
+  pt-BR: "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
+  it: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
+  de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
+  en: "why-does-my-back-hurt-after-sitting-all-day"
+  pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
 ---
 

@@ -1,0 +1,152 @@
+{
+  "runs": [
+    {
+      "date": "2026-03-23T13:16:46.101Z",
+      "batch_size": 12,
+      "results": [
+        {
+          "lang": "pl",
+          "keyword": "rozciąganie kręgosłupa przy długim siedzeniu",
+          "status": "error",
+          "error": "Deploy failed: 530 Login incorrect.\n"
+        },
+        {
+          "lang": "en",
+          "keyword": "why does my back hurt after sitting all day",
+          "status": "error",
+          "error": "Deploy failed: 530 Login incorrect.\n"
+        },
+        {
+          "lang": "de",
+          "keyword": "Dehnübungen für Büroangestellte Rücken und Nacken",
+          "status": "error",
+          "error": "Deploy failed: read ECONNRESET (data socket)\n"
+        },
+        {
+          "lang": "es",
+          "keyword": "por qué duele la espalda baja después de trabajar en computadora",
+          "status": "error",
+          "error": "Unexpected token 'E', \"Error: You\"... is not valid JSON"
+        },
+        {
+          "lang": "fr",
+          "keyword": "douleur lombaire travail sédentaire conseils et remèdes",
+          "status": "error",
+          "error": "Unexpected token 'E', \"Error: You\"... is not valid JSON"
+        },
+        {
+          "lang": "it",
+          "keyword": "dolore lombare da posizione seduta rimedi e prevenzione",
+          "status": "error",
+          "error": "Deploy failed: read ECONNRESET (data socket)\n"
+        },
+        {
+          "lang": "pt-BR",
+          "keyword": "dor lombar trabalho home office causas e como prevenir",
+          "status": "error",
+          "error": "Deploy failed: read ECONNRESET (data socket)\n"
+        },
+        {
+          "lang": "ja",
+          "keyword": "長時間座り仕事での背中の痛みを防ぐコツ",
+          "status": "ok",
+          "slug": "tips-prevent-back-pain-sitting"
+        },
+        {
+          "lang": "zh-CN",
+          "keyword": "居家办公如何调整坐姿避免腰痛",
+          "status": "ok",
+          "slug": "how-to-improve-posture-work-from-home"
+        },
+        {
+          "lang": "ko",
+          "keyword": "컴퓨터 작업 후 목과 허리 통증 없애는 간단한 운동",
+          "status": "error",
+          "error": "Deploy failed: read ECONNRESET (data socket)\n"
+        },
+        {
+          "lang": "tr",
+          "keyword": "sırt ve boyun ağrılarını önlemek için ergonomik çalışma alanı kurulumu",
+          "status": "error",
+          "error": "Deploy failed: read ECONNRESET (data socket)\n"
+        },
+        {
+          "lang": "ru",
+          "keyword": "профилактика боли в спине для офисных работников советы",
+          "status": "error",
+          "error": "Deploy failed: read ECONNRESET (data socket)\n"
+        }
+      ],
+      "completed": 2,
+      "errors": 10
+    },
+    {
+      "date": "2026-03-23T15:29:53.905Z",
+      "batch_size": 10,
+      "results": [
+        {
+          "lang": "pl",
+          "keyword": "rozciąganie kręgosłupa przy długim siedzeniu",
+          "status": "skipped",
+          "slug": "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
+        },
+        {
+          "lang": "en",
+          "keyword": "why does my back hurt after sitting all day",
+          "status": "skipped",
+          "slug": "why-does-my-back-hurt-after-sitting-all-day"
+        },
+        {
+          "lang": "de",
+          "keyword": "Dehnübungen für Büroangestellte Rücken und Nacken",
+          "status": "skipped",
+          "slug": "dehnubungen-fur-buroangestellte-rucken-und-nacken"
+        },
+        {
+          "lang": "es",
+          "keyword": "por qué duele la espalda baja después de trabajar en computadora",
+          "status": "skipped",
+          "slug": "por-que-duele-la-espalda-baja-despues-de-trabajar-en-computadora"
+        },
+        {
+          "lang": "fr",
+          "keyword": "douleur lombaire travail sédentaire conseils et remèdes",
+          "status": "skipped",
+          "slug": "douleur-lombaire-travail-sedentaire-conseils-et-remedes"
+        },
+        {
+          "lang": "it",
+          "keyword": "dolore lombare da posizione seduta rimedi e prevenzione",
+          "status": "skipped",
+          "slug": "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
+        },
+        {
+          "lang": "pt-BR",
+          "keyword": "dor lombar trabalho home office causas e como prevenir",
+          "status": "skipped",
+          "slug": "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
+        },
+        {
+          "lang": "ko",
+          "keyword": "컴퓨터 작업 후 목과 허리 통증 없애는 간단한 운동",
+          "status": "skipped",
+          "slug": "simple-exercises-neck-back-pain-relief"
+        },
+        {
+          "lang": "tr",
+          "keyword": "sırt ve boyun ağrılarını önlemek için ergonomik çalışma alanı kurulumu",
+          "status": "skipped",
+          "slug": "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
+        },
+        {
+          "lang": "ru",
+          "keyword": "профилактика боли в спине для офисных работников советы",
+          "status": "skipped",
+          "slug": "profilaktika-boli-v-spine-dlya-ofisnykh-rabotnikov-sovety"
+        }
+      ],
+      "completed": 10,
+      "errors": 0
+    }
+  ]
+}
