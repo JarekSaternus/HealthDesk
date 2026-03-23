@@ -1,0 +1,56 @@
+{
+  "snapshots": [
+    {
+      "date": "2026-03-23",
+      "sitemap_urls": 106,
+      "sitemap_ok": 106,
+      "sitemap_new": 0,
+      "sitemap_changed": 0,
+      "analytics_period": "2026-02-23 — 2026-03-23",
+      "total_impressions": 42,
+      "total_clicks": 0,
+      "top_queries": [
+        {
+          "key": "\"smart communication tool\" -site:reddit.com -site:twitter.com -site:x.com -site:wykop.pl -site:tripadvisor.com -site:youtube.com -site:yelp.com -site:booking.com -site:facebook.com -site:instagram.com -site:tiktok.com",
+          "clicks": 0,
+          "impressions": 5,
+          "ctr": 0,
+          "position": 1.4
+        },
+        {
+          "key": "health desk",
+          "clicks": 0,
+          "impressions": 3,
+          "ctr": 0,
+          "position": 6.3
+        },
+        {
+          "key": "health desk app",
+          "clicks": 0,
+          "impressions": 3,
+          "ctr": 0,
+          "position": 2.7
+        },
+        {
+          "key": "healthdesk",
+          "clicks": 0,
+          "impressions": 15,
+          "ctr": 0,
+          "position": 10.5
+        },
+        {
+          "key": "healthydesk",
+          "clicks": 0,
+          "impressions": 16,
+          "ctr": 0,
+          "position": 64.5
+        }
+      ],
+      "pages_with_impressions": 5,
+      "submitted_new": 12,
+      "conclusions": [
+        "Pierwszy snapshot — brak danych porównawczych"
+      ]
+    }
+  ]
+}

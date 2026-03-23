@@ -15,6 +15,20 @@ const sharp = require('sharp');
 const app = express();
 const PORT = 4000;
 
+// ─── Windows Toast Notification helper ───
+function showNotification(title, message) {
+  try {
+    const scriptPath = path.join(__dirname, 'notify.ps1');
+    const safeTitle = title.replace(/'/g, "''");
+    const safeMsg = message.replace(/'/g, "''");
+    exec(`powershell -ExecutionPolicy Bypass -File "${scriptPath}" -Title '${safeTitle}' -Message '${safeMsg}'`, { timeout: 10000 }, (err) => {
+      if (err) console.error('[Notification] Failed:', err.message);
+    });
+  } catch (e) {
+    console.error('[Notification] Failed:', e.message);
+  }
+}
+
 // ─── Language name mapping ───
 const LANG_NAMES = {
   pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French',
@@ -3672,6 +3686,8 @@ app.post('/api/calendar/schedule', (req, res) => {
   const intervalDays = cal.interval_days || 3;
 
   // Collect pending keywords PER CLUSTER, per language, sorted by KD (low first)
+  // Deduplicate: track seen keywords globally to avoid scheduling the same keyword twice
+  const seenKeywords = new Set();
   const pendingPerCluster = [];
   for (const cluster of cal.clusters) {
     if (cluster_id && cluster.id !== cluster_id) continue;
@@ -3680,7 +3696,13 @@ app.post('/api/calendar/schedule', (req, res) => {
     for (const l of langsToProcess) {
       const kwList = cluster.keywords[l] || [];
       byLang[l] = kwList
-        .filter(k => k.status === 'pending' && k.serp_verified)
+        .filter(k => {
+          if (k.status !== 'pending' || !k.serp_verified) return false;
+          const key = `${l}|${k.keyword.toLowerCase()}`;
+          if (seenKeywords.has(key)) return false;
+          seenKeywords.add(key);
+          return true;
+        })
         .sort((a, b) => (a.serp_score || 5) - (b.serp_score || 5));
     }
     pendingPerCluster.push({ cluster, byLang });
@@ -3770,12 +3792,20 @@ app.post('/api/calendar/reschedule', (req, res) => {
   }
 
   // Now re-schedule using the same rotation logic
+  // Deduplicate: track seen keywords globally to avoid scheduling the same keyword twice
+  const seenKeywords = new Set();
   const pendingPerCluster = [];
   for (const cluster of cal.clusters) {
     const byLang = {};
     for (const l of Object.keys(cluster.keywords || {})) {
       byLang[l] = cluster.keywords[l]
-        .filter(k => k.status === 'pending' && k.serp_verified)
+        .filter(k => {
+          if (k.status !== 'pending' || !k.serp_verified) return false;
+          const key = `${l}|${k.keyword.toLowerCase()}`;
+          if (seenKeywords.has(key)) return false;
+          seenKeywords.add(key);
+          return true;
+        })
         .sort((a, b) => (a.serp_score || 5) - (b.serp_score || 5));
     }
     pendingPerCluster.push({ cluster, byLang });
@@ -3896,10 +3926,16 @@ function startCalendarScheduler() {
       const cal = loadCalendar();
       if (!cal.auto_enabled) return;
       if (!cal.next_run) return;
-      if (new Date() < new Date(cal.next_run)) return;
       if (calendarProgress && calendarProgress.status === 'running') return;
 
-      console.log(`[Calendar Scheduler] Time to run! next_run was ${cal.next_run}`);
+      // Compare dates only (ignore time), so scheduler triggers on the right DAY regardless of hour
+      const today = new Date().toISOString().split('T')[0];
+      const nextRunDate = new Date(cal.next_run).toISOString().split('T')[0];
+      if (today < nextRunDate) return;
+
+      // If next_run date is in the past (missed days), catch up — process all overdue batches
+      const isOverdue = today > nextRunDate;
+      console.log(`[Calendar Scheduler] Time to run! next_run was ${nextRunDate}, today is ${today}${isOverdue ? ' (catching up!)' : ''}`);
 
       // Trigger batch (1 per language)
       const batch = findNextBatch(cal);
@@ -3990,18 +4026,43 @@ function startCalendarScheduler() {
         }
       }
 
+      // Set next_run to the next scheduled date (date-only, no time component)
       const cal3 = loadCalendar();
-      const nextDate = new Date();
+      const nextDate = new Date(today);
       nextDate.setDate(nextDate.getDate() + (cal3.interval_days || 3));
-      cal3.next_run = nextDate.toISOString();
+      cal3.next_run = nextDate.toISOString().split('T')[0];
       saveCalendar(cal3);
 
       calendarProgress.status = 'done';
       calendarProgress.batch_done = batch.length;
       console.log(`[Scheduler] Batch done: ${completed}/${batch.length}, next: ${cal3.next_run}`);
 
+      // Windows notification with results
+      const okResults = calendarProgress.results.filter(r => r.status === 'ok');
+      const errResults = calendarProgress.results.filter(r => r.status === 'error');
+      const langs = okResults.map(r => r.lang).join(', ');
+      showNotification(
+        `Blog Studio: ${completed}/${batch.length} opublikowanych`,
+        errResults.length > 0
+          ? `Języki: ${langs}. Błędy: ${errResults.length}. Następny: ${cal3.next_run}`
+          : `Języki: ${langs}. Następny run: ${cal3.next_run}`
+      );
+
+      // If there are still overdue batches (missed multiple days), schedule another check soon
+      if (isOverdue) {
+        console.log('[Calendar Scheduler] Was overdue — will check again in 5 minutes for more missed batches');
+        setTimeout(() => {
+          if (!calendarProgress || calendarProgress.status !== 'running') {
+            console.log('[Calendar Scheduler] Re-checking for overdue batches...');
+            // Force re-check by clearing progress
+            calendarProgress = null;
+          }
+        }, 300000); // 5 minutes
+      }
+
     } catch (err) {
       console.error('[Calendar Scheduler] Error:', err.message);
+      showNotification('Blog Studio: BŁĄD', err.message.substring(0, 150));
       if (calendarProgress) {
         calendarProgress.status = 'error';
         calendarProgress.error = err.message;
