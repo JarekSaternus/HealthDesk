@@ -150,10 +150,19 @@ function generateLandingSchema(lang, resolve) {
     url: `${SITE_URL}/${lang}/`,
     downloadUrl: 'https://github.com/JarekSaternus/HealthDesk/releases/latest',
     softwareVersion: PKG_VERSION,
-    author: { '@type': 'Organization', name: 'HealthDesk' }
+    author: AUTHOR_SCHEMA
   };
   return `<script type="application/ld+json">${JSON.stringify(schema)}</script>`;
 }
+
+const AUTHOR_SCHEMA = {
+  '@type': 'Person',
+  name: 'Jarek Saternus',
+  jobTitle: 'CEO at Drocad & SaaS Developer',
+  url: 'https://healthdesk.site',
+  description: 'CEO Drocad sp. z o.o. i twórca HealthDesk. Projektuje i buduje małe aplikacje SaaS z naciskiem na ergonomię, produktywność i zdrowie przy pracy. Łączy doświadczenie w zarządzaniu firmą z pasją do tworzenia narzędzi, które realnie poprawiają codzienną pracę przy komputerze.',
+  sameAs: ['https://github.com/JarekSaternus']
+};
 
 function generateBlogPostSchema(meta, lang, articleHtml) {
   const schema = {
@@ -163,7 +172,7 @@ function generateBlogPostSchema(meta, lang, articleHtml) {
     datePublished: meta.date,
     dateModified: meta.updated || meta.date,
     description: meta.description || '',
-    author: { '@type': 'Organization', name: 'HealthDesk' },
+    author: AUTHOR_SCHEMA,
     publisher: { '@type': 'Organization', name: 'HealthDesk', logo: { '@type': 'ImageObject', url: `${SITE_URL}/logo-color.svg` } },
     mainEntityOfPage: `${SITE_URL}/${lang}/blog/${meta.slug}/`,
     inLanguage: lang
