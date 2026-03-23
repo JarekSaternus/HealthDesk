@@ -3326,20 +3326,13 @@ function findNextKeyword(cal) {
 }
 
 function findNextBatch(cal) {
-  // Cluster rotation: each run picks keywords from ONE cluster, then rotates
-  // to the next cluster on the following run (1→2→3→4→5→1→...)
+  // Strategy: find the EARLIEST scheduled date across ALL clusters,
+  // then pick 1 keyword per language from that date's cluster.
+  // This ensures overdue/missed batches are processed first.
   const today = new Date().toISOString().split('T')[0];
   const skipLangs = new Set();
 
   if (!cal.clusters || cal.clusters.length === 0) return [];
-
-  // Determine which cluster to use (round-robin)
-  const clusterCount = cal.clusters.length;
-  const lastIdx = typeof cal.last_cluster_index === 'number' ? cal.last_cluster_index : -1;
-  const currentIdx = (lastIdx + 1) % clusterCount;
-  const activeCluster = cal.clusters[currentIdx];
-
-  console.log(`[Calendar] Rotation: cluster ${currentIdx + 1}/${clusterCount} — "${activeCluster.name}"`);
 
   // Find languages already published/writing today
   for (const cluster of cal.clusters) {
@@ -3351,51 +3344,68 @@ function findNextBatch(cal) {
     }
   }
 
+  // Find earliest scheduled date across all clusters
+  let earliestDate = null;
+  let earliestClusterIdx = -1;
+  for (let ci = 0; ci < cal.clusters.length; ci++) {
+    const cluster = cal.clusters[ci];
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'scheduled' && kw.scheduled_date) {
+          if (!earliestDate || kw.scheduled_date < earliestDate) {
+            earliestDate = kw.scheduled_date;
+            earliestClusterIdx = ci;
+          }
+        }
+      }
+    }
+  }
+
+  if (earliestClusterIdx === -1) {
+    console.log('[Calendar] No scheduled keywords found in any cluster');
+    return [];
+  }
+
+  const activeCluster = cal.clusters[earliestClusterIdx];
+  console.log(`[Calendar] Earliest scheduled: ${earliestDate}, cluster ${earliestClusterIdx + 1}/${cal.clusters.length} — "${activeCluster.name}"`);
+
   const seenLangs = new Set(skipLangs);
   const batch = [];
 
-  // First pass: scheduled keywords from active cluster (earliest date first)
-  const scheduled = [];
+  // Collect scheduled keywords from this cluster for the earliest date (1 per lang)
   for (const lang of Object.keys(activeCluster.keywords || {})) {
     if (seenLangs.has(lang)) continue;
-    for (const kw of activeCluster.keywords[lang]) {
-      if (kw.status === 'scheduled') {
-        scheduled.push({ ...kw, lang, cluster_id: activeCluster.id });
-      }
-    }
-  }
-  scheduled.sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''));
-  for (const kw of scheduled) {
-    if (!seenLangs.has(kw.lang)) {
-      seenLangs.add(kw.lang);
-      batch.push(kw);
+    // Find keyword scheduled for earliestDate in this lang
+    const kw = activeCluster.keywords[lang].find(k => k.status === 'scheduled' && k.scheduled_date === earliestDate);
+    if (kw) {
+      seenLangs.add(lang);
+      batch.push({ ...kw, lang, cluster_id: activeCluster.id });
     }
   }
 
-  // Second pass: pending keywords from active cluster for missing langs
-  for (const lang of Object.keys(activeCluster.keywords || {})) {
-    if (seenLangs.has(lang)) continue;
-    for (const kw of activeCluster.keywords[lang]) {
-      if (kw.status === 'pending') {
+  // If some langs missing for this date, try same cluster's other scheduled keywords (earliest first)
+  if (batch.length < 12) {
+    for (const lang of Object.keys(activeCluster.keywords || {})) {
+      if (seenLangs.has(lang)) continue;
+      const kw = activeCluster.keywords[lang]
+        .filter(k => k.status === 'scheduled')
+        .sort((a, b) => (a.scheduled_date || '').localeCompare(b.scheduled_date || ''))[0];
+      if (kw) {
         seenLangs.add(lang);
         batch.push({ ...kw, lang, cluster_id: activeCluster.id });
-        break;
       }
     }
   }
 
-  // Save rotation index so next run picks the next cluster
-  cal.last_cluster_index = currentIdx;
+  // Save cluster index for reference
+  cal.last_cluster_index = earliestClusterIdx;
 
   if (skipLangs.size > 0) {
     console.log(`[Calendar] Skipping langs (already done today): ${[...skipLangs].join(', ')}`);
   }
 
   if (batch.length === 0) {
-    // Active cluster exhausted — try next cluster
-    console.log(`[Calendar] Cluster "${activeCluster.name}" has no pending/scheduled keywords, trying next...`);
-    cal.last_cluster_index = currentIdx; // skip this one
-    return findNextBatch(cal);
+    console.log(`[Calendar] Cluster "${activeCluster.name}" has no schedulable keywords`);
   }
 
   return batch;
