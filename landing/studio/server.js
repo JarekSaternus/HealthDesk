@@ -2589,6 +2589,70 @@ app.get('/api/gsc/discover-keywords', async (req, res) => {
 
 const GA4_PROPERTY = 'properties/526378138';
 
+async function fetchGA4Data(days = 30) {
+  const { google } = require('googleapis');
+  const auth = new google.auth.GoogleAuth({
+    keyFile: GSC_KEY_PATH,
+    scopes: ['https://www.googleapis.com/auth/analytics.readonly']
+  });
+  const analyticsdata = google.analyticsdata({ version: 'v1beta', auth });
+
+  const [overview, pages, sources] = await Promise.all([
+    analyticsdata.properties.runReport({
+      property: GA4_PROPERTY,
+      requestBody: {
+        dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+        metrics: [
+          { name: 'sessions' }, { name: 'totalUsers' }, { name: 'screenPageViews' },
+          { name: 'averageSessionDuration' }, { name: 'bounceRate' }
+        ]
+      }
+    }),
+    analyticsdata.properties.runReport({
+      property: GA4_PROPERTY,
+      requestBody: {
+        dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+        dimensions: [{ name: 'pagePath' }],
+        metrics: [{ name: 'screenPageViews' }, { name: 'totalUsers' }, { name: 'bounceRate' }],
+        orderBys: [{ metric: { metricName: 'screenPageViews' }, desc: true }],
+        limit: 20
+      }
+    }),
+    analyticsdata.properties.runReport({
+      property: GA4_PROPERTY,
+      requestBody: {
+        dateRanges: [{ startDate: `${days}daysAgo`, endDate: 'today' }],
+        dimensions: [{ name: 'sessionDefaultChannelGroup' }],
+        metrics: [{ name: 'sessions' }, { name: 'totalUsers' }],
+        orderBys: [{ metric: { metricName: 'sessions' }, desc: true }]
+      }
+    })
+  ]);
+
+  const vals = overview.data.rows?.[0]?.metricValues || [];
+  return {
+    period: `${days} dni`,
+    overview: {
+      sessions: parseInt(vals[0]?.value || 0),
+      users: parseInt(vals[1]?.value || 0),
+      pageviews: parseInt(vals[2]?.value || 0),
+      avg_session_duration: Math.round(parseFloat(vals[3]?.value || 0)),
+      bounce_rate: Math.round(parseFloat(vals[4]?.value || 0) * 1000) / 10
+    },
+    top_pages: (pages.data.rows || []).map(r => ({
+      path: r.dimensionValues[0].value,
+      views: parseInt(r.metricValues[0].value),
+      users: parseInt(r.metricValues[1].value),
+      bounce_rate: Math.round(parseFloat(r.metricValues[2].value || 0) * 1000) / 10
+    })),
+    sources: (sources.data.rows || []).map(r => ({
+      channel: r.dimensionValues[0].value,
+      sessions: parseInt(r.metricValues[0].value),
+      users: parseInt(r.metricValues[1].value)
+    }))
+  };
+}
+
 app.get('/api/ga4/overview', async (req, res) => {
   try {
     const { google } = require('googleapis');
@@ -2761,6 +2825,46 @@ async function runOpportunitiesAnalysis() {
     });
   }
 
+  // GA4 insights: high bounce rate pages, underperforming content
+  try {
+    const ga4 = await fetchGA4Data(30);
+    // High bounce rate on blog pages
+    for (const page of ga4.top_pages) {
+      if (!page.path.includes('/blog/') || page.views < 3) continue;
+      if (page.bounce_rate > 70) {
+        opportunities.push({
+          id: `opp-${Date.now()}-ga4-${opportunities.length}`,
+          date: today, type: 'improve', priority: 'medium',
+          query: `Wysoki bounce rate: ${page.bounce_rate}%`,
+          position: 0, impressions: page.views, clicks: page.users, ctr: 0,
+          page: page.path, matched_article: null,
+          suggestion: `Strona ${page.path} ma ${page.bounce_rate}% bounce rate przy ${page.views} odsłonach. Popraw nagłówek, dodaj spis treści, skróć wstęp.`,
+          status: 'new', action: 'improve'
+        });
+      }
+    }
+    // Pages with traffic but no blog coverage in that language
+    for (const page of ga4.top_pages) {
+      if (page.path.match(/^\/[a-z]{2}(-[A-Z]{2})?\/$/) && page.views >= 5) {
+        const lang = page.path.replace(/\//g, '');
+        const blogPages = ga4.top_pages.filter(p => p.path.startsWith(`/${lang}/blog/`));
+        if (blogPages.length === 0) {
+          opportunities.push({
+            id: `opp-${Date.now()}-ga4lang-${opportunities.length}`,
+            date: today, type: 'opportunity', priority: 'medium',
+            query: `Ruch na /${lang}/ (${page.views} views) bez blogów`,
+            position: 0, impressions: page.views, clicks: page.users, ctr: 0,
+            page: page.path, matched_article: null,
+            suggestion: `Strona główna ${lang} ma ${page.views} odsłon ale żaden blog ${lang} nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.`,
+            status: 'new', action: 'promote'
+          });
+        }
+      }
+    }
+  } catch (ga4Err) {
+    console.error('[Insights] GA4 analysis failed:', ga4Err.message);
+  }
+
   // Sort: high priority first, then by impressions
   const priorityOrder = { high: 0, medium: 1, low: 2 };
   opportunities.sort((a, b) => (priorityOrder[a.priority] - priorityOrder[b.priority]) || (b.impressions - a.impressions));
@@ -2804,6 +2908,42 @@ app.post('/api/insights/:id/action', (req, res) => {
   entry.status = status || 'actioned';
   saveInsights(insights);
   res.json({ ok: true, entry });
+});
+
+// Add insight keyword to content calendar
+app.post('/api/insights/:id/add-to-calendar', (req, res) => {
+  const { lang, cluster_id } = req.body;
+  const insights = loadInsights();
+  const entry = insights.entries.find(e => e.id === req.params.id);
+  if (!entry) return res.status(404).json({ error: 'Insight not found' });
+
+  const cal = loadCalendar();
+  // Find target cluster (first non-GSC cluster if not specified)
+  let cluster = cluster_id
+    ? cal.clusters.find(c => c.id === cluster_id)
+    : cal.clusters.find(c => !c.name.includes('GSC'));
+  if (!cluster) return res.status(400).json({ error: 'No cluster found' });
+
+  const targetLang = lang || 'en';
+  if (!cluster.keywords[targetLang]) cluster.keywords[targetLang] = [];
+
+  // Check duplicate
+  const exists = cluster.keywords[targetLang].some(k => k.keyword.toLowerCase() === entry.query.toLowerCase());
+  if (exists) return res.json({ ok: false, message: 'Keyword already exists in calendar' });
+
+  cluster.keywords[targetLang].push({
+    keyword: entry.query,
+    intent: 'informational', kd: 'low', serp_verified: true, serp_score: 3,
+    status: 'pending', scheduled_date: null, slug: null, published_date: null,
+    gsc_position: entry.position || null, gsc_clicks: entry.clicks || 0,
+    gsc_impressions: entry.impressions || 0, gsc_last_check: null
+  });
+  saveCalendar(cal);
+
+  entry.status = 'actioned';
+  saveInsights(insights);
+
+  res.json({ ok: true, cluster: cluster.name, lang: targetLang, keyword: entry.query });
 });
 
 // ─── Autopilot: progress tracking ───
@@ -4269,20 +4409,88 @@ function startCalendarScheduler() {
           : `Języki: ${langs}. Następny run: ${cal3.next_run}`
       );
 
-      // Run GSC opportunities analysis after batch
+      // Run GA4+GSC snapshot and opportunities analysis after batch
       setTimeout(async () => {
         try {
-          console.log('[Calendar Scheduler] Analiza GSC opportunities...');
-          const opps = await runOpportunitiesAnalysis();
-          if (opps.length > 0) {
-            const top3 = opps.slice(0, 3).map(o =>
-              `• [${o.priority}] "${o.query}" — poz. ${o.position}, ${o.impressions} imp`
-            ).join('\n');
-            showNotification(
-              `Insights: ${opps.length} okazji znalezionych`,
-              `Top frazy:\n${top3}\n\nSzczegóły: http://localhost:4000 → Insights`
-            );
+          console.log('[Calendar Scheduler] Snapshot GA4+GSC...');
+
+          // GA4+GSC snapshot to history
+          const historyPath = path.join(__dirname, 'gsc_history.json');
+          let history;
+          try { history = JSON.parse(fs.readFileSync(historyPath, 'utf-8')); }
+          catch { history = { snapshots: [] }; }
+
+          const snapshot = { date: new Date().toISOString().split('T')[0] };
+
+          try {
+            const ga4 = await fetchGA4Data(30);
+            snapshot.ga4 = ga4.overview;
+            snapshot.ga4_top_pages = ga4.top_pages.slice(0, 10);
+            snapshot.ga4_sources = ga4.sources;
+          } catch (e) { console.error('[Snapshot] GA4 failed:', e.message); }
+
+          try {
+            const { google } = require('googleapis');
+            const auth = getGscAuth();
+            const sc = google.searchconsole({ version: 'v1', auth });
+            const end = new Date(), start = new Date();
+            start.setDate(start.getDate() - 30);
+            const gscResult = await sc.searchanalytics.query({
+              siteUrl: SITE_URL_GSC,
+              requestBody: {
+                startDate: start.toISOString().slice(0, 10),
+                endDate: end.toISOString().slice(0, 10),
+                dimensions: ['query'], rowLimit: 20
+              }
+            });
+            const rows = gscResult.data.rows || [];
+            snapshot.gsc = {
+              total_impressions: rows.reduce((s, r) => s + r.impressions, 0),
+              total_clicks: rows.reduce((s, r) => s + r.clicks, 0),
+              queries: rows.length,
+              top_queries: rows.slice(0, 10).map(r => ({
+                query: r.keys[0], impressions: r.impressions,
+                clicks: r.clicks, position: Math.round(r.position * 10) / 10
+              }))
+            };
+          } catch (e) { console.error('[Snapshot] GSC failed:', e.message); }
+
+          // Compare with previous
+          const prev = history.snapshots[history.snapshots.length - 1];
+          const conclusions = [];
+          if (prev?.ga4 && snapshot.ga4) {
+            const sessDiff = snapshot.ga4.sessions - prev.ga4.sessions;
+            const viewsDiff = snapshot.ga4.pageviews - prev.ga4.pageviews;
+            conclusions.push(sessDiff >= 0 ? `Sesje: ${prev.ga4.sessions} → ${snapshot.ga4.sessions} (+${sessDiff})` : `Sesje spadły: ${prev.ga4.sessions} → ${snapshot.ga4.sessions}`);
+            conclusions.push(`Odsłony: ${prev.ga4.pageviews} → ${snapshot.ga4.pageviews} (${viewsDiff >= 0 ? '+' : ''}${viewsDiff})`);
           }
+          if (prev?.gsc && snapshot.gsc) {
+            const impDiff = snapshot.gsc.total_impressions - prev.gsc.total_impressions;
+            conclusions.push(`GSC impresje: ${prev.gsc.total_impressions} → ${snapshot.gsc.total_impressions} (${impDiff >= 0 ? '+' : ''}${impDiff})`);
+          }
+          snapshot.conclusions = conclusions;
+
+          history.snapshots.push(snapshot);
+          if (history.snapshots.length > 100) history.snapshots = history.snapshots.slice(-100);
+          fs.writeFileSync(historyPath, JSON.stringify(history, null, 2), 'utf-8');
+          console.log('[Snapshot] GA4+GSC saved to history');
+
+          // Opportunities analysis (GSC + GA4 combined)
+          console.log('[Calendar Scheduler] Analiza opportunities...');
+          const opps = await runOpportunitiesAnalysis();
+
+          // Popup with combined results
+          const ga4Line = snapshot.ga4 ? `GA4: ${snapshot.ga4.sessions} sesji, ${snapshot.ga4.pageviews} odsłon, bounce ${snapshot.ga4.bounce_rate}%` : '';
+          const gscLine = snapshot.gsc ? `GSC: ${snapshot.gsc.total_impressions} impresji, ${snapshot.gsc.total_clicks} kliknięć` : '';
+          const oppsLine = opps.length > 0
+            ? `\nInsights: ${opps.length} okazji\n` + opps.slice(0, 3).map(o => `• "${o.query}" (${o.type})`).join('\n')
+            : '\nBrak nowych okazji';
+          const concLine = conclusions.length > 0 ? '\n\nTrend:\n' + conclusions.join('\n') : '';
+
+          showNotification(
+            `Blog Studio: raport po batch`,
+            `${ga4Line}\n${gscLine}${oppsLine}${concLine}\n\nSzczegóły: localhost:4000 → Insights`
+          );
         } catch (e) {
           console.error('[Insights] Błąd analizy:', e.message);
         }

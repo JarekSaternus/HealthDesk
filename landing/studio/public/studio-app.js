@@ -2929,7 +2929,11 @@ function renderInsightsFeed(entries) {
           <div class="insight-suggestion">${escapeHtml(e.suggestion)}</div>
           ${e.matched_article ? `<div class="insight-article">Post: [${e.matched_article.lang}] ${escapeHtml(e.matched_article.slug)}</div>` : ''}
           <div class="insight-actions">
-            ${e.status !== 'dismissed' ? `<button class="btn btn-sm" onclick="insightAction('${e.id}','dismissed')">Odrzuć</button>` : '<span style="color:var(--text-dim)">Odrzucone</span>'}
+            ${e.type === 'new-keyword' && e.status === 'new' ? `<button class="btn btn-sm btn-primary" onclick="addInsightToCalendar('${e.id}','${escapeHtml(e.query)}')">Dodaj do kalendarza</button>` : ''}
+            ${e.type === 'improve' && e.status === 'new' && e.matched_article ? `<button class="btn btn-sm btn-primary" onclick="window.open('/editor?slug=${e.matched_article.slug}&lang=${e.matched_article.lang}','_self')">Otwórz w edytorze</button>` : ''}
+            ${e.status === 'new' ? `<button class="btn btn-sm" onclick="insightAction('${e.id}','dismissed')">Odrzuć</button>` : ''}
+            ${e.status === 'actioned' ? '<span style="color:var(--green)">✓ Wdrożone</span>' : ''}
+            ${e.status === 'dismissed' ? '<span style="color:var(--text-dim)">Odrzucone</span>' : ''}
           </div>
         </div>`;
     }
@@ -2955,6 +2959,25 @@ async function runOpportunities() {
     showToast('Błąd: ' + err.message);
   }
   btn.disabled = false; btn.textContent = 'Analizuj GSC';
+}
+
+async function addInsightToCalendar(id, query) {
+  const lang = prompt('Język keywordu (np. en, pl, de):', 'en');
+  if (!lang) return;
+  try {
+    const res = await fetch(`/api/insights/${id}/add-to-calendar`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lang })
+    });
+    const data = await res.json();
+    if (data.ok) {
+      showToast(`Dodano "${query}" do klastra "${data.cluster}" [${lang}]`);
+      loadInsights();
+    } else {
+      showToast(data.message || 'Błąd');
+    }
+  } catch (err) { showToast('Błąd: ' + err.message); }
 }
 
 async function insightAction(id, status) {
