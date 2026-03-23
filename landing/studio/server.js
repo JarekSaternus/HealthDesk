@@ -4282,6 +4282,28 @@ let calendarSchedulerInterval = null;
 
 function startCalendarScheduler() {
   if (calendarSchedulerInterval) return;
+
+  // Recovery: reset any "writing" keywords back to "scheduled" (stuck from crashed batch)
+  try {
+    const cal = loadCalendar();
+    let recovered = 0;
+    for (const cluster of cal.clusters) {
+      for (const lang of Object.keys(cluster.keywords || {})) {
+        for (const kw of cluster.keywords[lang]) {
+          if (kw.status === 'writing') {
+            kw.status = 'scheduled';
+            recovered++;
+          }
+        }
+      }
+    }
+    if (recovered > 0) {
+      saveCalendar(cal);
+      console.log(`[Calendar Scheduler] Recovered ${recovered} stuck "writing" keywords → scheduled`);
+    }
+  } catch (e) {
+    console.error('[Calendar Scheduler] Recovery failed:', e.message);
+  }
   calendarSchedulerInterval = setInterval(async () => {
     try {
       const cal = loadCalendar();
