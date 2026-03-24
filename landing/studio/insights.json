@@ -62,7 +62,70 @@
       "suggestion": "Strona główna ko ma 5 odsłon ale żaden blog ko nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
       "status": "new",
       "action": "promote"
+    },
+    {
+      "id": "opp-1774381046267-0",
+      "date": "2026-03-24",
+      "type": "new-keyword",
+      "query": "healthdesk",
+      "position": 11.7,
+      "impressions": 14,
+      "clicks": 0,
+      "ctr": 0,
+      "page": "/en/",
+      "matched_article": null,
+      "suggestion": "Nowa fraza \"healthdesk\" — 14 impresji, nie mamy posta. Dodaj do kalendarza.",
+      "priority": "high",
+      "status": "new"
+    },
+    {
+      "id": "opp-1774381047179-ga4lang-1",
+      "date": "2026-03-24",
+      "type": "opportunity",
+      "priority": "medium",
+      "query": "Ruch na /zh-CN/ (13 views) bez blogów",
+      "position": 0,
+      "impressions": 13,
+      "clicks": 3,
+      "ctr": 0,
+      "page": "/zh-CN/",
+      "matched_article": null,
+      "suggestion": "Strona główna zh-CN ma 13 odsłon ale żaden blog zh-CN nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
+      "status": "new",
+      "action": "promote"
+    },
+    {
+      "id": "opp-1774381047179-ga4lang-2",
+      "date": "2026-03-24",
+      "type": "opportunity",
+      "priority": "medium",
+      "query": "Ruch na /ja/ (10 views) bez blogów",
+      "position": 0,
+      "impressions": 10,
+      "clicks": 1,
+      "ctr": 0,
+      "page": "/ja/",
+      "matched_article": null,
+      "suggestion": "Strona główna ja ma 10 odsłon ale żaden blog ja nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
+      "status": "new",
+      "action": "promote"
+    },
+    {
+      "id": "opp-1774381047179-ga4lang-3",
+      "date": "2026-03-24",
+      "type": "opportunity",
+      "priority": "medium",
+      "query": "Ruch na /ko/ (5 views) bez blogów",
+      "position": 0,
+      "impressions": 5,
+      "clicks": 3,
+      "ctr": 0,
+      "page": "/ko/",
+      "matched_article": null,
+      "suggestion": "Strona główna ko ma 5 odsłon ale żaden blog ko nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.",
+      "status": "new",
+      "action": "promote"
     }
   ],
-  "last_run": "2026-03-23T15:30:27.744Z"
+  "last_run": "2026-03-24T19:37:27.179Z"
 }
