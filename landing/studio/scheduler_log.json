@@ -147,6 +147,86 @@
       ],
       "completed": 10,
       "errors": 0
+    },
+    {
+      "date": "2026-03-26T07:46:58.937Z",
+      "batch_size": 12,
+      "results": [
+        {
+          "lang": "pl",
+          "keyword": "ćwiczenia na oczy przy długiej pracy biurowej",
+          "status": "skipped",
+          "slug": "cwiczenia-na-oczy-przy-dlugiej-pracy-biurowej"
+        },
+        {
+          "lang": "en",
+          "keyword": "tips to improve posture while sitting at a desk all day",
+          "status": "skipped",
+          "slug": "tips-to-improve-posture-while-sitting-at-a-desk-all-day"
+        },
+        {
+          "lang": "de",
+          "keyword": "augenübungen bei langer bildschirmarbeit büro",
+          "status": "skipped",
+          "slug": "augenubungen-bei-langer-bildschirmarbeit-buro"
+        },
+        {
+          "lang": "es",
+          "keyword": "ejercicios para los ojos frente a la pantalla todo el día",
+          "status": "skipped",
+          "slug": "ejercicios-para-los-ojos-frente-a-la-pantalla-todo-el-dia"
+        },
+        {
+          "lang": "fr",
+          "keyword": "comment faire des pauses actives au bureau efficacement",
+          "status": "skipped",
+          "slug": "comment-faire-des-pauses-actives-au-bureau-efficacement"
+        },
+        {
+          "lang": "it",
+          "keyword": "esercizi per gli occhi dopo ore di lavoro al computer",
+          "status": "skipped",
+          "slug": "esercizi-per-gli-occhi-dopo-ore-di-lavoro-al-computer"
+        },
+        {
+          "lang": "pt-BR",
+          "keyword": "exercícios para os olhos depois de horas na tela do computador",
+          "status": "skipped",
+          "slug": "exercicios-para-os-olhos-depois-de-horas-na-tela-do-computador"
+        },
+        {
+          "lang": "ja",
+          "keyword": "在宅勤務で正しい姿勢を保つためのコツ",
+          "status": "skipped",
+          "slug": "tips-for-maintaining-correct-posture-working-from-home"
+        },
+        {
+          "lang": "zh-CN",
+          "keyword": "眼睛疲劳怎么缓解盯屏幕太久的解决方法",
+          "status": "skipped",
+          "slug": "how-to-relieve-eye-strain-from-screens"
+        },
+        {
+          "lang": "ko",
+          "keyword": "재택근무 중 올바른 자세 유지하는 실용적인 팁",
+          "status": "ok",
+          "slug": "proper-posture-tips-working-from-home"
+        },
+        {
+          "lang": "tr",
+          "keyword": "ofis çalışanları için bilgisayar başında göz egzersizleri",
+          "status": "ok",
+          "slug": "ofis-calisanlari-icin-bilgisayar-basinda-goz-egzersizleri"
+        },
+        {
+          "lang": "ru",
+          "keyword": "как улучшить осанку при сидячей работе в офисе",
+          "status": "ok",
+          "slug": "kak-uluchshit-osanku-pri-sidyachey-rabote-v-ofise"
+        }
+      ],
+      "completed": 12,
+      "errors": 0
     }
   ]
 }

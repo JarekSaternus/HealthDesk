@@ -2152,6 +2152,67 @@ function getGeminiKey() {
   return studio.gemini_api_key || process.env.GEMINI_API_KEY || null;
 }
 
+// ─── Helper: Validate post completeness ───
+function validatePost(slug, lang) {
+  const issues = [];
+  const mdFile = path.join(BLOG_DIR, lang, `${slug}.md`);
+  const imgFile = path.join(BLOG_IMAGES_DIR, `${slug}.webp`);
+
+  // Check .md exists
+  if (!fs.existsSync(mdFile)) {
+    issues.push({ field: 'file', message: 'Markdown file missing' });
+    return { valid: false, issues };
+  }
+
+  const content = fs.readFileSync(mdFile, 'utf8');
+  const fmMatch = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!fmMatch) {
+    issues.push({ field: 'frontmatter', message: 'No frontmatter block found' });
+    return { valid: false, issues };
+  }
+
+  const fm = fmMatch[1];
+  // Required frontmatter fields
+  for (const field of ['title', 'slug', 'description', 'keyword', 'date', 'lang']) {
+    if (!new RegExp(`^${field}:`, 'm').test(fm)) {
+      issues.push({ field, message: `Missing frontmatter field: ${field}` });
+    }
+  }
+
+  // Check hero image
+  if (!fs.existsSync(imgFile)) {
+    issues.push({ field: 'heroImage', message: 'Hero image .webp missing' });
+  }
+
+  // Check content length (body after frontmatter)
+  const body = content.replace(/^---\n[\s\S]*?\n---\n?/, '');
+  if (body.length < 500) {
+    issues.push({ field: 'content', message: `Content too short (${body.length} chars, min 500)` });
+  }
+
+  return { valid: issues.length === 0, issues };
+}
+
+// ─── Helper: Image regeneration queue ───
+const REGEN_QUEUE_PATH = path.join(__dirname, 'image_regen_queue.json');
+
+function loadRegenQueue() {
+  try { return JSON.parse(fs.readFileSync(REGEN_QUEUE_PATH, 'utf-8')); }
+  catch { return []; }
+}
+
+function saveRegenQueue(queue) {
+  fs.writeFileSync(REGEN_QUEUE_PATH, JSON.stringify(queue, null, 2), 'utf-8');
+}
+
+function addToRegenQueue(slug, lang, reason) {
+  const queue = loadRegenQueue();
+  if (queue.find(q => q.slug === slug && q.lang === lang)) return; // already queued
+  queue.push({ slug, lang, reason, added: new Date().toISOString() });
+  saveRegenQueue(queue);
+  console.log(`[RegenQueue] Added ${lang}/${slug}: ${reason}`);
+}
+
 // ─── Helper: Generate hero image ───
 async function doHeroImage(slug, lang, title, description, style) {
   const apiKey = getGeminiKey();
@@ -2160,58 +2221,97 @@ async function doHeroImage(slug, lang, title, description, style) {
   const langName = getLangName(lang);
   const styleHint = style || 'clean, modern, professional';
 
+  // Cultural context for localized imagery
+  const culturalContext = {
+    'pl': 'Polish/Central European setting — Polish-looking people, European office style, subtle Polish cultural elements',
+    'en': 'International/Western setting — diverse people, modern Western-style office or home office',
+    'de': 'German/DACH setting — German-looking people, orderly German-style workspace, subtle German cultural elements',
+    'es': 'Spanish/Latin setting — Hispanic/Latino people, warm Mediterranean or Latin American office atmosphere',
+    'fr': 'French setting — French-looking people, elegant Parisian-style workspace, subtle French cultural touches',
+    'it': 'Italian setting — Italian-looking people, stylish Italian workspace, warm Mediterranean atmosphere',
+    'pt-BR': 'Brazilian setting — Brazilian/mixed-race people, tropical or modern Brazilian office, warm vibrant atmosphere',
+    'ja': 'Japanese setting — Japanese people, minimalist Japanese-style workspace, subtle Japanese cultural elements (bonsai, shoji, tatami)',
+    'zh-CN': 'Chinese setting — Chinese people, modern Chinese office or home, subtle Chinese cultural elements (tea, calligraphy, bamboo)',
+    'ko': 'Korean setting — Korean people, modern Korean-style workspace, subtle Korean cultural elements (hanok influence, clean aesthetics)',
+    'tr': 'Turkish setting — Turkish people, Turkish office environment, subtle Turkish cultural elements (tea, kilim patterns)',
+    'ru': 'Russian setting — Russian-looking people, Russian office or home office, subtle Russian cultural touches'
+  };
+  const cultureHint = culturalContext[lang] || 'International setting';
+
   const imagePrompt = `Generate a photorealistic hero image for a blog article.
 
 Article: "${title}"
 Description: ${description}
 Style: ${styleHint}
 
+Cultural context: ${cultureHint}
+
 Requirements:
 - Photorealistic or high-quality illustration, landscape orientation (16:9)
 - Related to workplace health, wellness, productivity, or ergonomics
-- No text, no typography, no watermarks in the image
-- No visible human faces (show hands, silhouettes, or objects instead)
+- Reflect the cultural context: show people and environment matching the target audience's ethnicity and culture
+- If any decorative text or signage appears naturally in the scene, use ${langName} language
+- When showing people: use natural, candid angles — over-the-shoulder, from behind, hands close-up, or wide environmental shots where the person is part of the scene. NEVER crop or hide the head unnaturally. It is OK to show the back of someone's head, a side profile, or a person seen from a distance. The goal is a natural photo, not a faceless mannequin.
+- Prefer showing objects, workspaces, or hands-on-keyboard scenes when people are not essential to the image
 - Good contrast, visually striking for a blog header and og:image
 - Warm, inviting atmosphere with natural lighting
 
 After generating the image, write a single line of SEO alt text (max 125 characters) in ${langName} describing what the image shows. Format: ALT: <your alt text>`;
 
-  console.log(`[Image] Calling Gemini 3.1 Flash Image for "${title}"...`);
-  const geminiRes = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
-    {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ parts: [{ text: imagePrompt }] }],
-        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-      })
-    }
-  );
-
-  if (!geminiRes.ok) {
-    const err = await geminiRes.json();
-    throw new Error(err.error?.message || `Gemini API error: ${geminiRes.status}`);
-  }
-
-  const geminiData = await geminiRes.json();
-
+  const MAX_RETRIES = 3;
   let imageBase64 = null;
   let imageMime = null;
   let altText = title;
-  const parts = geminiData.candidates?.[0]?.content?.parts || [];
-  for (const part of parts) {
-    if (part.inlineData) {
-      imageBase64 = part.inlineData.data;
-      imageMime = part.inlineData.mimeType;
-    }
-    if (part.text) {
-      const altMatch = part.text.match(/ALT:\s*(.+)/i);
-      if (altMatch) altText = altMatch[1].trim().slice(0, 125).replace(/"/g, "'");
+  let lastError = null;
+
+  for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
+    try {
+      console.log(`[Image] Calling Gemini 3.1 Flash Image for "${title}" (attempt ${attempt}/${MAX_RETRIES})...`);
+      const geminiRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-image-preview:generateContent?key=${apiKey}`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: imagePrompt }] }],
+            generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
+          })
+        }
+      );
+
+      if (!geminiRes.ok) {
+        const err = await geminiRes.json();
+        throw new Error(err.error?.message || `Gemini API error: ${geminiRes.status}`);
+      }
+
+      const geminiData = await geminiRes.json();
+
+      const parts = geminiData.candidates?.[0]?.content?.parts || [];
+      for (const part of parts) {
+        if (part.inlineData) {
+          imageBase64 = part.inlineData.data;
+          imageMime = part.inlineData.mimeType;
+        }
+        if (part.text) {
+          const altMatch = part.text.match(/ALT:\s*(.+)/i);
+          if (altMatch) altText = altMatch[1].trim().slice(0, 125).replace(/"/g, "'");
+        }
+      }
+
+      if (!imageBase64) throw new Error('Gemini did not return an image');
+      break; // success
+    } catch (err) {
+      lastError = err;
+      console.error(`[Image] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
+      if (attempt < MAX_RETRIES) {
+        const delay = attempt * 3000;
+        console.log(`[Image] Retrying in ${delay / 1000}s...`);
+        await new Promise(r => setTimeout(r, delay));
+      }
     }
   }
 
-  if (!imageBase64) throw new Error('Gemini did not return an image. Try again.');
+  if (!imageBase64) throw new Error(`Hero image failed after ${MAX_RETRIES} attempts: ${lastError?.message}`);
 
   console.log(`[Image] Received ${imageMime} image, converting to WebP...`);
   const imgBuffer = Buffer.from(imageBase64, 'base64');
@@ -2285,6 +2385,24 @@ app.delete('/api/hero-image/:slug', (req, res) => {
   const filepath = path.join(BLOG_IMAGES_DIR, `${req.params.slug}.webp`);
   if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
   res.json({ ok: true });
+});
+
+// Image regeneration queue API
+app.get('/api/image-regen-queue', (req, res) => {
+  res.json(loadRegenQueue());
+});
+
+app.post('/api/image-regen-queue', (req, res) => {
+  const { slug, lang, reason } = req.body;
+  if (!slug || !lang) return res.status(400).json({ error: 'slug and lang required' });
+  addToRegenQueue(slug, lang, reason || 'manual request');
+  res.json({ ok: true, queue: loadRegenQueue() });
+});
+
+app.delete('/api/image-regen-queue/:slug', (req, res) => {
+  const queue = loadRegenQueue().filter(q => q.slug !== req.params.slug);
+  saveRegenQueue(queue);
+  res.json({ ok: true, queue });
 });
 
 // ─── GSC Indexing ───
@@ -3151,8 +3269,9 @@ async function runAutopilot(lang, topic, persona) {
       `keyword: "${topic.replace(/"/g, '\\"')}"`,
       `tags: [${(outline.tags || []).map(t => `"${t}"`).join(', ')}]`,
       `lang: ${lang}`,
-      siblingsYaml,
+      heroResult?.filename ? `heroImage: "${heroResult.filename}"` : null,
       heroResult?.altText ? `image_alt: "${heroResult.altText}"` : null,
+      siblingsYaml,
       draftResult.faqYaml || null,
       '---'
     ].filter(Boolean).join('\n');
@@ -4346,6 +4465,85 @@ function startCalendarScheduler() {
       const isOverdue = today > nextRunDate || hasOverdueKeywords;
       console.log(`[Calendar Scheduler] Time to run! next_run was ${nextRunDate}, today is ${today}${isOverdue ? ' (catching up!)' : ''}`);
 
+      // ─── Repair pass: fix recently published posts with missing images ───
+      try {
+        console.log('[Calendar Scheduler] Running repair pass...');
+        const langs = fs.readdirSync(BLOG_DIR).filter(d => fs.statSync(path.join(BLOG_DIR, d)).isDirectory());
+        let repaired = 0;
+        for (const lang of langs) {
+          const files = fs.readdirSync(path.join(BLOG_DIR, lang)).filter(f => f.endsWith('.md'));
+          // Check only recent posts (last 30 files by mtime)
+          const sorted = files
+            .map(f => ({ name: f, mtime: fs.statSync(path.join(BLOG_DIR, lang, f)).mtimeMs }))
+            .sort((a, b) => b.mtime - a.mtime)
+            .slice(0, 30);
+          for (const { name } of sorted) {
+            const slug = name.replace('.md', '');
+            const imgPath = path.join(BLOG_IMAGES_DIR, `${slug}.webp`);
+            if (!fs.existsSync(imgPath)) {
+              console.log(`[Repair] Missing image for ${lang}/${slug}, generating...`);
+              try {
+                const content = fs.readFileSync(path.join(BLOG_DIR, lang, name), 'utf-8');
+                const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+                const descMatch = content.match(/^description:\s*["']?(.+?)["']?\s*$/m);
+                await doHeroImage(slug, lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
+                // Add heroImage to frontmatter if missing
+                let updated = fs.readFileSync(path.join(BLOG_DIR, lang, name), 'utf-8');
+                if (!updated.includes('heroImage:')) {
+                  updated = updated.replace(/^(---\n)/, `$1heroImage: "${slug}.webp"\n`);
+                  fs.writeFileSync(path.join(BLOG_DIR, lang, name), updated, 'utf-8');
+                }
+                repaired++;
+                console.log(`[Repair] Fixed image for ${lang}/${slug}`);
+              } catch (repairErr) {
+                console.error(`[Repair] Failed for ${lang}/${slug}: ${repairErr.message}`);
+              }
+            }
+          }
+        }
+        // Process regeneration queue (images queued for re-generation due to quality issues)
+        const regenQueue = loadRegenQueue();
+        if (regenQueue.length > 0) {
+          console.log(`[Repair] Processing ${regenQueue.length} queued image regenerations...`);
+          const remaining = [];
+          for (const item of regenQueue) {
+            try {
+              const mdFile = path.join(BLOG_DIR, item.lang, `${item.slug}.md`);
+              if (!fs.existsSync(mdFile)) { continue; } // post deleted, skip
+              const content = fs.readFileSync(mdFile, 'utf-8');
+              const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+              const descMatch = content.match(/^description:\s*["']?(.+?)["']?\s*$/m);
+              await doHeroImage(item.slug, item.lang, titleMatch?.[1] || item.slug, descMatch?.[1] || '');
+              repaired++;
+              console.log(`[Repair] Regenerated image for ${item.lang}/${item.slug} (was: ${item.reason})`);
+            } catch (regenErr) {
+              console.error(`[Repair] Regen failed for ${item.lang}/${item.slug}: ${regenErr.message}`);
+              remaining.push(item); // keep in queue for next run
+            }
+          }
+          saveRegenQueue(remaining);
+        }
+
+        if (repaired > 0) {
+          console.log(`[Repair] Repaired ${repaired} images, rebuilding...`);
+          execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+          try {
+            await new Promise((resolve, reject) => {
+              exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+                if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
+              });
+            });
+            console.log(`[Repair] Deployed repaired site`);
+          } catch (deployErr) {
+            console.error(`[Repair] Deploy after repair failed: ${deployErr.message}`);
+          }
+        } else {
+          console.log('[Repair] All recent posts have images — nothing to repair');
+        }
+      } catch (repairErr) {
+        console.error('[Calendar Scheduler] Repair pass failed:', repairErr.message);
+      }
+
       // Trigger batch (1 per language)
       const batch = findNextBatch(cal);
       if (batch.length === 0) {
@@ -4432,19 +4630,59 @@ function startCalendarScheduler() {
           const result = await runAutopilot(item.lang, item.keyword);
           const slug = result.slug;
 
+          // Step 1.5: Validate post completeness
+          calendarProgress.step = `validate (${i + 1}/${batch.length})`;
+          const validation = validatePost(slug, item.lang);
+          if (!validation.valid) {
+            const imgIssue = validation.issues.find(i => i.field === 'heroImage');
+            if (imgIssue && validation.issues.length === 1) {
+              // Only image missing — retry hero image generation
+              console.log(`${label} Validation: hero image missing, retrying...`);
+              try {
+                const mdContent = fs.readFileSync(path.join(BLOG_DIR, item.lang, `${slug}.md`), 'utf-8');
+                const titleMatch = mdContent.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+                const descMatch = mdContent.match(/^description:\s*["']?(.+?)["']?\s*$/m);
+                await doHeroImage(slug, item.lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
+                console.log(`${label} Hero image recovered successfully`);
+              } catch (imgRetryErr) {
+                console.error(`${label} Hero image retry failed: ${imgRetryErr.message} — deploying without image`);
+              }
+            } else {
+              const issueList = validation.issues.map(i => `${i.field}: ${i.message}`).join('; ');
+              console.error(`${label} Validation failed: ${issueList}`);
+            }
+          }
+
           // Step 2: Build
           calendarProgress.step = `build (${i + 1}/${batch.length})`;
           console.log(`${label} Building...`);
           execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
 
-          // Step 3: Deploy to FTP
+          // Step 3: Deploy to FTP (with retry)
           calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
           console.log(`${label} Deploying...`);
-          await new Promise((resolve, reject) => {
-            exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
-              if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
-            });
-          });
+          let deployAttempts = 3;
+          let deployOk = false;
+          for (let d = 1; d <= deployAttempts; d++) {
+            try {
+              await new Promise((resolve, reject) => {
+                exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+                  if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
+                });
+              });
+              deployOk = true;
+              break;
+            } catch (deployErr) {
+              console.error(`${label} Deploy attempt ${d}/${deployAttempts} failed: ${deployErr.message}`);
+              if (d < deployAttempts) {
+                const delay = d * 5000;
+                console.log(`${label} Retrying deploy in ${delay / 1000}s...`);
+                await new Promise(r => setTimeout(r, delay));
+              } else {
+                throw new Error(`Deploy failed after ${deployAttempts} attempts: ${deployErr.message}`);
+              }
+            }
+          }
 
           // Step 4: GSC submit
           calendarProgress.step = `gsc (${i + 1}/${batch.length})`;
