@@ -8,6 +8,7 @@
  *   node gsc-index.js --url <url>      # zgłoś konkretny URL
  *   node gsc-index.js --status         # pokaż status indeksowania (wymaga zweryfikowanego właściciela)
  *   node gsc-index.js --status --url <url>  # status konkretnego URL-a
+ *   node gsc-index.js --resubmit-sitemap    # ponownie zgłoś sitemap.xml do GSC
  *
  * Wymaga: landing/gsc-key.json (Service Account key)
  */
@@ -25,6 +26,7 @@ const SITE_URL = 'https://healthdesk.site';
 const args = process.argv.slice(2);
 const flagAll = args.includes('--all');
 const flagStatus = args.includes('--status');
+const flagResubmitSitemap = args.includes('--resubmit-sitemap');
 const flagUrlIdx = args.indexOf('--url');
 const flagUrl = flagUrlIdx !== -1 ? args[flagUrlIdx + 1] : null;
 
@@ -124,8 +126,40 @@ async function inspectUrl(auth, url) {
   }
 }
 
+// ─── Resubmit sitemap ───
+async function resubmitSitemap() {
+  const auth = new google.auth.GoogleAuth({
+    keyFile: KEY_PATH,
+    scopes: ['https://www.googleapis.com/auth/webmasters'],
+  });
+  const wm = google.webmasters({ version: 'v3', auth });
+  const sitemapUrl = SITE_URL + '/sitemap.xml';
+  await wm.sitemaps.submit({
+    siteUrl: 'sc-domain:healthdesk.site',
+    feedpath: sitemapUrl,
+  });
+  // Verify
+  const res = await wm.sitemaps.get({
+    siteUrl: 'sc-domain:healthdesk.site',
+    feedpath: sitemapUrl,
+  });
+  const data = res.data;
+  const urlCount = getUrlsFromSitemap().length;
+  console.log(`✅ Sitemap zgłoszona ponownie: ${sitemapUrl}`);
+  console.log(`   Ostatnie przesłanie: ${data.lastSubmitted}`);
+  console.log(`   Status: ${data.isPending ? 'oczekuje na pobranie' : 'pobrana'}`);
+  console.log(`   URL-ów w lokalnej sitemapie: ${urlCount}`);
+  console.log(`   URL-ów wg GSC: ${data.contents?.[0]?.submitted || '?'}`);
+}
+
 // ─── Main ───
 async function main() {
+  // Resubmit sitemap mode
+  if (flagResubmitSitemap) {
+    await resubmitSitemap();
+    return;
+  }
+
   // Status mode
   if (flagStatus) {
     console.log('Sprawdzanie statusu indeksowania...\n');

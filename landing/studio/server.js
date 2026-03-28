@@ -4873,7 +4873,36 @@ function startCalendarScheduler() {
   // Run first check 30s after startup (don't wait a full hour)
   setTimeout(schedulerCheck, 30000);
 
+  // ─── Sitemap resubmit co 7 dni ───
+  const SITEMAP_RESUBMIT_STATE = path.join(__dirname, '.sitemap-resubmit.json');
+  const sitemapResubmitCheck = async () => {
+    try {
+      if (!fs.existsSync(GSC_KEY_PATH)) return;
+      let state = {};
+      try { state = JSON.parse(fs.readFileSync(SITEMAP_RESUBMIT_STATE, 'utf-8')); } catch {}
+      const lastResubmit = state.lastResubmit ? new Date(state.lastResubmit) : new Date(0);
+      const daysSince = (Date.now() - lastResubmit.getTime()) / (1000 * 60 * 60 * 24);
+      if (daysSince < 7) return;
+
+      const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/webmasters'] });
+      const wm = google.webmasters({ version: 'v3', auth });
+      await wm.sitemaps.submit({
+        siteUrl: SITE_URL_GSC,
+        feedpath: 'https://healthdesk.site/sitemap.xml',
+      });
+      state.lastResubmit = new Date().toISOString();
+      fs.writeFileSync(SITEMAP_RESUBMIT_STATE, JSON.stringify(state, null, 2), 'utf-8');
+      console.log(`[Sitemap Resubmit] Sitemap zgłoszona ponownie do GSC (co 7 dni)`);
+    } catch (e) {
+      console.error('[Sitemap Resubmit] Error:', e.message);
+    }
+  };
+  // Check on startup (60s delay) and then every 24h
+  setTimeout(sitemapResubmitCheck, 60000);
+  setInterval(sitemapResubmitCheck, 86400000);
+
   console.log('[Calendar Scheduler] Started (checking every hour, first check in 30s)');
+  console.log('[Sitemap Resubmit] Active (every 7 days, checked daily)');
 }
 
 // ─── Start ───
