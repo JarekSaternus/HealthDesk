@@ -1,4 +1,5 @@
 ---
+heroImage: "como-reducir-la-fatiga-visual-frente-a-la-pantalla.webp"
 title: "Reduce la fatiga visual: guía práctica con ejercicios"
 slug: "como-reducir-la-fatiga-visual-frente-a-la-pantalla"
 date: 2026-03-23
@@ -15,6 +16,7 @@ faq:
     a: "Ardor, picazón, visión borrosa transitoria, dolor de cabeza frontal o temporal y sensibilidad aumentada a la luz."
   - q: "¿El aire acondicionado agrava la fatiga visual?"
     a: "Sí, la ventilación artificial reseca la película lagrimal que protege la córnea, empeorando los síntomas."
+image_alt: "Una profesional en una oficina cálida y moderna descansa la vista de la pantalla, con un cartel de 'Cuida tu vista'."
 ---
 ## ¿Qué es la fatiga visual y por qué ocurre?
 

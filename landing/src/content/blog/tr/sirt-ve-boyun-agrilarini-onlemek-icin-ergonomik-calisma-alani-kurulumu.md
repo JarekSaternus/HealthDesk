@@ -1,4 +1,5 @@
 ---
+heroImage: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu.webp"
 title: "Ergonomik Çalışma Alanı: Sırt ve Boyun Ağrılarını Önleyin"
 slug: "sirt-ve-boyun-agrilarini-onlemek-icin-ergonomik-calisma-alani-kurulumu"
 date: 2026-03-23
@@ -27,6 +28,7 @@ faq:
     a: "Uzun süre hareketsiz oturmak ve yanlış pozisyon kasları kronik gerilime sokar. Öne eğilen baş, yükselen omuzlar bu ağrıları tetikler."
   - q: "Ergonomik çalışma alanının faydaları sadece ağrı önlemek midir?"
     a: "Hayır, doğru düzenleme odak süresini ve verimliliği de artırır. Rahat oturmak zihinsel yorgunluğu da azaltır."
+image_alt: "İstanbul manzaralı bir ofiste, ergonomik koltuğunda çay eşliğinde bilgisayar başında çalışan kadın."
 ---
 ## Ergonomik Çalışma Alanı Nedir ve Neden Önemlidir?
 

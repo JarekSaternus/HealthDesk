@@ -16,6 +16,10 @@ faq:
     a: "Las pausas frecuentes importan más que el total de horas, según el consenso de especialistas en salud visual."
   - q: "¿Afecta la edad al cansancio visual frente a pantallas?"
     a: "Sí, a partir de los 40 años el enfoque cercano requiere más esfuerzo por la pérdida de elasticidad del cristalino."
+siblings:
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## ¿Cuánto tiempo es seguro estar frente a la pantalla?
 

@@ -227,6 +227,124 @@
       ],
       "completed": 12,
       "errors": 0
+    },
+    {
+      "date": "2026-03-29T12:02:44.988Z",
+      "batch_size": 12,
+      "results": [
+        {
+          "lang": "pl",
+          "keyword": "jak poprawić postawę siedzącą przy biurku",
+          "status": "ok",
+          "slug": "jak-poprawic-postawe-siedzaca-przy-biurku"
+        },
+        {
+          "lang": "en",
+          "keyword": "how often should you take breaks from computer screen",
+          "status": "ok",
+          "slug": "how-often-should-you-take-breaks-from-computer-screen"
+        },
+        {
+          "lang": "de",
+          "keyword": "Augenübungen gegen Bildschirmermüdung im Büro",
+          "status": "ok",
+          "slug": "augenubungen-gegen-bildschirmermudung-im-buro"
+        },
+        {
+          "lang": "es",
+          "keyword": "ejercicios para los ojos por cansancio frente al ordenador",
+          "status": "ok",
+          "slug": "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+        },
+        {
+          "lang": "fr",
+          "keyword": "combien de pauses prendre quand on travaille sur écran",
+          "status": "error",
+          "error": "Deploy failed after 3 attempts: Command failed: node deploy.js\n"
+        },
+        {
+          "lang": "it",
+          "keyword": "quante pause fare lavorando tutto il giorno al computer",
+          "status": "error",
+          "error": "Deploy failed after 3 attempts: Command failed: node deploy.js\n"
+        },
+        {
+          "lang": "pt-BR",
+          "keyword": "como lembrar de beber água durante o trabalho em casa",
+          "status": "ok",
+          "slug": "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+        },
+        {
+          "lang": "ja",
+          "keyword": "デスクワーク中にできるストレッチのやり方",
+          "status": "error",
+          "error": "Deploy failed after 3 attempts: Command failed: node deploy.js\n"
+        },
+        {
+          "lang": "zh-CN",
+          "keyword": "上班族在电脑前如何做眼部放松操",
+          "status": "error",
+          "error": "Bad escaped character in JSON at position 3258 (line 82 column 36) (auto-fix also failed)"
+        },
+        {
+          "lang": "ko",
+          "keyword": "재택근무 중 올바른 자세 유지하는 실용적인 방법",
+          "status": "ok",
+          "slug": "maintain-proper-posture-working-from-home"
+        },
+        {
+          "lang": "tr",
+          "keyword": "ofis çalışanları için masada yapılabilecek esneme hareketleri",
+          "status": "ok",
+          "slug": "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+        },
+        {
+          "lang": "ru",
+          "keyword": "как снизить усталость глаз при долгой работе за компьютером",
+          "status": "error",
+          "error": "Deploy failed after 3 attempts: Command failed: node deploy.js\n"
+        }
+      ],
+      "completed": 7,
+      "errors": 5
+    },
+    {
+      "date": "2026-03-29T14:47:44.467Z",
+      "batch_size": 5,
+      "results": [
+        {
+          "lang": "fr",
+          "keyword": "combien de pauses prendre quand on travaille sur écran",
+          "status": "skipped",
+          "slug": "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+        },
+        {
+          "lang": "it",
+          "keyword": "quante pause fare lavorando tutto il giorno al computer",
+          "status": "skipped",
+          "slug": "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+        },
+        {
+          "lang": "ja",
+          "keyword": "デスクワーク中にできるストレッチのやり方",
+          "status": "skipped",
+          "slug": "stretching-exercises-desk-work"
+        },
+        {
+          "lang": "zh-CN",
+          "keyword": "上班族在电脑前如何做眼部放松操",
+          "status": "skipped",
+          "slug": "office-workers-eye-relaxation-exercises"
+        },
+        {
+          "lang": "ru",
+          "keyword": "как снизить усталость глаз при долгой работе за компьютером",
+          "status": "skipped",
+          "slug": "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+        }
+      ],
+      "completed": 5,
+      "errors": 0
     }
   ]
 }

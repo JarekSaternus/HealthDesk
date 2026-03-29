@@ -1,4 +1,5 @@
 ---
+heroImage: "dor-lombar-trabalho-home-office-causas-e-como-prevenir.webp"
 title: "Dor Lombar no Home Office: Causas e Como Prevenir"
 slug: "dor-lombar-trabalho-home-office-causas-e-como-prevenir"
 date: 2026-03-23
@@ -27,6 +28,7 @@ faq:
     a: "Sim. Estudo no British Journal of Sports Medicine mostrou que mais de 8h sentado aumenta consideravelmente o risco de dores musculoesqueléticas crônicas."
   - q: "Por que o home office piora o sedentarismo?"
     a: "No escritório há movimentação informal (reuniões, café, colegas). Em casa essa movimentação desaparece, e o sedentarismo se instala quase sem ser percebido."
+image_alt: "Mulher com tranças usa cadeira ergonômica em home office no Rio para prevenir dor lombar."
 ---
 ## O que causa dor lombar ao trabalhar de casa?
 

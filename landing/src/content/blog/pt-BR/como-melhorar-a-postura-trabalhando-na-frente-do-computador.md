@@ -1,4 +1,5 @@
 ---
+heroImage: "como-melhorar-a-postura-trabalhando-na-frente-do-computador.webp"
 title: "Postura no PC: 5 Dicas + Exercícios para Trabalhar Melhor"
 slug: "como-melhorar-a-postura-trabalhando-na-frente-do-computador"
 date: 2026-03-23
@@ -15,6 +16,7 @@ faq:
     a: "Sim. Estudo no journal Biofeedback mostrou que sentar ereto aumenta autoconfiança e energia comparado a ficar curvado."
   - q: "É necessário gastar muito para melhorar a postura no trabalho?"
     a: "Não. Boa parte dos problemas é evitável com ajustes simples e consistentes, sem precisar comprar equipamentos caros."
+image_alt: "Mulher alongando pescoço enquanto trabalha em escritório moderno com plantas."
 ---
 ## Por que a postura no PC é tão importante?
 

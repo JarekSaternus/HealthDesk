@@ -16,6 +16,17 @@ faq:
   - q: "Bere acqua aiuta anche l'umore e l'ansia?"
     a: "Sì, una buona idratazione contribuisce alla stabilità dell'umore e può ridurre la sensazione di ansia leggera spesso confusa con stress."
 image_alt: "Ricordarsi di bere acqua al lavoro: 5 strategie"
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## Perché è importante bere acqua al lavoro?
 

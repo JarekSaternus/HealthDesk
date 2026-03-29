@@ -440,6 +440,280 @@
         "Odsłony: 451 → 468 (+17)",
         "GSC impresje: 42 → 47 (+5)"
       ]
+    },
+    {
+      "date": "2026-03-29",
+      "ga4": {
+        "sessions": 84,
+        "users": 24,
+        "pageviews": 510,
+        "avg_session_duration": 897,
+        "bounce_rate": 35.7
+      },
+      "ga4_top_pages": [
+        {
+          "path": "/pl/",
+          "views": 227,
+          "users": 22,
+          "bounce_rate": 29.9
+        },
+        {
+          "path": "/pl/blog/",
+          "views": 59,
+          "users": 4,
+          "bounce_rate": 12.5
+        },
+        {
+          "path": "/pl/blog/jak-unikac-bolu-kregoslupa-przy-pracy-biurowej/",
+          "views": 41,
+          "users": 2,
+          "bounce_rate": 25
+        },
+        {
+          "path": "/zh-CN/blog/how-to-maintain-correct-posture-spine-health/",
+          "views": 18,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/zh-CN/",
+          "views": 14,
+          "users": 3,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/en/blog/how-to-set-up-break-reminders-for-better-productivity/",
+          "views": 12,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/fr/",
+          "views": 11,
+          "users": 2,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/pl/blog/jak-zrobic-przerwe-od-komputera-w-pracy/",
+          "views": 11,
+          "users": 1,
+          "bounce_rate": 25
+        },
+        {
+          "path": "/ja/",
+          "views": 10,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/en/",
+          "views": 6,
+          "users": 5,
+          "bounce_rate": 33.3
+        }
+      ],
+      "ga4_sources": [
+        {
+          "channel": "Direct",
+          "sessions": 79,
+          "users": 20
+        },
+        {
+          "channel": "Organic Social",
+          "sessions": 4,
+          "users": 4
+        },
+        {
+          "channel": "Unassigned",
+          "sessions": 1,
+          "users": 1
+        }
+      ],
+      "gsc": {
+        "total_impressions": 52,
+        "total_clicks": 0,
+        "queries": 6,
+        "top_queries": [
+          {
+            "query": "\"smart communication tool\" -site:reddit.com -site:twitter.com -site:x.com -site:wykop.pl -site:tripadvisor.com -site:youtube.com -site:yelp.com -site:booking.com -site:facebook.com -site:instagram.com -site:tiktok.com",
+            "impressions": 5,
+            "clicks": 0,
+            "position": 1.4
+          },
+          {
+            "query": "health desk",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 6.3
+          },
+          {
+            "query": "health desk app",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 2.7
+          },
+          {
+            "query": "healthdesk",
+            "impressions": 19,
+            "clicks": 0,
+            "position": 11.3
+          },
+          {
+            "query": "healthydesk",
+            "impressions": 20,
+            "clicks": 0,
+            "position": 63.9
+          },
+          {
+            "query": "目 の 休憩",
+            "impressions": 2,
+            "clicks": 0,
+            "position": 77.5
+          }
+        ]
+      },
+      "conclusions": [
+        "Sesje: 81 → 84 (+3)",
+        "Odsłony: 468 → 510 (+42)",
+        "GSC impresje: 47 → 52 (+5)"
+      ]
+    },
+    {
+      "date": "2026-03-29",
+      "ga4": {
+        "sessions": 84,
+        "users": 24,
+        "pageviews": 510,
+        "avg_session_duration": 897,
+        "bounce_rate": 35.7
+      },
+      "ga4_top_pages": [
+        {
+          "path": "/pl/",
+          "views": 227,
+          "users": 22,
+          "bounce_rate": 29.9
+        },
+        {
+          "path": "/pl/blog/",
+          "views": 59,
+          "users": 4,
+          "bounce_rate": 12.5
+        },
+        {
+          "path": "/pl/blog/jak-unikac-bolu-kregoslupa-przy-pracy-biurowej/",
+          "views": 41,
+          "users": 2,
+          "bounce_rate": 25
+        },
+        {
+          "path": "/zh-CN/blog/how-to-maintain-correct-posture-spine-health/",
+          "views": 18,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/zh-CN/",
+          "views": 14,
+          "users": 3,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/en/blog/how-to-set-up-break-reminders-for-better-productivity/",
+          "views": 12,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/fr/",
+          "views": 11,
+          "users": 2,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/pl/blog/jak-zrobic-przerwe-od-komputera-w-pracy/",
+          "views": 11,
+          "users": 1,
+          "bounce_rate": 25
+        },
+        {
+          "path": "/ja/",
+          "views": 10,
+          "users": 1,
+          "bounce_rate": 0
+        },
+        {
+          "path": "/en/",
+          "views": 6,
+          "users": 5,
+          "bounce_rate": 33.3
+        }
+      ],
+      "ga4_sources": [
+        {
+          "channel": "Direct",
+          "sessions": 79,
+          "users": 20
+        },
+        {
+          "channel": "Organic Social",
+          "sessions": 4,
+          "users": 4
+        },
+        {
+          "channel": "Unassigned",
+          "sessions": 1,
+          "users": 1
+        }
+      ],
+      "gsc": {
+        "total_impressions": 52,
+        "total_clicks": 0,
+        "queries": 6,
+        "top_queries": [
+          {
+            "query": "\"smart communication tool\" -site:reddit.com -site:twitter.com -site:x.com -site:wykop.pl -site:tripadvisor.com -site:youtube.com -site:yelp.com -site:booking.com -site:facebook.com -site:instagram.com -site:tiktok.com",
+            "impressions": 5,
+            "clicks": 0,
+            "position": 1.4
+          },
+          {
+            "query": "health desk",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 6.3
+          },
+          {
+            "query": "health desk app",
+            "impressions": 3,
+            "clicks": 0,
+            "position": 2.7
+          },
+          {
+            "query": "healthdesk",
+            "impressions": 19,
+            "clicks": 0,
+            "position": 11.3
+          },
+          {
+            "query": "healthydesk",
+            "impressions": 20,
+            "clicks": 0,
+            "position": 63.9
+          },
+          {
+            "query": "目 の 休憩",
+            "impressions": 2,
+            "clicks": 0,
+            "position": 77.5
+          }
+        ]
+      },
+      "conclusions": [
+        "Sesje: 84 → 84 (+0)",
+        "Odsłony: 510 → 510 (+0)",
+        "GSC impresje: 52 → 52 (+0)"
+      ]
     }
   ]
 }

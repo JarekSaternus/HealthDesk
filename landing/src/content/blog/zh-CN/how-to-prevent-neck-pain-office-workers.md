@@ -18,6 +18,18 @@ faq:
     a: "双脚平放地面，膝盖弯曲约90度，腰部有支撑，肩膀自然下沉，坐骨均匀受力。"
   - q: "笔记本电脑用户如何保护颈椎？"
     a: "笔记本屏幕天生偏低，建议配外接显示器或笔记本支架，避免长期低头使用。"
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## 为什么办公族容易出现颈椎疼痛？
 

@@ -18,6 +18,17 @@ faq:
     a: "頭を動かさず視線だけで上→右→下→左と円を描くように1周5秒かけてゆっくり動かし、逆回りも同様に行います。"
   - q: "PC作業中にまばたきが減るとどうなる？"
     a: "まばたきが通常の1/3程度に減ることで目の表面が乾燥し、ちりちりした不快感やかすみが生じます。"
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## テレワーク中に目が疲れるのはなぜ？
 

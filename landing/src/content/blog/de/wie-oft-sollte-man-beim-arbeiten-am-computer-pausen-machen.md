@@ -18,6 +18,17 @@ faq:
     a: "Pro Stunde Bildschirmarbeit werden etwa 10 Minuten aktive Pausenzeit empfohlen."
   - q: "Verringern Pausen die Produktivität bei der Bildschirmarbeit?"
     a: "Nein, Studien zeigen, dass regelmäßige Kurzpausen Beschwerden reduzieren und Aufgaben schneller erledigt werden."
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## Wie oft sollte man Pausen beim Computer machen?
 

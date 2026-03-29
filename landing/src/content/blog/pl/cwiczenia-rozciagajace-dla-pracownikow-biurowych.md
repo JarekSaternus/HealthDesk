@@ -27,7 +27,7 @@ faq:
     a: "Nawet 5-minutowe przerwy poprawiają ukrwienie mięśni i zmniejszają napięcie w szyi oraz barkach."
   - q: "Jakie są skutki braku ruchu poza bólem pleców?"
     a: "Brak ruchu spowalnia krążenie w nogach, może powodować obrzęki, zakrzepicę i napięcie w nadgarstkach."
-image_alt: "�wiczenia rozci�gaj�ce przy biurku - 5 min"
+image_alt: "Kobieta wykonująca ćwiczenia rozciągające przy biurku w nowoczesnym biurze"
 ---
 ## Dlaczego ćwiczenia rozciągające są ważne dla pracowników biurowych?
 

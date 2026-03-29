@@ -16,6 +16,17 @@ faq:
   - q: "Fazer pausas prejudica a produtividade?"
     a: "Não. Estudos mostram que microintervalos frequentes reduzem dores musculares sem comprometer o desempenho."
 image_alt: "Quantas pausas fazer trabalhando no computador?"
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## Quantas pausas devo fazer trabalhando no computador?
 

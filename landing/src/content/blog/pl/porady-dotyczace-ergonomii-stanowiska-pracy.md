@@ -1,4 +1,5 @@
 ---
+heroImage: "porady-dotyczace-ergonomii-stanowiska-pracy.webp"
 title: "Porady ergonomii stanowiska pracy - praktyczne wskazówki"
 slug: "porady-dotyczace-ergonomii-stanowiska-pracy"
 date: 2026-03-23
@@ -15,6 +16,7 @@ faq:
     a: "Często przyczyną są napięcie mięśni karku i zmęczenie wzroku, a nie stres. Problem dotyczy nawet 40% pracowników biurowych."
   - q: "Czy jedno złe ustawienie biurka może zaszkodzić?"
     a: "Tydzień przy źle ustawionym biurku nie wyrządzi trwałej szkody. Problemy pojawiają się przy nieprawidłowym ustawieniu trwającym miesiące."
+image_alt: "Porady ergonomii stanowiska pracy - praktyczne wskazówki"
 ---
 ## Dlaczego ergonomia stanowiska pracy jest ważna?
 

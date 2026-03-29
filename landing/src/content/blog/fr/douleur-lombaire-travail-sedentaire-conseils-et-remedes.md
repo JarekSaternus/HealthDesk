@@ -1,4 +1,5 @@
 ---
+heroImage: "douleur-lombaire-travail-sedentaire-conseils-et-remedes.webp"
 title: "Douleur lombaire au travail : exercices et pauses"
 slug: "douleur-lombaire-travail-sedentaire-conseils-et-remedes"
 date: 2026-03-23
@@ -15,6 +16,7 @@ faq:
     a: "Une chaise mal réglée, un écran trop bas ou une souris mal positionnée créent des contraintes asymétriques sur la colonne vertébrale."
   - q: "Le stress peut-il causer des douleurs dans le bas du dos ?"
     a: "Oui, des recherches montrent un lien entre charge psychologique au travail et douleurs lombaires, la solution n'est donc pas uniquement mécanique."
+image_alt: "Douleur lombaire au travail : exercices et pauses"
 ---
 ## Pourquoi la douleur lombaire est courante au travail ?
 

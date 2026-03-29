@@ -7,7 +7,7 @@
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
-const { execSync, exec } = require('child_process');
+const { execSync, exec, execFile } = require('child_process');
 const fm = require('front-matter');
 const { marked } = require('marked');
 const sharp = require('sharp');
@@ -19,9 +19,7 @@ const PORT = 4000;
 function showNotification(title, message) {
   try {
     const scriptPath = path.join(__dirname, 'notify.ps1');
-    const safeTitle = title.replace(/'/g, "''");
-    const safeMsg = message.replace(/'/g, "''");
-    exec(`powershell -ExecutionPolicy Bypass -File "${scriptPath}" -Title '${safeTitle}' -Message '${safeMsg}'`, { timeout: 10000 }, (err) => {
+    execFile('powershell', ['-ExecutionPolicy', 'Bypass', '-File', scriptPath, '-Title', title, '-Message', message], { timeout: 10000 }, (err) => {
       if (err) console.error('[Notification] Failed:', err.message);
     });
   } catch (e) {
@@ -2250,7 +2248,7 @@ Requirements:
 - Photorealistic or high-quality illustration, landscape orientation (16:9)
 - Related to workplace health, wellness, productivity, or ergonomics
 - Reflect the cultural context: show people and environment matching the target audience's ethnicity and culture
-- If any decorative text or signage appears naturally in the scene, use ${langName} language
+- ${['ja', 'zh-CN', 'ko', 'ru'].includes(lang) ? 'Do NOT include any text, letters, words, signs, labels, or writing anywhere in the image — text in non-Latin scripts renders poorly' : `If any decorative text or signage appears naturally in the scene, use ${langName} language`}
 - When showing people: use natural, candid angles — over-the-shoulder, from behind, hands close-up, or wide environmental shots where the person is part of the scene. NEVER crop or hide the head unnaturally. It is OK to show the back of someone's head, a side profile, or a person seen from a distance. The goal is a natural photo, not a faceless mannequin.
 - Prefer showing objects, workspaces, or hands-on-keyboard scenes when people are not essential to the image
 - Good contrast, visually striking for a blog header and og:image
@@ -4605,30 +4603,18 @@ function startCalendarScheduler() {
             }
           }
 
+          let slug;
           if (existingSlug) {
-            // File already exists — skip writing, just update status
-            console.log(`${label} SKIP — already exists: ${existingSlug}`);
-            const cal2 = loadCalendar();
-            updateKeywordStatus(cal2, item.lang, item.keyword, {
-              status: 'published', slug: existingSlug, published_date: new Date().toISOString().split('T')[0]
-            });
-            saveCalendar(cal2);
-            const studio2 = loadStudioData();
-            if (!studio2.articles[`${item.lang}/${existingSlug}`]) {
-              studio2.articles[`${item.lang}/${existingSlug}`] = { status: 'published' };
-              saveStudioData(studio2);
-            }
-            calendarProgress.results.push({ lang: item.lang, slug: existingSlug, status: 'skipped' });
-            runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'skipped', slug: existingSlug });
-            completed++;
-            continue;
+            // File already exists — skip writing, but still build + deploy + GSC
+            console.log(`${label} EXISTS — skipping write, will build+deploy: ${existingSlug}`);
+            slug = existingSlug;
+          } else {
+            // Step 1: Write article
+            calendarProgress.step = `writing (${i + 1}/${batch.length})`;
+            console.log(`${label} Autopilot: ${item.keyword}`);
+            const result = await runAutopilot(item.lang, item.keyword);
+            slug = result.slug;
           }
-
-          // Step 1: Write article
-          calendarProgress.step = `writing (${i + 1}/${batch.length})`;
-          console.log(`${label} Autopilot: ${item.keyword}`);
-          const result = await runAutopilot(item.lang, item.keyword);
-          const slug = result.slug;
 
           // Step 1.5: Validate post completeness
           calendarProgress.step = `validate (${i + 1}/${batch.length})`;

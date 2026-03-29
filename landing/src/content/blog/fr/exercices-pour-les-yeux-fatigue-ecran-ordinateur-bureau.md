@@ -16,6 +16,17 @@ faq:
     a: "Yeux secs ou brûlants, maux de tête en fin de journée, vision floue temporaire et sensibilité accrue à la lumière."
   - q: "Comment respecter la règle 20-20-20 au bureau ?"
     a: "Des outils comme HealthDesk peuvent envoyer des rappels doux pour effectuer ces micro-pauses au bon moment."
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## Pourquoi les écrans fatiguent-ils les yeux ?
 

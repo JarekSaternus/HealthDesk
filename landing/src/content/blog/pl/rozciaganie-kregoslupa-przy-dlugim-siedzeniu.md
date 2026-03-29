@@ -1,4 +1,5 @@
 ---
+heroImage: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu.webp"
 title: "Rozciąganie kręgosłupa przy długim siedzeniu"
 slug: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
 date: 2026-03-23
@@ -18,6 +19,7 @@ siblings:
   ko: "sitting-back-pain-causes-solutions"
   tr: "masabasi-calisirken-dogru-oturma-pozisyonu-nasil-olmali"
   ru: "kak-snyat-bol-v-poyasnitse-posle-dolgogo-sideniya-za-kompyuterom"
+image_alt: "Rozciąganie kręgosłupa przy długim siedzeniu"
 ---
 ## Dlaczego rozciąganie kręgosłupa jest ważne przy długim siedzeniu?
 

@@ -16,6 +16,17 @@ faq:
     a: "Ekran görüntüsü hafifçe titreşir ve kenarları keskin değildir, bu yüzden gözler sürekli yeniden odaklanmak zorunda kalır."
   - q: "Dijital göz yorgunluğuna mavi ışık neden yol açar?"
     a: "Ekranların yaydığı mavi ışık ve düzensiz piksel yapısı göz kaslarını normalden çok daha fazla zorlar."
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## Bilgisayar Göz Yorgunluğu Nedir?
 

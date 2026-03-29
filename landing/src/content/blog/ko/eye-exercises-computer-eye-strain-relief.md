@@ -18,6 +18,17 @@ faq:
   - q: "눈 휴식 습관을 꾸준히 지키려면?"
     a: "HealthDesk 같은 알림 도구를 활용해 작업 중 자동으로 눈 휴식 타이밍을 알려받는 것이 효과적입니다."
 image_alt: "??? PC ?? ? ? ?? ?? 5? ? ???"
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## PC 작업 중 눈 피로가 발생하는 이유는?
 

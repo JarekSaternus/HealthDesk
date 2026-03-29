@@ -16,6 +16,17 @@ faq:
     a: "Да, кофе обладает мягким мочегонным эффектом и усиливает обезвоживание, особенно в сочетании с сухим кондиционированным воздухом."
   - q: "Чем опасно хроническое обезвоживание на работе?"
     a: "Кровь густеет, сердце работает интенсивнее, замедляется метаболизм и хуже выводятся продукты распада."
+siblings:
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  en: "how-often-should-you-take-breaks-from-computer-screen"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## Почему напоминания о воде важны для офисных работников?
 

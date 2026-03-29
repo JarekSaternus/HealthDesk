@@ -16,6 +16,17 @@ faq:
     a: "Prolonged screen focus contracts ciliary eye muscles and reduces blinking, causing fatigue and discomfort."
   - q: "What are common symptoms of screen fatigue?"
     a: "Blurred vision, headaches, light sensitivity, and neck tension are the most common signs."
+siblings:
+  ru: "kak-snizit-ustalost-glaz-pri-dolgoy-rabote-za-kompyuterom"
+  tr: "ofis-calisanlari-icin-masada-yapilabilecek-esneme-hareketleri"
+  ko: "maintain-proper-posture-working-from-home"
+  ja: "stretching-exercises-desk-work"
+  pt-BR: "como-lembrar-de-beber-gua-durante-o-trabalho-em-casa"
+  it: "quante-pause-fare-lavorando-tutto-il-giorno-al-computer"
+  fr: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran"
+  es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
+  de: "augenubungen-gegen-bildschirmermudung-im-buro"
+  pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
 ---
 ## What Causes Digital Eye Strain and Screen Fatigue?
 
