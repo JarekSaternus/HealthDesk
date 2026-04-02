@@ -12,6 +12,7 @@
 1. **Certum Code Signing** — karta cryptoCertum do kupienia, aktywacja certyfikatu w toku
 2. **Weryfikacja Google OAuth** — złożyć wniosek (review 1-2 tyg)
 3. Alias privacy@healthdesk.site (panel cyber-folks)
+4. Google Calendar OAuth w desktopie - usunac zaszyty `client_secret` z `src-tauri/src/calendar.rs` i przerobic flow na PKCE
 
 ## P1 — Duże feature'y
 4. YouTube playlisty — import playlist, lista tracków, auto-next, opcja cookies

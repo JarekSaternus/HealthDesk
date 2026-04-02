@@ -1,5 +1,4 @@
 import os
-import secrets
 from datetime import datetime, timedelta, timezone
 
 from fastapi import Cookie, HTTPException, Request, status
@@ -12,7 +11,7 @@ from passlib.context import CryptContext
 
 SECRET_KEY = os.environ.get("API_SECRET_KEY")
 if not SECRET_KEY:
-    SECRET_KEY = secrets.token_urlsafe(32)
+    raise RuntimeError("API_SECRET_KEY must be set")
 
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_HOURS = 24

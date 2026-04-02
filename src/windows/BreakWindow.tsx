@@ -35,8 +35,13 @@ export default function BreakWindow() {
       });
     }, 1000);
 
-    invoke("get_ad", { clientUuid: "" }).then(setAd).catch(() => {});
     invoke("get_config").then((cfg: any) => {
+      if (cfg?.show_ads) {
+        invoke<string>("get_client_uuid_cmd")
+          .then((clientUuid) => invoke("get_ad", { clientUuid }))
+          .then(setAd)
+          .catch(() => {});
+      }
       if (cfg?.sound_notifications) {
         soundRef.current = true;
         invoke("play_chime").catch(() => {});
@@ -116,7 +121,9 @@ export default function BreakWindow() {
           className="mt-4 p-3 rounded text-center text-xs cursor-pointer max-w-xs"
           style={{ backgroundColor: ad.bg_color, color: ad.text_color }}
           onClick={() => {
-            invoke("report_ad_click", { adId: ad.ad_id, clientUuid: "" });
+            invoke<string>("get_client_uuid_cmd")
+              .then((clientUuid) => invoke("report_ad_click", { adId: ad.ad_id, clientUuid }))
+              .catch(() => {});
             window.open(ad.click_url);
           }}
         >

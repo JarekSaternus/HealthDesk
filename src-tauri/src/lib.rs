@@ -206,6 +206,7 @@ pub fn run() {
         .invoke_handler(tauri::generate_handler![
             commands::get_config,
             commands::save_config,
+            commands::get_client_uuid_cmd,
             commands::get_effective_intervals,
             commands::get_work_methods,
             commands::log_break,
@@ -297,7 +298,7 @@ pub fn run() {
         });
 }
 
-fn get_client_uuid() -> String {
+pub(crate) fn get_client_uuid() -> String {
     let uuid_path = config::config_dir().join(".client_uuid");
     if let Ok(id) = std::fs::read_to_string(&uuid_path) {
         let id = id.trim().to_string();

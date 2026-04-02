@@ -24,6 +24,7 @@ pub fn save_config(
     new_config: AppConfig,
     config: State<ConfigState>,
     scheduler: State<SharedScheduler>,
+    telemetry: State<SharedTelemetry>,
 ) -> Result<(), String> {
     let mut cfg = new_config;
     // Apply work method preset (overrides interval fields)
@@ -44,6 +45,10 @@ pub fn save_config(
         } else {
             let _ = autostart.disable();
         }
+    }
+
+    if old_cfg.telemetry_enabled != cfg.telemetry_enabled {
+        telemetry.set_enabled(cfg.telemetry_enabled);
     }
 
     // Reset timers if break intervals or work hours changed
@@ -79,6 +84,11 @@ pub fn save_config(
     }
 
     Ok(())
+}
+
+#[tauri::command]
+pub fn get_client_uuid_cmd() -> String {
+    crate::get_client_uuid()
 }
 
 #[tauri::command]
