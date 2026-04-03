@@ -29,6 +29,8 @@ async function deploy() {
   for (let attempt = 1; attempt <= MAX_RETRIES; attempt++) {
     const client = new ftp.Client();
     client.ftp.verbose = false;
+    client.ftp.timeout = 120000;
+    client.prepareTransfer = ftp.enterPassiveModeIPv4;
 
     try {
       console.log(`Connecting to ${FTP_HOST}... (attempt ${attempt}/${MAX_RETRIES})`);
@@ -41,7 +43,8 @@ async function deploy() {
 
       console.log(`Connected. Uploading dist/ → ${REMOTE_DIR}/ (overwrite mode)`);
       await client.ensureDir(REMOTE_DIR);
-      await client.uploadFromDir(LOCAL_DIR, REMOTE_DIR);
+      await client.cd(REMOTE_DIR);
+      await client.uploadFromDir(LOCAL_DIR);
 
       console.log('\nDeploy complete!');
       console.log(`Site: https://healthdesk.site/`);

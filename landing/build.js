@@ -326,17 +326,21 @@ function loadBlogPosts() {
     for (const file of fs.readdirSync(langDir).filter(f => f.endsWith('.md'))) {
       const content = fs.readFileSync(path.join(langDir, file), 'utf8');
       const parsed = fm(content);
-      const html = marked(parsed.body);
-      // Check if hero image exists
       const slug = parsed.attributes.slug || file.replace('.md', '');
+      const title = parsed.attributes.title || slug.replace(/-/g, ' ');
+      const body = parsed.body || '';
+      const html = marked(body);
+      // Check if hero image exists
       const heroImg = path.join(SRC, 'content', 'images', 'blog', `${slug}.webp`);
       posts[lang].push({
         ...parsed.attributes,
+        slug,
+        title,
         html,
-        body: parsed.body,
+        body,
         file,
         image: fs.existsSync(heroImg) ? `/images/blog/${slug}.webp` : null,
-        image_alt: parsed.attributes.image_alt || parsed.attributes.title
+        image_alt: parsed.attributes.image_alt || title
       });
     }
 
