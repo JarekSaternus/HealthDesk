@@ -66,6 +66,10 @@ function loadTemplate(name) {
   return fs.readFileSync(path.join(SRC, 'templates', name), 'utf8');
 }
 
+function isBuildableSlug(slug) {
+  return typeof slug === 'string' && slug.trim().length > 0;
+}
+
 // ─── Translation resolver ───
 function createResolver(lang, translations) {
   const t = translations[lang] || {};
@@ -327,6 +331,10 @@ function loadBlogPosts() {
       const content = fs.readFileSync(path.join(langDir, file), 'utf8');
       const parsed = fm(content);
       const slug = parsed.attributes.slug || file.replace('.md', '');
+      if (!isBuildableSlug(slug)) {
+        console.warn(`Warning: Skipping ${lang}/${file} because slug is empty`);
+        continue;
+      }
       const title = parsed.attributes.title || slug.replace(/-/g, ' ');
       const body = parsed.body || '';
       const html = marked(body);

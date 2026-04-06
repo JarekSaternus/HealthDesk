@@ -129,6 +129,7 @@ const BLOG_DIR = path.join(LANDING_ROOT, 'src', 'content', 'blog');
 const I18N_DIR = path.join(LANDING_ROOT, 'src', 'i18n');
 const STUDIO_DATA = path.join(__dirname, 'studio.json');
 const DIST_DIR = path.join(LANDING_ROOT, 'dist');
+const DEPLOY_TIMEOUT_MS = 10 * 60 * 1000;
 
 // Middleware
 app.use(express.json({ limit: '2mb' }));
@@ -409,7 +410,7 @@ app.use(express.static(DIST_DIR));
 
 // ─── API: Deploy ───
 app.post('/api/deploy', (req, res) => {
-  exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+  exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
     if (err) {
       res.status(500).json({ error: stderr || err.message });
     } else {
@@ -2155,6 +2156,7 @@ function validatePost(slug, lang) {
   const issues = [];
   const mdFile = path.join(BLOG_DIR, lang, `${slug}.md`);
   const imgFile = path.join(BLOG_IMAGES_DIR, `${slug}.webp`);
+  const mojibakePattern = /(?:\u00C3.|\u0102.|\u00C4.|\u00C5.|\u0139.|\u00C2.|\u00E2\u20AC|\u00EF\u00BF\u00BD|\uFFFD|\?\?\?)/;
 
   // Check .md exists
   if (!fs.existsSync(mdFile)) {
@@ -2177,6 +2179,12 @@ function validatePost(slug, lang) {
     }
   }
 
+  const slugMatch = fm.match(/^slug:\s*["']?([^"'\n]*)["']?\s*$/m);
+  const frontmatterSlug = slugMatch?.[1]?.trim() || '';
+  if (!frontmatterSlug) {
+    issues.push({ field: 'slug', message: 'Slug is empty' });
+  }
+
   // Check hero image
   if (!fs.existsSync(imgFile)) {
     issues.push({ field: 'heroImage', message: 'Hero image .webp missing' });
@@ -2186,6 +2194,13 @@ function validatePost(slug, lang) {
   const body = content.replace(/^---\n[\s\S]*?\n---\n?/, '');
   if (body.length < 500) {
     issues.push({ field: 'content', message: `Content too short (${body.length} chars, min 500)` });
+  }
+
+  if (mojibakePattern.test(fm)) {
+    issues.push({ field: 'frontmatter', message: 'Frontmatter appears to contain broken text encoding' });
+  }
+  if (mojibakePattern.test(body.slice(0, 4000))) {
+    issues.push({ field: 'content', message: 'Content appears to contain broken text encoding' });
   }
 
   return { valid: issues.length === 0, issues };
@@ -3332,15 +3347,19 @@ app.post('/api/ai/autopilot', async (req, res) => {
 
   try {
     const result = await runAutopilot(lang, topic, persona);
-    autopilotProgress.status = 'done';
-    autopilotProgress.completedTopics = 1;
-    autopilotProgress.results = [result];
+    if (autopilotProgress) {
+      autopilotProgress.status = 'done';
+      autopilotProgress.completedTopics = 1;
+      autopilotProgress.results = [result];
+    }
     res.json(result);
     setTimeout(() => { if (autopilotProgress?.status === 'done') autopilotProgress = null; }, 60000);
   } catch (err) {
     console.error('[Autopilot] Error:', err.message);
-    autopilotProgress.status = 'error';
-    autopilotProgress.error = err.message;
+    if (autopilotProgress) {
+      autopilotProgress.status = 'error';
+      autopilotProgress.error = err.message;
+    }
     res.status(500).json({ error: err.message });
     setTimeout(() => { autopilotProgress = null; }, 60000);
   }
@@ -3919,7 +3938,7 @@ app.post('/api/calendar/run-next', async (req, res) => {
       calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
       console.log(`${label} Deploying...`);
       await new Promise((resolve, reject) => {
-        exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+        exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
           if (err) reject(new Error(stderr || err.message));
           else resolve(stdout);
         });
@@ -4142,7 +4161,7 @@ Return ONLY the improved markdown body (no frontmatter).`,
     // Rebuild + redeploy
     execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
     await new Promise((resolve, reject) => {
-      exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+      exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
         if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
       });
     });
@@ -4527,7 +4546,7 @@ function startCalendarScheduler() {
           execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
           try {
             await new Promise((resolve, reject) => {
-              exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+              exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
                 if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
               });
             });
@@ -4652,7 +4671,7 @@ function startCalendarScheduler() {
           for (let d = 1; d <= deployAttempts; d++) {
             try {
               await new Promise((resolve, reject) => {
-                exec('node deploy.js', { cwd: LANDING_ROOT, timeout: 120000 }, (err, stdout, stderr) => {
+                exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
                   if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
                 });
               });
