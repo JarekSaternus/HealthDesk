@@ -1,23 +1,31 @@
 ---
-heroImage: "como-reducir-la-fatiga-visual-frente-a-la-pantalla.webp"
-title: "Reduce la fatiga visual: guía práctica con ejercicios"
-slug: "como-reducir-la-fatiga-visual-frente-a-la-pantalla"
-date: 2026-03-23
-description: "Descubre ejercicios efectivos para reducir la fatiga visual. Guía completa con técnicas simples y consejos prácticos para cuidar tus ojos."
-keyword: "cómo reducir la fatiga visual frente a la pantalla"
-tags: []
+title: 'Reduce la fatiga visual: guía práctica con ejercicios'
+slug: como-reducir-la-fatiga-visual-frente-a-la-pantalla
+date: '2026-03-31'
+description: Descubre ejercicios efectivos para reducir la fatiga visual. Guía completa con técnicas simples y consejos prácticos para cuidar tus ojos.
+keyword: cómo reducir la fatiga visual frente a la pantalla
 lang: es
+heroImage: como-reducir-la-fatiga-visual-frente-a-la-pantalla.webp
+image_alt: 'Una profesional en una oficina cálida y moderna descansa la vista de la pantalla, con un cartel de ''Cuida tu vista''.'
+siblings:
+  ru: uprazhneniya-dlya-rastyazhki-dlya-ofisnykh-rabotnikov-za-stolom
+  tr: masa-basi-calisanlar-icin-kolay-germe-egzersizleri
+  ko: reduce-eye-strain-computer-work
+  zh-CN: how-to-protect-eyes-from-screen-fatigue
+  ja: reduce-eye-strain-computer-work
+  it: come-ridurre-l-affaticamento-visivo-davanti-allo-schermo
+  fr: comment-programmer-des-rappels-de-pause-au-travail
 faq:
-  - q: "¿Qué es la fatiga visual?"
-    a: "Es la respuesta del sistema ocular al esfuerzo sostenido sin descanso, causada por la contracción continua de los músculos de enfoque."
-  - q: "¿Por qué las pantallas causan fatiga ocular?"
-    a: "No es la pantalla sola, sino la combinación de poca distancia visual, parpadeo reducido, mala iluminación y posturas forzadas."
-  - q: "¿Cuáles son los síntomas de la fatiga visual?"
-    a: "Ardor, picazón, visión borrosa transitoria, dolor de cabeza frontal o temporal y sensibilidad aumentada a la luz."
-  - q: "¿El aire acondicionado agrava la fatiga visual?"
-    a: "Sí, la ventilación artificial reseca la película lagrimal que protege la córnea, empeorando los síntomas."
-image_alt: "Una profesional en una oficina cálida y moderna descansa la vista de la pantalla, con un cartel de 'Cuida tu vista'."
+  - q: ¿Qué es la fatiga visual?
+    a: 'Es la respuesta del sistema ocular al esfuerzo sostenido sin descanso, causada por la contracción continua de los músculos de enfoque.'
+  - q: ¿Por qué las pantallas causan fatiga ocular?
+    a: 'No es la pantalla sola, sino la combinación de poca distancia visual, parpadeo reducido, mala iluminación y posturas forzadas.'
+  - q: ¿Cuáles son los síntomas de la fatiga visual?
+    a: 'Ardor, picazón, visión borrosa transitoria, dolor de cabeza frontal o temporal y sensibilidad aumentada a la luz.'
+  - q: ¿El aire acondicionado agrava la fatiga visual?
+    a: 'Sí, la ventilación artificial reseca la película lagrimal que protege la córnea, empeorando los síntomas.'
 ---
+
 ## ¿Qué es la fatiga visual y por qué ocurre?
 
 Recuerdo la primera vez que terminé una jornada de ocho horas frente al ordenador con la sensación de que alguien me había puesto arena en los ojos. No era imaginación: era mi cuerpo avisándome de que algo no funcionaba bien. La fatiga visual es exactamente eso — una señal de alarma que muchos ignoramos hasta que se vuelve insoportable.

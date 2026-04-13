@@ -1,23 +1,37 @@
 ---
-heroImage: "porady-dotyczace-ergonomii-stanowiska-pracy.webp"
-title: "Porady ergonomii stanowiska pracy - praktyczne wskazówki"
-slug: "porady-dotyczace-ergonomii-stanowiska-pracy"
-date: 2026-03-23
-description: "Poznaj praktyczne porady ergonomii stanowiska pracy. Dowiedz się, jak prawidłowo ustawić monitor, biurko i krzesło, aby uniknąć bólów pleców i karku."
-keyword: "porady dotyczące ergonomii stanowiska pracy"
-tags: ["ergonomia", "stanowisko pracy", "zdrowie pracownika", "praca biurowa", "wellness"]
+title: Porady ergonomii stanowiska pracy - praktyczne wskazówki
+slug: porady-dotyczace-ergonomii-stanowiska-pracy
+date: '2026-03-31'
+description: 'Poznaj praktyczne porady ergonomii stanowiska pracy. Dowiedz się, jak prawidłowo ustawić monitor, biurko i krzesło, aby uniknąć bólów pleców i karku.'
+keyword: porady dotyczące ergonomii stanowiska pracy
+tags:
+  - ergonomia
+  - stanowisko pracy
+  - zdrowie pracownika
+  - praca biurowa
+  - wellness
 lang: pl
+heroImage: porady-dotyczace-ergonomii-stanowiska-pracy.webp
+image_alt: Porady ergonomii stanowiska pracy - praktyczne wskazówki
+siblings:
+  ru: uprazhneniya-dlya-rastyazhki-dlya-ofisnykh-rabotnikov-za-stolom
+  tr: masa-basi-calisanlar-icin-kolay-germe-egzersizleri
+  ko: reduce-eye-strain-computer-work
+  zh-CN: how-to-protect-eyes-from-screen-fatigue
+  ja: reduce-eye-strain-computer-work
+  it: come-ridurre-l-affaticamento-visivo-davanti-allo-schermo
+  fr: comment-programmer-des-rappels-de-pause-au-travail
 faq:
-  - q: "Dlaczego ergonomia stanowiska pracy jest ważna?"
-    a: "Zła ergonomia prowadzi do bólów kręgosłupa, karku i głowy. Proste zmiany, jak ustawienie monitora, mogą zapobiec przewlekłym problemom zdrowotnym."
-  - q: "Jak zła postura wpływa na kręgosłup?"
-    a: "Wysunięcie głowy o 2,5 cm niemal podwaja obciążenie szyjnego kręgosłupa, prowadząc do przeciążenia mięśni i chronicznego bólu."
-  - q: "Skąd biorą się bóle głowy po pracy przy biurku?"
-    a: "Często przyczyną są napięcie mięśni karku i zmęczenie wzroku, a nie stres. Problem dotyczy nawet 40% pracowników biurowych."
-  - q: "Czy jedno złe ustawienie biurka może zaszkodzić?"
-    a: "Tydzień przy źle ustawionym biurku nie wyrządzi trwałej szkody. Problemy pojawiają się przy nieprawidłowym ustawieniu trwającym miesiące."
-image_alt: "Porady ergonomii stanowiska pracy - praktyczne wskazówki"
+  - q: Dlaczego ergonomia stanowiska pracy jest ważna?
+    a: 'Zła ergonomia prowadzi do bólów kręgosłupa, karku i głowy. Proste zmiany, jak ustawienie monitora, mogą zapobiec przewlekłym problemom zdrowotnym.'
+  - q: Jak zła postura wpływa na kręgosłup?
+    a: 'Wysunięcie głowy o 2,5 cm niemal podwaja obciążenie szyjnego kręgosłupa, prowadząc do przeciążenia mięśni i chronicznego bólu.'
+  - q: Skąd biorą się bóle głowy po pracy przy biurku?
+    a: 'Często przyczyną są napięcie mięśni karku i zmęczenie wzroku, a nie stres. Problem dotyczy nawet 40% pracowników biurowych.'
+  - q: Czy jedno złe ustawienie biurka może zaszkodzić?
+    a: Tydzień przy źle ustawionym biurku nie wyrządzi trwałej szkody. Problemy pojawiają się przy nieprawidłowym ustawieniu trwającym miesiące.
 ---
+
 ## Dlaczego ergonomia stanowiska pracy jest ważna?
 
 Kilka lat temu znajomy grafik poskarżył mi się, że od miesięcy chodzi do fizjoterapeuty z powodu bólów karku. Okazało się, że monitor stał za nisko i każdego dnia przez osiem godzin patrzył w dół. Jedna prosta zmiana — podniesienie ekranu — i problem zaczął stopniowo ustępować. To był dla mnie moment, w którym zrozumiałem, że porady dotyczące ergonomii stanowiska pracy to nie jest akademicka teoria, lecz bardzo konkretna sprawa zdrowotna.

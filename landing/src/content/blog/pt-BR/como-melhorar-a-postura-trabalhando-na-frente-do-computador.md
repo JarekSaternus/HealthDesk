@@ -1,23 +1,29 @@
 ---
-heroImage: "como-melhorar-a-postura-trabalhando-na-frente-do-computador.webp"
-title: "Postura no PC: 5 Dicas + Exercícios para Trabalhar Melhor"
-slug: "como-melhorar-a-postura-trabalhando-na-frente-do-computador"
-date: 2026-03-23
-description: "Aprenda 5 dicas essenciais e exercícios para melhorar sua postura ao trabalhar no PC. Evite dores e aumente sua produtividade."
-keyword: "como melhorar a postura trabalhando na frente do computador"
-tags: []
+title: 'Postura no PC: 5 Dicas + Exercícios para Trabalhar Melhor'
+slug: como-melhorar-a-postura-trabalhando-na-frente-do-computador
+date: '2026-03-31'
+description: Aprenda 5 dicas essenciais e exercícios para melhorar sua postura ao trabalhar no PC. Evite dores e aumente sua produtividade.
+keyword: como melhorar a postura trabalhando na frente do computador
 lang: pt-BR
+heroImage: como-melhorar-a-postura-trabalhando-na-frente-do-computador.webp
+image_alt: Mulher alongando pescoço enquanto trabalha em escritório moderno com plantas.
+siblings:
+  ru: uprazhneniya-dlya-rastyazhki-dlya-ofisnykh-rabotnikov-za-stolom
+  tr: masa-basi-calisanlar-icin-kolay-germe-egzersizleri
+  ko: reduce-eye-strain-computer-work
+  zh-CN: how-to-protect-eyes-from-screen-fatigue
+  ja: reduce-eye-strain-computer-work
 faq:
-  - q: "Por que a postura no PC afeta a produtividade?"
-    a: "Má postura causa dor, dividindo a atenção e interrompendo o raciocínio. A produtividade cai sem que você perceba o motivo."
-  - q: "Quais problemas de saúde a má postura pode causar?"
-    a: "Dores de cabeça, síndrome do ombro doloroso, tendinite nos pulsos e até problemas digestivos podem estar relacionados à má postura."
-  - q: "A postura afeta o estado mental além do físico?"
-    a: "Sim. Estudo no journal Biofeedback mostrou que sentar ereto aumenta autoconfiança e energia comparado a ficar curvado."
-  - q: "É necessário gastar muito para melhorar a postura no trabalho?"
-    a: "Não. Boa parte dos problemas é evitável com ajustes simples e consistentes, sem precisar comprar equipamentos caros."
-image_alt: "Mulher alongando pescoço enquanto trabalha em escritório moderno com plantas."
+  - q: Por que a postura no PC afeta a produtividade?
+    a: 'Má postura causa dor, dividindo a atenção e interrompendo o raciocínio. A produtividade cai sem que você perceba o motivo.'
+  - q: Quais problemas de saúde a má postura pode causar?
+    a: 'Dores de cabeça, síndrome do ombro doloroso, tendinite nos pulsos e até problemas digestivos podem estar relacionados à má postura.'
+  - q: A postura afeta o estado mental além do físico?
+    a: Sim. Estudo no journal Biofeedback mostrou que sentar ereto aumenta autoconfiança e energia comparado a ficar curvado.
+  - q: É necessário gastar muito para melhorar a postura no trabalho?
+    a: 'Não. Boa parte dos problemas é evitável com ajustes simples e consistentes, sem precisar comprar equipamentos caros.'
 ---
+
 ## Por que a postura no PC é tão importante?
 
 Você já chegou ao final de um dia de trabalho com aquela sensação de que alguém espetou agulhas na nuca? Eu passei anos achando que era stress, até perceber que a culpa era de como eu ficava sentado por horas sem pensar nisso.

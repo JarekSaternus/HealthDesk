@@ -70,6 +70,16 @@ function isBuildableSlug(slug) {
   return typeof slug === 'string' && slug.trim().length > 0;
 }
 
+function normalizeSlugList(value) {
+  if (Array.isArray(value)) {
+    return value.map(v => String(v || '').trim()).filter(Boolean);
+  }
+  if (typeof value === 'string' && value.trim()) {
+    return [value.trim()];
+  }
+  return [];
+}
+
 // ─── Translation resolver ───
 function createResolver(lang, translations) {
   const t = translations[lang] || {};
@@ -347,6 +357,7 @@ function loadBlogPosts() {
         html,
         body,
         file,
+        legacy_slugs: normalizeSlugList(parsed.attributes.legacy_slugs),
         image: fs.existsSync(heroImg) ? `/images/blog/${slug}.webp` : null,
         image_alt: parsed.attributes.image_alt || title
       });
@@ -447,6 +458,7 @@ function build() {
 
   // 4. Generate per-language pages
   let sitemapUrls = [];
+  const legacyRedirects = [];
 
   for (const lang of LANGUAGES) {
     console.log(`Generating ${lang}...`);
@@ -593,6 +605,28 @@ function build() {
         };
         const postHtml = renderTemplate(baseTemplate, postPageVars);
         fs.writeFileSync(path.join(postDir, 'index.html'), postHtml, 'utf8');
+
+        for (const legacySlug of normalizeSlugList(post.legacy_slugs)) {
+          if (legacySlug === post.slug) continue;
+          legacyRedirects.push({ lang, from: legacySlug, to: post.slug });
+
+          const legacyDir = path.join(blogDir, legacySlug);
+          ensureDir(legacyDir);
+          fs.writeFileSync(path.join(legacyDir, 'index.html'), `<!DOCTYPE html>
+<html lang="${htmlLang}">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="refresh" content="0;url=/${lang}/blog/${post.slug}/">
+  <link rel="canonical" href="${SITE_URL}/${lang}/blog/${post.slug}/">
+  <meta name="robots" content="noindex,follow">
+  <title>${post.title}</title>
+</head>
+<body>
+  <p>Redirecting to <a href="/${lang}/blog/${post.slug}/">${post.title}</a>...</p>
+</body>
+</html>`, 'utf8');
+        }
+
         // Build sibling URLs for sitemap hreflang
         const sitemapSiblings = {};
         if (post.siblings) {
@@ -705,7 +739,7 @@ location.replace('/'+lang+'/demo/');
   }
 
   // 6. .htaccess
-  generateHtaccess();
+  generateHtaccess(legacyRedirects);
 
   // 7. Sitemap
   generateSitemap(sitemapUrls);
@@ -741,7 +775,7 @@ function formatDate(dateStr, lang) {
 }
 
 // ─── .htaccess ───
-function generateHtaccess() {
+function generateHtaccess(legacyRedirects = []) {
   const langRules = LANGUAGES
     .filter(l => l !== DEFAULT_LANG)
     .map(lang => {
@@ -749,6 +783,10 @@ function generateHtaccess() {
       return `RewriteCond %{REQUEST_URI} ^/$\nRewriteCond %{HTTP:Accept-Language} ^${prefix} [NC]\nRewriteRule ^$ /${lang}/ [R=302,L]`;
     })
     .join('\n\n');
+
+  const redirectRules = (legacyRedirects || [])
+    .map(({ lang, from, to }) => `Redirect 301 /${lang}/blog/${from}/ /${lang}/blog/${to}/`)
+    .join('\n');
 
   const htaccess = `RewriteEngine On
 
@@ -765,6 +803,7 @@ RewriteRule ^$ /${DEFAULT_LANG}/ [R=302,L]
 
 # Old URLs redirects
 Redirect 301 /privacy.html /pl/privacy/
+${redirectRules ? `${redirectRules}\n` : ''}
 
 # Error pages
 ErrorDocument 404 /${DEFAULT_LANG}/

@@ -1,23 +1,23 @@
 ---
-title: "Rilassare gli occhi al PC: esercizi e pause efficaci"
-slug: "come-riposare-gli-occhi-lavorando-al-computer-tutto-il-giorno"
-date: 2026-04-03
-description: "Scopri esercizi e tecniche per rilassare gli occhi al PC. Pause efficaci e consigli per ridurre l'affaticamento visivo durante il lavoro."
-keyword: "come riposare gli occhi lavorando al computer tutto il giorno"
-tags: []
+title: 'Rilassare gli occhi al PC: esercizi e pause efficaci'
+slug: come-riposare-gli-occhi-lavorando-al-computer-tutto-il-giorno
+date: '2026-04-07'
+description: Scopri esercizi e tecniche per rilassare gli occhi al PC. Pause efficaci e consigli per ridurre l'affaticamento visivo durante il lavoro.
+keyword: come riposare gli occhi lavorando al computer tutto il giorno
 lang: it
+heroImage: come-riposare-gli-occhi-lavorando-al-computer-tutto-il-giorno.webp
+image_alt: 'Rilassare gli occhi al PC: esercizi e pause efficaci'
 faq:
-  - q: "Cos'è la sindrome da visione al computer?"
-    a: "È un disturbo che colpisce chi usa lo schermo 2+ ore consecutive, causando secchezza, bruciore, visione offuscata e mal di testa."
-  - q: "Perché gli occhi si seccano davanti al monitor?"
-    a: "Fissando lo schermo, il battito delle palpebre scende a 5-7 volte al minuto, riducendo la distribuzione del film lacrimale sulla cornea."
-  - q: "Quante persone soffrono di affaticamento oculare da PC?"
-    a: "Secondo l'American Optometric Association, tra il 50 e il 90% dei lavoratori al computer riferisce almeno un sintomo di CVS."
-  - q: "Cosa causa l'affaticamento dei muscoli oculari al PC?"
-    a: "La distanza ravvicinata dal monitor costringe i muscoli ciliari a rimanere in tensione costante per mantenere la messa a fuoco."
-image_alt: "Rilassare gli occhi al PC: esercizi e pause efficaci"
-heroImage: "come-riposare-gli-occhi-lavorando-al-computer-tutto-il-giorno.webp"
+  - q: Cos'è la sindrome da visione al computer?
+    a: 'È un disturbo che colpisce chi usa lo schermo 2+ ore consecutive, causando secchezza, bruciore, visione offuscata e mal di testa.'
+  - q: Perché gli occhi si seccano davanti al monitor?
+    a: 'Fissando lo schermo, il battito delle palpebre scende a 5-7 volte al minuto, riducendo la distribuzione del film lacrimale sulla cornea.'
+  - q: Quante persone soffrono di affaticamento oculare da PC?
+    a: 'Secondo l''American Optometric Association, tra il 50 e il 90% dei lavoratori al computer riferisce almeno un sintomo di CVS.'
+  - q: Cosa causa l'affaticamento dei muscoli oculari al PC?
+    a: La distanza ravvicinata dal monitor costringe i muscoli ciliari a rimanere in tensione costante per mantenere la messa a fuoco.
 ---
+
 ## Perché gli occhi si affaticano al PC?
 
 C'è un momento preciso, verso le tre del pomeriggio, in cui lo schermo comincia a sembrare leggermente sfocato. Non è la stanchezza generale — sono gli occhi che mandano un segnale. Ho visto questa dinamica ripetersi in quasi tutte le persone che lavorano al computer per molte ore: prima il bruciore, poi la difficoltà a mettere a fuoco, infine il mal di testa che si installa silenziosamente alla base del crancranio.

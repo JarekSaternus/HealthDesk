@@ -1,22 +1,36 @@
 ---
-title: "Bildschirmpausen: Wie oft & wie lange sollten Sie pausieren?"
-slug: "wie-oft-sollte-man-beim-computerarbeiten-pausen-machen"
-date: 2026-03-23
-description: "Bildschirmpausen richtig nutzen: Erfahren Sie, wie oft und wie lange Sie pausieren sollten, um Augenbelastung zu vermeiden."
-keyword: "wie oft sollte man beim Computerarbeiten Pausen machen"
-tags: ["Bildschirmpausen", "Augengesundheit", "Ergonomie am Arbeitsplatz", "Produktivität", "Wellness"]
+title: 'Bildschirmpausen: Wie oft & wie lange sollten Sie pausieren?'
+slug: wie-oft-sollte-man-beim-computerarbeiten-pausen-machen
+date: '2026-03-31'
+description: 'Bildschirmpausen richtig nutzen: Erfahren Sie, wie oft und wie lange Sie pausieren sollten, um Augenbelastung zu vermeiden.'
+keyword: wie oft sollte man beim Computerarbeiten Pausen machen
+tags:
+  - Bildschirmpausen
+  - Augengesundheit
+  - Ergonomie am Arbeitsplatz
+  - Produktivität
+  - Wellness
 lang: de
-image_alt: "Bildschirmpausen: Wie oft & wie lange sollten Sie pausieren?"
+image_alt: 'Bildschirmpausen: Wie oft & wie lange sollten Sie pausieren?'
+siblings:
+  ru: uprazhneniya-dlya-rastyazhki-dlya-ofisnykh-rabotnikov-za-stolom
+  tr: masa-basi-calisanlar-icin-kolay-germe-egzersizleri
+  ko: reduce-eye-strain-computer-work
+  zh-CN: how-to-protect-eyes-from-screen-fatigue
+  ja: reduce-eye-strain-computer-work
+  it: come-ridurre-l-affaticamento-visivo-davanti-allo-schermo
+  fr: comment-programmer-des-rappels-de-pause-au-travail
 faq:
-  - q: "Warum sind Bildschirmpausen wichtig?"
-    a: "Lange Bildschirmarbeit belastet die Augen stark und kann zu Brennen, Kopfschmerzen und digitaler Ermüdung führen."
-  - q: "Was ist das Computer Vision Syndrome?"
-    a: "Es ist ein verbreitetes Beschwerdebild durch Bildschirmarbeit. Bis zu 90 % aller Bildschirmarbeiter sind laut AOA betroffen."
-  - q: "Wie oft blinzeln wir beim Bildschirmarbeiten?"
-    a: "Nur noch 5–7 Mal pro Minute statt normal 15–20 Mal, was die Augen austrocknet und reizt."
-  - q: "Welche Langzeitfolgen hat Bildschirmarbeit ohne Pausen?"
-    a: "Neben Müdigkeit kann anhaltende Naharbeit besonders bei Jüngeren das Fortschreiten von Kurzsichtigkeit begünstigen."
+  - q: Warum sind Bildschirmpausen wichtig?
+    a: 'Lange Bildschirmarbeit belastet die Augen stark und kann zu Brennen, Kopfschmerzen und digitaler Ermüdung führen.'
+  - q: Was ist das Computer Vision Syndrome?
+    a: Es ist ein verbreitetes Beschwerdebild durch Bildschirmarbeit. Bis zu 90 % aller Bildschirmarbeiter sind laut AOA betroffen.
+  - q: Wie oft blinzeln wir beim Bildschirmarbeiten?
+    a: 'Nur noch 5–7 Mal pro Minute statt normal 15–20 Mal, was die Augen austrocknet und reizt.'
+  - q: Welche Langzeitfolgen hat Bildschirmarbeit ohne Pausen?
+    a: Neben Müdigkeit kann anhaltende Naharbeit besonders bei Jüngeren das Fortschreiten von Kurzsichtigkeit begünstigen.
 ---
+
 ## Warum sind Bildschirmpausen so wichtig?
 
 Ich erinnere mich noch gut an den Nachmittag, als ich nach einem langen Arbeitstag vor dem Monitor saß und plötzlich merkte, dass ich die Buchstaben auf dem Bildschirm kaum noch scharf sehen konnte. Die Augen brannten, der Kopf dröhnte — und ich hatte nicht ein einziges Mal bewusst pausiert. Ein Muster, das vielen Büroarbeitern vertraut sein dürfte.

@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * HealthDesk Blog Studio — Local server
+ * HealthDesk Blog Studio â€” Local server
  * Express backend for blog content management pipeline.
  * Run: npm start (from landing/studio/)
  */
@@ -15,7 +15,17 @@ const sharp = require('sharp');
 const app = express();
 const PORT = 4000;
 
-// ─── Windows Toast Notification helper ───
+function readJsonFile(filePath, fallback = undefined) {
+  try {
+    const raw = fs.readFileSync(filePath, 'utf8').replace(/^\uFEFF/, '');
+    return JSON.parse(raw);
+  } catch (err) {
+    if (fallback !== undefined) return fallback;
+    throw err;
+  }
+}
+
+// â”€â”€â”€ Windows Toast Notification helper â”€â”€â”€
 function showNotification(title, message) {
   try {
     const scriptPath = path.join(__dirname, 'notify.ps1');
@@ -27,7 +37,7 @@ function showNotification(title, message) {
   }
 }
 
-// ─── Language name mapping ───
+// â”€â”€â”€ Language name mapping â”€â”€â”€
 const LANG_NAMES = {
   pl: 'Polish', en: 'English', de: 'German', es: 'Spanish', fr: 'French',
   it: 'Italian', 'pt-BR': 'Brazilian Portuguese', ja: 'Japanese',
@@ -36,12 +46,28 @@ const LANG_NAMES = {
 };
 function getLangName(lang) { return LANG_NAMES[lang] || lang; }
 
-// ─── Claude API ───
+const MOJIBAKE_PATTERN = /(?:Ă.|Ä.|Å.|â€|ďż˝|\?\?\?|cannotreliablyprocess|imunabletogenerate)/i;
+
+function hasBrokenEncoding(value) {
+  return MOJIBAKE_PATTERN.test(String(value || ''));
+}
+
+function normalizeDateOnly(value) {
+  if (!value) return null;
+  if (value instanceof Date && !Number.isNaN(value.getTime())) {
+    return value.toISOString().slice(0, 10);
+  }
+  const str = String(value).trim().replace(/^"|"$/g, '');
+  const match = str.match(/^(\d{4}-\d{2}-\d{2})/);
+  return match ? match[1] : null;
+}
+
+// â”€â”€â”€ Claude API â”€â”€â”€
 function getApiKey() {
   const key = process.env.ANTHROPIC_API_KEY;
   if (key) return key;
   try {
-    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'studio.json'), 'utf8'));
+    const data = readJsonFile(path.join(__dirname, 'studio.json'), {});
     return data.anthropic_api_key || '';
   } catch { return ''; }
 }
@@ -90,37 +116,135 @@ async function callClaude(systemPrompt, userPrompt, maxTokens = 2000, { model = 
   }
 }
 
-function parseJsonResponse(text) {
-  // Strip markdown fences if present
-  let cleaned = text.trim();
+function stripMarkdownFences(text) {
+  let cleaned = String(text || '').trim().replace(/^\uFEFF/, '');
   if (cleaned.startsWith('```')) {
-    cleaned = cleaned.replace(/^```(?:json)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+    cleaned = cleaned.replace(/^```(?:json|markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
   }
-  try {
-    return JSON.parse(cleaned);
-  } catch (e) {
-    // Try to fix truncated JSON by closing open structures
-    let fixed = cleaned;
-    // Count open/close braces and brackets
-    const openBraces = (fixed.match(/\{/g) || []).length;
-    const closeBraces = (fixed.match(/\}/g) || []).length;
-    const openBrackets = (fixed.match(/\[/g) || []).length;
-    const closeBrackets = (fixed.match(/\]/g) || []).length;
-    // Remove trailing comma or incomplete key-value
-    fixed = fixed.replace(/,\s*$/, '');
-    fixed = fixed.replace(/,\s*"[^"]*"?\s*$/, '');
-    // Close open strings
-    const quotes = (fixed.match(/"/g) || []).length;
-    if (quotes % 2 !== 0) fixed += '"';
-    // Close structures
-    for (let i = 0; i < openBrackets - closeBrackets; i++) fixed += ']';
-    for (let i = 0; i < openBraces - closeBraces; i++) fixed += '}';
-    try {
-      return JSON.parse(fixed);
-    } catch (e2) {
-      throw new Error(`${e.message} (auto-fix also failed)`);
+  return cleaned.trim();
+}
+
+function extractFirstJsonBlock(text) {
+  const start = text.search(/[\[{]/);
+  if (start === -1) return null;
+
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let i = start; i < text.length; i++) {
+    const ch = text[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (ch === '\\' && inString) {
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (ch === '{' || ch === '[') {
+      stack.push(ch);
+      continue;
+    }
+
+    if (ch === '}' || ch === ']') {
+      const open = stack[stack.length - 1];
+      if ((open === '{' && ch === '}') || (open === '[' && ch === ']')) {
+        stack.pop();
+        if (stack.length === 0) {
+          return text.slice(start, i + 1);
+        }
+      }
     }
   }
+
+  return text.slice(start);
+}
+
+function repairJsonCandidate(text) {
+  let fixed = text
+    .replace(/^[^\[{]*/, '')
+    .replace(/,\s*([}\]])/g, '$1')
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '');
+
+  const stack = [];
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < fixed.length; i++) {
+    const ch = fixed[i];
+
+    if (escaped) {
+      escaped = false;
+      continue;
+    }
+
+    if (ch === '\\' && inString) {
+      escaped = true;
+      continue;
+    }
+
+    if (ch === '"') {
+      inString = !inString;
+      continue;
+    }
+
+    if (inString) continue;
+
+    if (ch === '{' || ch === '[') stack.push(ch);
+    else if (ch === '}' || ch === ']') {
+      const open = stack[stack.length - 1];
+      if ((open === '{' && ch === '}') || (open === '[' && ch === ']')) {
+        stack.pop();
+      }
+    }
+  }
+
+  if (inString) fixed += '"';
+
+  while (stack.length > 0) {
+    const open = stack.pop();
+    fixed += open === '{' ? '}' : ']';
+  }
+
+  return fixed;
+}
+
+function parseJsonResponse(text) {
+  const cleaned = stripMarkdownFences(text);
+  const candidates = [];
+
+  if (cleaned) candidates.push(cleaned);
+  const extracted = extractFirstJsonBlock(cleaned);
+  if (extracted && !candidates.includes(extracted)) candidates.push(extracted);
+
+  const errors = [];
+
+  for (const candidate of candidates) {
+    try {
+      return JSON.parse(candidate);
+    } catch (e) {
+      errors.push(e.message);
+      try {
+        return JSON.parse(repairJsonCandidate(candidate));
+      } catch (e2) {
+        errors.push(e2.message);
+      }
+    }
+  }
+
+  const preview = cleaned.slice(0, 160).replace(/\s+/g, ' ');
+  throw new Error(`${errors[0] || 'Invalid JSON response'} | preview: ${preview}`);
 }
 
 // Paths
@@ -135,10 +259,10 @@ const DEPLOY_TIMEOUT_MS = 10 * 60 * 1000;
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ─── Studio data (statuses, notes) ───
+// â”€â”€â”€ Studio data (statuses, notes) â”€â”€â”€
 function loadStudioData() {
   if (fs.existsSync(STUDIO_DATA)) {
-    return JSON.parse(fs.readFileSync(STUDIO_DATA, 'utf8'));
+    return readJsonFile(STUDIO_DATA, { articles: {}, ideas: [] });
   }
   return { articles: {}, ideas: [] };
 }
@@ -147,7 +271,112 @@ function saveStudioData(data) {
   fs.writeFileSync(STUDIO_DATA, JSON.stringify(data, null, 2), 'utf8');
 }
 
-// ─── API: List all articles ───
+function upsertFrontmatterFields(filePath, fields) {
+  if (!fs.existsSync(filePath)) return false;
+
+  const raw = fs.readFileSync(filePath, 'utf8');
+  const match = raw.match(/^---\n([\s\S]*?)\n---(\n?[\s\S]*)$/);
+  if (!match) return false;
+
+  let frontmatter = match[1];
+  const body = match[2] || '\n';
+
+  for (const [key, value] of Object.entries(fields || {})) {
+    if (value === null || value === undefined || value === '') continue;
+    const escaped = String(value).replace(/"/g, '\\"');
+    const line = `${key}: "${escaped}"`;
+    const re = new RegExp(`^${key}:.*$`, 'm');
+    if (re.test(frontmatter)) {
+      frontmatter = frontmatter.replace(re, line);
+    } else {
+      frontmatter += `\n${line}`;
+    }
+  }
+
+  fs.writeFileSync(filePath, `---\n${frontmatter}\n---${body.startsWith('\n') ? body : '\n' + body}`, 'utf8');
+  return true;
+}
+
+function transliterateToAscii(value) {
+  const map = {
+    ss: /ß/g,
+    ae: /æ/gi,
+    oe: /œ/gi,
+    o: /ø/gi,
+    d: /[ðđ]/gi,
+    th: /þ/gi,
+    l: /ł/gi,
+    i: /[ıİ]/g,
+    g: /ğ/gi,
+    s: /ş/gi,
+    c: /ç/gi,
+    n: /ñ/gi,
+    a: /å/gi,
+    zh: /ж/gi,
+    kh: /х/gi,
+    ts: /ц/gi,
+    ch: /ч/gi,
+    sh: /ш/gi,
+    sch: /щ/gi,
+    yu: /ю/gi,
+    ya: /я/gi,
+    yo: /ё/gi
+  };
+
+  let output = String(value || '');
+  for (const [replacement, pattern] of Object.entries(map)) {
+    output = output.replace(pattern, replacement);
+  }
+
+  const cyrillicMap = {
+    а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'e', з: 'z', и: 'i', й: 'y',
+    к: 'k', л: 'l', м: 'm', н: 'n', о: 'o', п: 'p', р: 'r', с: 's', т: 't',
+    у: 'u', ф: 'f', ы: 'y', э: 'e', ь: '', ъ: ''
+  };
+
+  output = output.replace(/[а-бвгдезийклмнопрстуфыэьъ]/gi, char => {
+    const lower = char.toLowerCase();
+    const replacement = cyrillicMap[lower] ?? '';
+    return char === lower ? replacement : replacement.toUpperCase();
+  });
+
+  return output.normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+}
+
+function sanitizeSlug(value) {
+  return transliterateToAscii(value)
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/^-|-$/g, '')
+    .slice(0, 80);
+}
+
+function isSuspiciousSlug(slug) {
+  const value = String(slug || '').trim().toLowerCase();
+  if (!value) return true;
+  if (!/^[a-z0-9-]{3,80}$/.test(value)) return true;
+  if (/(^|-)article-[a-z0-9]{4,}$/.test(value)) return true;
+  if (/(cannotreliablyprocess|imunabletogenerate|corruptedtext|encodingerrors)/.test(value)) return true;
+  if (/([a-z]-){3,}[a-z]/.test(value)) return true;
+  return false;
+}
+
+function getPublishedArticleUrl(lang, slug) {
+  return `https://healthdesk.site/${lang}/blog/${slug}/`;
+}
+
+function syncPublishedFrontmatterDate(lang, slug, publishedDate) {
+  const normalizedDate = normalizeDateOnly(publishedDate);
+  if (!normalizedDate) return false;
+
+  const mdFile = path.join(BLOG_DIR, lang, `${slug}.md`);
+  if (!fs.existsSync(mdFile)) return false;
+
+  return upsertFrontmatterFields(mdFile, { date: normalizedDate });
+}
+
+// â”€â”€â”€ API: List all articles â”€â”€â”€
 app.get('/api/articles', (req, res) => {
   const studio = loadStudioData();
   const articles = [];
@@ -191,7 +420,7 @@ app.get('/api/articles', (req, res) => {
   res.json({ articles, langs });
 });
 
-// ─── API: Get single article ───
+// â”€â”€â”€ API: Get single article â”€â”€â”€
 app.get('/api/articles/:lang/:slug', (req, res) => {
   const { lang, slug } = req.params;
   const filePath = findArticleFile(lang, slug);
@@ -216,7 +445,7 @@ app.get('/api/articles/:lang/:slug', (req, res) => {
   });
 });
 
-// ─── API: Save article ───
+// â”€â”€â”€ API: Save article â”€â”€â”€
 app.put('/api/articles/:lang/:slug', (req, res) => {
   const { lang, slug } = req.params;
   const { frontmatter, markdown } = req.body;
@@ -258,7 +487,7 @@ app.put('/api/articles/:lang/:slug', (req, res) => {
   res.json({ ok: true, path: filePath });
 });
 
-// ─── API: Create new article ───
+// â”€â”€â”€ API: Create new article â”€â”€â”€
 app.post('/api/articles', (req, res) => {
   const { lang, slug, title } = req.body;
   if (!lang || !slug) return res.status(400).json({ error: 'lang and slug required' });
@@ -293,7 +522,7 @@ lang: ${lang}
   res.json({ ok: true, key: `${lang}/${slug}` });
 });
 
-// ─── API: Delete article ───
+// â”€â”€â”€ API: Delete article â”€â”€â”€
 app.delete('/api/articles/:lang/:slug', (req, res) => {
   const { lang, slug } = req.params;
   const filePath = findArticleFile(lang, slug);
@@ -308,7 +537,7 @@ app.delete('/api/articles/:lang/:slug', (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── API: Update article status ───
+// â”€â”€â”€ API: Update article status â”€â”€â”€
 app.patch('/api/articles/:lang/:slug/status', (req, res) => {
   const { lang, slug } = req.params;
   const { status } = req.body;
@@ -322,20 +551,20 @@ app.patch('/api/articles/:lang/:slug/status', (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── API: SEO analysis ───
+// â”€â”€â”€ API: SEO analysis â”€â”€â”€
 app.post('/api/seo/analyze', (req, res) => {
   const { frontmatter, markdown, lang } = req.body;
   const result = analyzeSEO(frontmatter, markdown, lang);
   res.json(result);
 });
 
-// ─── API: Grammar check (LanguageTool) ───
-// Custom dictionary — words to ignore in grammar check
+// â”€â”€â”€ API: Grammar check (LanguageTool) â”€â”€â”€
+// Custom dictionary â€” words to ignore in grammar check
 const CUSTOM_DICTIONARY = [
   'Pomodoro', 'pomodoro', 'Cirillo', 'HealthDesk', 'healthdesk',
   'Todoist', 'Notion', 'GTD', 'Draugiem', 'DeskTime',
   'Stretchly', 'Workrave', 'EyeLeo', 'Pomy',
-  'ultradian', 'ultradiańskimi', 'mikroprzerwy', 'mikro-ćwiczenia',
+  'ultradian', 'ultradiaĹ„skimi', 'mikroprzerwy', 'mikro-Ä‡wiczenia',
   'time blocking', 'blockingiem', 'deep work', 'flow',
   'Optometric', 'Association', 'Irvine', 'Illinois',
   'Getting', 'Things', 'Done', 'Frog', 'Eat',
@@ -368,8 +597,8 @@ app.post('/api/check/grammar', async (req, res) => {
         if (dictSet.has(flagged.toLowerCase())) return false;
         // Skip if flagged text contains a known word (for multi-word matches)
         if (CUSTOM_DICTIONARY.some(w => flagged.toLowerCase().includes(w.toLowerCase()))) return false;
-        // Skip Polish curly quote "unmatched" warnings (typographic quotes „")
-        if (m.rule && m.rule.id && m.rule.id.includes('NIESP') && (flagged === '„' || flagged === '"')) return false;
+        // Skip Polish curly quote "unmatched" warnings (typographic quotes â€ž")
+        if (m.rule && m.rule.id && m.rule.id.includes('NIESP') && (flagged === 'â€ž' || flagged === '"')) return false;
         return true;
       });
     }
@@ -380,13 +609,13 @@ app.post('/api/check/grammar', async (req, res) => {
   }
 });
 
-// ─── API: Readability analysis ───
+// â”€â”€â”€ API: Readability analysis â”€â”€â”€
 app.post('/api/check/readability', (req, res) => {
   const { text, lang } = req.body;
   res.json(analyzeReadability(text, lang));
 });
 
-// ─── API: Build ───
+// â”€â”€â”€ API: Build â”€â”€â”€
 app.post('/api/build', (req, res) => {
   try {
     const output = execSync('node build.js', { cwd: LANDING_ROOT, encoding: 'utf8', timeout: 30000 });
@@ -396,7 +625,7 @@ app.post('/api/build', (req, res) => {
   }
 });
 
-// ─── API: Preview (check if dist exists) ───
+// â”€â”€â”€ API: Preview (check if dist exists) â”€â”€â”€
 app.get('/api/preview/status', (req, res) => {
   const exists = fs.existsSync(DIST_DIR);
   const pages = exists ? countFiles(DIST_DIR, '.html') : 0;
@@ -408,7 +637,7 @@ app.use('/preview', express.static(DIST_DIR));
 // Serve dist assets at root level too (HTML uses absolute paths like /style.css)
 app.use(express.static(DIST_DIR));
 
-// ─── API: Deploy ───
+// â”€â”€â”€ API: Deploy â”€â”€â”€
 app.post('/api/deploy', (req, res) => {
   exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
     if (err) {
@@ -433,7 +662,7 @@ app.post('/api/deploy', (req, res) => {
   });
 });
 
-// ─── API: Ideas ───
+// â”€â”€â”€ API: Ideas â”€â”€â”€
 app.get('/api/ideas', (req, res) => {
   const studio = loadStudioData();
   res.json(studio.ideas || []);
@@ -464,10 +693,10 @@ app.delete('/api/ideas/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── Serper API helper ───
+// â”€â”€â”€ Serper API helper â”€â”€â”€
 function getSerperKey() {
   try {
-    const data = JSON.parse(fs.readFileSync(path.join(__dirname, 'studio.json'), 'utf8'));
+    const data = readJsonFile(path.join(__dirname, 'studio.json'), {});
     return data.serper_api_key || '';
   } catch { return ''; }
 }
@@ -504,7 +733,7 @@ async function serperRequest(endpoint, body) {
   return response.json();
 }
 
-// ─── Helper: Keyword search ───
+// â”€â”€â”€ Helper: Keyword search â”€â”€â”€
 async function doKeywordSearch(query, lang) {
   const locale = LANG_MAP[lang] || LANG_MAP.en;
   console.log(`[Keywords] Searching "${query}" (${lang})...`);
@@ -530,7 +759,7 @@ async function doKeywordSearch(query, lang) {
   return result;
 }
 
-// ─── API: Keyword search (Serper) ───
+// â”€â”€â”€ API: Keyword search (Serper) â”€â”€â”€
 app.post('/api/keywords/search', async (req, res) => {
   const { query, lang } = req.body;
   if (!query) return res.status(400).json({ error: 'query required' });
@@ -542,12 +771,12 @@ app.post('/api/keywords/search', async (req, res) => {
   }
 });
 
-// ─── Helper: Keyword AI analysis ───
+// â”€â”€â”€ Helper: Keyword AI analysis â”€â”€â”€
 async function doKeywordAnalyze(query, lang, serp) {
   const langName = getLangName(lang);
 
   const serpSummary = (serp.organic || []).map((r, i) =>
-    `${i+1}. "${r.title}" — ${r.link}\n   ${r.snippet}`
+    `${i+1}. "${r.title}" â€” ${r.link}\n   ${r.snippet}`
   ).join('\n');
 
   const paa = (serp.peopleAlsoAsk || []).map(q => `- ${q}`).join('\n');
@@ -593,7 +822,7 @@ Return ONLY valid JSON.`,
   return parseJsonResponse(result);
 }
 
-// ─── API: Keyword AI analysis ───
+// â”€â”€â”€ API: Keyword AI analysis â”€â”€â”€
 app.post('/api/keywords/analyze', async (req, res) => {
   const { query, lang, serp } = req.body;
   if (!query || !serp) return res.status(400).json({ error: 'query and serp data required' });
@@ -605,7 +834,7 @@ app.post('/api/keywords/analyze', async (req, res) => {
   }
 });
 
-// ─── Helper: AI outline ───
+// â”€â”€â”€ Helper: AI outline â”€â”€â”€
 async function doOutline(keyword, lang) {
   const langName = getLangName(lang);
   const result = await callClaude(
@@ -636,7 +865,7 @@ Return ONLY valid JSON, no markdown fences.`,
   return parseJsonResponse(result);
 }
 
-// ─── AI: Generate outline from keyword ───
+// â”€â”€â”€ AI: Generate outline from keyword â”€â”€â”€
 app.post('/api/ai/outline', async (req, res) => {
   const { keyword, lang } = req.body;
   try {
@@ -646,14 +875,14 @@ app.post('/api/ai/outline', async (req, res) => {
   }
 });
 
-// ─── AI Draft: progress tracking ───
+// â”€â”€â”€ AI Draft: progress tracking â”€â”€â”€
 let draftProgress = null; // { slug, lang, title, chunk, totalChunks, sections, status, startedAt, words }
 
 app.get('/api/ai/draft/status', (req, res) => {
   res.json(draftProgress || { status: 'idle' });
 });
 
-// ─── Helper: AI draft (chunked writing + FAQ) ───
+// â”€â”€â”€ Helper: AI draft (chunked writing + FAQ) â”€â”€â”€
 async function doDraft(title, description, outline, lang, keyword, slug, persona) {
   const langName = getLangName(lang);
 
@@ -669,30 +898,30 @@ async function doDraft(title, description, outline, lang, keyword, slug, persona
     return t;
   }).join('\n\n');
 
-  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write ENTIRELY in ${langName} — every word, heading, sentence must be in ${langName}. NEVER use English (unless the target language IS English). Your goal is to produce articles that read as if written by a knowledgeable native ${langName} speaker — NOT a generic AI.
+  const systemPrompt = `You are a health & productivity blog writer for HealthDesk (desktop wellness app). Write ENTIRELY in ${langName} â€” every word, heading, sentence must be in ${langName}. NEVER use English (unless the target language IS English). Your goal is to produce articles that read as if written by a knowledgeable native ${langName} speaker â€” NOT a generic AI.
 
 VOICE & TONE:
-- Write like a real person sharing expertise — use "I", share brief personal observations or anecdotes (e.g. "I noticed that…", "In my experience…", "I've seen this with clients…")
+- Write like a real person sharing expertise â€” use "I", share brief personal observations or anecdotes (e.g. "I noticed thatâ€¦", "In my experienceâ€¦", "I've seen this with clientsâ€¦")
 - Vary paragraph lengths deliberately: mix 1-sentence punchy paragraphs with longer 4-5 sentence ones. Asymmetry is key.
 - Vary sentence lengths: mix short punchy sentences with longer complex ones. Monotonous rhythm = AI tell.
-- Include at least one moment of honest friction per article — a counterargument, limitation, or "this doesn't work for everyone" caveat
+- Include at least one moment of honest friction per article â€” a counterargument, limitation, or "this doesn't work for everyone" caveat
 - Ask rhetorical questions to engage the reader (2-3 per article max, not in every section)
-- Use 1 colloquial/informal expression per article to break the "textbook" feel (e.g. "let's be honest", "sounds great on paper, but…")
-- Use bold sparingly — max 3-4 bolded terms per 1000 words. Bold is the exception, not the norm.
+- Use 1 colloquial/informal expression per article to break the "textbook" feel (e.g. "let's be honest", "sounds great on paper, butâ€¦")
+- Use bold sparingly â€” max 3-4 bolded terms per 1000 words. Bold is the exception, not the norm.
 
 STRUCTURE:
-- INTRO: Start from the reader's problem, a question, or a brief anecdote — NEVER from a definition ("X is a technique that…")
-- First paragraph after each H2: concise answer (40-60 words) — optimized for featured snippets. But vary how you open — not every section should start the same way.
-- Vary section structure — NOT every section should follow the same pattern. Mix: stories → data, data → practical tip, question → answer → nuance. Sections should have DIFFERENT lengths (some 2 paragraphs, some 5).
+- INTRO: Start from the reader's problem, a question, or a brief anecdote â€” NEVER from a definition ("X is a technique thatâ€¦")
+- First paragraph after each H2: concise answer (40-60 words) â€” optimized for featured snippets. But vary how you open â€” not every section should start the same way.
+- Vary section structure â€” NOT every section should follow the same pattern. Mix: stories â†’ data, data â†’ practical tip, question â†’ answer â†’ nuance. Sections should have DIFFERENT lengths (some 2 paragraphs, some 5).
 - Use H2 headings phrased as questions to maximize FAQ schema extraction
 - Include at least ONE markdown comparison/summary table per article (use | syntax)
-- OUTRO: End with a concrete takeaway or reflection — NEVER with "In summary…", "To conclude…", "In today's fast-paced world…"
+- OUTRO: End with a concrete takeaway or reflection â€” NEVER with "In summaryâ€¦", "To concludeâ€¦", "In today's fast-paced worldâ€¦"
 - If a list has only 3 items, write it as a sentence instead of bullet points
 
 DATA & STATS:
-- Max 3-4 statistics/data points in the ENTIRE article — the rest should be observations and experience
+- Max 3-4 statistics/data points in the ENTIRE article â€” the rest should be observations and experience
 - Always add an interpreting sentence after a statistic (don't just drop numbers)
-- Add context: "this 2022 study…", "though the sample was small…"
+- Add context: "this 2022 studyâ€¦", "though the sample was smallâ€¦"
 - Cite external sources with real links: [Journal name](https://doi.org/...), [WHO](https://www.who.int/...)
 - Never repeat the same statistic or data point in different sections
 
@@ -702,15 +931,15 @@ LINKS:
 - Do NOT end sections with a CTA to the product
 
 SEO:
-- Use the target keyword naturally — max 4-5 exact matches per 2000 words. Use synonyms and related terms for the rest ("technique", "system", "approach", "this method").
+- Use the target keyword naturally â€” max 4-5 exact matches per 2000 words. Use synonyms and related terms for the rest ("technique", "system", "approach", "this method").
 - Do NOT write a conclusion unless explicitly told to
 
-BANNED PHRASES (never use these — they are AI fingerprints):
+BANNED PHRASES (never use these â€” they are AI fingerprints):
 "it's worth noting", "it goes without saying", "in today's fast-paced world", "a key aspect is", "furthermore,", "moreover,", "it's important to highlight", "without a doubt", "for this reason", "in conclusion", "to summarize", "as we all know", "needless to say", "it should be noted that", "in the modern era"
-Equivalent banned phrases in Polish: "warto zauważyć", "nie ulega wątpliwości", "w dzisiejszym dynamicznym świecie", "kluczowym aspektem jest", "co więcej,", "ponadto,", "warto podkreślić, że", "z tego względu", "podsumowując", "jak wszyscy wiemy", "nie trzeba dodawać", "należy zauważyć, że"
-Equivalent banned phrases in German: "es ist erwähnenswert", "zweifellos", "in der heutigen schnelllebigen Welt", "ein wesentlicher Aspekt ist", "darüber hinaus", "zusammenfassend", "es sei darauf hingewiesen"
-Equivalent banned phrases in Spanish: "cabe destacar", "sin lugar a dudas", "en el mundo actual", "un aspecto clave es", "además,", "en resumen", "es importante señalar"
-Equivalent banned phrases in French: "il convient de noter", "sans aucun doute", "dans le monde d'aujourd'hui", "un aspect clé est", "de plus,", "en résumé", "il est important de souligner"`;
+Equivalent banned phrases in Polish: "warto zauwaĹĽyÄ‡", "nie ulega wÄ…tpliwoĹ›ci", "w dzisiejszym dynamicznym Ĺ›wiecie", "kluczowym aspektem jest", "co wiÄ™cej,", "ponadto,", "warto podkreĹ›liÄ‡, ĹĽe", "z tego wzglÄ™du", "podsumowujÄ…c", "jak wszyscy wiemy", "nie trzeba dodawaÄ‡", "naleĹĽy zauwaĹĽyÄ‡, ĹĽe"
+Equivalent banned phrases in German: "es ist erwĂ¤hnenswert", "zweifellos", "in der heutigen schnelllebigen Welt", "ein wesentlicher Aspekt ist", "darĂĽber hinaus", "zusammenfassend", "es sei darauf hingewiesen"
+Equivalent banned phrases in Spanish: "cabe destacar", "sin lugar a dudas", "en el mundo actual", "un aspecto clave es", "ademĂˇs,", "en resumen", "es importante seĂ±alar"
+Equivalent banned phrases in French: "il convient de noter", "sans aucun doute", "dans le monde d'aujourd'hui", "un aspect clĂ© est", "de plus,", "en rĂ©sumĂ©", "il est important de souligner"`;
 
   console.log(`[AI Draft] Generating in ${chunks.length} chunks (${outline.length} sections total)`);
 
@@ -735,8 +964,8 @@ Equivalent banned phrases in French: "il convient de noter", "sans aucun doute",
       : '';
 
     const conclusionNote = isLast
-      ? '\n\nThis is the LAST chunk — end with a brief conclusion section (## header + 2-3 sentences).'
-      : '\n\nDo NOT end with a conclusion — more sections follow.';
+      ? '\n\nThis is the LAST chunk â€” end with a brief conclusion section (## header + 2-3 sentences).'
+      : '\n\nDo NOT end with a conclusion â€” more sections follow.';
 
     draftProgress.chunk = ci + 1;
     draftProgress.sections = chunk.map(s => s.h2).join(', ');
@@ -838,7 +1067,7 @@ Return ONLY valid JSON:
   return { markdown, faqYaml };
 }
 
-// ─── AI: Write full draft from outline ───
+// â”€â”€â”€ AI: Write full draft from outline â”€â”€â”€
 app.post('/api/ai/draft', async (req, res) => {
   const { title, description, outline, lang, keyword, slug, persona } = req.body;
   try {
@@ -852,7 +1081,7 @@ app.post('/api/ai/draft', async (req, res) => {
   }
 });
 
-// ─── Helper: AI description ───
+// â”€â”€â”€ Helper: AI description â”€â”€â”€
 async function doDescription(markdown, title, lang) {
   const langName = getLangName(lang);
   const result = await callClaude(
@@ -867,7 +1096,7 @@ Return ONLY the description text, nothing else.`,
   return result.trim();
 }
 
-// ─── AI: Suggest meta description ───
+// â”€â”€â”€ AI: Suggest meta description â”€â”€â”€
 app.post('/api/ai/description', async (req, res) => {
   const { markdown, title, lang } = req.body;
   try {
@@ -878,29 +1107,29 @@ app.post('/api/ai/description', async (req, res) => {
   }
 });
 
-// ─── Helper: Humanize article ───
+// â”€â”€â”€ Helper: Humanize article â”€â”€â”€
 const LANG_GUIDELINES = {
   pl: {
     name: 'Polish',
-    formalPhrases: `"warto zauważyć", "nie ulega wątpliwości", "w dzisiejszych czasach", "kluczowym aspektem jest", "nie sposób nie wspomnieć", "z całą pewnością", "w związku z powyższym", "ponadto", "co więcej", "należy podkreślić", "w kontekście", "biorąc pod uwagę", "nie da się ukryć, że"`,
-    personalPhrases: `"z mojego doświadczenia", "sam/sama to testowałem/am", "przyznam, że na początku…", "u mnie sprawdza się", "powiem szczerze"`,
-    softStats: `"wielu użytkowników zauważa, że…", "z praktyki wynika, że…", "badania sugerują, że…"`,
-    style: `- Use "ty" form (2nd person singular informal), NOT "Państwo" or "Pan/Pani"
-- Use natural Polish word order — don't calque English sentence structures
-- Contractions are fine: "nie da się" instead of "nie jest to możliwe"
-- Rhetorical questions: "Znasz to uczucie, gdy...?", "Ile razy zdarzyło ci się...?"
-- Polish allows longer sentences than English — but still vary them
+    formalPhrases: `"warto zauwaĹĽyÄ‡", "nie ulega wÄ…tpliwoĹ›ci", "w dzisiejszych czasach", "kluczowym aspektem jest", "nie sposĂłb nie wspomnieÄ‡", "z caĹ‚Ä… pewnoĹ›ciÄ…", "w zwiÄ…zku z powyĹĽszym", "ponadto", "co wiÄ™cej", "naleĹĽy podkreĹ›liÄ‡", "w kontekĹ›cie", "biorÄ…c pod uwagÄ™", "nie da siÄ™ ukryÄ‡, ĹĽe"`,
+    personalPhrases: `"z mojego doĹ›wiadczenia", "sam/sama to testowaĹ‚em/am", "przyznam, ĹĽe na poczÄ…tkuâ€¦", "u mnie sprawdza siÄ™", "powiem szczerze"`,
+    softStats: `"wielu uĹĽytkownikĂłw zauwaĹĽa, ĹĽeâ€¦", "z praktyki wynika, ĹĽeâ€¦", "badania sugerujÄ…, ĹĽeâ€¦"`,
+    style: `- Use "ty" form (2nd person singular informal), NOT "PaĹ„stwo" or "Pan/Pani"
+- Use natural Polish word order â€” don't calque English sentence structures
+- Contractions are fine: "nie da siÄ™" instead of "nie jest to moĹĽliwe"
+- Rhetorical questions: "Znasz to uczucie, gdy...?", "Ile razy zdarzyĹ‚o ci siÄ™...?"
+- Polish allows longer sentences than English â€” but still vary them
 - Avoid unnecessary Anglicisms: use "przerwa" not "break", "technika" not overused "metoda"
-- Colloquial interjections: "no i co?", "serio?", "brzmi znajomo?", "no właśnie"
-- Polish readers appreciate warmth and directness — write like talking to a friend over coffee`,
+- Colloquial interjections: "no i co?", "serio?", "brzmi znajomo?", "no wĹ‚aĹ›nie"
+- Polish readers appreciate warmth and directness â€” write like talking to a friend over coffee`,
   },
   en: {
     name: 'English',
     formalPhrases: `"it's worth noting that", "there is no doubt", "for this reason", "furthermore", "moreover", "it should be highlighted that", "in today's dynamic world", "a key aspect is", "needless to say", "it goes without saying", "at the end of the day", "in conclusion"`,
-    personalPhrases: `"from my experience", "I've tested this myself", "I'll admit, at first…", "here's what works for me"`,
-    softStats: `"many users report that…", "research suggests that…", "from what we've seen…"`,
+    personalPhrases: `"from my experience", "I've tested this myself", "I'll admit, at firstâ€¦", "here's what works for me"`,
+    softStats: `"many users report thatâ€¦", "research suggests thatâ€¦", "from what we've seenâ€¦"`,
     style: `- Use conversational contractions: "don't", "isn't", "we've", "you'll"
-- Mix short punchy sentences with longer ones — English thrives on rhythm
+- Mix short punchy sentences with longer ones â€” English thrives on rhythm
 - Use active voice: "you'll notice" not "it can be noticed"
 - Rhetorical questions: "Ever noticed how...?", "Sound familiar?"
 - Colloquial: "here's the thing", "turns out", "spoiler alert", "let's be honest"
@@ -908,136 +1137,136 @@ const LANG_GUIDELINES = {
   },
   de: {
     name: 'German',
-    formalPhrases: `"es ist erwähnenswert", "zweifellos", "darüber hinaus", "des Weiteren", "es sei darauf hingewiesen", "in der heutigen Zeit", "ein wesentlicher Aspekt", "selbstverständlich", "es versteht sich von selbst", "im Folgenden", "abschließend lässt sich sagen", "es ist unbestritten"`,
-    personalPhrases: `"aus meiner Erfahrung", "ich habe das selbst getestet", "ich gebe zu, anfangs…", "was bei mir funktioniert", "ganz ehrlich"`,
-    softStats: `"viele Nutzer berichten, dass…", "Studien deuten darauf hin, dass…", "in der Praxis zeigt sich…"`,
+    formalPhrases: `"es ist erwĂ¤hnenswert", "zweifellos", "darĂĽber hinaus", "des Weiteren", "es sei darauf hingewiesen", "in der heutigen Zeit", "ein wesentlicher Aspekt", "selbstverstĂ¤ndlich", "es versteht sich von selbst", "im Folgenden", "abschlieĂźend lĂ¤sst sich sagen", "es ist unbestritten"`,
+    personalPhrases: `"aus meiner Erfahrung", "ich habe das selbst getestet", "ich gebe zu, anfangsâ€¦", "was bei mir funktioniert", "ganz ehrlich"`,
+    softStats: `"viele Nutzer berichten, dassâ€¦", "Studien deuten darauf hin, dassâ€¦", "in der Praxis zeigt sichâ€¦"`,
     style: `- Use "du" form (informal) for blog content, NOT "Sie"
-- Simplify subordinate clause chains — German AI text tends to nest too deeply
+- Simplify subordinate clause chains â€” German AI text tends to nest too deeply
 - Use natural compound words: "Arbeitsplatzergonomie", "Bildschirmarbeit"
-- Avoid direct English calques — use German idioms: "Hand aufs Herz", "mal ehrlich"
-- Rhetorical questions: "Kennst du das Gefühl, wenn...?", "Kommt dir das bekannt vor?"
-- Colloquial: "mal ehrlich", "und zwar", "klingt vertraut?", "Spaß beiseite"
-- German readers expect depth — don't oversimplify, but break up dense passages
-- Avoid overusing "man" (impersonal) — address the reader directly with "du"`,
+- Avoid direct English calques â€” use German idioms: "Hand aufs Herz", "mal ehrlich"
+- Rhetorical questions: "Kennst du das GefĂĽhl, wenn...?", "Kommt dir das bekannt vor?"
+- Colloquial: "mal ehrlich", "und zwar", "klingt vertraut?", "SpaĂź beiseite"
+- German readers expect depth â€” don't oversimplify, but break up dense passages
+- Avoid overusing "man" (impersonal) â€” address the reader directly with "du"`,
   },
   es: {
     name: 'Spanish',
-    formalPhrases: `"cabe destacar", "sin lugar a dudas", "por esta razón", "además", "asimismo", "es importante señalar que", "en la actualidad", "un aspecto clave es", "huelga decir", "dicho lo anterior", "en definitiva", "resulta evidente que"`,
-    personalPhrases: `"por experiencia propia", "yo mismo lo he probado", "te confieso que al principio…", "a mí me funciona", "siendo honesto"`,
-    softStats: `"muchos usuarios notan que…", "los estudios sugieren que…", "en la práctica se observa que…"`,
-    style: `- Use "tú" form (informal), NOT "usted"
-- Spanish is naturally more verbose — embrace it, but vary sentence lengths
-- Rhetorical questions: "¿Te suena?", "¿Cuántas veces te ha pasado que...?"
+    formalPhrases: `"cabe destacar", "sin lugar a dudas", "por esta razĂłn", "ademĂˇs", "asimismo", "es importante seĂ±alar que", "en la actualidad", "un aspecto clave es", "huelga decir", "dicho lo anterior", "en definitiva", "resulta evidente que"`,
+    personalPhrases: `"por experiencia propia", "yo mismo lo he probado", "te confieso que al principioâ€¦", "a mĂ­ me funciona", "siendo honesto"`,
+    softStats: `"muchos usuarios notan queâ€¦", "los estudios sugieren queâ€¦", "en la prĂˇctica se observa queâ€¦"`,
+    style: `- Use "tĂş" form (informal), NOT "usted"
+- Spanish is naturally more verbose â€” embrace it, but vary sentence lengths
+- Rhetorical questions: "ÂżTe suena?", "ÂżCuĂˇntas veces te ha pasado que...?"
 - Avoid anglicisms: use "enlace" not "link", "pantalla" not "display"
-- Emphatic structures: "Lo que sí funciona es…", "El problema real es que…"
+- Emphatic structures: "Lo que sĂ­ funciona esâ€¦", "El problema real es queâ€¦"
 - Colloquial: "la verdad es que", "ojo", "vamos a lo importante", "seamos sinceros"
-- Don't forget inverted punctuation: ¿ ¡
+- Don't forget inverted punctuation: Âż Âˇ
 - Latin American vs Spain: prefer neutral Spanish that works for both`,
   },
   fr: {
     name: 'French',
-    formalPhrases: `"il convient de noter", "sans aucun doute", "c'est pourquoi", "en outre", "de surcroît", "il est important de souligner", "dans le monde actuel", "un aspect clé est", "il va sans dire", "en définitive", "force est de constater", "il est indéniable que"`,
-    personalPhrases: `"d'après mon expérience", "j'ai testé cela moi-même", "j'avoue qu'au début…", "ce qui marche pour moi", "honnêtement"`,
-    softStats: `"beaucoup d'utilisateurs remarquent que…", "les études suggèrent que…", "dans la pratique, on observe que…"`,
-    style: `- Use "tu" form for blog content — casual, direct, like talking to a colleague
-- French values elegance — avoid repeating the same word in nearby sentences, use synonyms
-- Rhetorical questions: "Tu connais cette sensation quand...?", "Ça te parle?"
+    formalPhrases: `"il convient de noter", "sans aucun doute", "c'est pourquoi", "en outre", "de surcroĂ®t", "il est important de souligner", "dans le monde actuel", "un aspect clĂ© est", "il va sans dire", "en dĂ©finitive", "force est de constater", "il est indĂ©niable que"`,
+    personalPhrases: `"d'aprĂ¨s mon expĂ©rience", "j'ai testĂ© cela moi-mĂŞme", "j'avoue qu'au dĂ©butâ€¦", "ce qui marche pour moi", "honnĂŞtement"`,
+    softStats: `"beaucoup d'utilisateurs remarquent queâ€¦", "les Ă©tudes suggĂ¨rent queâ€¦", "dans la pratique, on observe queâ€¦"`,
+    style: `- Use "tu" form for blog content â€” casual, direct, like talking to a colleague
+- French values elegance â€” avoid repeating the same word in nearby sentences, use synonyms
+- Rhetorical questions: "Tu connais cette sensation quand...?", "Ă‡a te parle?"
 - Avoid English borrowings when French alternatives exist
-- French-specific expressions: "entre nous", "avouons-le", "c'est là que ça se complique"
-- Colloquial: "bon", "du coup", "en gros", "soyons honnêtes"
-- French readers expect intellectual engagement — don't dumb things down
-- Liaison and rhythm matter — read sentences aloud mentally to check flow`,
+- French-specific expressions: "entre nous", "avouons-le", "c'est lĂ  que Ă§a se complique"
+- Colloquial: "bon", "du coup", "en gros", "soyons honnĂŞtes"
+- French readers expect intellectual engagement â€” don't dumb things down
+- Liaison and rhythm matter â€” read sentences aloud mentally to check flow`,
   },
   it: {
     name: 'Italian',
-    formalPhrases: `"è opportuno sottolineare", "non vi è dubbio", "in quest'ottica", "inoltre", "altresì", "è importante evidenziare che", "nel contesto attuale", "un aspetto fondamentale è", "va da sé", "in conclusione", "è innegabile che", "alla luce di quanto sopra"`,
-    personalPhrases: `"dalla mia esperienza", "l'ho provato personalmente", "ammetto che all'inizio…", "per me funziona", "onestamente"`,
-    softStats: `"molti utenti notano che…", "gli studi suggeriscono che…", "nella pratica si osserva che…"`,
+    formalPhrases: `"Ă¨ opportuno sottolineare", "non vi Ă¨ dubbio", "in quest'ottica", "inoltre", "altresĂ¬", "Ă¨ importante evidenziare che", "nel contesto attuale", "un aspetto fondamentale Ă¨", "va da sĂ©", "in conclusione", "Ă¨ innegabile che", "alla luce di quanto sopra"`,
+    personalPhrases: `"dalla mia esperienza", "l'ho provato personalmente", "ammetto che all'inizioâ€¦", "per me funziona", "onestamente"`,
+    softStats: `"molti utenti notano cheâ€¦", "gli studi suggeriscono cheâ€¦", "nella pratica si osserva cheâ€¦"`,
     style: `- Use "tu" form (informal), NOT "Lei"
-- Italian loves rhythm and melody — vary sentence length for musicality
-- Rhetorical questions: "Ti è mai capitato di...?", "Ti suona familiare?"
+- Italian loves rhythm and melody â€” vary sentence length for musicality
+- Rhetorical questions: "Ti Ă¨ mai capitato di...?", "Ti suona familiare?"
 - Avoid anglicisms: use "collegamento" not "link", "schermo" not "display"
-- Colloquial: "la verità è che", "occhio", "andiamo al sodo", "siamo onesti"
-- Italian readers appreciate warmth and expressiveness — don't be too dry
-- Use emphatic structures: "Il punto è che…", "Quello che funziona davvero è…"`,
+- Colloquial: "la veritĂ  Ă¨ che", "occhio", "andiamo al sodo", "siamo onesti"
+- Italian readers appreciate warmth and expressiveness â€” don't be too dry
+- Use emphatic structures: "Il punto Ă¨ cheâ€¦", "Quello che funziona davvero Ă¨â€¦"`,
   },
   'pt-BR': {
     name: 'Brazilian Portuguese',
-    formalPhrases: `"vale ressaltar que", "não há dúvida de que", "nesse sentido", "ademais", "outrossim", "é importante destacar que", "no cenário atual", "um aspecto fundamental é", "escusado será dizer", "em suma", "é inegável que", "diante do exposto"`,
-    personalPhrases: `"pela minha experiência", "eu mesmo testei isso", "confesso que no começo…", "o que funciona pra mim", "sinceramente"`,
-    softStats: `"muitos usuários percebem que…", "pesquisas sugerem que…", "na prática, observa-se que…"`,
-    style: `- Use "você" form (Brazilian informal), NOT "o senhor/a senhora"
-- Brazilian Portuguese is naturally warm and conversational — embrace it
-- Rhetorical questions: "Já aconteceu com você de...?", "Parece familiar?"
-- Avoid excessive anglicisms: use "tela" not "display", "publicação" not "post"
-- Colloquial: "a real é que", "ó", "bora lá", "vamos ser sinceros", "tá ligado?"
-- Use Brazilian expressions naturally: "dá pra", "tipo assim", "na moral"
-- Brazilian readers prefer a light, friendly tone — como papo de amigo`,
+    formalPhrases: `"vale ressaltar que", "nĂŁo hĂˇ dĂşvida de que", "nesse sentido", "ademais", "outrossim", "Ă© importante destacar que", "no cenĂˇrio atual", "um aspecto fundamental Ă©", "escusado serĂˇ dizer", "em suma", "Ă© inegĂˇvel que", "diante do exposto"`,
+    personalPhrases: `"pela minha experiĂŞncia", "eu mesmo testei isso", "confesso que no comeĂ§oâ€¦", "o que funciona pra mim", "sinceramente"`,
+    softStats: `"muitos usuĂˇrios percebem queâ€¦", "pesquisas sugerem queâ€¦", "na prĂˇtica, observa-se queâ€¦"`,
+    style: `- Use "vocĂŞ" form (Brazilian informal), NOT "o senhor/a senhora"
+- Brazilian Portuguese is naturally warm and conversational â€” embrace it
+- Rhetorical questions: "JĂˇ aconteceu com vocĂŞ de...?", "Parece familiar?"
+- Avoid excessive anglicisms: use "tela" not "display", "publicaĂ§ĂŁo" not "post"
+- Colloquial: "a real Ă© que", "Ăł", "bora lĂˇ", "vamos ser sinceros", "tĂˇ ligado?"
+- Use Brazilian expressions naturally: "dĂˇ pra", "tipo assim", "na moral"
+- Brazilian readers prefer a light, friendly tone â€” como papo de amigo`,
   },
   ja: {
     name: 'Japanese',
-    formalPhrases: `"注目に値する", "疑いの余地はない", "この観点から", "さらに", "加えて", "強調すべきは", "現代社会において", "重要な側面は", "言うまでもなく", "結論として", "否定できない事実として", "以上を踏まえて"`,
-    personalPhrases: `"私の経験では", "実際に試してみて", "正直に言うと最初は…", "個人的にうまくいったのは", "率直に言って"`,
-    softStats: `"多くのユーザーが感じているのは…", "研究が示唆するのは…", "実際のところ…"`,
-    style: `- Use です/ます form but keep it conversational, not stiff
-- Mix in casual expressions: "実はね", "ちょっと意外かも", "わかる気がする"
+    formalPhrases: `"ćł¨ç›®ă«ĺ€¤ă™ă‚‹", "ç–‘ă„ă®ä˝™ĺś°ăŻăŞă„", "ă“ă®č¦łç‚ąă‹ă‚‰", "ă•ă‚‰ă«", "ĺŠ ăă¦", "ĺĽ·čŞżă™ăąăŤăŻ", "çŹľä»Łç¤ľäĽšă«ăŠă„ă¦", "é‡Ťč¦ăŞĺ´éť˘ăŻ", "č¨€ă†ăľă§ă‚‚ăŞăŹ", "çµč«–ă¨ă—ă¦", "ĺ¦ĺ®šă§ăŤăŞă„äş‹ĺ®źă¨ă—ă¦", "ä»Ąä¸Šă‚’č¸Źăľăă¦"`,
+    personalPhrases: `"ç§ă®çµŚé¨“ă§ăŻ", "ĺ®źéš›ă«č©¦ă—ă¦ăżă¦", "ć­Łç›´ă«č¨€ă†ă¨ćś€ĺťăŻâ€¦", "ĺ€‹äşşçš„ă«ă†ăľăŹă„ăŁăźă®ăŻ", "çŽ‡ç›´ă«č¨€ăŁă¦"`,
+    softStats: `"ĺ¤šăŹă®ă¦ăĽă‚¶ăĽăŚć„źăă¦ă„ă‚‹ă®ăŻâ€¦", "ç ”ç©¶ăŚç¤şĺ”†ă™ă‚‹ă®ăŻâ€¦", "ĺ®źéš›ă®ă¨ă“ă‚Ťâ€¦"`,
+    style: `- Use ă§ă™/ăľă™ form but keep it conversational, not stiff
+- Mix in casual expressions: "ĺ®źăŻă­", "ăˇă‚‡ăŁă¨ć„Źĺ¤–ă‹ă‚‚", "ă‚Źă‹ă‚‹ć°—ăŚă™ă‚‹"
 - Japanese readers appreciate practical, actionable advice
 - Use appropriate particles and sentence-ending forms for friendly tone
-- Rhetorical questions: "こんな経験ありませんか？", "心当たりありますよね？"
-- Break long sentences — Japanese AI text tends to create overly complex structures
+- Rhetorical questions: "ă“ă‚“ăŞçµŚé¨“ă‚ă‚Šăľă›ă‚“ă‹ďĽź", "ĺżĺ˝“ăźă‚Šă‚ă‚Šăľă™ă‚ă­ďĽź"
+- Break long sentences â€” Japanese AI text tends to create overly complex structures
 - Use katakana for established loanwords naturally`,
   },
   'zh-CN': {
     name: 'Simplified Chinese',
-    formalPhrases: `"值得注意的是", "毫无疑问", "从这个角度来看", "此外", "与此同时", "需要强调的是", "在当今社会", "一个关键方面是", "不言而喻", "总而言之", "不可否认的是", "综上所述"`,
-    personalPhrases: `"根据我的经验", "我亲自试过", "说实话一开始…", "对我来说有效的是", "坦白说"`,
-    softStats: `"很多用户发现…", "研究表明…", "实际情况是…"`,
-    style: `- Use casual but respectful tone — 你 not 您 for blog content
-- Chinese AI text overuses four-character idioms (成语) — use sparingly and naturally
-- Rhetorical questions: "你有没有过这样的经历？", "是不是听起来很熟悉？"
+    formalPhrases: `"ĺ€Ľĺľ—ćł¨ć„Źçš„ćŻ", "ćŻ«ć— ç–‘é—®", "ä»Žčż™ä¸Şč§’ĺş¦ćťĄçś‹", "ć­¤ĺ¤–", "ä¸Žć­¤ĺŚć—¶", "éś€č¦ĺĽşč°çš„ćŻ", "ĺś¨ĺ˝“ä»Šç¤ľäĽš", "ä¸€ä¸Şĺ…łé”®ć–ąéť˘ćŻ", "ä¸Ťč¨€č€Śĺ–»", "ć€»č€Śč¨€äą‹", "ä¸ŤĺŹŻĺ¦č®¤çš„ćŻ", "ç»Ľä¸Šć‰€čż°"`,
+    personalPhrases: `"ć ąćŤ®ć‘çš„ç»ŹéŞŚ", "ć‘äş˛č‡ŞčŻ•čż‡", "čŻ´ĺ®žčŻťä¸€ĺĽ€ĺ§‹â€¦", "ĺŻąć‘ćťĄčŻ´ćś‰ć•çš„ćŻ", "ĺť¦ç™˝čŻ´"`,
+    softStats: `"ĺľĺ¤šç”¨ć·ĺŹ‘çŽ°â€¦", "ç ”ç©¶čˇ¨ćŽâ€¦", "ĺ®žé™…ć…ĺ†µćŻâ€¦"`,
+    style: `- Use casual but respectful tone â€” ä˝  not ć‚¨ for blog content
+- Chinese AI text overuses four-character idioms (ćčŻ­) â€” use sparingly and naturally
+- Rhetorical questions: "ä˝ ćś‰ć˛ˇćś‰čż‡čż™ć ·çš„ç»ŹĺŽ†ďĽź", "ćŻä¸ŤćŻĺ¬čµ·ćťĄĺľç†źć‚‰ďĽź"
 - Keep sentences shorter than AI typically generates
-- Colloquial: "说真的", "你猜怎么着", "重点来了", "话说回来"
+- Colloquial: "čŻ´çśźçš„", "ä˝ çŚść€Žäąçť€", "é‡Ťç‚ąćťĄäş†", "čŻťčŻ´ĺ›žćťĄ"
 - Chinese readers appreciate directness and practical value
-- Avoid overly formal or literary register — write like a knowledgeable friend`,
+- Avoid overly formal or literary register â€” write like a knowledgeable friend`,
   },
   ko: {
     name: 'Korean',
-    formalPhrases: `"주목할 만한 것은", "의심의 여지가 없다", "이러한 관점에서", "더불어", "아울러", "강조해야 할 점은", "현대 사회에서", "핵심적인 측면은", "두말할 나위 없이", "결론적으로", "부인할 수 없는 사실은", "이상을 종합하면"`,
-    personalPhrases: `"제 경험상", "직접 해봤는데", "솔직히 처음에는…", "저한테 효과가 있었던 건", "솔직히 말하면"`,
-    softStats: `"많은 사용자들이 느끼는 건…", "연구에 따르면…", "실제로 보면…"`,
-    style: `- Use 해요체 (polite informal) — not 합니다체 (formal) for blog
-- Korean AI text tends to be overly formal — make it conversational
-- Rhetorical questions: "이런 경험 있으시죠?", "공감되시나요?"
-- Colloquial: "사실은요", "근데 말이에요", "핵심은요", "솔직히"
+    formalPhrases: `"ěŁĽëŞ©í•  ë§Śí•ś ę˛ěť€", "ěťě‹¬ěť ě—¬ě§€ę°€ ě—†ë‹¤", "ěť´ëź¬í•ś ę´€ě ě—ě„ś", "ëŤ”ë¶ě–´", "ě•„ěš¸ëź¬", "ę°•ěˇ°í•´ě•Ľ í•  ě ěť€", "í„ëŚ€ ě‚¬íšŚě—ě„ś", "í•µě‹¬ě ěť¸ ě¸ˇë©´ěť€", "ë‘ë§í•  ë‚ěś„ ě—†ěť´", "ę˛°ëˇ ě ěśĽëˇś", "ë¶€ěť¸í•  ě ě—†ëŠ” ě‚¬ě‹¤ěť€", "ěť´ěěť„ ě˘…í•©í•ë©´"`,
+    personalPhrases: `"ě ś ę˛˝í—ě", "ě§ě ‘ í•´ë´¤ëŠ”ëŤ°", "ě†”ě§íž ě˛ěťŚě—ëŠ”â€¦", "ě €í•śí…Ś íš¨ęłĽę°€ ěžě—ëŤ ę±´", "ě†”ě§íž ë§í•ë©´"`,
+    softStats: `"ë§Žěť€ ě‚¬ěš©ěžë“¤ěť´ ëŠëĽëŠ” ę±´â€¦", "ě—°ęµ¬ě— ë”°ëĄ´ë©´â€¦", "ě‹¤ě śëˇś ëł´ë©´â€¦"`,
+    style: `- Use í•´ěš”ě˛´ (polite informal) â€” not í•©ë‹ë‹¤ě˛´ (formal) for blog
+- Korean AI text tends to be overly formal â€” make it conversational
+- Rhetorical questions: "ěť´ëź° ę˛˝í— ěžěśĽě‹śěŁ ?", "ęłµę°ëě‹śë‚ěš”?"
+- Colloquial: "ě‚¬ě‹¤ěť€ěš”", "ę·ĽëŤ° ë§ěť´ě—ěš”", "í•µě‹¬ěť€ěš”", "ě†”ě§íž"
 - Korean readers appreciate relatable, empathetic content
-- Mix honorific levels naturally — slight informality builds trust
+- Mix honorific levels naturally â€” slight informality builds trust
 - Avoid direct translation patterns from English word order`,
   },
   tr: {
     name: 'Turkish',
-    formalPhrases: `"belirtmek gerekir ki", "şüphesiz ki", "bu bağlamda", "ayrıca", "bunun yanı sıra", "vurgulanması gereken", "günümüz dünyasında", "temel bir husus", "söylemeye gerek yok ki", "sonuç olarak", "yadsınamaz bir gerçektir ki", "yukarıda belirtildiği üzere"`,
-    personalPhrases: `"kendi deneyimimden", "bunu bizzat denedim", "itiraf edeyim başta…", "benim için işe yarayan", "açıkçası"`,
-    softStats: `"birçok kullanıcı fark ediyor ki…", "araştırmalar gösteriyor ki…", "pratikte gözlemlenen…"`,
+    formalPhrases: `"belirtmek gerekir ki", "ĹźĂĽphesiz ki", "bu baÄźlamda", "ayrÄ±ca", "bunun yanÄ± sÄ±ra", "vurgulanmasÄ± gereken", "gĂĽnĂĽmĂĽz dĂĽnyasÄ±nda", "temel bir husus", "sĂ¶ylemeye gerek yok ki", "sonuĂ§ olarak", "yadsÄ±namaz bir gerĂ§ektir ki", "yukarÄ±da belirtildiÄźi ĂĽzere"`,
+    personalPhrases: `"kendi deneyimimden", "bunu bizzat denedim", "itiraf edeyim baĹźtaâ€¦", "benim iĂ§in iĹźe yarayan", "aĂ§Ä±kĂ§asÄ±"`,
+    softStats: `"birĂ§ok kullanÄ±cÄ± fark ediyor kiâ€¦", "araĹźtÄ±rmalar gĂ¶steriyor kiâ€¦", "pratikte gĂ¶zlemlenenâ€¦"`,
     style: `- Use "sen" form (informal), NOT "siz" for blog content
-- Turkish agglutinative structure — avoid overly long compound words
-- Rhetorical questions: "Hiç başına geldi mi?", "Tanıdık geldi mi?"
-- Colloquial: "açıkçası", "işin aslı", "asıl mesele şu ki", "dürüst olalım"
+- Turkish agglutinative structure â€” avoid overly long compound words
+- Rhetorical questions: "HiĂ§ baĹźÄ±na geldi mi?", "TanÄ±dÄ±k geldi mi?"
+- Colloquial: "aĂ§Ä±kĂ§asÄ±", "iĹźin aslÄ±", "asÄ±l mesele Ĺźu ki", "dĂĽrĂĽst olalÄ±m"
 - Turkish readers appreciate direct, honest communication
-- Vary sentence endings — don't always end with -dır/-dir
-- Use natural Turkish idioms: "işin püf noktası", "can alıcı nokta"`,
+- Vary sentence endings â€” don't always end with -dÄ±r/-dir
+- Use natural Turkish idioms: "iĹźin pĂĽf noktasÄ±", "can alÄ±cÄ± nokta"`,
   },
   ru: {
     name: 'Russian',
-    formalPhrases: `"стоит отметить, что", "не вызывает сомнений", "в данном контексте", "кроме того", "помимо этого", "необходимо подчеркнуть", "в современном мире", "ключевым аспектом является", "само собой разумеется", "в заключение", "неоспоримым фактом является", "на основании вышеизложенного"`,
-    personalPhrases: `"по моему опыту", "я сам это пробовал", "признаюсь, поначалу…", "мне помогает", "честно говоря"`,
-    softStats: `"многие пользователи замечают, что…", "исследования показывают, что…", "на практике видно, что…"`,
-    style: `- Use "ты" form (informal), NOT "Вы" for blog content
-- Russian AI text overuses official/bureaucratic style — make it живой (alive)
-- Rhetorical questions: "Знакомо?", "Бывало такое?", "Узнаёшь себя?"
-- Colloquial: "на самом деле", "вот в чём фишка", "давай честно", "суть в том, что"
-- Russian readers appreciate depth and sincerity — don't be superficial
-- Use natural Russian word order — freer than English, use for emphasis
-- Avoid канцелярит (bureaucratic language) — it's the biggest AI giveaway in Russian`,
+    formalPhrases: `"ŃŃ‚ĐľĐ¸Ń‚ ĐľŃ‚ĐĽĐµŃ‚Đ¸Ń‚ŃŚ, Ń‡Ń‚Đľ", "Đ˝Đµ Đ˛Ń‹Đ·Ń‹Đ˛Đ°ĐµŃ‚ ŃĐľĐĽĐ˝ĐµĐ˝Đ¸Đą", "Đ˛ Đ´Đ°Đ˝Đ˝ĐľĐĽ ĐşĐľĐ˝Ń‚ĐµĐşŃŃ‚Đµ", "ĐşŃ€ĐľĐĽĐµ Ń‚ĐľĐłĐľ", "ĐżĐľĐĽĐ¸ĐĽĐľ ŃŤŃ‚ĐľĐłĐľ", "Đ˝ĐµĐľĐ±Ń…ĐľĐ´Đ¸ĐĽĐľ ĐżĐľĐ´Ń‡ĐµŃ€ĐşĐ˝ŃŃ‚ŃŚ", "Đ˛ ŃĐľĐ˛Ń€ĐµĐĽĐµĐ˝Đ˝ĐľĐĽ ĐĽĐ¸Ń€Đµ", "ĐşĐ»ŃŽŃ‡ĐµĐ˛Ń‹ĐĽ Đ°ŃĐżĐµĐşŃ‚ĐľĐĽ ŃŹĐ˛Đ»ŃŹĐµŃ‚ŃŃŹ", "ŃĐ°ĐĽĐľ ŃĐľĐ±ĐľĐą Ń€Đ°Đ·ŃĐĽĐµĐµŃ‚ŃŃŹ", "Đ˛ Đ·Đ°ĐşĐ»ŃŽŃ‡ĐµĐ˝Đ¸Đµ", "Đ˝ĐµĐľŃĐżĐľŃ€Đ¸ĐĽŃ‹ĐĽ Ń„Đ°ĐşŃ‚ĐľĐĽ ŃŹĐ˛Đ»ŃŹĐµŃ‚ŃŃŹ", "Đ˝Đ° ĐľŃĐ˝ĐľĐ˛Đ°Đ˝Đ¸Đ¸ Đ˛Ń‹ŃĐµĐ¸Đ·Đ»ĐľĐ¶ĐµĐ˝Đ˝ĐľĐłĐľ"`,
+    personalPhrases: `"ĐżĐľ ĐĽĐľĐµĐĽŃ ĐľĐżŃ‹Ń‚Ń", "ŃŹ ŃĐ°ĐĽ ŃŤŃ‚Đľ ĐżŃ€ĐľĐ±ĐľĐ˛Đ°Đ»", "ĐżŃ€Đ¸Đ·Đ˝Đ°ŃŽŃŃŚ, ĐżĐľĐ˝Đ°Ń‡Đ°Đ»Ńâ€¦", "ĐĽĐ˝Đµ ĐżĐľĐĽĐľĐłĐ°ĐµŃ‚", "Ń‡ĐµŃŃ‚Đ˝Đľ ĐłĐľĐ˛ĐľŃ€ŃŹ"`,
+    softStats: `"ĐĽĐ˝ĐľĐłĐ¸Đµ ĐżĐľĐ»ŃŚĐ·ĐľĐ˛Đ°Ń‚ĐµĐ»Đ¸ Đ·Đ°ĐĽĐµŃ‡Đ°ŃŽŃ‚, Ń‡Ń‚Đľâ€¦", "Đ¸ŃŃĐ»ĐµĐ´ĐľĐ˛Đ°Đ˝Đ¸ŃŹ ĐżĐľĐşĐ°Đ·Ń‹Đ˛Đ°ŃŽŃ‚, Ń‡Ń‚Đľâ€¦", "Đ˝Đ° ĐżŃ€Đ°ĐşŃ‚Đ¸ĐşĐµ Đ˛Đ¸Đ´Đ˝Đľ, Ń‡Ń‚Đľâ€¦"`,
+    style: `- Use "Ń‚Ń‹" form (informal), NOT "Đ’Ń‹" for blog content
+- Russian AI text overuses official/bureaucratic style â€” make it Đ¶Đ¸Đ˛ĐľĐą (alive)
+- Rhetorical questions: "Đ—Đ˝Đ°ĐşĐľĐĽĐľ?", "Đ‘Ń‹Đ˛Đ°Đ»Đľ Ń‚Đ°ĐşĐľĐµ?", "ĐŁĐ·Đ˝Đ°Ń‘ŃŃŚ ŃĐµĐ±ŃŹ?"
+- Colloquial: "Đ˝Đ° ŃĐ°ĐĽĐľĐĽ Đ´ĐµĐ»Đµ", "Đ˛ĐľŃ‚ Đ˛ Ń‡Ń‘ĐĽ Ń„Đ¸ŃĐşĐ°", "Đ´Đ°Đ˛Đ°Đą Ń‡ĐµŃŃ‚Đ˝Đľ", "ŃŃŃ‚ŃŚ Đ˛ Ń‚ĐľĐĽ, Ń‡Ń‚Đľ"
+- Russian readers appreciate depth and sincerity â€” don't be superficial
+- Use natural Russian word order â€” freer than English, use for emphasis
+- Avoid ĐşĐ°Đ˝Ń†ĐµĐ»ŃŹŃ€Đ¸Ń‚ (bureaucratic language) â€” it's the biggest AI giveaway in Russian`,
   },
 };
 
@@ -1046,15 +1275,15 @@ async function doHumanize(markdown, lang) {
   console.log(`[AI Humanize] Processing ${markdown?.length || 0} chars in ${lg.name}`);
 
   const result = await callClaude(
-    `You are an experienced ${lg.name}-language editor who humanizes AI-generated content. Write ENTIRELY in ${lg.name}. Your task is to transform the given text so it sounds like it was written by a real person — a ${lg.name}-speaking expert who blogs with passion, not a robot producing content.`,
-    `STEP 1: DIAGNOSE — Before editing, analyze the article and list 5-7 specific AI-pattern problems you found (with quotes from the text). Output them as a brief numbered list at the very top, wrapped in <!-- DIAGNOSIS: ... --> HTML comment. Write the diagnosis in ${lg.name}.
+    `You are an experienced ${lg.name}-language editor who humanizes AI-generated content. Write ENTIRELY in ${lg.name}. Your task is to transform the given text so it sounds like it was written by a real person â€” a ${lg.name}-speaking expert who blogs with passion, not a robot producing content.`,
+    `STEP 1: DIAGNOSE â€” Before editing, analyze the article and list 5-7 specific AI-pattern problems you found (with quotes from the text). Output them as a brief numbered list at the very top, wrapped in <!-- DIAGNOSIS: ... --> HTML comment. Write the diagnosis in ${lg.name}.
 
-STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below.
+STEP 2: FIX â€” Then output the fully rewritten article applying ALL fixes below.
 
 ## 1. STRUCTURE & RHYTHM
 - Vary paragraph lengths (mix: 1-sentence, 3-sentence, 5-sentence)
 - Vary sentence lengths (mix short punchy with longer complex ones)
-- Break the perfect symmetry of sections — not every section should have exactly 3 paragraphs
+- Break the perfect symmetry of sections â€” not every section should have exactly 3 paragraphs
 - Add 1-2 single-sentence paragraphs for dramatic effect
 - Remove or relocate duplicate information (AI often repeats the same data in different sections)
 - If a list has only 3 items, convert it to a flowing sentence instead
@@ -1065,21 +1294,21 @@ STEP 2: FIX — Then output the fully rewritten article applying ALL fixes below
 - Add 1-2 rhetorical questions directed at the reader
 - Insert 1 colloquial/informal expression natural to ${lg.name}
 - REMOVE these ${lg.name} AI-filler/formal phrases (AI overuses them): ${lg.formalPhrases}
-- Add 1 brief digression or anecdote (even 2 sentences) — this is the most human element
+- Add 1 brief digression or anecdote (even 2 sentences) â€” this is the most human element
 - LANGUAGE-SPECIFIC STYLE RULES:
 ${lg.style}
 
 ## 3. FORMATTING (anti-AI)
-- Reduce bolds — max 3-4 per 1000 words (AI overuses bold)
-- Don't bold every other paragraph — bold should be the exception
-- Don't start every section with a defining sentence ("X is a technique that…")
+- Reduce bolds â€” max 3-4 per 1000 words (AI overuses bold)
+- Don't bold every other paragraph â€” bold should be the exception
+- Don't start every section with a defining sentence ("X is a technique thatâ€¦")
 - Vary how paragraphs open (don't start from the same pattern)
 - Don't end every section with a CTA or summary
 
 ## 4. DATA & SOURCES
-- Max 3-4 statistics in the ENTIRE article — replace the rest with soft ${lg.name} observations: ${lg.softStats}
-- Add context to statistics ("this 2022 study…", "though the numbers may vary")
-- Don't drop stats without commentary — add an interpreting sentence
+- Max 3-4 statistics in the ENTIRE article â€” replace the rest with soft ${lg.name} observations: ${lg.softStats}
+- Add context to statistics ("this 2022 studyâ€¦", "though the numbers may vary")
+- Don't drop stats without commentary â€” add an interpreting sentence
 - When studies are mentioned without links, add real external source links (WHO, PubMed, university domains)
 
 ## 5. INTERNAL LINKS / PRODUCT
@@ -1088,13 +1317,13 @@ ${lg.style}
 - Don't start or end the article with product promotion
 
 ## 6. KEYWORDS (anti-stuffing)
-- Check if the main keyword appears more than 5-7 times per 2000 words — if so, replace excess with ${lg.name} synonyms
+- Check if the main keyword appears more than 5-7 times per 2000 words â€” if so, replace excess with ${lg.name} synonyms
 - Use natural ${lg.name} synonym variants for the main keyword
-- Keywords should sound natural in the sentence — if grammar bends to fit the phrase, rewrite it
+- Keywords should sound natural in the sentence â€” if grammar bends to fit the phrase, rewrite it
 
 ## 7. INTRO & OUTRO
-- Intro should NOT be encyclopedic — if it starts with a definition, rewrite to start from the reader's problem, a question, or brief story
-- Outro should NOT be a formulaic summary — end with a concrete takeaway, call to action, or reflection
+- Intro should NOT be encyclopedic â€” if it starts with a definition, rewrite to start from the reader's problem, a question, or brief story
+- Outro should NOT be a formulaic summary â€” end with a concrete takeaway, call to action, or reflection
 
 PRESERVE:
 - All ## and ### headings exactly as they are
@@ -1119,7 +1348,7 @@ ${markdown}`,
   return { markdown: cleaned, articleText };
 }
 
-// ─── AI: Humanize article (remove AI patterns) ───
+// â”€â”€â”€ AI: Humanize article (remove AI patterns) â”€â”€â”€
 app.post('/api/ai/humanize', async (req, res) => {
   const { markdown, lang } = req.body;
   try {
@@ -1131,32 +1360,32 @@ app.post('/api/ai/humanize', async (req, res) => {
   }
 });
 
-// ─── Helper: Audit article ───
+// â”€â”€â”€ Helper: Audit article â”€â”€â”€
 async function doAudit(markdown, lang) {
   const langName = getLangName(lang);
   console.log(`[AI Audit] Analyzing ${markdown?.length || 0} chars in ${langName}`);
 
   const result = await callClaude(
-    `You analyze blog articles for "AI fingerprints" — typical traits of AI-generated content that reduce reader trust and may trigger Google's Helpful Content Update penalties. Respond in ${langName}.`,
+    `You analyze blog articles for "AI fingerprints" â€” typical traits of AI-generated content that reduce reader trust and may trigger Google's Helpful Content Update penalties. Respond in ${langName}.`,
     `Analyze this blog article for AI-generated content patterns. Score it 1-10 (1 = fully human, 10 = obvious AI) and justify your assessment.
 
 CHECK THESE 10 DIMENSIONS (score each 1-10):
-1. Structure symmetry — do sections have identical structure/length?
-2. Data/fact repetition — same stats repeated in different sections?
-3. Bold overuse — bolded terms in almost every paragraph?
-4. Lack of personal voice — no anecdotes, opinions, digressions?
-5. Formulaic phrases — "it's worth noting", "a key aspect", "furthermore"?
-6. Stats in every section — data dumping without interpretation?
-7. No controversy or caveats — everything presented as universally true?
-8. Encyclopedic intro — starts with a definition instead of a problem?
-9. Formulaic outro — "In summary…", "To conclude…"?
-10. Keyword stuffing — main keyword appearing every 100 words?
+1. Structure symmetry â€” do sections have identical structure/length?
+2. Data/fact repetition â€” same stats repeated in different sections?
+3. Bold overuse â€” bolded terms in almost every paragraph?
+4. Lack of personal voice â€” no anecdotes, opinions, digressions?
+5. Formulaic phrases â€” "it's worth noting", "a key aspect", "furthermore"?
+6. Stats in every section â€” data dumping without interpretation?
+7. No controversy or caveats â€” everything presented as universally true?
+8. Encyclopedic intro â€” starts with a definition instead of a problem?
+9. Formulaic outro â€” "In summaryâ€¦", "To concludeâ€¦"?
+10. Keyword stuffing â€” main keyword appearing every 100 words?
 
 RESPONSE FORMAT (use exactly this JSON structure):
 {
   "score": 7,
   "dimensions": [
-    { "name": "Structure symmetry", "score": 8, "detail": "All 5 sections follow identical pattern: definition → 3 paragraphs → stat" },
+    { "name": "Structure symmetry", "score": 8, "detail": "All 5 sections follow identical pattern: definition â†’ 3 paragraphs â†’ stat" },
     { "name": "Bold overuse", "score": 9, "detail": "23 bolded phrases in 1500 words" }
   ],
   "top_problems": [
@@ -1177,7 +1406,7 @@ ${markdown}`,
   return parsed;
 }
 
-// ─── AI: Audit article for AI fingerprints ───
+// â”€â”€â”€ AI: Audit article for AI fingerprints â”€â”€â”€
 app.post('/api/ai/audit', async (req, res) => {
   const { markdown, lang } = req.body;
   try {
@@ -1188,7 +1417,7 @@ app.post('/api/ai/audit', async (req, res) => {
   }
 });
 
-// ─── Helper: Full grammar fix (LanguageTool + AI) ───
+// â”€â”€â”€ Helper: Full grammar fix (LanguageTool + AI) â”€â”€â”€
 // Languages supported by LanguageTool API
 const LT_SUPPORTED_LANGS = new Set(['pl', 'en', 'de', 'fr', 'es', 'it', 'pt-BR', 'nl', 'ru', 'sv']);
 
@@ -1251,10 +1480,10 @@ async function doGrammarFix(markdown, lang) {
 
   // Step 2: AI fix
   const actionableIssues = issues.filter(i => i.suggestion && i.suggestion.trim()).map((i, idx) =>
-    `${idx+1}. Find: "${i.context.trim()}" → Replace with suggestion: "${i.suggestion}". Reason: ${i.message}`
+    `${idx+1}. Find: "${i.context.trim()}" â†’ Replace with suggestion: "${i.suggestion}". Reason: ${i.message}`
   );
   const otherIssues = issues.filter(i => !i.suggestion || !i.suggestion.trim()).map((i, idx) =>
-    `${idx+1}. Issue near: "${i.context.trim()}" — ${i.message}`
+    `${idx+1}. Issue near: "${i.context.trim()}" â€” ${i.message}`
   );
   const issueList = [...actionableIssues, ...otherIssues].join('\n');
 
@@ -1268,7 +1497,7 @@ CRITICAL RULES:
 - Apply EVERY suggested replacement listed below.
 - Fix spelling errors even in proper nouns if a suggestion is given.
 - Add missing commas between clauses.
-- Add missing periods after abbreviations (Pon. Wt. Śr. Czw. Pt.).
+- Add missing periods after abbreviations (Pon. Wt. Ĺšr. Czw. Pt.).
 - Shorten sentences over 25 words by splitting into two sentences.
 - Break paragraphs longer than 3 sentences.
 - Preserve Markdown: ##, ###, **bold**, [links](url), lists, tables.
@@ -1295,17 +1524,17 @@ Return the FIXED article. No markdown fences, no comments. Start with ## heading
   return { markdown: cleaned, changed, issueCount: issues.length };
 }
 
-// ─── AI: Fix grammar & readability ───
+// â”€â”€â”€ AI: Fix grammar & readability â”€â”€â”€
 app.post('/api/ai/fix-grammar', async (req, res) => {
   const { markdown, issues, lang } = req.body;
   const langName = getLangName(lang);
 
-  // Build actionable issue list — only include issues with concrete suggestions
+  // Build actionable issue list â€” only include issues with concrete suggestions
   const actionableIssues = (issues || []).filter(i => i.suggestion && i.suggestion.trim()).map((i, idx) =>
-    `${idx+1}. Find: "${i.context.trim()}" → Replace with suggestion: "${i.suggestion}". Reason: ${i.message}`
+    `${idx+1}. Find: "${i.context.trim()}" â†’ Replace with suggestion: "${i.suggestion}". Reason: ${i.message}`
   );
   const otherIssues = (issues || []).filter(i => !i.suggestion || !i.suggestion.trim()).map((i, idx) =>
-    `${idx+1}. Issue near: "${i.context.trim()}" — ${i.message}`
+    `${idx+1}. Issue near: "${i.context.trim()}" â€” ${i.message}`
   );
 
   const issueList = [...actionableIssues, ...otherIssues].join('\n');
@@ -1321,7 +1550,7 @@ CRITICAL RULES:
 - Apply EVERY suggested replacement listed below.
 - Fix spelling errors even in proper nouns if a suggestion is given.
 - Add missing commas between clauses.
-- Add missing periods after abbreviations (Pon. Wt. Śr. Czw. Pt.).
+- Add missing periods after abbreviations (Pon. Wt. Ĺšr. Czw. Pt.).
 - Shorten sentences over 25 words by splitting into two sentences.
 - Break paragraphs longer than 3 sentences.
 - Preserve Markdown: ##, ###, **bold**, [links](url), lists, tables.
@@ -1353,7 +1582,7 @@ Return the FIXED article. No markdown fences, no comments. Start with ## heading
   }
 });
 
-// ─── AI: Expand a section ───
+// â”€â”€â”€ AI: Expand a section â”€â”€â”€
 app.post('/api/ai/expand', async (req, res) => {
   const { heading, context, lang } = req.body;
   const langName = getLangName(lang);
@@ -1374,7 +1603,7 @@ Write in Markdown. Start with an answer block (40-60 words concise answer), then
   }
 });
 
-// ─── AI: Improve SEO ───
+// â”€â”€â”€ AI: Improve SEO â”€â”€â”€
 app.post('/api/ai/improve-seo', async (req, res) => {
   const { markdown, frontmatter, seoChecks, lang } = req.body;
   const langName = getLangName(lang);
@@ -1409,7 +1638,7 @@ Return ONLY valid JSON.`,
   }
 });
 
-// ─── AI: Internal Linking Suggestions ───
+// â”€â”€â”€ AI: Internal Linking Suggestions â”€â”€â”€
 app.post('/api/ai/internal-links', async (req, res) => {
   const { lang, slug } = req.body;
   if (!lang || !slug) return res.status(400).json({ error: 'lang and slug required' });
@@ -1450,7 +1679,7 @@ app.post('/api/ai/internal-links', async (req, res) => {
 
     const result = await callClaude(
       `You are an internal linking specialist for a blog. You find natural anchor text phrases in an article that should link to other articles on the same site. Write in ${langName}.`,
-      `Find phrases in this article that naturally match other articles on the site. Each phrase should be an existing substring in the article text — do NOT invent phrases.
+      `Find phrases in this article that naturally match other articles on the site. Each phrase should be an existing substring in the article text â€” do NOT invent phrases.
 
 Available articles to link to:
 ${articleList}
@@ -1488,7 +1717,7 @@ Return ONLY valid JSON:
   }
 });
 
-// ─── AI: Create localized version of article ───
+// â”€â”€â”€ AI: Create localized version of article â”€â”€â”€
 app.post('/api/ai/create-version', async (req, res) => {
   const { sourceLang, targetLang, slug, frontmatter, markdown } = req.body;
   const langNames = LANG_NAMES;
@@ -1612,7 +1841,7 @@ Write the full article in ${targetName}. Use proper Markdown with ## and ### hea
   }
 });
 
-// ─── Helpers ───
+// â”€â”€â”€ Helpers â”€â”€â”€
 function findArticleFile(lang, slug) {
   const dir = path.join(BLOG_DIR, lang);
   if (!fs.existsSync(dir)) return null;
@@ -1639,7 +1868,7 @@ function countFiles(dir, ext) {
   return count;
 }
 
-// ─── SEO Analyzer ───
+// â”€â”€â”€ SEO Analyzer â”€â”€â”€
 function analyzeSEO(frontmatter, markdown, lang) {
   const checks = [];
   const title = frontmatter.title || '';
@@ -1658,7 +1887,7 @@ function analyzeSEO(frontmatter, markdown, lang) {
     label: 'Title length (50-60 chars)',
     value: titleLen,
     pass: titleLen >= 40 && titleLen <= 65,
-    hint: titleLen < 40 ? 'Too short — add more descriptive words' : titleLen > 65 ? 'Too long — trim to ~60 chars' : 'Good'
+    hint: titleLen < 40 ? 'Too short â€” add more descriptive words' : titleLen > 65 ? 'Too long â€” trim to ~60 chars' : 'Good'
   });
 
   // Meta description
@@ -1668,7 +1897,7 @@ function analyzeSEO(frontmatter, markdown, lang) {
     label: 'Meta description (120-160 chars)',
     value: descLen,
     pass: descLen >= 100 && descLen <= 165,
-    hint: descLen < 100 ? 'Too short — expand the summary' : descLen > 165 ? 'Too long — will be truncated in SERP' : 'Good'
+    hint: descLen < 100 ? 'Too short â€” expand the summary' : descLen > 165 ? 'Too long â€” will be truncated in SERP' : 'Good'
   });
 
   // Word count
@@ -1696,7 +1925,7 @@ function analyzeSEO(frontmatter, markdown, lang) {
     label: 'H2s as questions (SEO + featured snippets)',
     value: questionH2s.length,
     pass: questionH2s.length >= 1,
-    hint: questionH2s.length === 0 ? 'Rephrase at least one H2 as a question' : 'Good — helps with featured snippets'
+    hint: questionH2s.length === 0 ? 'Rephrase at least one H2 as a question' : 'Good â€” helps with featured snippets'
   });
 
   // Answer block (40-60 words after first H2)
@@ -1760,7 +1989,7 @@ function analyzeSEO(frontmatter, markdown, lang) {
   return { score, checks };
 }
 
-// ─── Readability Analyzer ───
+// â”€â”€â”€ Readability Analyzer â”€â”€â”€
 function analyzeReadability(text, lang) {
   // Strip markdown formatting
   const plain = text
@@ -1804,25 +2033,25 @@ function analyzeReadability(text, lang) {
     veryLongSentences: veryLongSentences.length,
     longParagraphs: longParagraphs.length,
     issues: [
-      ...(veryLongSentences.length ? [`${veryLongSentences.length} very long sentences (40+ words) — consider splitting`] : []),
+      ...(veryLongSentences.length ? [`${veryLongSentences.length} very long sentences (40+ words) â€” consider splitting`] : []),
       ...(longSentences.length > 3 ? [`${longSentences.length} long sentences (25+ words)`] : []),
-      ...(longParagraphs.length ? [`${longParagraphs.length} paragraphs over 100 words — break them up`] : []),
-      ...(flesch < 40 ? ['Text is hard to read — simplify vocabulary and shorten sentences'] : [])
+      ...(longParagraphs.length ? [`${longParagraphs.length} paragraphs over 100 words â€” break them up`] : []),
+      ...(flesch < 40 ? ['Text is hard to read â€” simplify vocabulary and shorten sentences'] : [])
     ]
   };
 }
 
 function countSyllables(word, lang) {
-  // Simple heuristic — works reasonably for PL/EN
-  word = word.toLowerCase().replace(/[^a-ząćęłńóśźżäöüßàâéèêëïîôùûüç]/g, '');
+  // Simple heuristic â€” works reasonably for PL/EN
+  word = word.toLowerCase().replace(/[^a-zÄ…Ä‡Ä™Ĺ‚Ĺ„ĂłĹ›ĹşĹĽĂ¤Ă¶ĂĽĂźĂ Ă˘Ă©Ă¨ĂŞĂ«ĂŻĂ®Ă´ĂąĂ»ĂĽĂ§]/g, '');
   if (word.length <= 3) return 1;
   // Count vowel groups
-  const vowels = lang === 'pl' ? /[aeiouyąęó]+/gi : /[aeiouy]+/gi;
+  const vowels = lang === 'pl' ? /[aeiouyÄ…Ä™Ăł]+/gi : /[aeiouy]+/gi;
   const matches = word.match(vowels);
   return matches ? Math.max(1, matches.length) : 1;
 }
 
-// ─── Auto-sync article focus keyword → tracked keywords ───
+// â”€â”€â”€ Auto-sync article focus keyword â†’ tracked keywords â”€â”€â”€
 function syncArticleKeyword(lang, slug, keyword) {
   if (!keyword) return 0;
   keyword = keyword.toLowerCase().trim();
@@ -1859,7 +2088,7 @@ function syncArticleKeyword(lang, slug, keyword) {
   return 1;
 }
 
-// ─── Keyword Rank Tracker ───
+// â”€â”€â”€ Keyword Rank Tracker â”€â”€â”€
 
 // API: Get tracked keywords
 app.get('/api/keywords/tracked', (req, res) => {
@@ -1929,7 +2158,7 @@ app.post('/api/keywords/seed-existing', (req, res) => {
   const landingKeywords = [
     { keyword: 'przerwy w pracy', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
     { keyword: 'zdrowie przy komputerze', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
-    { keyword: 'ćwiczenia dla oczu', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
+    { keyword: 'Ä‡wiczenia dla oczu', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
     { keyword: 'przypomnienie o wodzie', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
     { keyword: 'ergonomia pracy biurowej', lang: 'pl', targetUrl: 'https://healthdesk.site/pl/', targetPage: 'pl/landing' },
     { keyword: 'work break reminder', lang: 'en', targetUrl: 'https://healthdesk.site/en/', targetPage: 'en/landing' },
@@ -1962,7 +2191,7 @@ app.post('/api/keywords/seed-existing', (req, res) => {
   res.json({ ok: true, added: totalAdded });
 });
 
-// API: Site structure — all pages with their SEO data
+// API: Site structure â€” all pages with their SEO data
 app.get('/api/site-structure', (req, res) => {
   const studio = loadStudioData();
   const keywords = studio.tracked_keywords || [];
@@ -2091,7 +2320,7 @@ app.post('/api/keywords/check-positions', async (req, res) => {
       }
 
       results.push({ id: kw.id, keyword: kw.keyword, ...entry });
-      console.log(`[Rank] "${kw.keyword}": position ${foundPosition || 'not found'}${cannibalization ? ' ⚠️ CANNIBALIZATION' : ''}`);
+      console.log(`[Rank] "${kw.keyword}": position ${foundPosition || 'not found'}${cannibalization ? ' âš ď¸Ź CANNIBALIZATION' : ''}`);
 
       // Rate limit
       if (toCheck.length > 1) await new Promise(r => setTimeout(r, 800));
@@ -2124,8 +2353,8 @@ app.get('/api/keywords/cannibalization', (req, res) => {
         foundUrl: latest.foundUrl,
         allMatches: latest.allMatches || [],
         suggestion: latest.foundUrl !== kw.targetUrl
-          ? `Strona ${latest.foundUrl} rankuje zamiast ${kw.targetUrl}. Rozważ canonical lub zmianę treści.`
-          : `Kilka stron rankuje na to samo keyword. Rozważ konsolidację.`
+          ? `Strona ${latest.foundUrl} rankuje zamiast ${kw.targetUrl}. RozwaĹĽ canonical lub zmianÄ™ treĹ›ci.`
+          : `Kilka stron rankuje na to samo keyword. RozwaĹĽ konsolidacjÄ™.`
       });
     }
   }
@@ -2143,20 +2372,19 @@ app.get('/api/keywords/cannibalization', (req, res) => {
   res.json({ issues, urlKeywords });
 });
 
-// ─── AI: Generate hero image (Gemini Nano Banana → WebP) ───
+// â”€â”€â”€ AI: Generate hero image (Gemini Nano Banana â†’ WebP) â”€â”€â”€
 const BLOG_IMAGES_DIR = path.join(LANDING_ROOT, 'src', 'content', 'images', 'blog');
 
 function getGeminiKey() {
-  const studio = JSON.parse(fs.readFileSync(STUDIO_DATA, 'utf8'));
+  const studio = readJsonFile(STUDIO_DATA, {});
   return studio.gemini_api_key || process.env.GEMINI_API_KEY || null;
 }
 
-// ─── Helper: Validate post completeness ───
+// â”€â”€â”€ Helper: Validate post completeness â”€â”€â”€
 function validatePost(slug, lang) {
   const issues = [];
   const mdFile = path.join(BLOG_DIR, lang, `${slug}.md`);
   const imgFile = path.join(BLOG_IMAGES_DIR, `${slug}.webp`);
-  const mojibakePattern = /(?:\u00C3.|\u0102.|\u00C4.|\u00C5.|\u0139.|\u00C2.|\u00E2\u20AC|\u00EF\u00BF\u00BD|\uFFFD|\?\?\?)/;
 
   // Check .md exists
   if (!fs.existsSync(mdFile)) {
@@ -2183,6 +2411,8 @@ function validatePost(slug, lang) {
   const frontmatterSlug = slugMatch?.[1]?.trim() || '';
   if (!frontmatterSlug) {
     issues.push({ field: 'slug', message: 'Slug is empty' });
+  } else if (isSuspiciousSlug(frontmatterSlug)) {
+    issues.push({ field: 'slug', message: 'Slug is suspicious or not SEO-safe' });
   }
 
   // Check hero image
@@ -2196,17 +2426,17 @@ function validatePost(slug, lang) {
     issues.push({ field: 'content', message: `Content too short (${body.length} chars, min 500)` });
   }
 
-  if (mojibakePattern.test(fm)) {
+  if (hasBrokenEncoding(fm)) {
     issues.push({ field: 'frontmatter', message: 'Frontmatter appears to contain broken text encoding' });
   }
-  if (mojibakePattern.test(body.slice(0, 4000))) {
+  if (hasBrokenEncoding(body.slice(0, 4000))) {
     issues.push({ field: 'content', message: 'Content appears to contain broken text encoding' });
   }
 
   return { valid: issues.length === 0, issues };
 }
 
-// ─── Helper: Image regeneration queue ───
+// â”€â”€â”€ Helper: Image regeneration queue â”€â”€â”€
 const REGEN_QUEUE_PATH = path.join(__dirname, 'image_regen_queue.json');
 
 function loadRegenQueue() {
@@ -2226,7 +2456,7 @@ function addToRegenQueue(slug, lang, reason) {
   console.log(`[RegenQueue] Added ${lang}/${slug}: ${reason}`);
 }
 
-// ─── Helper: Generate hero image ───
+// â”€â”€â”€ Helper: Generate hero image â”€â”€â”€
 async function doHeroImage(slug, lang, title, description, style) {
   const apiKey = getGeminiKey();
   if (!apiKey) throw new Error('No Gemini API key configured. Add gemini_api_key to studio.json');
@@ -2236,18 +2466,18 @@ async function doHeroImage(slug, lang, title, description, style) {
 
   // Cultural context for localized imagery
   const culturalContext = {
-    'pl': 'Polish/Central European setting — Polish-looking people, European office style, subtle Polish cultural elements',
-    'en': 'International/Western setting — diverse people, modern Western-style office or home office',
-    'de': 'German/DACH setting — German-looking people, orderly German-style workspace, subtle German cultural elements',
-    'es': 'Spanish/Latin setting — Hispanic/Latino people, warm Mediterranean or Latin American office atmosphere',
-    'fr': 'French setting — French-looking people, elegant Parisian-style workspace, subtle French cultural touches',
-    'it': 'Italian setting — Italian-looking people, stylish Italian workspace, warm Mediterranean atmosphere',
-    'pt-BR': 'Brazilian setting — Brazilian/mixed-race people, tropical or modern Brazilian office, warm vibrant atmosphere',
-    'ja': 'Japanese setting — Japanese people, minimalist Japanese-style workspace, subtle Japanese cultural elements (bonsai, shoji, tatami)',
-    'zh-CN': 'Chinese setting — Chinese people, modern Chinese office or home, subtle Chinese cultural elements (tea, calligraphy, bamboo)',
-    'ko': 'Korean setting — Korean people, modern Korean-style workspace, subtle Korean cultural elements (hanok influence, clean aesthetics)',
-    'tr': 'Turkish setting — Turkish people, Turkish office environment, subtle Turkish cultural elements (tea, kilim patterns)',
-    'ru': 'Russian setting — Russian-looking people, Russian office or home office, subtle Russian cultural touches'
+    'pl': 'Polish/Central European setting â€” Polish-looking people, European office style, subtle Polish cultural elements',
+    'en': 'International/Western setting â€” diverse people, modern Western-style office or home office',
+    'de': 'German/DACH setting â€” German-looking people, orderly German-style workspace, subtle German cultural elements',
+    'es': 'Spanish/Latin setting â€” Hispanic/Latino people, warm Mediterranean or Latin American office atmosphere',
+    'fr': 'French setting â€” French-looking people, elegant Parisian-style workspace, subtle French cultural touches',
+    'it': 'Italian setting â€” Italian-looking people, stylish Italian workspace, warm Mediterranean atmosphere',
+    'pt-BR': 'Brazilian setting â€” Brazilian/mixed-race people, tropical or modern Brazilian office, warm vibrant atmosphere',
+    'ja': 'Japanese setting â€” Japanese people, minimalist Japanese-style workspace, subtle Japanese cultural elements (bonsai, shoji, tatami)',
+    'zh-CN': 'Chinese setting â€” Chinese people, modern Chinese office or home, subtle Chinese cultural elements (tea, calligraphy, bamboo)',
+    'ko': 'Korean setting â€” Korean people, modern Korean-style workspace, subtle Korean cultural elements (hanok influence, clean aesthetics)',
+    'tr': 'Turkish setting â€” Turkish people, Turkish office environment, subtle Turkish cultural elements (tea, kilim patterns)',
+    'ru': 'Russian setting â€” Russian-looking people, Russian office or home office, subtle Russian cultural touches'
   };
   const cultureHint = culturalContext[lang] || 'International setting';
 
@@ -2263,8 +2493,8 @@ Requirements:
 - Photorealistic or high-quality illustration, landscape orientation (16:9)
 - Related to workplace health, wellness, productivity, or ergonomics
 - Reflect the cultural context: show people and environment matching the target audience's ethnicity and culture
-- ${['ja', 'zh-CN', 'ko', 'ru'].includes(lang) ? 'Do NOT include any text, letters, words, signs, labels, or writing anywhere in the image — text in non-Latin scripts renders poorly' : `If any decorative text or signage appears naturally in the scene, use ${langName} language`}
-- When showing people: use natural, candid angles — over-the-shoulder, from behind, hands close-up, or wide environmental shots where the person is part of the scene. NEVER crop or hide the head unnaturally. It is OK to show the back of someone's head, a side profile, or a person seen from a distance. The goal is a natural photo, not a faceless mannequin.
+- ${['ja', 'zh-CN', 'ko', 'ru'].includes(lang) ? 'Do NOT include any text, letters, words, signs, labels, or writing anywhere in the image â€” text in non-Latin scripts renders poorly' : `If any decorative text or signage appears naturally in the scene, use ${langName} language`}
+- When showing people: use natural, candid angles â€” over-the-shoulder, from behind, hands close-up, or wide environmental shots where the person is part of the scene. NEVER crop or hide the head unnaturally. It is OK to show the back of someone's head, a side profile, or a person seen from a distance. The goal is a natural photo, not a faceless mannequin.
 - Prefer showing objects, workspaces, or hands-on-keyboard scenes when people are not essential to the image
 - Good contrast, visually striking for a blog header and og:image
 - Warm, inviting atmosphere with natural lighting
@@ -2418,7 +2648,7 @@ app.delete('/api/image-regen-queue/:slug', (req, res) => {
   res.json({ ok: true, queue });
 });
 
-// ─── GSC Indexing ───
+// â”€â”€â”€ GSC Indexing â”€â”€â”€
 const GSC_KEY_PATH = path.join(LANDING_ROOT, 'gsc-key.json');
 const GSC_CACHE_PATH = path.join(LANDING_ROOT, '.gsc-cache.json');
 const SITEMAP_PATH_GSC = path.join(DIST_DIR, 'sitemap.xml');
@@ -2446,12 +2676,66 @@ function parseSitemapUrls() {
   return urls;
 }
 
-// API: GSC status — show all URLs with indexing status
+function getSitemapLastmod(url) {
+  return parseSitemapUrls().find(entry => entry.url === url)?.lastmod || null;
+}
+
+function updateGscCacheEntry(url, lastmod = null, notifiedAt = null) {
+  const cache = loadGscCache();
+  cache[url] = {
+    notifiedAt: notifiedAt || new Date().toISOString(),
+    lastmod: lastmod || getSitemapLastmod(url)
+  };
+  saveGscCache(cache);
+}
+
+async function submitUrlToGsc(url) {
+  if (!fs.existsSync(GSC_KEY_PATH)) return { ok: false, skipped: true };
+  const { google } = require('googleapis');
+  const auth = new google.auth.GoogleAuth({
+    keyFile: GSC_KEY_PATH,
+    scopes: ['https://www.googleapis.com/auth/indexing']
+  });
+  const indexing = google.indexing({ version: 'v3', auth });
+  await indexing.urlNotifications.publish({ requestBody: { url, type: 'URL_UPDATED' } });
+  updateGscCacheEntry(url);
+  return { ok: true };
+}
+
+async function resubmitSitemapToGsc(force = false) {
+  if (!fs.existsSync(GSC_KEY_PATH)) return { ok: false, skipped: true };
+
+  const statePath = path.join(__dirname, '.sitemap-resubmit.json');
+  let state = {};
+  try { state = JSON.parse(fs.readFileSync(statePath, 'utf-8')); } catch {}
+
+  if (!force && state.lastResubmit) {
+    const hoursSince = (Date.now() - new Date(state.lastResubmit).getTime()) / (1000 * 60 * 60);
+    if (hoursSince < 12) return { ok: true, skipped: true };
+  }
+
+  const { google } = require('googleapis');
+  const auth = new google.auth.GoogleAuth({
+    keyFile: GSC_KEY_PATH,
+    scopes: ['https://www.googleapis.com/auth/webmasters']
+  });
+  const wm = google.webmasters({ version: 'v3', auth });
+  await wm.sitemaps.submit({
+    siteUrl: SITE_URL_GSC,
+    feedpath: 'https://healthdesk.site/sitemap.xml'
+  });
+
+  state.lastResubmit = new Date().toISOString();
+  fs.writeFileSync(statePath, JSON.stringify(state, null, 2), 'utf-8');
+  return { ok: true };
+}
+
+// API: GSC status â€” show all URLs with indexing status
 app.get('/api/gsc/status', (req, res) => {
   const hasKey = fs.existsSync(GSC_KEY_PATH);
   const hasSitemap = fs.existsSync(SITEMAP_PATH_GSC);
   if (!hasKey) return res.json({ configured: false, error: 'Brak gsc-key.json' });
-  if (!hasSitemap) return res.json({ configured: true, error: 'Brak dist/sitemap.xml — uruchom Build' });
+  if (!hasSitemap) return res.json({ configured: true, error: 'Brak dist/sitemap.xml â€” uruchom Build' });
 
   const cache = loadGscCache();
   const sitemapUrls = parseSitemapUrls();
@@ -2477,7 +2761,7 @@ app.get('/api/gsc/status', (req, res) => {
   res.json({ configured: true, urls, stats });
 });
 
-// API: GSC submit — send URLs to Google Indexing API
+// API: GSC submit â€” send URLs to Google Indexing API
 app.post('/api/gsc/submit', async (req, res) => {
   if (!fs.existsSync(GSC_KEY_PATH)) return res.status(400).json({ error: 'Brak gsc-key.json' });
 
@@ -2529,7 +2813,7 @@ app.post('/api/gsc/submit', async (req, res) => {
   });
 });
 
-// ─── GSC URL Inspection ───
+// â”€â”€â”€ GSC URL Inspection â”€â”€â”€
 
 app.get('/api/gsc/inspect', async (req, res) => {
   if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ error: 'No GSC key' });
@@ -2580,7 +2864,7 @@ app.get('/api/gsc/inspect', async (req, res) => {
   }
 });
 
-// ─── GSC Search Analytics ───
+// â”€â”€â”€ GSC Search Analytics â”€â”€â”€
 
 function getGscAuth() {
   const { google } = require('googleapis');
@@ -2590,7 +2874,7 @@ function getGscAuth() {
   });
 }
 
-// API: GSC Analytics — performance data (queries, pages, clicks, impressions, position)
+// API: GSC Analytics â€” performance data (queries, pages, clicks, impressions, position)
 app.get('/api/gsc/analytics', async (req, res) => {
   if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ configured: false, error: 'Brak gsc-key.json' });
 
@@ -2622,7 +2906,7 @@ app.get('/api/gsc/analytics', async (req, res) => {
       position: Math.round(r.position * 10) / 10
     }));
 
-    res.json({ configured: true, rows, period: `${startDate.toISOString().slice(0, 10)} — ${endDate.toISOString().slice(0, 10)}` });
+    res.json({ configured: true, rows, period: `${startDate.toISOString().slice(0, 10)} â€” ${endDate.toISOString().slice(0, 10)}` });
   } catch (err) {
     const msg = err.response?.data?.error?.message || err.message;
     console.error('[GSC Analytics]', msg);
@@ -2630,7 +2914,7 @@ app.get('/api/gsc/analytics', async (req, res) => {
   }
 });
 
-// API: GSC Analytics — daily trend for specific query or page
+// API: GSC Analytics â€” daily trend for specific query or page
 app.get('/api/gsc/analytics/trend', async (req, res) => {
   if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ configured: false });
 
@@ -2673,7 +2957,7 @@ app.get('/api/gsc/analytics/trend', async (req, res) => {
   }
 });
 
-// API: GSC Analytics — discover new keywords not yet tracked
+// API: GSC Analytics â€” discover new keywords not yet tracked
 app.get('/api/gsc/discover-keywords', async (req, res) => {
   if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ configured: false });
 
@@ -2716,7 +3000,7 @@ app.get('/api/gsc/discover-keywords', async (req, res) => {
   }
 });
 
-// ─── GA4 Analytics ───
+// â”€â”€â”€ GA4 Analytics â”€â”€â”€
 
 const GA4_PROPERTY = 'properties/526378138';
 
@@ -2852,7 +3136,7 @@ app.get('/api/ga4/overview', async (req, res) => {
   }
 });
 
-// ─── Insights: GSC Opportunities ───
+// â”€â”€â”€ Insights: GSC Opportunities â”€â”€â”€
 
 const INSIGHTS_PATH = path.join(__dirname, 'insights.json');
 
@@ -2930,16 +3214,16 @@ async function runOpportunitiesAnalysis() {
       type = 'improve';
       priority = pos <= 10 ? 'high' : 'medium';
       suggestion = pos <= 10
-        ? `Post "${matched.title}" na pozycji ${pos} — blisko top 10. Rozbuduj treść, dodaj FAQ, wzmocnij nagłówki.`
-        : `Post "${matched.title}" na pozycji ${pos}. Dodaj sekcję o "${query}", rozbuduj do 2000+ słów.`;
+        ? `Post "${matched.title}" na pozycji ${pos} â€” blisko top 10. Rozbuduj treĹ›Ä‡, dodaj FAQ, wzmocnij nagĹ‚Ăłwki.`
+        : `Post "${matched.title}" na pozycji ${pos}. Dodaj sekcjÄ™ o "${query}", rozbuduj do 2000+ sĹ‚Ăłw.`;
     } else if (matched && pos > 20) {
       type = 'improve';
       priority = 'low';
-      suggestion = `Post "${matched.title}" na pozycji ${pos}. Daleko od top 10 — rozważ nowy, lepiej zoptymalizowany post.`;
+      suggestion = `Post "${matched.title}" na pozycji ${pos}. Daleko od top 10 â€” rozwaĹĽ nowy, lepiej zoptymalizowany post.`;
     } else if (isNewKeyword) {
       type = 'new-keyword';
       priority = imp >= 10 ? 'high' : imp >= 5 ? 'medium' : 'low';
-      suggestion = `Nowa fraza "${query}" — ${imp} impresji, nie mamy posta. Dodaj do kalendarza.`;
+      suggestion = `Nowa fraza "${query}" â€” ${imp} impresji, nie mamy posta. Dodaj do kalendarza.`;
     } else {
       type = 'opportunity';
       priority = 'low';
@@ -2969,7 +3253,7 @@ async function runOpportunitiesAnalysis() {
           query: `Wysoki bounce rate: ${page.bounce_rate}%`,
           position: 0, impressions: page.views, clicks: page.users, ctr: 0,
           page: page.path, matched_article: null,
-          suggestion: `Strona ${page.path} ma ${page.bounce_rate}% bounce rate przy ${page.views} odsłonach. Popraw nagłówek, dodaj spis treści, skróć wstęp.`,
+          suggestion: `Strona ${page.path} ma ${page.bounce_rate}% bounce rate przy ${page.views} odsĹ‚onach. Popraw nagĹ‚Ăłwek, dodaj spis treĹ›ci, skrĂłÄ‡ wstÄ™p.`,
           status: 'new', action: 'improve'
         });
       }
@@ -2983,10 +3267,10 @@ async function runOpportunitiesAnalysis() {
           opportunities.push({
             id: `opp-${Date.now()}-ga4lang-${opportunities.length}`,
             date: today, type: 'opportunity', priority: 'medium',
-            query: `Ruch na /${lang}/ (${page.views} views) bez blogów`,
+            query: `Ruch na /${lang}/ (${page.views} views) bez blogĂłw`,
             position: 0, impressions: page.views, clicks: page.users, ctr: 0,
             page: page.path, matched_article: null,
-            suggestion: `Strona główna ${lang} ma ${page.views} odsłon ale żaden blog ${lang} nie generuje ruchu. Promuj istniejące posty lub napisz dedykowane pod ten język.`,
+            suggestion: `Strona gĹ‚Ăłwna ${lang} ma ${page.views} odsĹ‚on ale ĹĽaden blog ${lang} nie generuje ruchu. Promuj istniejÄ…ce posty lub napisz dedykowane pod ten jÄ™zyk.`,
             status: 'new', action: 'promote'
           });
         }
@@ -3077,7 +3361,7 @@ app.post('/api/insights/:id/add-to-calendar', (req, res) => {
   res.json({ ok: true, cluster: cluster.name, lang: targetLang, keyword: entry.query });
 });
 
-// ─── Autopilot: progress tracking ───
+// â”€â”€â”€ Autopilot: progress tracking â”€â”€â”€
 let autopilotProgress = null;
 // { status, currentStep, totalSteps, stepName, currentTopic, totalTopics, completedTopics, results[], error }
 
@@ -3085,32 +3369,32 @@ app.get('/api/ai/autopilot/status', (req, res) => {
   res.json(autopilotProgress || { status: 'idle' });
 });
 
-// ─── Helper: slugify for autopilot ───
+// â”€â”€â”€ Helper: slugify for autopilot â”€â”€â”€
 function autoSlugify(text) {
   let slug = text.toLowerCase()
-    .replace(/[ąà]/g,'a').replace(/[ćč]/g,'c').replace(/[ę]/g,'e')
-    .replace(/[łĺ]/g,'l').replace(/[ńñ]/g,'n').replace(/[óò]/g,'o')
-    .replace(/[śš]/g,'s').replace(/[źżž]/g,'z').replace(/[üú]/g,'u')
-    .replace(/[ö]/g,'o').replace(/[ä]/g,'a').replace(/[ß]/g,'ss')
-    .replace(/[èéêë]/g,'e').replace(/[ìíîï]/g,'i').replace(/[ùûü]/g,'u')
+    .replace(/[Ä…Ă ]/g,'a').replace(/[Ä‡ÄŤ]/g,'c').replace(/[Ä™]/g,'e')
+    .replace(/[Ĺ‚Äş]/g,'l').replace(/[Ĺ„Ă±]/g,'n').replace(/[ĂłĂ˛]/g,'o')
+    .replace(/[Ĺ›Ĺˇ]/g,'s').replace(/[ĹşĹĽĹľ]/g,'z').replace(/[ĂĽĂş]/g,'u')
+    .replace(/[Ă¶]/g,'o').replace(/[Ă¤]/g,'a').replace(/[Ăź]/g,'ss')
+    .replace(/[Ă¨Ă©ĂŞĂ«]/g,'e').replace(/[Ă¬Ă­Ă®ĂŻ]/g,'i').replace(/[ĂąĂ»ĂĽ]/g,'u')
     // Cyrillic transliteration
-    .replace(/[а]/g,'a').replace(/[б]/g,'b').replace(/[в]/g,'v').replace(/[г]/g,'g')
-    .replace(/[д]/g,'d').replace(/[е]/g,'e').replace(/[ж]/g,'zh').replace(/[з]/g,'z')
-    .replace(/[и]/g,'i').replace(/[й]/g,'y').replace(/[к]/g,'k').replace(/[л]/g,'l')
-    .replace(/[м]/g,'m').replace(/[н]/g,'n').replace(/[о]/g,'o').replace(/[п]/g,'p')
-    .replace(/[р]/g,'r').replace(/[с]/g,'s').replace(/[т]/g,'t').replace(/[у]/g,'u')
-    .replace(/[ф]/g,'f').replace(/[х]/g,'kh').replace(/[ц]/g,'ts').replace(/[ч]/g,'ch')
-    .replace(/[ш]/g,'sh').replace(/[щ]/g,'sch').replace(/[ъь]/g,'').replace(/[ы]/g,'y')
-    .replace(/[э]/g,'e').replace(/[ю]/g,'yu').replace(/[я]/g,'ya').replace(/[ё]/g,'yo')
+    .replace(/[Đ°]/g,'a').replace(/[Đ±]/g,'b').replace(/[Đ˛]/g,'v').replace(/[Đł]/g,'g')
+    .replace(/[Đ´]/g,'d').replace(/[Đµ]/g,'e').replace(/[Đ¶]/g,'zh').replace(/[Đ·]/g,'z')
+    .replace(/[Đ¸]/g,'i').replace(/[Đą]/g,'y').replace(/[Đş]/g,'k').replace(/[Đ»]/g,'l')
+    .replace(/[ĐĽ]/g,'m').replace(/[Đ˝]/g,'n').replace(/[Đľ]/g,'o').replace(/[Đż]/g,'p')
+    .replace(/[Ń€]/g,'r').replace(/[Ń]/g,'s').replace(/[Ń‚]/g,'t').replace(/[Ń]/g,'u')
+    .replace(/[Ń„]/g,'f').replace(/[Ń…]/g,'kh').replace(/[Ń†]/g,'ts').replace(/[Ń‡]/g,'ch')
+    .replace(/[Ń]/g,'sh').replace(/[Ń‰]/g,'sch').replace(/[ŃŠŃŚ]/g,'').replace(/[Ń‹]/g,'y')
+    .replace(/[ŃŤ]/g,'e').replace(/[ŃŽ]/g,'yu').replace(/[ŃŹ]/g,'ya').replace(/[Ń‘]/g,'yo')
     // Turkish special chars
-    .replace(/[ğ]/g,'g').replace(/[ı]/g,'i').replace(/[ş]/g,'s').replace(/[ç]/g,'c')
+    .replace(/[Äź]/g,'g').replace(/[Ä±]/g,'i').replace(/[Ĺź]/g,'s').replace(/[Ă§]/g,'c')
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-|-$/g, '')
     .slice(0, 80);
   return slug;
 }
 
-// ─── Helper: AI-based slug for CJK languages ───
+// â”€â”€â”€ Helper: AI-based slug for CJK languages â”€â”€â”€
 async function aiSlugify(keyword, lang) {
   const isCJK = ['ja', 'ko', 'zh-CN'].includes(lang);
   if (!isCJK) return autoSlugify(keyword);
@@ -3128,7 +3412,29 @@ async function aiSlugify(keyword, lang) {
   }
 }
 
-// ─── Autopilot: single topic pipeline ───
+function autoSlugify(text) {
+  if (hasBrokenEncoding(text)) return '';
+  return sanitizeSlug(text);
+}
+
+async function aiSlugify(keyword, lang) {
+  const needsAiSlug = ['ja', 'ko', 'zh-CN', 'ru'].includes(lang);
+  if (!needsAiSlug) return autoSlugify(keyword);
+  try {
+    const result = await callClaude(
+      'You generate URL slugs. Return ONLY the slug, nothing else.',
+      `Generate a descriptive English URL slug (3-6 words, lowercase, hyphens) for this ${lang} blog topic:\n"${keyword}"\n\nReturn ONLY the slug like: desk-exercises-back-pain`,
+      100, { model: 'haiku' }
+    );
+    const slug = sanitizeSlug(result);
+    return !isSuspiciousSlug(slug) ? slug : autoSlugify(keyword);
+  } catch (e) {
+    console.error('[aiSlugify] Failed, using fallback:', e.message);
+    return autoSlugify(keyword);
+  }
+}
+
+// â”€â”€â”€ Autopilot: single topic pipeline â”€â”€â”€
 async function runAutopilot(lang, topic, persona) {
   const steps = [];
   const updateStep = (num, name, status) => {
@@ -3157,7 +3463,11 @@ async function runAutopilot(lang, topic, persona) {
     steps[2].status = 'done';
 
     const title = outline.title || analysis.suggestedTitle || topic;
-    const slug = await aiSlugify(topic, lang);
+    const slugSource = !hasBrokenEncoding(title) ? title : topic;
+    const slug = await aiSlugify(slugSource, lang);
+    if (!slug || isSuspiciousSlug(slug)) {
+      throw new Error(`Generated slug is invalid for ${lang}: ${slug || '<empty>'}`);
+    }
     const description = outline.description || '';
 
     // Step 4: Create Article
@@ -3246,28 +3556,10 @@ async function runAutopilot(lang, topic, persona) {
 
     // Step 11: Save final article (with siblings auto-detection)
     updateStep(11, 'Save Article', 'running');
-
-    // Auto-detect siblings: find posts in other languages with the same keyword in the same cluster
+    // Calendar batches often publish different topics per language. Auto-linking by
+    // cluster produced false cross-language siblings, so only explicit localized
+    // versions should set this field.
     const siblingsMap = {};
-    try {
-      const cal = loadCalendar();
-      for (const cluster of cal.clusters) {
-        // Check if this keyword exists in this cluster for the current lang
-        const currentLangKws = (cluster.keywords[lang] || []).map(k => k.keyword.toLowerCase());
-        if (!currentLangKws.includes(topic.toLowerCase())) continue;
-        // Found our cluster — look for published siblings in other languages
-        for (const [otherLang, kwList] of Object.entries(cluster.keywords)) {
-          if (otherLang === lang) continue;
-          const published = kwList.find(k => k.status === 'published' && k.slug);
-          if (published) {
-            siblingsMap[otherLang] = published.slug;
-          }
-        }
-        break;
-      }
-    } catch (sibErr) {
-      console.error('[Autopilot] Siblings detection failed:', sibErr.message);
-    }
 
     const siblingsYaml = Object.keys(siblingsMap).length > 0
       ? 'siblings:\n' + Object.entries(siblingsMap).map(([l, s]) => `  ${l}: "${s}"`).join('\n')
@@ -3335,7 +3627,7 @@ async function runAutopilot(lang, topic, persona) {
   }
 }
 
-// ─── API: Autopilot single ───
+// â”€â”€â”€ API: Autopilot single â”€â”€â”€
 app.post('/api/ai/autopilot', async (req, res) => {
   const { lang, topic, persona } = req.body;
   if (!lang || !topic) return res.status(400).json({ error: 'lang and topic required' });
@@ -3365,7 +3657,7 @@ app.post('/api/ai/autopilot', async (req, res) => {
   }
 });
 
-// ─── API: Autopilot batch ───
+// â”€â”€â”€ API: Autopilot batch â”€â”€â”€
 app.post('/api/ai/autopilot/batch', async (req, res) => {
   const { lang, topics, persona } = req.body;
   // topics can be strings (same lang) or objects {lang, topic, persona?}
@@ -3405,9 +3697,9 @@ app.post('/api/ai/autopilot/batch', async (req, res) => {
   setTimeout(() => { if (autopilotProgress?.status === 'done') autopilotProgress = null; }, 60000);
 });
 
-// ═══════════════════════════════════════════════════════════════
-// ─── Content Calendar: Data helpers ───
-// ═══════════════════════════════════════════════════════════════
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
+// â”€â”€â”€ Content Calendar: Data helpers â”€â”€â”€
+// â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•â•
 
 const ALL_CALENDAR_LANGS = ['pl','en','de','es','fr','it','pt-BR','ja','zh-CN','ko','tr','ru'];
 
@@ -3503,7 +3795,7 @@ function findNextBatch(cal) {
   }
 
   const activeCluster = cal.clusters[earliestClusterIdx];
-  console.log(`[Calendar] Earliest scheduled: ${earliestDate}, cluster ${earliestClusterIdx + 1}/${cal.clusters.length} — "${activeCluster.name}"`);
+  console.log(`[Calendar] Earliest scheduled: ${earliestDate}, cluster ${earliestClusterIdx + 1}/${cal.clusters.length} â€” "${activeCluster.name}"`);
 
   const seenLangs = new Set(skipLangs);
   const batch = [];
@@ -3560,7 +3852,44 @@ function updateKeywordStatus(cal, lang, keyword, updates) {
   return false;
 }
 
-// ─── Content Calendar: CRUD endpoints ───
+async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
+  const finalDate = normalizeDateOnly(publishedDate) || new Date().toISOString().slice(0, 10);
+  syncPublishedFrontmatterDate(lang, slug, finalDate);
+
+  const cal = loadCalendar();
+  updateKeywordStatus(cal, lang, keyword, {
+    status: 'published',
+    slug,
+    published_date: finalDate
+  });
+  saveCalendar(cal);
+
+  const studio = loadStudioData();
+  const articleKey = `${lang}/${slug}`;
+  studio.articles[articleKey] = {
+    ...(studio.articles[articleKey] || {}),
+    keyword,
+    status: 'published'
+  };
+  saveStudioData(studio);
+
+  const articleUrl = getPublishedArticleUrl(lang, slug);
+  try {
+    await submitUrlToGsc(articleUrl);
+  } catch (gscErr) {
+    console.error(`[Publish] GSC URL submit failed for ${articleUrl}: ${gscErr.message}`);
+  }
+
+  try {
+    await resubmitSitemapToGsc(true);
+  } catch (sitemapErr) {
+    console.error(`[Publish] Sitemap resubmit failed: ${sitemapErr.message}`);
+  }
+
+  return { articleUrl, finalDate };
+}
+
+// â”€â”€â”€ Content Calendar: CRUD endpoints â”€â”€â”€
 
 app.get('/api/calendar', (req, res) => {
   const cal = loadCalendar();
@@ -3618,7 +3947,7 @@ app.delete('/api/calendar/cluster/:id', (req, res) => {
   res.json({ ok: true });
 });
 
-// ─── Content Calendar: Generate keywords (Claude) ───
+// â”€â”€â”€ Content Calendar: Generate keywords (Claude) â”€â”€â”€
 
 app.post('/api/calendar/generate-keywords', async (req, res) => {
   const { cluster_id, cluster_name, langs, count } = req.body;
@@ -3629,7 +3958,7 @@ app.post('/api/calendar/generate-keywords', async (req, res) => {
     const prompt = `Generate ${kwCount} long-tail SEO keywords for EACH of the following languages: ${targetLangs.join(', ')}.
 
 Topic cluster: "${cluster_name}"
-Context: HealthDesk is a desktop wellness app for office workers — break reminders, eye exercises, stretch exercises, water intake tracking, posture tips, ergonomics.
+Context: HealthDesk is a desktop wellness app for office workers â€” break reminders, eye exercises, stretch exercises, water intake tracking, posture tips, ergonomics.
 
 For each language, generate keywords that:
 1. Are natural search queries in that language (NOT translations of English keywords)
@@ -3647,7 +3976,7 @@ Return JSON:
 }`;
 
     const result = await callClaude(
-      'You are an SEO keyword researcher specializing in health, wellness, and productivity content across multiple languages. Generate native, natural keywords — NOT translations.',
+      'You are an SEO keyword researcher specializing in health, wellness, and productivity content across multiple languages. Generate native, natural keywords â€” NOT translations.',
       prompt,
       4000
     );
@@ -3712,7 +4041,7 @@ Return JSON:
   }
 });
 
-// ─── Content Calendar: Verify keywords (Serper SERP analysis) ───
+// â”€â”€â”€ Content Calendar: Verify keywords (Serper SERP analysis) â”€â”€â”€
 
 app.post('/api/calendar/verify-keywords', async (req, res) => {
   const { cluster_id, lang, max_keywords } = req.body;
@@ -3828,7 +4157,7 @@ app.post('/api/calendar/verify-keywords', async (req, res) => {
   res.json({ verified: results.length, results });
 });
 
-// ─── Content Calendar: Reset SERP verification ───
+// â”€â”€â”€ Content Calendar: Reset SERP verification â”€â”€â”€
 
 app.post('/api/calendar/reset-verify', (req, res) => {
   const cal = loadCalendar();
@@ -3851,7 +4180,7 @@ app.post('/api/calendar/reset-verify', (req, res) => {
   res.json({ reset: resetCount });
 });
 
-// ─── Content Calendar: Settings ───
+// â”€â”€â”€ Content Calendar: Settings â”€â”€â”€
 
 app.post('/api/calendar/settings', (req, res) => {
   const { interval_days } = req.body;
@@ -3875,7 +4204,7 @@ app.post('/api/calendar/auto-toggle', (req, res) => {
   res.json({ ok: true, auto_enabled: cal.auto_enabled, next_run: cal.next_run });
 });
 
-// ─── Content Calendar: Run next keyword in queue ───
+// â”€â”€â”€ Content Calendar: Run next keyword in queue â”€â”€â”€
 
 let calendarProgress = null;
 
@@ -3912,7 +4241,7 @@ app.post('/api/calendar/run-next', async (req, res) => {
   res.json({ ok: true, batch_size: batch.length, keywords: batch.map(k => ({ lang: k.lang, keyword: k.keyword })) });
 
   // Run pipeline: each keyword goes through FULL cycle before next one
-  // autopilot → build → deploy → GSC → next keyword
+  // autopilot â†’ build â†’ deploy â†’ GSC â†’ next keyword
   let completed = 0;
 
   for (let i = 0; i < batch.length; i++) {
@@ -3929,6 +4258,13 @@ app.post('/api/calendar/run-next', async (req, res) => {
       const result = await runAutopilot(item.lang, item.keyword);
       const slug = result.slug;
 
+      calendarProgress.step = `validate (${i + 1}/${batch.length})`;
+      const validation = validatePost(slug, item.lang);
+      if (!validation.valid) {
+        const issueList = validation.issues.map(issue => `${issue.field}: ${issue.message}`).join('; ');
+        throw new Error(`Validation failed: ${issueList}`);
+      }
+
       // Step 2: Build
       calendarProgress.step = `build (${i + 1}/${batch.length})`;
       console.log(`${label} Building...`);
@@ -3944,35 +4280,18 @@ app.post('/api/calendar/run-next', async (req, res) => {
         });
       });
 
-      // Step 4: GSC submit
+      // Step 4: Finalize metadata + GSC
       calendarProgress.step = `gsc (${i + 1}/${batch.length})`;
-      const articleUrl = `https://healthdesk.site/${item.lang}/blog/${slug}/`;
-      if (fs.existsSync(GSC_KEY_PATH)) {
-        try {
-          const { google } = require('googleapis');
-          const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
-          const indexing = google.indexing({ version: 'v3', auth });
-          await indexing.urlNotifications.publish({ requestBody: { url: articleUrl, type: 'URL_UPDATED' } });
-          console.log(`${label} GSC submitted: ${articleUrl}`);
-        } catch (gscErr) {
-          console.error(`${label} GSC failed: ${gscErr.message}`);
-        }
-      }
-
-      // Update statuses
-      const cal2 = loadCalendar();
-      updateKeywordStatus(cal2, item.lang, item.keyword, {
-        status: 'published', slug, published_date: new Date().toISOString().split('T')[0]
+      const { articleUrl } = await finalizeSuccessfulPublication({
+        lang: item.lang,
+        keyword: item.keyword,
+        slug
       });
-      saveCalendar(cal2);
-
-      const studio = loadStudioData();
-      studio.articles[`${item.lang}/${slug}`] = { status: 'published' };
-      saveStudioData(studio);
+      console.log(`${label} Finalized: ${articleUrl}`);
 
       calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
       completed++;
-      console.log(`${label} DONE — ${slug} is LIVE (${completed}/${batch.length})`);
+      console.log(`${label} DONE â€” ${slug} is LIVE (${completed}/${batch.length})`);
 
     } catch (err) {
       console.error(`${label} Error: ${err.message}`);
@@ -4002,7 +4321,7 @@ app.post('/api/calendar/run-next', async (req, res) => {
   }, 120000);
 });
 
-// ─── Content Calendar: Stats ───
+// â”€â”€â”€ Content Calendar: Stats â”€â”€â”€
 
 app.get('/api/calendar/stats', (req, res) => {
   const cal = loadCalendar();
@@ -4026,7 +4345,7 @@ app.get('/api/calendar/stats', (req, res) => {
   });
 });
 
-// ─── Content Calendar: Refresh GSC positions ───
+// â”€â”€â”€ Content Calendar: Refresh GSC positions â”€â”€â”€
 
 app.post('/api/calendar/refresh-gsc', async (req, res) => {
   if (!fs.existsSync(GSC_KEY_PATH)) return res.json({ error: 'No GSC key configured' });
@@ -4085,7 +4404,7 @@ app.post('/api/calendar/refresh-gsc', async (req, res) => {
   }
 });
 
-// ─── Content Calendar: Auto-refresh underperforming articles ───
+// â”€â”€â”€ Content Calendar: Auto-refresh underperforming articles â”€â”€â”€
 
 app.post('/api/calendar/auto-refresh', async (req, res) => {
   const cal = loadCalendar();
@@ -4151,13 +4470,6 @@ Return ONLY the improved markdown body (no frontmatter).`,
     const updatedFm = frontmatterStr.replace(/date: .+/, `date: ${updatedDate}`);
     fs.writeFileSync(filePath, updatedFm + '\n' + improveResult, 'utf8');
 
-    // Update keyword status
-    updateKeywordStatus(cal, target.lang, target.keyword, {
-      status: 'published', // will go back to tracking after next GSC refresh
-      published_date: updatedDate
-    });
-    saveCalendar(cal);
-
     // Rebuild + redeploy
     execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
     await new Promise((resolve, reject) => {
@@ -4166,16 +4478,12 @@ Return ONLY the improved markdown body (no frontmatter).`,
       });
     });
 
-    // GSC re-submit
-    if (fs.existsSync(GSC_KEY_PATH)) {
-      try {
-        const { google } = require('googleapis');
-        const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
-        const indexing = google.indexing({ version: 'v3', auth });
-        const url = `https://healthdesk.site/${target.lang}/blog/${target.slug}/`;
-        await indexing.urlNotifications.publish({ requestBody: { url, type: 'URL_UPDATED' } });
-      } catch (e) { console.error('[Calendar Refresh] GSC re-submit failed:', e.message); }
-    }
+    await finalizeSuccessfulPublication({
+      lang: target.lang,
+      keyword: target.keyword,
+      slug: target.slug,
+      publishedDate: updatedDate
+    });
 
     res.json({ refreshed: 1, keyword: target.keyword, lang: target.lang, slug: target.slug });
 
@@ -4185,7 +4493,7 @@ Return ONLY the improved markdown body (no frontmatter).`,
   }
 });
 
-// ─── Content Calendar: Schedule keywords ───
+// â”€â”€â”€ Content Calendar: Schedule keywords â”€â”€â”€
 
 app.post('/api/calendar/schedule', (req, res) => {
   const { cluster_id, lang, count } = req.body;
@@ -4231,7 +4539,7 @@ app.post('/api/calendar/schedule', (req, res) => {
   }
 
   // Schedule with cluster rotation:
-  // Round 0 → cluster 0, Round 1 → cluster 1, ... Round N → cluster N%count, ...
+  // Round 0 â†’ cluster 0, Round 1 â†’ cluster 1, ... Round N â†’ cluster N%count, ...
   // Each round = 1 keyword per language from ONE cluster, same date
   const maxRounds = count || 9999;
   let scheduled = 0;
@@ -4272,7 +4580,7 @@ app.post('/api/calendar/schedule', (req, res) => {
   res.json({ scheduled, rounds: round });
 });
 
-// ─── Content Calendar: Reschedule (reset scheduled → pending, then re-schedule with new interval) ───
+// â”€â”€â”€ Content Calendar: Reschedule (reset scheduled â†’ pending, then re-schedule with new interval) â”€â”€â”€
 
 app.post('/api/calendar/reschedule', (req, res) => {
   const { interval_days } = req.body;
@@ -4358,7 +4666,7 @@ app.post('/api/calendar/reschedule', (req, res) => {
   res.json({ ok: true, reset: resetCount, scheduled, rounds: round, interval_days: intervalDays });
 });
 
-// ─── Content Calendar: Import keywords ───
+// â”€â”€â”€ Content Calendar: Import keywords â”€â”€â”€
 
 app.post('/api/calendar/import', (req, res) => {
   const { cluster_id, cluster_name, keywords } = req.body;
@@ -4422,7 +4730,7 @@ app.post('/api/calendar/import', (req, res) => {
   res.json({ ok: true, cluster_id: cluster.id, imported });
 });
 
-// ─── Content Calendar: Scheduler (auto-run) ───
+// â”€â”€â”€ Content Calendar: Scheduler (auto-run) â”€â”€â”€
 
 let calendarSchedulerInterval = null;
 
@@ -4445,7 +4753,7 @@ function startCalendarScheduler() {
     }
     if (recovered > 0) {
       saveCalendar(cal);
-      console.log(`[Calendar Scheduler] Recovered ${recovered} stuck "writing" keywords → scheduled`);
+      console.log(`[Calendar Scheduler] Recovered ${recovered} stuck "writing" keywords â†’ scheduled`);
     }
   } catch (e) {
     console.error('[Calendar Scheduler] Recovery failed:', e.message);
@@ -4482,7 +4790,7 @@ function startCalendarScheduler() {
       const isOverdue = today > nextRunDate || hasOverdueKeywords;
       console.log(`[Calendar Scheduler] Time to run! next_run was ${nextRunDate}, today is ${today}${isOverdue ? ' (catching up!)' : ''}`);
 
-      // ─── Repair pass: fix recently published posts with missing images ───
+      // â”€â”€â”€ Repair pass: fix recently published posts with missing images â”€â”€â”€
       try {
         console.log('[Calendar Scheduler] Running repair pass...');
         const langs = fs.readdirSync(BLOG_DIR).filter(d => fs.statSync(path.join(BLOG_DIR, d)).isDirectory());
@@ -4503,13 +4811,11 @@ function startCalendarScheduler() {
                 const content = fs.readFileSync(path.join(BLOG_DIR, lang, name), 'utf-8');
                 const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
                 const descMatch = content.match(/^description:\s*["']?(.+?)["']?\s*$/m);
-                await doHeroImage(slug, lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
-                // Add heroImage to frontmatter if missing
-                let updated = fs.readFileSync(path.join(BLOG_DIR, lang, name), 'utf-8');
-                if (!updated.includes('heroImage:')) {
-                  updated = updated.replace(/^(---\n)/, `$1heroImage: "${slug}.webp"\n`);
-                  fs.writeFileSync(path.join(BLOG_DIR, lang, name), updated, 'utf-8');
-                }
+                const hero = await doHeroImage(slug, lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
+                upsertFrontmatterFields(path.join(BLOG_DIR, lang, name), {
+                  heroImage: hero.filename,
+                  image_alt: hero.altText
+                });
                 repaired++;
                 console.log(`[Repair] Fixed image for ${lang}/${slug}`);
               } catch (repairErr) {
@@ -4530,7 +4836,11 @@ function startCalendarScheduler() {
               const content = fs.readFileSync(mdFile, 'utf-8');
               const titleMatch = content.match(/^title:\s*["']?(.+?)["']?\s*$/m);
               const descMatch = content.match(/^description:\s*["']?(.+?)["']?\s*$/m);
-              await doHeroImage(item.slug, item.lang, titleMatch?.[1] || item.slug, descMatch?.[1] || '');
+              const hero = await doHeroImage(item.slug, item.lang, titleMatch?.[1] || item.slug, descMatch?.[1] || '');
+              upsertFrontmatterFields(mdFile, {
+                heroImage: hero.filename,
+                image_alt: hero.altText
+              });
               repaired++;
               console.log(`[Repair] Regenerated image for ${item.lang}/${item.slug} (was: ${item.reason})`);
             } catch (regenErr) {
@@ -4555,7 +4865,7 @@ function startCalendarScheduler() {
             console.error(`[Repair] Deploy after repair failed: ${deployErr.message}`);
           }
         } else {
-          console.log('[Repair] All recent posts have images — nothing to repair');
+          console.log('[Repair] All recent posts have images â€” nothing to repair');
         }
       } catch (repairErr) {
         console.error('[Calendar Scheduler] Repair pass failed:', repairErr.message);
@@ -4581,7 +4891,7 @@ function startCalendarScheduler() {
       }
       saveCalendar(cal);
 
-      // Per-keyword full pipeline: write → build → deploy → GSC → next
+      // Per-keyword full pipeline: write â†’ build â†’ deploy â†’ GSC â†’ next
       // Resilient: continues on error, skips existing files, logs everything
       const SCHEDULER_LOG = path.join(__dirname, 'scheduler_log.json');
       let schedulerLog;
@@ -4624,8 +4934,8 @@ function startCalendarScheduler() {
 
           let slug;
           if (existingSlug) {
-            // File already exists — skip writing, but still build + deploy + GSC
-            console.log(`${label} EXISTS — skipping write, will build+deploy: ${existingSlug}`);
+            // File already exists â€” skip writing, but still build + deploy + GSC
+            console.log(`${label} EXISTS â€” skipping write, will build+deploy: ${existingSlug}`);
             slug = existingSlug;
           } else {
             // Step 1: Write article
@@ -4641,20 +4951,24 @@ function startCalendarScheduler() {
           if (!validation.valid) {
             const imgIssue = validation.issues.find(i => i.field === 'heroImage');
             if (imgIssue && validation.issues.length === 1) {
-              // Only image missing — retry hero image generation
+              // Only image missing â€” retry hero image generation
               console.log(`${label} Validation: hero image missing, retrying...`);
               try {
                 const mdContent = fs.readFileSync(path.join(BLOG_DIR, item.lang, `${slug}.md`), 'utf-8');
                 const titleMatch = mdContent.match(/^title:\s*["']?(.+?)["']?\s*$/m);
                 const descMatch = mdContent.match(/^description:\s*["']?(.+?)["']?\s*$/m);
-                await doHeroImage(slug, item.lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
+                const hero = await doHeroImage(slug, item.lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
+                upsertFrontmatterFields(path.join(BLOG_DIR, item.lang, `${slug}.md`), {
+                  heroImage: hero.filename,
+                  image_alt: hero.altText
+                });
                 console.log(`${label} Hero image recovered successfully`);
               } catch (imgRetryErr) {
-                console.error(`${label} Hero image retry failed: ${imgRetryErr.message} — deploying without image`);
+                console.error(`${label} Hero image retry failed: ${imgRetryErr.message} â€” deploying without image`);
               }
             } else {
               const issueList = validation.issues.map(i => `${i.field}: ${i.message}`).join('; ');
-              console.error(`${label} Validation failed: ${issueList}`);
+              throw new Error(`Validation failed: ${issueList}`);
             }
           }
 
@@ -4689,36 +5003,19 @@ function startCalendarScheduler() {
             }
           }
 
-          // Step 4: GSC submit
+          // Step 4: Finalize metadata + GSC
           calendarProgress.step = `gsc (${i + 1}/${batch.length})`;
-          const articleUrl = `https://healthdesk.site/${item.lang}/blog/${slug}/`;
-          if (fs.existsSync(GSC_KEY_PATH)) {
-            try {
-              const { google } = require('googleapis');
-              const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/indexing'] });
-              const indexing = google.indexing({ version: 'v3', auth });
-              await indexing.urlNotifications.publish({ requestBody: { url: articleUrl, type: 'URL_UPDATED' } });
-              console.log(`${label} GSC submitted: ${articleUrl}`);
-            } catch (gscErr) {
-              console.error(`${label} GSC failed: ${gscErr.message}`);
-            }
-          }
-
-          // Update statuses
-          const cal2 = loadCalendar();
-          updateKeywordStatus(cal2, item.lang, item.keyword, {
-            status: 'published', slug, published_date: new Date().toISOString().split('T')[0]
+          const { articleUrl } = await finalizeSuccessfulPublication({
+            lang: item.lang,
+            keyword: item.keyword,
+            slug
           });
-          saveCalendar(cal2);
-
-          const studio3 = loadStudioData();
-          studio3.articles[`${item.lang}/${slug}`] = { status: 'published' };
-          saveStudioData(studio3);
+          console.log(`${label} Finalized: ${articleUrl}`);
 
           calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
           runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'ok', slug });
           completed++;
-          console.log(`${label} DONE — ${slug} is LIVE (${completed}/${batch.length})`);
+          console.log(`${label} DONE â€” ${slug} is LIVE (${completed}/${batch.length})`);
 
         } catch (err) {
           console.error(`${label} Error: ${err.message}`);
@@ -4757,8 +5054,8 @@ function startCalendarScheduler() {
       showNotification(
         `Blog Studio: ${completed}/${batch.length} opublikowanych`,
         errResults.length > 0
-          ? `Języki: ${langs}. Błędy: ${errResults.length}. Następny: ${cal3.next_run}`
-          : `Języki: ${langs}. Następny run: ${cal3.next_run}`
+          ? `JÄ™zyki: ${langs}. BĹ‚Ä™dy: ${errResults.length}. NastÄ™pny: ${cal3.next_run}`
+          : `JÄ™zyki: ${langs}. NastÄ™pny run: ${cal3.next_run}`
       );
 
       // Run GA4+GSC snapshot and opportunities analysis after batch
@@ -4813,12 +5110,12 @@ function startCalendarScheduler() {
           if (prev?.ga4 && snapshot.ga4) {
             const sessDiff = snapshot.ga4.sessions - prev.ga4.sessions;
             const viewsDiff = snapshot.ga4.pageviews - prev.ga4.pageviews;
-            conclusions.push(sessDiff >= 0 ? `Sesje: ${prev.ga4.sessions} → ${snapshot.ga4.sessions} (+${sessDiff})` : `Sesje spadły: ${prev.ga4.sessions} → ${snapshot.ga4.sessions}`);
-            conclusions.push(`Odsłony: ${prev.ga4.pageviews} → ${snapshot.ga4.pageviews} (${viewsDiff >= 0 ? '+' : ''}${viewsDiff})`);
+            conclusions.push(sessDiff >= 0 ? `Sesje: ${prev.ga4.sessions} â†’ ${snapshot.ga4.sessions} (+${sessDiff})` : `Sesje spadĹ‚y: ${prev.ga4.sessions} â†’ ${snapshot.ga4.sessions}`);
+            conclusions.push(`OdsĹ‚ony: ${prev.ga4.pageviews} â†’ ${snapshot.ga4.pageviews} (${viewsDiff >= 0 ? '+' : ''}${viewsDiff})`);
           }
           if (prev?.gsc && snapshot.gsc) {
             const impDiff = snapshot.gsc.total_impressions - prev.gsc.total_impressions;
-            conclusions.push(`GSC impresje: ${prev.gsc.total_impressions} → ${snapshot.gsc.total_impressions} (${impDiff >= 0 ? '+' : ''}${impDiff})`);
+            conclusions.push(`GSC impresje: ${prev.gsc.total_impressions} â†’ ${snapshot.gsc.total_impressions} (${impDiff >= 0 ? '+' : ''}${impDiff})`);
           }
           snapshot.conclusions = conclusions;
 
@@ -4832,25 +5129,25 @@ function startCalendarScheduler() {
           const opps = await runOpportunitiesAnalysis();
 
           // Popup with combined results
-          const ga4Line = snapshot.ga4 ? `GA4: ${snapshot.ga4.sessions} sesji, ${snapshot.ga4.pageviews} odsłon, bounce ${snapshot.ga4.bounce_rate}%` : '';
-          const gscLine = snapshot.gsc ? `GSC: ${snapshot.gsc.total_impressions} impresji, ${snapshot.gsc.total_clicks} kliknięć` : '';
+          const ga4Line = snapshot.ga4 ? `GA4: ${snapshot.ga4.sessions} sesji, ${snapshot.ga4.pageviews} odsĹ‚on, bounce ${snapshot.ga4.bounce_rate}%` : '';
+          const gscLine = snapshot.gsc ? `GSC: ${snapshot.gsc.total_impressions} impresji, ${snapshot.gsc.total_clicks} klikniÄ™Ä‡` : '';
           const oppsLine = opps.length > 0
-            ? `\nInsights: ${opps.length} okazji\n` + opps.slice(0, 3).map(o => `• "${o.query}" (${o.type})`).join('\n')
+            ? `\nInsights: ${opps.length} okazji\n` + opps.slice(0, 3).map(o => `â€˘ "${o.query}" (${o.type})`).join('\n')
             : '\nBrak nowych okazji';
           const concLine = conclusions.length > 0 ? '\n\nTrend:\n' + conclusions.join('\n') : '';
 
           showNotification(
             `Blog Studio: raport po batch`,
-            `${ga4Line}\n${gscLine}${oppsLine}${concLine}\n\nSzczegóły: localhost:4000 → Insights`
+            `${ga4Line}\n${gscLine}${oppsLine}${concLine}\n\nSzczegĂłĹ‚y: localhost:4000 â†’ Insights`
           );
         } catch (e) {
-          console.error('[Insights] Błąd analizy:', e.message);
+          console.error('[Insights] BĹ‚Ä…d analizy:', e.message);
         }
       }, 30000);
 
       // If there are still overdue batches (missed multiple days), schedule another check soon
       if (isOverdue) {
-        console.log('[Calendar Scheduler] Was overdue — will check again in 5 minutes for more missed batches');
+        console.log('[Calendar Scheduler] Was overdue â€” will check again in 5 minutes for more missed batches');
         setTimeout(() => {
           if (!calendarProgress || calendarProgress.status !== 'running') {
             console.log('[Calendar Scheduler] Re-checking for overdue batches...');
@@ -4862,7 +5159,7 @@ function startCalendarScheduler() {
 
     } catch (err) {
       console.error('[Calendar Scheduler] Error:', err.message);
-      showNotification('Blog Studio: BŁĄD', err.message.substring(0, 150));
+      showNotification('Blog Studio: BĹÄ„D', err.message.substring(0, 150));
       if (calendarProgress) {
         calendarProgress.status = 'error';
         calendarProgress.error = err.message;
@@ -4878,7 +5175,7 @@ function startCalendarScheduler() {
   // Run first check 30s after startup (don't wait a full hour)
   setTimeout(schedulerCheck, 30000);
 
-  // ─── Sitemap resubmit co 7 dni ───
+  // â”€â”€â”€ Sitemap resubmit co 7 dni â”€â”€â”€
   const SITEMAP_RESUBMIT_STATE = path.join(__dirname, '.sitemap-resubmit.json');
   const sitemapResubmitCheck = async () => {
     try {
@@ -4897,7 +5194,7 @@ function startCalendarScheduler() {
       });
       state.lastResubmit = new Date().toISOString();
       fs.writeFileSync(SITEMAP_RESUBMIT_STATE, JSON.stringify(state, null, 2), 'utf-8');
-      console.log(`[Sitemap Resubmit] Sitemap zgłoszona ponownie do GSC (co 7 dni)`);
+      console.log(`[Sitemap Resubmit] Sitemap zgĹ‚oszona ponownie do GSC (co 7 dni)`);
     } catch (e) {
       console.error('[Sitemap Resubmit] Error:', e.message);
     }
@@ -4910,7 +5207,7 @@ function startCalendarScheduler() {
   console.log('[Sitemap Resubmit] Active (every 7 days, checked daily)');
 }
 
-// ─── Start ───
+// â”€â”€â”€ Start â”€â”€â”€
 const server = app.listen(PORT, () => {
   console.log(`\n  Blog Studio running at http://localhost:${PORT}\n`);
   console.log(`  Blog dir:  ${BLOG_DIR}`);
@@ -4922,3 +5219,163 @@ server.keepAliveTimeout = 300000;
 
 // Start calendar scheduler
 startCalendarScheduler();
+
+app.post('/api/calendar/recover-scheduled', async (req, res) => {
+  if (calendarProgress && calendarProgress.status === 'running') {
+    return res.status(409).json({ error: 'Pipeline already running' });
+  }
+
+  const cal = loadCalendar();
+  const batch = findNextBatch(cal);
+  if (batch.length === 0) return res.status(404).json({ error: 'No keywords in queue' });
+
+  calendarProgress = {
+    status: 'running',
+    batch_total: batch.length,
+    batch_done: 0,
+    keyword: batch[0].keyword,
+    lang: batch[0].lang,
+    step: 'recovery',
+    results: [],
+    started: new Date().toISOString()
+  };
+
+  for (const kw of batch) {
+    updateKeywordStatus(cal, kw.lang, kw.keyword, { status: 'writing' });
+  }
+  saveCalendar(cal);
+
+  res.json({ ok: true, batch_size: batch.length, keywords: batch.map(k => ({ lang: k.lang, keyword: k.keyword })) });
+
+  let completed = 0;
+
+  for (let i = 0; i < batch.length; i++) {
+    const item = batch[i];
+    const label = `[Recovery] [${i + 1}/${batch.length}] [${item.lang}]`;
+    calendarProgress.batch_done = i;
+    calendarProgress.keyword = item.keyword;
+    calendarProgress.lang = item.lang;
+
+    try {
+      const langDir = path.join(BLOG_DIR, item.lang);
+      const existingFiles = fs.existsSync(langDir)
+        ? fs.readdirSync(langDir).filter(f => f.endsWith('.md'))
+        : [];
+
+      let existingSlug = null;
+      const studio = loadStudioData();
+      for (const [key, art] of Object.entries(studio.articles || {})) {
+        if (key.startsWith(item.lang + '/') && art.keyword === item.keyword) {
+          existingSlug = key.split('/')[1];
+          break;
+        }
+      }
+
+      if (!existingSlug) {
+        for (const f of existingFiles) {
+          try {
+            const content = fs.readFileSync(path.join(langDir, f), 'utf-8');
+            const kwMatch = content.match(/^keyword:\s*["']?(.+?)["']?\s*$/m);
+            if (kwMatch && kwMatch[1].toLowerCase() === item.keyword.toLowerCase()) {
+              existingSlug = f.replace('.md', '');
+              break;
+            }
+          } catch {}
+        }
+      }
+
+      let slug;
+      if (existingSlug) {
+        slug = existingSlug;
+        console.log(`${label} EXISTS - skipping rewrite: ${slug}`);
+      } else {
+        calendarProgress.step = `writing (${i + 1}/${batch.length})`;
+        console.log(`${label} Autopilot: ${item.keyword}`);
+        const result = await runAutopilot(item.lang, item.keyword);
+        slug = result.slug;
+      }
+
+      calendarProgress.step = `validate (${i + 1}/${batch.length})`;
+      const validation = validatePost(slug, item.lang);
+      if (!validation.valid) {
+        const imgIssue = validation.issues.find(issue => issue.field === 'heroImage');
+        if (imgIssue && validation.issues.length === 1) {
+          console.log(`${label} Validation: hero image missing, retrying...`);
+          const mdFile = path.join(BLOG_DIR, item.lang, `${slug}.md`);
+          const mdContent = fs.readFileSync(mdFile, 'utf-8');
+          const titleMatch = mdContent.match(/^title:\s*["']?(.+?)["']?\s*$/m);
+          const descMatch = mdContent.match(/^description:\s*["']?(.+?)["']?\s*$/m);
+          const hero = await doHeroImage(slug, item.lang, titleMatch?.[1] || slug, descMatch?.[1] || '');
+          upsertFrontmatterFields(mdFile, {
+            heroImage: hero.filename,
+            image_alt: hero.altText
+          });
+        } else {
+          const issueList = validation.issues.map(issue => `${issue.field}: ${issue.message}`).join('; ');
+          throw new Error(`Validation failed: ${issueList}`);
+        }
+      }
+
+      calendarProgress.step = `build (${i + 1}/${batch.length})`;
+      console.log(`${label} Building...`);
+      execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+
+      calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
+      console.log(`${label} Deploying...`);
+      let deployError = null;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          await new Promise((resolve, reject) => {
+            exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+              if (err) reject(new Error(stderr || err.message));
+              else resolve(stdout);
+            });
+          });
+          deployError = null;
+          break;
+        } catch (err) {
+          deployError = err;
+          console.error(`${label} Deploy attempt ${attempt}/3 failed: ${err.message}`);
+          if (attempt < 3) await new Promise(r => setTimeout(r, attempt * 5000));
+        }
+      }
+      if (deployError) throw new Error(`Deploy failed after 3 attempts: ${deployError.message}`);
+
+      calendarProgress.step = `gsc (${i + 1}/${batch.length})`;
+      const { articleUrl } = await finalizeSuccessfulPublication({
+        lang: item.lang,
+        keyword: item.keyword,
+        slug
+      });
+      console.log(`${label} Finalized: ${articleUrl}`);
+
+      calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
+      completed++;
+      console.log(`${label} DONE - ${slug} is LIVE (${completed}/${batch.length})`);
+    } catch (err) {
+      console.error(`${label} Error: ${err.message}`);
+      calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
+
+      const cal2 = loadCalendar();
+      updateKeywordStatus(cal2, item.lang, item.keyword, { status: 'scheduled' });
+      saveCalendar(cal2);
+    }
+  }
+
+  const cal3 = loadCalendar();
+  if (cal3.auto_enabled) {
+    const nextDate = new Date();
+    nextDate.setDate(nextDate.getDate() + (cal3.interval_days || 3));
+    cal3.next_run = nextDate.toISOString().split('T')[0];
+    saveCalendar(cal3);
+  }
+
+  calendarProgress.status = 'done';
+  calendarProgress.batch_done = batch.length;
+  console.log(`[Recovery] Batch complete: ${completed}/${batch.length} articles published`);
+
+  setTimeout(() => {
+    if (calendarProgress && calendarProgress.status !== 'running') calendarProgress = null;
+  }, 120000);
+});
+

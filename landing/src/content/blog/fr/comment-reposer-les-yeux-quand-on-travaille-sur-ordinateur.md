@@ -1,23 +1,29 @@
 ---
-title: "Reposer ses yeux au travail : exercices et pauses efficaces"
-slug: "comment-reposer-les-yeux-quand-on-travaille-sur-ordinateur"
-date: 2026-04-03
-description: "Découvrez des exercices et pauses efficaces pour reposer vos yeux au travail. Combattez la fatigue oculaire et augmentez votre productivité."
-keyword: "comment reposer les yeux quand on travaille sur ordinateur"
-tags: ["fatigue oculaire", "exercices yeux", "pause travail", "bien-être au bureau", "santé des yeux"]
+title: 'Reposer ses yeux au travail : exercices et pauses efficaces'
+slug: comment-reposer-les-yeux-quand-on-travaille-sur-ordinateur
+date: '2026-04-07'
+description: Découvrez des exercices et pauses efficaces pour reposer vos yeux au travail. Combattez la fatigue oculaire et augmentez votre productivité.
+keyword: comment reposer les yeux quand on travaille sur ordinateur
+tags:
+  - fatigue oculaire
+  - exercices yeux
+  - pause travail
+  - bien-être au bureau
+  - santé des yeux
 lang: fr
-heroImage: "comment-reposer-les-yeux-quand-on-travaille-sur-ordinateur.webp"
-image_alt: "Une femme dans un bureau parisien regarde au loin pour reposer ses yeux, à côté d'une affiche 'Pause écran'."
+heroImage: comment-reposer-les-yeux-quand-on-travaille-sur-ordinateur.webp
+image_alt: 'Une femme dans un bureau parisien regarde au loin pour reposer ses yeux, à côté d''une affiche ''Pause écran''.'
 faq:
-  - q: "Pourquoi est-il important de reposer ses yeux au travail ?"
-    a: "La fatigue oculaire réduit la concentration et la productivité d'environ 20 %, soit une demi-journée perdue par semaine."
-  - q: "Quels sont les symptômes du syndrome de l'écran ?"
-    a: "Yeux secs, brûlures, vision floue, maux de tête et sensibilité à la lumière, apparaissant après 2h de travail continu."
-  - q: "Le travail sur écran peut-il abîmer la vision à long terme ?"
-    a: "Une journée excessive ne nuit pas, mais des années d'exposition non gérée peuvent favoriser la myopie et d'autres troubles visuels."
-  - q: "Comment savoir si on souffre de fatigue oculaire ?"
-    a: "Les symptômes disparaissent souvent après une nuit de sommeil, ce qui peut masquer un problème chronique en développement."
+  - q: Pourquoi est-il important de reposer ses yeux au travail ?
+    a: 'La fatigue oculaire réduit la concentration et la productivité d''environ 20 %, soit une demi-journée perdue par semaine.'
+  - q: Quels sont les symptômes du syndrome de l'écran ?
+    a: 'Yeux secs, brûlures, vision floue, maux de tête et sensibilité à la lumière, apparaissant après 2h de travail continu.'
+  - q: Le travail sur écran peut-il abîmer la vision à long terme ?
+    a: 'Une journée excessive ne nuit pas, mais des années d''exposition non gérée peuvent favoriser la myopie et d''autres troubles visuels.'
+  - q: Comment savoir si on souffre de fatigue oculaire ?
+    a: 'Les symptômes disparaissent souvent après une nuit de sommeil, ce qui peut masquer un problème chronique en développement.'
 ---
+
 ## Pourquoi reposer ses yeux est essentiel au travail ?
 
 Huit heures devant un écran. C'est la réalité de millions de travailleurs — et pourtant, peu d'entre eux pensent à leurs yeux avant que la douleur ne s'installe. La fatigue oculaire est souvent le premier signal d'alarme que le corps envoie, bien avant les maux de tête ou la tension dans le cou. On l'ignore parce qu'elle semble bénigne.
