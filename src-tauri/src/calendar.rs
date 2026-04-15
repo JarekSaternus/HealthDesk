@@ -150,6 +150,12 @@ pub struct CalendarEvent {
     pub description: Option<String>,
     pub meet_link: Option<String>,
     pub reminder_minutes: i64, // from Google Calendar, or 5 default
+    // Parsed once at ingestion — used by is_in_meeting / meeting_starting_soon
+    // to avoid re-parsing RFC3339 strings on every scheduler tick.
+    #[serde(skip)]
+    pub start_dt: Option<chrono::DateTime<chrono::FixedOffset>>,
+    #[serde(skip)]
+    pub end_dt: Option<chrono::DateTime<chrono::FixedOffset>>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -186,11 +192,15 @@ pub type SharedCalendarState = Arc<Mutex<CalendarState>>;
 /// Start OAuth flow: open browser, listen for callback, exchange code for tokens.
 /// Uses PKCE (RFC 7636) + random `state` parameter — no client_secret needed.
 pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) -> Result<(), String> {
-    // Start local TCP listener on random port
-    let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
-        .await
-        .map_err(|e| format!("Failed to bind: {}", e))?;
-    let port = listener.local_addr().map_err(|e| e.to_string())?.port();
+    // Start local HTTP server on random port (tiny_http, blocking — run on
+    // a blocking task so the async runtime isn't stalled).
+    let server = tiny_http::Server::http("127.0.0.1:0")
+        .map_err(|e| format!("Failed to bind OAuth callback listener: {}", e))?;
+    let port = match server.server_addr() {
+        tiny_http::ListenAddr::IP(addr) => addr.port(),
+        #[cfg(unix)]
+        tiny_http::ListenAddr::Unix(_) => return Err("unexpected unix socket".into()),
+    };
     let redirect_uri = format!("http://localhost:{}", port);
 
     // PKCE: 64-byte verifier → SHA-256 challenge.
@@ -207,23 +217,22 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
         access_type=offline&prompt=consent&\
         state={}&code_challenge={}&code_challenge_method=S256",
         CLIENT_ID,
-        urlencoding(&redirect_uri),
-        urlencoding(&state),
-        urlencoding(&code_challenge),
+        urlencoding::encode(&redirect_uri),
+        urlencoding::encode(&state),
+        urlencoding::encode(&code_challenge),
     );
 
     // Open browser
     let _ = tauri_plugin_shell::ShellExt::shell(&app)
         .open(&auth_url, None);
 
-    // Wait for callback (with 2 min timeout). wait_for_callback validates state.
-    let code = tokio::time::timeout(
-        std::time::Duration::from_secs(120),
-        wait_for_callback(listener, state.clone()),
-    )
+    // Wait for callback on blocking task (tiny_http.recv_timeout is sync).
+    let expected_state = state.clone();
+    let code = tauri::async_runtime::spawn_blocking(move || {
+        wait_for_callback(server, &expected_state, std::time::Duration::from_secs(120))
+    })
     .await
-    .map_err(|_| "OAuth timeout — nie zalogowano w ciągu 2 minut".to_string())?
-    .map_err(|e| format!("OAuth callback error: {}", e))?;
+    .map_err(|e| format!("OAuth callback join error: {}", e))??;
 
     // Exchange code for tokens (PKCE — no client_secret)
     let client = reqwest::Client::new();
@@ -408,7 +417,7 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
     let mut all_events = Vec::new();
 
     for cal_id in &ids {
-        let url = format!("{}/{}/events", CALENDAR_EVENTS_API, urlencoding(cal_id));
+        let url = format!("{}/{}/events", CALENDAR_EVENTS_API, urlencoding::encode(cal_id));
         let resp = client
             .get(&url)
             .bearer_auth(access_token)
@@ -491,6 +500,9 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
                     })
                     .unwrap_or(5);
 
+                let start_dt = chrono::DateTime::parse_from_rfc3339(&start).ok();
+                let end_dt = chrono::DateTime::parse_from_rfc3339(&end).ok();
+
                 Some(CalendarEvent {
                     id: item.id.unwrap_or_default(),
                     summary,
@@ -501,6 +513,8 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
                     description,
                     meet_link: item.hangout_link,
                     reminder_minutes,
+                    start_dt,
+                    end_dt,
                 })
             })
             .filter(|e| !e.is_all_day)
@@ -517,53 +531,53 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
     Ok(all_events)
 }
 
-/// Background sync task — runs every 5 minutes
+/// Background sync task — runs every minute (frequent for pre-meeting accuracy)
 pub fn start_calendar_sync(
     app: AppHandle,
     config_state: Arc<Mutex<AppConfig>>,
     calendar_state: SharedCalendarState,
 ) {
     tauri::async_runtime::spawn(async move {
+        // Initial grace period before first tick (let the app finish starting)
+        tokio::time::sleep(std::time::Duration::from_secs(10)).await;
+        let mut ticker = tokio::time::interval(std::time::Duration::from_secs(60));
+        // First .tick() returns immediately — we've already slept, so the pattern is fine.
         loop {
-            tokio::time::sleep(std::time::Duration::from_secs(10)).await; // initial delay
+            ticker.tick().await;
 
-            loop {
-                let (enabled, cal_ids) = match config_state.lock() {
-                    Ok(cfg) => (cfg.google_calendar_enabled, cfg.google_calendar_ids.clone()),
-                    Err(p) => {
-                        log::error!("sync: config mutex poisoned: {}", p);
-                        let cfg = p.into_inner();
-                        (cfg.google_calendar_enabled, cfg.google_calendar_ids.clone())
-                    }
-                };
-                let enabled = enabled && has_google_tokens();
+            let (enabled, cal_ids) = match config_state.lock() {
+                Ok(cfg) => (cfg.google_calendar_enabled, cfg.google_calendar_ids.clone()),
+                Err(p) => {
+                    log::error!("sync: config mutex poisoned: {}", p);
+                    let cfg = p.into_inner();
+                    (cfg.google_calendar_enabled, cfg.google_calendar_ids.clone())
+                }
+            };
+            if !(enabled && has_google_tokens()) {
+                continue;
+            }
 
-                if enabled {
-                    match ensure_valid_token(&config_state).await {
-                        Ok(token) => {
-                            if let Ok(events) = fetch_upcoming_events(&token, &cal_ids).await {
-                                match calendar_state.lock() {
-                                    Ok(mut state) => {
-                                        state.events = events.clone();
-                                        state.last_fetched = Some(Instant::now());
-                                    }
-                                    Err(p) => {
-                                        log::error!("sync: calendar_state mutex poisoned: {}", p);
-                                        let mut state = p.into_inner();
-                                        state.events = events.clone();
-                                        state.last_fetched = Some(Instant::now());
-                                    }
-                                }
-                                let _ = app.emit("calendar:events-updated", &events);
+            match ensure_valid_token(&config_state).await {
+                Ok(token) => {
+                    if let Ok(events) = fetch_upcoming_events(&token, &cal_ids).await {
+                        match calendar_state.lock() {
+                            Ok(mut state) => {
+                                state.events = events.clone();
+                                state.last_fetched = Some(Instant::now());
+                            }
+                            Err(p) => {
+                                log::error!("sync: calendar_state mutex poisoned: {}", p);
+                                let mut state = p.into_inner();
+                                state.events = events.clone();
+                                state.last_fetched = Some(Instant::now());
                             }
                         }
-                        Err(e) => {
-                            log::warn!("Calendar sync error: {}", e);
-                        }
+                        let _ = app.emit("calendar:events-updated", &events);
                     }
                 }
-
-                tokio::time::sleep(std::time::Duration::from_secs(60)).await; // 1 min (frequent for pre-meeting accuracy)
+                Err(e) => {
+                    log::warn!("Calendar sync error: {}", e);
+                }
             }
         }
     });
@@ -576,13 +590,9 @@ pub fn is_in_meeting(events: &[CalendarEvent]) -> bool {
         if e.is_all_day {
             return false;
         }
-        if let (Ok(start), Ok(end)) = (
-            chrono::DateTime::parse_from_rfc3339(&e.start),
-            chrono::DateTime::parse_from_rfc3339(&e.end),
-        ) {
-            now >= start && now < end
-        } else {
-            false
+        match (e.start_dt, e.end_dt) {
+            (Some(start), Some(end)) => now >= start && now < end,
+            _ => false,
         }
     })
 }
@@ -590,120 +600,103 @@ pub fn is_in_meeting(events: &[CalendarEvent]) -> bool {
 /// Find the next meeting starting within `within_secs` seconds
 pub fn meeting_starting_soon(events: &[CalendarEvent], within_secs: i64) -> Option<CalendarEvent> {
     let now = chrono::Local::now();
-    events.iter().find(|e| {
-        if e.is_all_day {
-            return false;
-        }
-        if let Ok(start) = chrono::DateTime::parse_from_rfc3339(&e.start) {
-            let until = start.signed_duration_since(now).num_seconds();
-            until > 0 && until <= within_secs
-        } else {
-            false
-        }
-    }).cloned()
+    events
+        .iter()
+        .find(|e| {
+            if e.is_all_day {
+                return false;
+            }
+            match e.start_dt {
+                Some(start) => {
+                    let until = start.signed_duration_since(now).num_seconds();
+                    until > 0 && until <= within_secs
+                }
+                None => false,
+            }
+        })
+        .cloned()
 }
 
-// --- Internal helpers ---
+// --- OAuth callback (tiny_http, sync — runs on blocking task) ---
 
-fn urlencoding(s: &str) -> String {
-    s.replace(':', "%3A").replace('/', "%2F")
-}
-
-async fn wait_for_callback(
-    listener: tokio::net::TcpListener,
-    expected_state: String,
+fn wait_for_callback(
+    server: tiny_http::Server,
+    expected_state: &str,
+    timeout: std::time::Duration,
 ) -> Result<String, String> {
-    use tokio::io::{AsyncReadExt, AsyncWriteExt};
+    let request = server
+        .recv_timeout(timeout)
+        .map_err(|e| format!("callback recv: {}", e))?
+        .ok_or_else(|| "OAuth timeout — nie zalogowano w ciągu 2 minut".to_string())?;
 
-    let (mut stream, _) = listener.accept().await.map_err(|e| e.to_string())?;
+    let url = request.url().to_string();
+    let query = url.split_once('?').map(|(_, q)| q).unwrap_or("");
+    let params: std::collections::HashMap<String, String> = query
+        .split('&')
+        .filter_map(|pair| {
+            let (k, v) = pair.split_once('=')?;
+            let decoded = urlencoding::decode(v).ok()?.into_owned();
+            Some((k.to_string(), decoded))
+        })
+        .collect();
 
-    let mut buf = vec![0u8; 4096];
-    let n = stream.read(&mut buf).await.map_err(|e| e.to_string())?;
-    let request = String::from_utf8_lossy(&buf[..n]);
-
-    // Extract the query string from `GET /?code=...&state=... HTTP/1.1`
-    let query = request
-        .lines()
-        .next()
-        .and_then(|line| line.split_whitespace().nth(1))
-        .and_then(|path| path.split_once('?').map(|(_, q)| q.to_string()))
-        .ok_or_else(|| "No query in callback".to_string())?;
-
-    let params = parse_query(&query);
+    let send_html = |req: tiny_http::Request, body: &str| {
+        let header =
+            "Content-Type: text/html; charset=utf-8".parse::<tiny_http::Header>().ok();
+        let mut resp = tiny_http::Response::from_string(body.to_string());
+        if let Some(h) = header {
+            resp = resp.with_header(h);
+        }
+        let _ = req.respond(resp);
+    };
 
     if let Some(err) = params.get("error") {
+        send_html(
+            request,
+            "<html><body><h2>Błąd logowania</h2></body></html>",
+        );
         return Err(format!("OAuth error: {}", err));
     }
 
     // Validate state before trusting the code (CSRF / code-injection guard)
-    let received_state = params
-        .get("state")
-        .cloned()
-        .ok_or_else(|| "No state in callback".to_string())?;
+    let received_state = match params.get("state") {
+        Some(s) => s.clone(),
+        None => {
+            send_html(
+                request,
+                "<html><body><h2>Brak parametru state</h2></body></html>",
+            );
+            return Err("No state in callback".into());
+        }
+    };
     if received_state != expected_state {
+        send_html(
+            request,
+            "<html><body><h2>Niezgodny state — callback odrzucony</h2></body></html>",
+        );
         return Err("OAuth state mismatch — callback rejected".into());
     }
 
-    let code = params
-        .get("code")
-        .cloned()
-        .ok_or_else(|| "No code in callback".to_string())?;
+    let code = match params.get("code") {
+        Some(c) => c.clone(),
+        None => {
+            send_html(
+                request,
+                "<html><body><h2>Brak kodu autoryzacji</h2></body></html>",
+            );
+            return Err("No code in callback".into());
+        }
+    };
 
-    // Send success response
-    let html = r#"<html><body style="font-family:sans-serif;text-align:center;padding-top:60px;background:#1a1f2b;color:#fff">
+    send_html(
+        request,
+        r#"<html><body style="font-family:sans-serif;text-align:center;padding-top:60px;background:#1a1f2b;color:#fff">
 <h2 style="color:#2ecc71">&#10004; Połączono z Google Calendar!</h2>
 <p>Możesz zamknąć to okno i wrócić do HealthDesk.</p>
-</body></html>"#;
-    let response = format!(
-        "HTTP/1.1 200 OK\r\nContent-Type: text/html; charset=utf-8\r\nContent-Length: {}\r\nConnection: close\r\n\r\n{}",
-        html.len(),
-        html
+</body></html>"#,
     );
-    let _ = stream.write_all(response.as_bytes()).await;
-    let _ = stream.flush().await;
 
     Ok(code)
-}
-
-fn parse_query(query: &str) -> std::collections::HashMap<String, String> {
-    query
-        .split('&')
-        .filter_map(|pair| {
-            let (k, v) = pair.split_once('=')?;
-            Some((k.to_string(), pct_decode(v)))
-        })
-        .collect()
-}
-
-fn pct_decode(s: &str) -> String {
-    let bytes = s.as_bytes();
-    let mut out = Vec::with_capacity(bytes.len());
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'%' && i + 2 < bytes.len() {
-            if let (Some(h), Some(l)) = (hex(bytes[i + 1]), hex(bytes[i + 2])) {
-                out.push((h << 4) | l);
-                i += 3;
-                continue;
-            }
-        }
-        if bytes[i] == b'+' {
-            out.push(b' ');
-        } else {
-            out.push(bytes[i]);
-        }
-        i += 1;
-    }
-    String::from_utf8_lossy(&out).into_owned()
-}
-
-fn hex(b: u8) -> Option<u8> {
-    match b {
-        b'0'..=b'9' => Some(b - b'0'),
-        b'a'..=b'f' => Some(b - b'a' + 10),
-        b'A'..=b'F' => Some(b - b'A' + 10),
-        _ => None,
-    }
 }
 
 #[derive(Deserialize)]
