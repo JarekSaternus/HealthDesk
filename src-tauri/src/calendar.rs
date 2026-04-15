@@ -140,6 +140,24 @@ fn pkce_challenge(verifier: &str) -> String {
     base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(digest)
 }
 
+/// Extract the short machine-readable error code from a Google API error body
+/// (e.g. "invalid_grant", "invalid_client"). Never logs user-facing descriptions,
+/// calendar IDs, emails, or refresh tokens — the body may contain any of those.
+fn extract_google_error_code(body: &str) -> String {
+    serde_json::from_str::<serde_json::Value>(body)
+        .ok()
+        .and_then(|v| {
+            v.get("error")
+                .and_then(|e| e.as_str().map(String::from))
+                .or_else(|| {
+                    v.get("error")
+                        .and_then(|e| e.get("status"))
+                        .and_then(|s| s.as_str().map(String::from))
+                })
+        })
+        .unwrap_or_else(|| "unknown".into())
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CalendarEvent {
     pub id: String,
@@ -249,11 +267,24 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
         ])
         .send()
         .await
-        .map_err(|e| format!("Token exchange failed: {}", e))?;
+        .map_err(|e| {
+            log::error!(
+                "calendar: token exchange network error (timeout={}, status={:?})",
+                e.is_timeout(),
+                e.status()
+            );
+            "Google API error (details logged)".to_string()
+        })?;
 
     if !resp.status().is_success() {
+        let status = resp.status();
         let body = resp.text().await.unwrap_or_default();
-        return Err(format!("Token exchange error: {}", body));
+        log::error!(
+            "calendar: token exchange HTTP {} error={}",
+            status,
+            extract_google_error_code(&body)
+        );
+        return Err("Google API error (details logged)".into());
     }
 
     let token_resp: TokenResponse = resp.json().await.map_err(|e| e.to_string())?;
@@ -365,14 +396,24 @@ pub async fn ensure_valid_token(config_state: &Arc<Mutex<AppConfig>>) -> Result<
         ])
         .send()
         .await
-        .map_err(|e| format!("Token refresh failed: {}", e))?;
+        .map_err(|e| {
+            log::error!(
+                "calendar: token refresh network error (timeout={}, status={:?})",
+                e.is_timeout(),
+                e.status()
+            );
+            "Google API error (details logged)".to_string()
+        })?;
 
     if !resp.status().is_success() {
+        let status = resp.status();
         let body = resp.text().await.unwrap_or_default();
-        if body.contains("invalid_grant") {
+        let err_code = extract_google_error_code(&body);
+        log::error!("calendar: token refresh HTTP {} error={}", status, err_code);
+        if err_code == "invalid_grant" {
             let _ = disconnect(config_state).await;
         }
-        return Err(format!("Token refresh error: {}", body));
+        return Err("Google API error (details logged)".into());
     }
 
     let token_resp: TokenResponse = resp.json().await.map_err(|e| e.to_string())?;
@@ -397,11 +438,24 @@ pub async fn fetch_calendar_list(access_token: &str, selected_ids: &[String]) ->
         .bearer_auth(access_token)
         .send()
         .await
-        .map_err(|e| format!("CalendarList API error: {}", e))?;
+        .map_err(|e| {
+            log::error!(
+                "calendar: CalendarList network error (timeout={}, status={:?})",
+                e.is_timeout(),
+                e.status()
+            );
+            "Google API error (details logged)".to_string()
+        })?;
 
     if !resp.status().is_success() {
+        let status = resp.status();
         let body = resp.text().await.unwrap_or_default();
-        return Err(format!("CalendarList API {}", body));
+        log::error!(
+            "calendar: CalendarList HTTP {} error={}",
+            status,
+            extract_google_error_code(&body)
+        );
+        return Err("Google API error (details logged)".into());
     }
 
     let data: GoogleCalendarListResponse = resp.json().await.map_err(|e| e.to_string())?;
