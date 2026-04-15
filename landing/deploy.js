@@ -1,9 +1,13 @@
 #!/usr/bin/env node
 /**
- * HealthDesk Landing — FTP Deploy
+ * HealthDesk Landing — FTPS Deploy
  * Uploads dist/ to /public_html/ on the server (overwrite mode, no wipe).
  *
- * Usage: FTP_PASS=xxx node deploy.js
+ * Usage: FTP_PASS=xxx npm run deploy
+ *   (or: FTP_PASS=xxx node --use-system-ca deploy.js)
+ *
+ * The --use-system-ca flag is required on Windows so Node trusts the
+ * cyber-folks FTPS certificate chain via the OS certificate store.
  */
 const ftp = require('basic-ftp');
 const path = require('path');
