@@ -75,7 +75,7 @@ if [ -n "$STAGED_CODE" ]; then
     FILES_ARG=$(echo "$STAGED_CODE" | tr '\n' ' ')
     GEMINI_OUT=$(gemini --yolo -p "Przejrzyj te zmienione pliki pod katem clean code i konwencji z GEMINI.md. Badz zwiezly - max 10 uwag. Format: [PLIK:LINIA] [POZIOM] opis. Pliki: $FILES_ARG" 2>&1 || true)
     echo "$GEMINI_OUT"
-    if echo "$GEMINI_OUT" | grep -qiE '(KRYTYCZNY|CRITICAL)'; then
+    if echo "$GEMINI_OUT" | grep -qE '\[(KRYTYCZNY|CRITICAL)\]'; then
       echo "${RED}[healthdesk] Gemini zglosil uwagi KRYTYCZNE — commit zablokowany${NC}"
       exit 1
     fi
@@ -105,7 +105,7 @@ if [ -n "$STAGED_SEC" ]; then
       "Review these files for OWASP Top 10 issues: injection, broken auth, sensitive data exposure, XXE, broken access control, security misconfig, XSS, insecure deserialization, known vulns, insufficient logging. Bad zwiezly. Format: [PLIK:LINIA] [severity] opis. Pliki: $FILES_ARG" >/dev/null 2>&1 || true
     if [ -f "$OUT_FILE" ]; then
       cat "$OUT_FILE"
-      if grep -qiE '(critical|krytyczn|high severity)' "$OUT_FILE"; then
+      if grep -qE '\[(critical|CRITICAL|krytyczn|KRYTYCZN|high severity|HIGH SEVERITY)\]|severity: (critical|high)' "$OUT_FILE"; then
         echo "${RED}[healthdesk] Codex zglosil security issue critical/high — commit zablokowany${NC}"
         rm -f "$OUT_FILE"
         exit 1
