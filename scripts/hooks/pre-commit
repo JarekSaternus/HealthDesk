@@ -18,9 +18,25 @@ NC=$'\033[0m'
 
 echo "${BLUE}[healthdesk] pre-commit hook start${NC}"
 
-# Ensure Rust toolchain in PATH (bash on Windows)
-if [ -d "/c/Users/jarek/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin" ]; then
-  export PATH="/c/Users/jarek/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin:$PATH"
+# Ensure Rust toolchain is in PATH. Portable across machines/users:
+#   1. Prefer rustup's active cargo binary dir
+#   2. Fall back to common locations ($HOME/.cargo/bin, Windows rustup default)
+if command -v rustup >/dev/null 2>&1; then
+  _rust_bin="$(rustup which cargo 2>/dev/null | xargs -I{} dirname {} 2>/dev/null || true)"
+  if [ -n "$_rust_bin" ] && [ -d "$_rust_bin" ]; then
+    export PATH="$_rust_bin:$PATH"
+  fi
+fi
+if ! command -v cargo >/dev/null 2>&1; then
+  for _p in \
+    "$HOME/.cargo/bin" \
+    "$USERPROFILE/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin" \
+    "$HOME/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin"; do
+    if [ -n "$_p" ] && [ -d "$_p" ]; then
+      export PATH="$_p:$PATH"
+      break
+    fi
+  done
 fi
 
 # ---------------------------------------------------------------------------
