@@ -25,7 +25,14 @@ pub type SharedTelemetry = Arc<TelemetryEngine>;
 
 pub fn run() {
     let cfg = config::load_config();
-    let db = Database::new().expect("Failed to init database");
+    let db = match Database::new() {
+        Ok(d) => d,
+        Err(e) => {
+            log::error!("fatal: failed to initialise database: {}", e);
+            eprintln!("HealthDesk: failed to initialise database: {}", e);
+            std::process::exit(2);
+        }
+    };
     let db = Arc::new(db);
 
     // Get last break time for scheduler continuity
@@ -66,7 +73,7 @@ pub fn run() {
     let audio_exit = audio.clone();
     let yt_exit = yt_player.clone();
 
-    tauri::Builder::default()
+    let app_result = tauri::Builder::default()
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             Some(vec![]),
@@ -290,14 +297,21 @@ pub fn run() {
                 _ => {}
             }
         })
-        .build(tauri::generate_context!())
-        .expect("error while building tauri application")
-        .run(move |_app, event| {
-            if let RunEvent::Exit = event {
-                audio_exit.stop();
-                yt_exit.stop();
-            }
-        });
+        .build(tauri::generate_context!());
+    let app = match app_result {
+        Ok(a) => a,
+        Err(e) => {
+            log::error!("fatal: failed to build Tauri application: {}", e);
+            eprintln!("HealthDesk: failed to build Tauri application: {}", e);
+            std::process::exit(3);
+        }
+    };
+    app.run(move |_app, event| {
+        if let RunEvent::Exit = event {
+            audio_exit.stop();
+            yt_exit.stop();
+        }
+    });
 }
 
 pub(crate) fn get_client_uuid() -> String {
