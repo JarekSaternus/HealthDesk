@@ -462,8 +462,9 @@ pub async fn calendar_connect(app: tauri::AppHandle, config: State<'_, ConfigSta
 }
 
 #[tauri::command]
-pub fn calendar_disconnect(config: State<ConfigState>) -> Result<(), String> {
-    calendar::disconnect(&config.0)?;
+pub async fn calendar_disconnect(config: State<'_, ConfigState>) -> Result<(), String> {
+    let config_arc = config.0.clone();
+    calendar::disconnect(&config_arc).await?;
     Ok(())
 }
 

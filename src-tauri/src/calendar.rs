@@ -15,6 +15,7 @@ use crate::config::{self, AppConfig};
 // required or sent during the code exchange.
 const CLIENT_ID: &str = "1025633965653-6v5huo0qasiameq0qm4vhto7oafgdlr1.apps.googleusercontent.com";
 const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
+const REVOKE_URL: &str = "https://oauth2.googleapis.com/revoke";
 const CALENDAR_EVENTS_API: &str = "https://www.googleapis.com/calendar/v3/calendars";
 const CALENDAR_LIST_API: &str = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
 
@@ -280,8 +281,45 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
     Ok(())
 }
 
-/// Disconnect: clear tokens from keyring and disable in config
-pub fn disconnect(config_state: &Arc<Mutex<AppConfig>>) -> Result<(), String> {
+/// Best-effort Google OAuth token revocation via https://oauth2.googleapis.com/revoke.
+/// Failures are logged but do not block local disconnect — the token stays in the
+/// keyring only if local deletion also fails.
+async fn revoke_remote_token(token: &str) {
+    let client = reqwest::Client::new();
+    match client
+        .post(REVOKE_URL)
+        .form(&[("token", token)])
+        .send()
+        .await
+    {
+        Ok(resp) if resp.status().is_success() => {
+            log::info!("calendar: Google token revocation succeeded");
+        }
+        Ok(resp) => {
+            log::warn!(
+                "calendar: Google token revocation returned HTTP {}",
+                resp.status()
+            );
+        }
+        Err(e) => {
+            log::warn!(
+                "calendar: Google token revocation network error (timeout={})",
+                e.is_timeout()
+            );
+        }
+    }
+}
+
+/// Disconnect: revoke token at Google (best-effort), clear keyring, disable in config.
+pub async fn disconnect(config_state: &Arc<Mutex<AppConfig>>) -> Result<(), String> {
+    // Prefer revoking the refresh_token — Google revokes the whole grant.
+    // Fall back to access_token if refresh is missing.
+    let existing = load_tokens();
+    let to_revoke = existing.refresh_token.clone().or(existing.access_token.clone());
+    if let Some(token) = to_revoke {
+        revoke_remote_token(&token).await;
+    }
+
     if let Err(e) = delete_tokens() {
         log::error!("calendar: failed to delete tokens from keyring: {}", e);
         return Err(e);
@@ -332,7 +370,7 @@ pub async fn ensure_valid_token(config_state: &Arc<Mutex<AppConfig>>) -> Result<
     if !resp.status().is_success() {
         let body = resp.text().await.unwrap_or_default();
         if body.contains("invalid_grant") {
-            let _ = disconnect(config_state);
+            let _ = disconnect(config_state).await;
         }
         return Err(format!("Token refresh error: {}", body));
     }
