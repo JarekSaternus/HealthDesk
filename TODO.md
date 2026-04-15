@@ -40,6 +40,17 @@
 20. Blog Studio Analytics (GA4 Data API)
 21. Crash reporting — rozbudowa o tracebacki
 
+## Znaleziska Codex — follow-up po blokach 1-4
+
+### P1 (zrobić przy okazji następnej sesji security)
+- **P1.7 Token revocation** — `disconnect()` usuwa token lokalnie ale nie woła Google revoke endpoint (`https://oauth2.googleapis.com/revoke`). Przejęty refresh token może dalej działać po wylogowaniu.
+- **P1.8 `delete_tokens()` error ignorowany** przez `let _ = delete_tokens()` — cichy fail może zostawić tokeny w keyringu mimo "wylogowania". Propaguj błąd lub przynajmniej loguj jako error.
+- **P1.9 Error body z Google API** propagowany przez `Result<_, String>` do IPC (`oauth_connect` / `ensure_valid_token`) — redaktuj zanim trafi do frontendu.
+
+### P2 (nice-to-have)
+- **P2.9 `app.emit("calendar:events-updated")`** rozsyła pełne dane eventów (title, organizer, meet link) do wszystkich nasłuchujących okien włącznie z popupami — rozważ filtrowanie per-window.
+- **P2.10 OAuth callback: `error` sprawdzany przed `state`** — lokalny spoof może przerwać flow bez CSRF check. Odwróć kolejność: najpierw `state`, potem `error`.
+
 ## P5 — Przyszłość
 22. macOS tracker (NSWorkspace + Accessibility API)
 23. Microsoft Store
