@@ -15,30 +15,30 @@
 4. ✅ Google Calendar OAuth — PKCE + state + token keyring wdrożone (commit 989932f). Client_secret usunięty z kodu, tokeny w OS keyring zamiast config.json.
 
 ## P1 — Duże feature'y
-4. YouTube playlisty — import playlist, lista tracków, auto-next, opcja cookies
-5. Suwak drag na timeline — ad-hoc przesuwanie przerw (jednorazowe override)
+5. YouTube playlisty — import playlist, lista tracków, auto-next, opcja cookies
+6. Suwak drag na timeline — ad-hoc przesuwanie przerw (jednorazowe override)
 
 ## P2 — UX / quick wins
-6. Tooltip godzin pracy
-7. Cotygodniowy summary (toast w poniedziałek)
-8. Ctrl+Shift+W — globalny skrót na wodę
-9. Night mode / wind-down
+7. Tooltip godzin pracy
+8. Cotygodniowy summary (toast w poniedziałek)
+9. Ctrl+Shift+W — globalny skrót na wodę
+10. Night mode / wind-down
 
 ## P3 — Marketing / growth
-10. Reddit post (wymaga code signing)
-11. Product Hunt launch
-12. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
-13. AlternativeTo, Softpedia — katalogi + backlinki
-14. ✅ Blog SEO — audyt 35 postów, naprawione: UTF-8, hreflang, FAQ, slugi, cross-links, reading time
-15. ✅ Blog Studio — content calendar (629 kw, 6 klastrów, SERP scoring v2, cluster rotation, reschedule)
-16. ✅ Blog autopilot pipeline — AI draft, humanize, grammar, hero image, auto-siblings, AI CJK slugs
-17. Pitch do HR — one-pager "HealthDesk dla firm"
-18. SEO nice-to-have: Author schema (E-E-A-T), lazy loading images
+11. Reddit post (wymaga code signing)
+12. Product Hunt launch
+13. Strona porównawcza (vs Stretchly, EyeLeo, Workrave)
+14. AlternativeTo, Softpedia — katalogi + backlinki
+15. ✅ Blog SEO — audyt 35 postów, naprawione: UTF-8, hreflang, FAQ, slugi, cross-links, reading time
+16. ✅ Blog Studio — content calendar (629 kw, 6 klastrów, SERP scoring v2, cluster rotation, reschedule)
+17. ✅ Blog autopilot pipeline — AI draft, humanize, grammar, hero image, auto-siblings, AI CJK slugs
+18. Pitch do HR — one-pager "HealthDesk dla firm"
+19. SEO nice-to-have: Author schema (E-E-A-T), lazy loading images
 
 ## P4 — Backend / analytics
-19. Web dashboard telemetrii (Chart.js)
-20. Blog Studio Analytics (GA4 Data API)
-21. Crash reporting — rozbudowa o tracebacki
+20. Web dashboard telemetrii (Chart.js)
+21. Blog Studio Analytics (GA4 Data API)
+22. Crash reporting — rozbudowa o tracebacki
 
 ## Znaleziska Codex — follow-up po blokach 1-4
 
@@ -52,13 +52,13 @@
 - **P2.10 OAuth callback: `error` sprawdzany przed `state`** — lokalny spoof może przerwać flow bez CSRF check. Odwróć kolejność: najpierw `state`, potem `error`.
 
 ## P5 — Przyszłość
-22. macOS tracker (NSWorkspace + Accessibility API)
-23. Microsoft Store
-24. **HealthDesk Lite — Chrome Extension** (~80% funkcji, Chrome Web Store = 140M+ userów)
-25. Achievements / odznaki
-26. Keyboard shortcuts — konfiguracja
-27. Cloud sync
-28. Roczne podsumowanie (Spotify Wrapped)
-29. Posture reminder (MediaPipe)
-30. Slack status — auto "Na przerwie"
-31. HealthDesk Pro (freemium)
+23. macOS tracker (NSWorkspace + Accessibility API)
+24. Microsoft Store
+25. **HealthDesk Lite — Chrome Extension** (~80% funkcji, Chrome Web Store = 140M+ userów)
+26. Achievements / odznaki
+27. Keyboard shortcuts — konfiguracja
+28. Cloud sync
+29. Roczne podsumowanie (Spotify Wrapped)
+30. Posture reminder (MediaPipe)
+31. Slack status — auto "Na przerwie"
+32. HealthDesk Pro (freemium)
