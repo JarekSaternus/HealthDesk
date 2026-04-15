@@ -148,3 +148,23 @@ uvicorn app.main:app --reload     # http://localhost:8000
 - **Rust 1.77+** with `stable-x86_64-pc-windows-msvc` toolchain
 - **Visual Studio Build Tools 2022** (MSVC linker + Windows SDK)
 - **yt-dlp + ffplay** (optional — YouTube Radio feature)
+
+## Multi-agent workflow
+
+Repo używa trzech agentów AI jako warstw kontroli jakości przed commitem:
+
+1. **Claude Code** (ten plik) — główny wykonawca zmian, ma pełen kontekst projektu
+2. **Gemini** — code review na staged plikach (`*.rs`, `*.ts`, `*.tsx`, `*.js`, `*.py`) wg reguł z `GEMINI.md`, blokuje commit przy uwagach `KRYTYCZNY`
+3. **Codex** — security review na staged plikach pasujących do regexu `(auth|password|token|secret|calendar|deploy|credentials|main\.rs|commands\.rs|server/app)`, OWASP Top 10, blokuje commit przy `critical|krytyczny|high severity`
+
+Hook `scripts/hooks/pre-commit`:
+1. `npm run build` (tsc + vite) — hard blocker
+2. `cd src-tauri && cargo check` — hard blocker
+3. Gemini review (tolerancyjny gdy brak CLI)
+4. Codex review (tolerancyjny gdy brak CLI)
+
+Instalacja hooka:
+- Windows: `powershell -File scripts/Install-GitHooks.ps1`
+- Unix: `bash scripts/install-git-hooks.sh`
+
+**Przed każdą zmianą przeczytaj:** `AGENTS.md` (twarde zakazy + checklist security), `GEMINI.md` (reguły clean code), `TODO.md` (otwarte zadania).
