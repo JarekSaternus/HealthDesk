@@ -1,0 +1,124 @@
+#!/usr/bin/env bash
+# HealthDesk multi-agent pre-commit hook
+# Runs: frontend build → rust check → gemini review → codex security review
+# Hard blockers: build, cargo check
+# Soft blockers: gemini (KRYTYCZNY), codex (critical|high severity)
+# gemini/codex CLI missing = skipped (not a hard fail)
+
+set -u
+
+REPO_ROOT="$(git rev-parse --show-toplevel)"
+cd "$REPO_ROOT" || exit 1
+
+RED=$'\033[0;31m'
+GREEN=$'\033[0;32m'
+YELLOW=$'\033[0;33m'
+BLUE=$'\033[0;34m'
+NC=$'\033[0m'
+
+echo "${BLUE}[healthdesk] pre-commit hook start${NC}"
+
+# Ensure Rust toolchain in PATH (bash on Windows)
+if [ -d "/c/Users/jarek/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin" ]; then
+  export PATH="/c/Users/jarek/.rustup/toolchains/stable-x86_64-pc-windows-msvc/bin:$PATH"
+fi
+
+# ---------------------------------------------------------------------------
+# 0. Collect staged files
+# ---------------------------------------------------------------------------
+STAGED_ALL="$(git diff --cached --name-only --diff-filter=ACMR)"
+if [ -z "$STAGED_ALL" ]; then
+  echo "${YELLOW}[healthdesk] no staged files — nothing to check${NC}"
+  exit 0
+fi
+
+STAGED_CODE="$(echo "$STAGED_ALL" | grep -E '\.(rs|ts|tsx|js|jsx|py)$' || true)"
+STAGED_TS="$(echo "$STAGED_ALL" | grep -E '\.(ts|tsx)$' || true)"
+STAGED_RS="$(echo "$STAGED_ALL" | grep -E '\.rs$' || true)"
+
+# ---------------------------------------------------------------------------
+# 1. Frontend build (hard blocker) — only when TS/TSX/TS config changed
+# ---------------------------------------------------------------------------
+if [ -n "$STAGED_TS" ] || echo "$STAGED_ALL" | grep -qE '(package\.json|tsconfig\.json|vite\.config)'; then
+  echo "${BLUE}[1/4] npm run build${NC}"
+  if ! npm run build >/tmp/healthdesk-build.log 2>&1; then
+    echo "${RED}[healthdesk] npm run build failed:${NC}"
+    tail -30 /tmp/healthdesk-build.log
+    exit 1
+  fi
+  echo "${GREEN}      build ok${NC}"
+else
+  echo "${YELLOW}[1/4] skip npm build (no TS changes)${NC}"
+fi
+
+# ---------------------------------------------------------------------------
+# 2. cargo check (hard blocker) — only when .rs or Cargo.toml changed
+# ---------------------------------------------------------------------------
+if [ -n "$STAGED_RS" ] || echo "$STAGED_ALL" | grep -qE 'src-tauri/Cargo\.(toml|lock)'; then
+  echo "${BLUE}[2/4] cargo check${NC}"
+  if ! (cd src-tauri && cargo check --quiet) >/tmp/healthdesk-cargo.log 2>&1; then
+    echo "${RED}[healthdesk] cargo check failed:${NC}"
+    tail -30 /tmp/healthdesk-cargo.log
+    exit 1
+  fi
+  echo "${GREEN}      cargo ok${NC}"
+else
+  echo "${YELLOW}[2/4] skip cargo check (no Rust changes)${NC}"
+fi
+
+# ---------------------------------------------------------------------------
+# 3. Gemini code review (soft blocker — KRYTYCZNY)
+# ---------------------------------------------------------------------------
+if [ -n "$STAGED_CODE" ]; then
+  if command -v gemini >/dev/null 2>&1; then
+    echo "${BLUE}[3/4] gemini code review${NC}"
+    FILES_ARG=$(echo "$STAGED_CODE" | tr '\n' ' ')
+    GEMINI_OUT=$(gemini --yolo -p "Przejrzyj te zmienione pliki pod katem clean code i konwencji z GEMINI.md. Badz zwiezly - max 10 uwag. Format: [PLIK:LINIA] [POZIOM] opis. Pliki: $FILES_ARG" 2>&1 || true)
+    echo "$GEMINI_OUT"
+    if echo "$GEMINI_OUT" | grep -qiE '(KRYTYCZNY|CRITICAL)'; then
+      echo "${RED}[healthdesk] Gemini zglosil uwagi KRYTYCZNE — commit zablokowany${NC}"
+      exit 1
+    fi
+    echo "${GREEN}      gemini ok${NC}"
+  else
+    echo "${YELLOW}[3/4] skip gemini review (CLI not in PATH)${NC}"
+  fi
+else
+  echo "${YELLOW}[3/4] skip gemini review (no code files staged)${NC}"
+fi
+
+# ---------------------------------------------------------------------------
+# 4. Codex security review (soft blocker — critical|high severity)
+# Only triggers when sensitive files changed.
+# ---------------------------------------------------------------------------
+SECURITY_REGEX='(auth|password|token|secret|calendar|credentials|deploy|commands\.rs|main\.rs|server/app|landing/studio/server\.js|landing/scripts)'
+STAGED_SEC="$(echo "$STAGED_CODE" | grep -E "$SECURITY_REGEX" || true)"
+
+if [ -n "$STAGED_SEC" ]; then
+  if command -v codex >/dev/null 2>&1; then
+    echo "${BLUE}[4/4] codex security review${NC}"
+    FILES_ARG=$(echo "$STAGED_SEC" | tr '\n' ' ')
+    OUT_FILE=".tmp-codex-review.txt"
+    timeout 180 codex exec --sandbox read-only --ephemeral \
+      -c approval_policy=never \
+      -o "$OUT_FILE" \
+      "Review these files for OWASP Top 10 issues: injection, broken auth, sensitive data exposure, XXE, broken access control, security misconfig, XSS, insecure deserialization, known vulns, insufficient logging. Bad zwiezly. Format: [PLIK:LINIA] [severity] opis. Pliki: $FILES_ARG" >/dev/null 2>&1 || true
+    if [ -f "$OUT_FILE" ]; then
+      cat "$OUT_FILE"
+      if grep -qiE '(critical|krytyczn|high severity)' "$OUT_FILE"; then
+        echo "${RED}[healthdesk] Codex zglosil security issue critical/high — commit zablokowany${NC}"
+        rm -f "$OUT_FILE"
+        exit 1
+      fi
+      rm -f "$OUT_FILE"
+    fi
+    echo "${GREEN}      codex ok${NC}"
+  else
+    echo "${YELLOW}[4/4] skip codex review (CLI not in PATH)${NC}"
+  fi
+else
+  echo "${YELLOW}[4/4] skip codex review (no sensitive files staged)${NC}"
+fi
+
+echo "${GREEN}[healthdesk] pre-commit hook passed${NC}"
+exit 0
