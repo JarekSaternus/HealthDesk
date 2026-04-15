@@ -242,10 +242,25 @@ pub async fn fetch_calendar_list(access_token: &str, selected_ids: &[String]) ->
 /// Fetch events from Google Calendar for today (full work day), from selected calendars
 pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) -> Result<Vec<CalendarEvent>, String> {
     let now = chrono::Local::now();
-    let start_of_day = now.date_naive().and_hms_opt(0, 0, 0).unwrap();
-    let end_of_day = now.date_naive().and_hms_opt(23, 59, 59).unwrap();
-    let time_min = chrono::Local.from_local_datetime(&start_of_day).unwrap().to_rfc3339();
-    let time_max = chrono::Local.from_local_datetime(&end_of_day).unwrap().to_rfc3339();
+    let start_of_day = now
+        .date_naive()
+        .and_hms_opt(0, 0, 0)
+        .ok_or_else(|| "invalid start_of_day".to_string())?;
+    let end_of_day = now
+        .date_naive()
+        .and_hms_opt(23, 59, 59)
+        .ok_or_else(|| "invalid end_of_day".to_string())?;
+    // from_local_datetime can return None (DST gap) or Ambiguous (DST overlap).
+    // Pick earliest valid offset in both cases — we only need a rough day window.
+    let resolve_local = |dt: &chrono::NaiveDateTime| -> Result<chrono::DateTime<chrono::Local>, String> {
+        match chrono::Local.from_local_datetime(dt) {
+            chrono::LocalResult::Single(t) => Ok(t),
+            chrono::LocalResult::Ambiguous(earliest, _) => Ok(earliest),
+            chrono::LocalResult::None => Err(format!("local datetime {} does not exist (DST gap)", dt)),
+        }
+    };
+    let time_min = resolve_local(&start_of_day)?.to_rfc3339();
+    let time_max = resolve_local(&end_of_day)?.to_rfc3339();
 
     let client = reqwest::Client::new();
 
@@ -321,7 +336,12 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
                         else if !in_tag { result.push(ch); }
                     }
                     let trimmed = result.trim().to_string();
-                    if trimmed.len() > 200 { format!("{}…", &trimmed[..200]) } else { trimmed }
+                    if trimmed.chars().count() > 200 {
+                        let prefix: String = trimmed.chars().take(200).collect();
+                        format!("{}…", prefix)
+                    } else {
+                        trimmed
+                    }
                 }).filter(|d| !d.is_empty());
 
                 // Get reminder minutes: use first popup override, or default 5 min

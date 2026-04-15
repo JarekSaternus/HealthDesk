@@ -43,7 +43,8 @@ async function deploy() {
         host: FTP_HOST,
         user: FTP_USER,
         password: FTP_PASS,
-        secure: false
+        secure: true,
+        secureOptions: { rejectUnauthorized: true }
       });
 
       console.log(`Connected. Uploading dist/ → ${REMOTE_DIR}/ (overwrite mode)`);
