@@ -751,15 +751,9 @@ fn wait_for_callback(
         let _ = req.respond(resp);
     };
 
-    if let Some(err) = params.get("error") {
-        send_html(
-            request,
-            "<html><body><h2>Błąd logowania</h2></body></html>",
-        );
-        return Err(format!("OAuth error: {}", err));
-    }
-
-    // Validate state before trusting the code (CSRF / code-injection guard)
+    // Validate state FIRST — before even looking at `error` — so a local
+    // process that races the browser and hits the loopback port with a
+    // crafted `?error=...` cannot abort our OAuth flow without knowing state.
     let received_state = match params.get("state") {
         Some(s) => s.clone(),
         None => {
@@ -776,6 +770,15 @@ fn wait_for_callback(
             "<html><body><h2>Niezgodny state — callback odrzucony</h2></body></html>",
         );
         return Err("OAuth state mismatch — callback rejected".into());
+    }
+
+    // State passed — now we can safely surface Google's error response.
+    if let Some(err) = params.get("error") {
+        send_html(
+            request,
+            "<html><body><h2>Błąd logowania</h2></body></html>",
+        );
+        return Err(format!("OAuth error: {}", err));
     }
 
     let code = match params.get("code") {
