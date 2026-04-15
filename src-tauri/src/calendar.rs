@@ -282,7 +282,10 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
 
 /// Disconnect: clear tokens from keyring and disable in config
 pub fn disconnect(config_state: &Arc<Mutex<AppConfig>>) -> Result<(), String> {
-    let _ = delete_tokens();
+    if let Err(e) = delete_tokens() {
+        log::error!("calendar: failed to delete tokens from keyring: {}", e);
+        return Err(e);
+    }
     let mut cfg = config_state
         .lock()
         .map_err(|e| format!("config mutex poisoned: {}", e))?;
