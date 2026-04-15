@@ -3,7 +3,11 @@
  * HealthDesk Blog Studio â€” Local server
  * Express backend for blog content management pipeline.
  * Run: npm start (from landing/studio/)
+ *
+ * Secrets (FTP_PASS for deploy.js, API keys if overriding studio.json) are
+ * read from `.env` in this directory. `.env` is gitignored — never commit it.
  */
+require('dotenv').config();
 const express = require('express');
 const path = require('path');
 const fs = require('fs');
