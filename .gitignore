@@ -21,3 +21,6 @@ landing/gsc-key.json
 landing/.gsc-cache.json
 landing/.gsc-inspection-results.json
 landing/studio/server-*.log
+landing/studio/gsc_history.json
+landing/studio/insights.json
+landing/studio/scheduler_log.json

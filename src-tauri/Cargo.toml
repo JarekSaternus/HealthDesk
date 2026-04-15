@@ -40,6 +40,7 @@ base64 = "0.22"
 keyring = "3"
 urlencoding = "2"
 tiny_http = "0.12"
+open = "5"
 
 [target.'cfg(windows)'.dependencies]
 windows = { version = "0.58", features = [

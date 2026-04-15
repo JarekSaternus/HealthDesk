@@ -222,9 +222,10 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
         urlencoding::encode(&code_challenge),
     );
 
-    // Open browser
-    let _ = tauri_plugin_shell::ShellExt::shell(&app)
-        .open(&auth_url, None);
+    // Open browser (tauri_plugin_shell::Shell::open is deprecated; use `open` crate)
+    if let Err(e) = open::that(&auth_url) {
+        log::warn!("failed to open browser for OAuth: {}", e);
+    }
 
     // Wait for callback on blocking task (tiny_http.recv_timeout is sync).
     let expected_state = state.clone();
@@ -434,8 +435,11 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
         let resp = match resp {
             Ok(r) => r,
             Err(e) => {
-                // cal_id is often an email address — don't log it (PII)
-                log::warn!("Calendar API error: {}", e);
+                // cal_id is often an email address — don't log it (PII).
+                // reqwest::Error Display includes the request URL, so log only
+                // the status hint without the error value itself.
+                log::warn!("Calendar API request failed (status={:?})", e.status());
+                let _ = e;
                 continue;
             }
         };
@@ -575,8 +579,10 @@ pub fn start_calendar_sync(
                         let _ = app.emit("calendar:events-updated", &events);
                     }
                 }
-                Err(e) => {
-                    log::warn!("Calendar sync error: {}", e);
+                Err(_) => {
+                    // ensure_valid_token error may contain a response body;
+                    // avoid logging it to keep calendar metadata out of logs.
+                    log::warn!("Calendar sync: token refresh / fetch failed");
                 }
             }
         }
@@ -748,8 +754,6 @@ struct GoogleOrganizer {
 
 #[derive(Deserialize)]
 struct GoogleReminders {
-    #[serde(rename = "useDefault")]
-    use_default: Option<bool>,
     overrides: Option<Vec<GoogleReminderOverride>>,
 }
 
