@@ -10,7 +10,29 @@
 
 ## P0 — Blokery
 1. **Certum Code Signing** — karta cryptoCertum do kupienia, aktywacja certyfikatu w toku
-2. **Weryfikacja Google OAuth** — złożyć wniosek (review 1-2 tyg)
+2. **Weryfikacja Google OAuth** — brand verification ✅ (2026-04-15), zostało: app verification dla sensitive scope `calendar.readonly` (review 1-2 tyg po złożeniu).
+   - Scope justification draft gotowy: `docs/google-verification-justification.md`
+   - PKCE flow end-to-end zweryfikowany w praktyce ✅ (connect + fetch calendars action w HealthDesk 2026-04-15)
+   - **BLOCKER nagrania filmu**: dopisać brakujące klucze i18n — patrz **P1.10** niżej
+   - Po i18n: nagrać screencast ~60-90s wg scenariusza z `docs/google-verification-justification.md` (scena 3 MUSI pokazać URL bar + nazwę HealthDesk + opis scope'u), upload YouTube Unlisted, wklej link w Centrum weryfikacji → Potwierdź
+
+## Znaleziska in-session blockery nagrania P0.4
+
+### P1.10 Brakujące klucze i18n — blocker filmu verification
+Kod React używa kluczy które nie istnieją w `locales/*.json`, UI pokazuje surowe klucze (`home.good_afternoon`, `status.active` itd.) zamiast przetłumaczonych tekstów. Fallback `t("klucz") || "default"` nie działa, bo `t()` zwraca sam klucz (truthy) gdy go nie znajdzie — trzeba dopisać klucze w plikach locale.
+
+**Brakujące klucze:**
+- `home.good_morning`, `home.good_afternoon`, `home.good_evening` (`src/pages/HomeEnhanced.tsx:56-58`)
+- `home.daily_goal` (`src/pages/HomeEnhanced.tsx:278`)
+- `home.work_method` (`src/pages/HomeEnhanced.tsx:324`)
+- `status.active`, `status.elapsed`, `status.pause`, `status.outside_work_hours` (`src/components/BottomBar.tsx:46-52`)
+- `status.to_break`, `status.reset_confirm`, `status.reset_yes`, `status.reset_no`, `status.reset_timers` (`src/components/BottomBar.tsx:56-81`)
+
+**Scope:** 12 plików (pl, en, de, es, fr, it, ja, ko, pt-BR, ru, tr, zh-CN) × ~14 kluczy = ~168 tłumaczeń. Mass translate przez Claude + ręczne review PL/EN/DE.
+
+**Dlaczego blocker filmu:** Google scrupulatnie ogląda verification screencasty. UI z surowymi kluczami i18n wygląda jak broken app — ryzyko odrzucenia wniosku + 2 tyg opóźnienia na ponowny review.
+
+**Sugerowany flow:** osobna sesja `/stitch` lub manual — najpierw dopisać do `pl.json` i `en.json` ręcznie (żeby mieć wzorzec), potem Claude wygeneruje pozostałe 10 języków jednym promptem, zweryfikować CJK (ja/ko/zh-CN/pt-BR) ręcznie.
 3. Alias privacy@healthdesk.site (panel cyber-folks)
 4. ✅ Google Calendar OAuth — PKCE + state + token keyring wdrożone (commit 989932f). Client_secret usunięty z kodu, tokeny w OS keyring zamiast config.json.
 
