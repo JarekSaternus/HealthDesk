@@ -399,3 +399,76 @@ fn detect_system_language() -> String {
 }
 
 pub struct ConfigState(pub Arc<Mutex<AppConfig>>);
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn default_config_roundtrip_preserves_fields() {
+        let cfg = AppConfig::default();
+        let json = serde_json::to_string(&cfg).expect("serialize");
+        let deser: AppConfig = serde_json::from_str(&json).expect("deserialize");
+        assert_eq!(deser.work_method, cfg.work_method);
+        assert_eq!(deser.small_break_interval_min, cfg.small_break_interval_min);
+        assert_eq!(deser.big_break_interval_min, cfg.big_break_interval_min);
+        assert_eq!(deser.language, cfg.language);
+        assert_eq!(deser.google_calendar_enabled, cfg.google_calendar_enabled);
+        assert!(deser.google_access_token.is_none());
+    }
+
+    #[test]
+    fn deserialize_tolerates_missing_optional_fields() {
+        // Simulates config.json from an older version without the
+        // calendar / weekly_schedule fields — serde defaults must kick in.
+        let minimal = r#"{"work_method":"pomodoro","small_break_interval_min":30}"#;
+        let cfg: AppConfig = serde_json::from_str(minimal).expect("deserialize minimal");
+        assert_eq!(cfg.work_method, "pomodoro");
+        assert_eq!(cfg.small_break_interval_min, 30);
+        // Defaults
+        assert_eq!(cfg.language, default_lang());
+        assert!(!cfg.google_calendar_enabled);
+        assert_eq!(cfg.google_calendar_ids.len(), 0);
+    }
+
+    #[test]
+    fn work_methods_includes_known_presets() {
+        let methods = work_methods();
+        assert!(methods.contains_key("pomodoro"));
+        assert!(methods.contains_key("20-20-20"));
+        assert!(methods.contains_key("52-17"));
+        assert!(methods.contains_key("90-min"));
+    }
+
+    #[test]
+    fn apply_preset_overrides_custom_only_when_not_custom() {
+        let mut cfg = AppConfig::default();
+        cfg.work_method = "20-20-20".into();
+        cfg.small_break_interval_min = 999;
+        apply_preset(&mut cfg);
+        assert_eq!(cfg.small_break_interval_min, 20);
+
+        cfg.work_method = "custom".into();
+        cfg.small_break_interval_min = 42;
+        apply_preset(&mut cfg);
+        assert_eq!(cfg.small_break_interval_min, 42);
+    }
+
+    #[test]
+    fn current_weekday_key_returns_valid_lowercase_three_letters() {
+        let key = current_weekday_key();
+        assert_eq!(key.len(), 3);
+        assert!(["mon", "tue", "wed", "thu", "fri", "sat", "sun"].contains(&key.as_str()));
+    }
+
+    #[test]
+    fn effective_intervals_falls_back_to_global_when_weekly_disabled() {
+        let mut cfg = AppConfig::default();
+        cfg.small_break_interval_min = 33;
+        cfg.big_break_interval_min = 77;
+        let eff = effective_intervals(&cfg);
+        assert_eq!(eff.small_break_interval_min, 33);
+        assert_eq!(eff.big_break_interval_min, 77);
+        assert!(eff.day_enabled);
+    }
+}

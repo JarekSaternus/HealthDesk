@@ -563,3 +563,61 @@ pub fn start_scheduler(
         }
     });
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn default_config() -> AppConfig {
+        AppConfig::default()
+    }
+
+    #[test]
+    fn new_without_elapsed_initialises_timers_at_now() {
+        let cfg = default_config();
+        let inner = SchedulerInner::new(None, &cfg);
+        assert!(!inner.paused);
+        assert!(inner.running);
+        assert!(inner.pause_until.is_none());
+        // last_* should be very recent
+        assert!(inner.last_small_break.elapsed() < Duration::from_millis(500));
+        assert!(inner.last_big_break.elapsed() < Duration::from_millis(500));
+        assert!(inner.last_water.elapsed() < Duration::from_millis(500));
+    }
+
+    #[test]
+    fn new_with_long_elapsed_triggers_fresh_start_branch() {
+        // elapsed > 30 min → code path resets last_small / last_big to now
+        // (avoids the arithmetic branch that could panic on short uptime).
+        let cfg = default_config();
+        let inner = SchedulerInner::new(Some(60.0 * 60.0), &cfg);
+        assert!(inner.last_small_break.elapsed() < Duration::from_millis(500));
+        assert!(inner.last_big_break.elapsed() < Duration::from_millis(500));
+    }
+
+    #[test]
+    fn pause_sets_flag_and_schedules_resume() {
+        let cfg = default_config();
+        let mut inner = SchedulerInner::new(None, &cfg);
+        inner.pause(15);
+        assert!(inner.paused);
+        assert!(inner.pause_start.is_some());
+        let until = inner.pause_until.expect("pause_until should be set");
+        // 15 min = 900 s — until should lie at least 890 s in the future
+        let remaining = until.saturating_duration_since(Instant::now());
+        assert!(
+            remaining >= Duration::from_secs(890) && remaining <= Duration::from_secs(910),
+            "unexpected pause_until duration: {:?}",
+            remaining
+        );
+    }
+
+    #[test]
+    fn snooze_small_break_does_not_panic_with_zero_snooze() {
+        let cfg = default_config();
+        let mut inner = SchedulerInner::new(None, &cfg);
+        inner.snooze_break("small", &cfg, 0);
+        assert!(!inner.popup_paused);
+    }
+}
+
