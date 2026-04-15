@@ -1,6 +1,6 @@
 # TODO
 
-## Niewydane na masterze (v2.0.28-dev)
+## Niewydane na masterze (v2.1.0)
 - ✅ Autostart fix (#[cfg(not(debug_assertions))])
 - ✅ Harmonogram tygodniowy (3 tryby + DayTimeline)
 - ✅ Google Calendar OAuth (multi-cal, smart scheduling, pre-meeting reminders)
