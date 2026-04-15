@@ -4,15 +4,20 @@
  * Uploads dist/ to /public_html/ on the server (overwrite mode, no wipe).
  *
  * Usage: FTP_PASS=xxx node deploy.js
- * Or: set password in .env or use hardcoded fallback.
  */
 const ftp = require('basic-ftp');
 const path = require('path');
 const fs = require('fs');
 
-const FTP_HOST = 's9.cyber-folks.pl';
-const FTP_USER = 'healthdesk@healthdesk.site';
-const FTP_PASS = process.env.FTP_PASS || 'ka6upL-ey4R-mNRW';
+const FTP_HOST = process.env.FTP_HOST || 's9.cyber-folks.pl';
+const FTP_USER = process.env.FTP_USER || 'healthdesk@healthdesk.site';
+const FTP_PASS = process.env.FTP_PASS;
+
+if (!FTP_PASS) {
+  console.error('Error: FTP_PASS environment variable is required.');
+  console.error('Usage: FTP_PASS=xxx node deploy.js');
+  process.exit(1);
+}
 const REMOTE_DIR = '/public_html';
 const LOCAL_DIR = path.join(__dirname, 'dist');
 

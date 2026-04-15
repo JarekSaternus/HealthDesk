@@ -6,8 +6,14 @@ use tauri::{AppHandle, Emitter};
 
 use crate::config::{self, AppConfig};
 
-const CLIENT_ID: &str = "1025633965653-6v5huo0qasiameq0qm4vhto7oafgdlr1.apps.googleusercontent.com";
-const CLIENT_SECRET: &str = "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";
+const CLIENT_ID: &str = match option_env!("HEALTHDESK_GCAL_CLIENT_ID") {
+    Some(v) => v,
+    None => "1025633965653-6v5huo0qasiameq0qm4vhto7oafgdlr1.apps.googleusercontent.com",
+};
+const CLIENT_SECRET: &str = match option_env!("HEALTHDESK_GCAL_CLIENT_SECRET") {
+    Some(v) => v,
+    None => "",
+};
 const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const CALENDAR_EVENTS_API: &str = "https://www.googleapis.com/calendar/v3/calendars";
 const CALENDAR_LIST_API: &str = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
