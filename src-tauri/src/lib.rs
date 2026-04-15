@@ -123,6 +123,9 @@ pub fn run() {
             app.manage(telemetry.clone());
             telemetry.track("app_start", None);
 
+            // Migrate any plaintext OAuth tokens from legacy config.json → OS keyring
+            calendar::migrate_tokens_from_config(&config_clone);
+
             // Start Google Calendar sync
             calendar::start_calendar_sync(
                 app_handle.clone(),

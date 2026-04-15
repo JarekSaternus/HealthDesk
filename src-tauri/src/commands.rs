@@ -463,7 +463,7 @@ pub async fn calendar_connect(app: tauri::AppHandle, config: State<'_, ConfigSta
 
 #[tauri::command]
 pub fn calendar_disconnect(config: State<ConfigState>) -> Result<(), String> {
-    calendar::disconnect(&config.0);
+    calendar::disconnect(&config.0)?;
     Ok(())
 }
 
@@ -472,11 +472,17 @@ pub fn get_calendar_state(
     config: State<ConfigState>,
     calendar: State<SharedCalendarState>,
 ) -> CalendarStateResponse {
-    let cfg = config.0.lock().unwrap();
-    let cal = calendar.lock().unwrap();
+    let enabled = match config.0.lock() {
+        Ok(cfg) => cfg.google_calendar_enabled,
+        Err(p) => p.into_inner().google_calendar_enabled,
+    };
+    let events = match calendar.lock() {
+        Ok(cal) => cal.events.clone(),
+        Err(p) => p.into_inner().events.clone(),
+    };
     CalendarStateResponse {
-        connected: cfg.google_calendar_enabled && cfg.google_refresh_token.is_some(),
-        events: cal.events.clone(),
+        connected: enabled && calendar::has_google_tokens(),
+        events,
         calendars: Vec::new(),
     }
 }

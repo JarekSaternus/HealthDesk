@@ -1,22 +1,143 @@
+use base64::Engine;
 use chrono::TimeZone;
+use rand::RngCore;
 use serde::{Deserialize, Serialize};
+use sha2::{Digest, Sha256};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
 use tauri::{AppHandle, Emitter};
 
 use crate::config::{self, AppConfig};
 
-const CLIENT_ID: &str = match option_env!("HEALTHDESK_GCAL_CLIENT_ID") {
-    Some(v) => v,
-    None => "1025633965653-6v5huo0qasiameq0qm4vhto7oafgdlr1.apps.googleusercontent.com",
-};
-const CLIENT_SECRET: &str = match option_env!("HEALTHDESK_GCAL_CLIENT_SECRET") {
-    Some(v) => v,
-    None => "",
-};
+// Public OAuth client ID for the HealthDesk desktop app (Google Cloud project
+// `healthdesk-gsc`). Per Google docs for "Desktop app" clients this identifier
+// is NOT a secret. Authorization is secured via PKCE — no client_secret is
+// required or sent during the code exchange.
+const CLIENT_ID: &str = "1025633965653-6v5huo0qasiameq0qm4vhto7oafgdlr1.apps.googleusercontent.com";
 const TOKEN_URL: &str = "https://oauth2.googleapis.com/token";
 const CALENDAR_EVENTS_API: &str = "https://www.googleapis.com/calendar/v3/calendars";
 const CALENDAR_LIST_API: &str = "https://www.googleapis.com/calendar/v3/users/me/calendarList";
+
+// Keyring service/account labels. Single entry stores all three token fields
+// as JSON; this avoids multiple keyring round-trips and keeps migration simple.
+const KEYRING_SERVICE: &str = "HealthDesk";
+const KEYRING_ACCOUNT: &str = "google_oauth";
+
+/// Token bundle persisted in the OS keyring (Credential Manager on Windows,
+/// Keychain on macOS, Secret Service on Linux).
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct GoogleTokens {
+    pub access_token: Option<String>,
+    pub refresh_token: Option<String>,
+    pub expires_at: Option<i64>,
+}
+
+fn keyring_entry() -> Result<keyring::Entry, String> {
+    keyring::Entry::new(KEYRING_SERVICE, KEYRING_ACCOUNT)
+        .map_err(|e| format!("keyring init failed: {}", e))
+}
+
+pub fn load_tokens() -> GoogleTokens {
+    let entry = match keyring_entry() {
+        Ok(e) => e,
+        Err(e) => {
+            log::warn!("calendar: {}", e);
+            return GoogleTokens::default();
+        }
+    };
+    match entry.get_password() {
+        Ok(json) => serde_json::from_str(&json).unwrap_or_default(),
+        Err(keyring::Error::NoEntry) => GoogleTokens::default(),
+        Err(e) => {
+            log::warn!("calendar: keyring read failed: {}", e);
+            GoogleTokens::default()
+        }
+    }
+}
+
+pub fn save_tokens(tokens: &GoogleTokens) -> Result<(), String> {
+    let entry = keyring_entry()?;
+    let json = serde_json::to_string(tokens).map_err(|e| e.to_string())?;
+    entry
+        .set_password(&json)
+        .map_err(|e| format!("keyring store failed: {}", e))
+}
+
+pub fn delete_tokens() -> Result<(), String> {
+    let entry = keyring_entry()?;
+    match entry.delete_credential() {
+        Ok(()) => Ok(()),
+        Err(keyring::Error::NoEntry) => Ok(()),
+        Err(e) => Err(format!("keyring delete failed: {}", e)),
+    }
+}
+
+/// Sync helper used by commands.rs and the background sync loop to check
+/// whether Google Calendar is currently linked without fetching the token.
+pub fn has_google_tokens() -> bool {
+    load_tokens().refresh_token.is_some()
+}
+
+/// One-shot migration from plaintext config.json → keyring. Called on app
+/// startup (lib.rs). Clears the config fields after move so subsequent saves
+/// never re-introduce plaintext tokens.
+pub fn migrate_tokens_from_config(config_state: &Arc<Mutex<AppConfig>>) {
+    let (access, refresh, expires_at) = {
+        let cfg = match config_state.lock() {
+            Ok(c) => c,
+            Err(p) => {
+                log::error!("calendar: config mutex poisoned during migration: {}", p);
+                p.into_inner()
+            }
+        };
+        (
+            cfg.google_access_token.clone(),
+            cfg.google_refresh_token.clone(),
+            cfg.google_token_expires_at,
+        )
+    };
+    if access.is_none() && refresh.is_none() {
+        return;
+    }
+    let tokens = GoogleTokens {
+        access_token: access,
+        refresh_token: refresh,
+        expires_at,
+    };
+    if let Err(e) = save_tokens(&tokens) {
+        log::error!("calendar: token migration to keyring failed: {}", e);
+        return;
+    }
+    // Migration succeeded — wipe plaintext fields and persist config.
+    let cfg_to_save = {
+        let mut cfg = match config_state.lock() {
+            Ok(c) => c,
+            Err(p) => p.into_inner(),
+        };
+        cfg.google_access_token = None;
+        cfg.google_refresh_token = None;
+        cfg.google_token_expires_at = None;
+        cfg.clone()
+    };
+    if let Err(e) = config::save_config(&cfg_to_save) {
+        log::error!("calendar: config save after migration failed: {}", e);
+    } else {
+        log::info!("calendar: migrated Google OAuth tokens to OS keyring");
+    }
+}
+
+// --- PKCE + state helpers ---
+
+fn random_base64url(bytes: usize) -> String {
+    let mut buf = vec![0u8; bytes];
+    rand::rng().fill_bytes(&mut buf);
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(&buf)
+}
+
+fn pkce_challenge(verifier: &str) -> String {
+    let digest = Sha256::digest(verifier.as_bytes());
+    base64::engine::general_purpose::URL_SAFE_NO_PAD.encode(digest)
+}
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct CalendarEvent {
@@ -62,7 +183,8 @@ impl CalendarState {
 
 pub type SharedCalendarState = Arc<Mutex<CalendarState>>;
 
-/// Start OAuth flow: open browser, listen for callback, exchange code for tokens
+/// Start OAuth flow: open browser, listen for callback, exchange code for tokens.
+/// Uses PKCE (RFC 7636) + random `state` parameter — no client_secret needed.
 pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) -> Result<(), String> {
     // Start local TCP listener on random port
     let listener = tokio::net::TcpListener::bind("127.0.0.1:0")
@@ -71,39 +193,48 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
     let port = listener.local_addr().map_err(|e| e.to_string())?.port();
     let redirect_uri = format!("http://localhost:{}", port);
 
+    // PKCE: 64-byte verifier → SHA-256 challenge.
+    // State: 32-byte random nonce to protect against CSRF / local code-injection.
+    let code_verifier = random_base64url(64);
+    let code_challenge = pkce_challenge(&code_verifier);
+    let state = random_base64url(32);
+
     // Build auth URL
     let auth_url = format!(
         "https://accounts.google.com/o/oauth2/v2/auth?\
         client_id={}&redirect_uri={}&response_type=code&\
         scope=https://www.googleapis.com/auth/calendar.readonly&\
-        access_type=offline&prompt=consent",
+        access_type=offline&prompt=consent&\
+        state={}&code_challenge={}&code_challenge_method=S256",
         CLIENT_ID,
         urlencoding(&redirect_uri),
+        urlencoding(&state),
+        urlencoding(&code_challenge),
     );
 
     // Open browser
     let _ = tauri_plugin_shell::ShellExt::shell(&app)
         .open(&auth_url, None);
 
-    // Wait for callback (with 2 min timeout)
+    // Wait for callback (with 2 min timeout). wait_for_callback validates state.
     let code = tokio::time::timeout(
         std::time::Duration::from_secs(120),
-        wait_for_callback(listener),
+        wait_for_callback(listener, state.clone()),
     )
     .await
     .map_err(|_| "OAuth timeout — nie zalogowano w ciągu 2 minut".to_string())?
     .map_err(|e| format!("OAuth callback error: {}", e))?;
 
-    // Exchange code for tokens
+    // Exchange code for tokens (PKCE — no client_secret)
     let client = reqwest::Client::new();
     let resp = client
         .post(TOKEN_URL)
         .form(&[
             ("code", code.as_str()),
             ("client_id", CLIENT_ID),
-            ("client_secret", CLIENT_SECRET),
             ("redirect_uri", redirect_uri.as_str()),
             ("grant_type", "authorization_code"),
+            ("code_verifier", code_verifier.as_str()),
         ])
         .send()
         .await
@@ -116,14 +247,22 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
 
     let token_resp: TokenResponse = resp.json().await.map_err(|e| e.to_string())?;
 
-    // Save tokens to config
+    // Save tokens to OS keyring (never config.json)
     let expires_at = chrono::Utc::now().timestamp() + token_resp.expires_in as i64;
+    let existing = load_tokens();
+    let tokens = GoogleTokens {
+        access_token: Some(token_resp.access_token),
+        refresh_token: token_resp.refresh_token.or(existing.refresh_token),
+        expires_at: Some(expires_at),
+    };
+    save_tokens(&tokens)?;
+
+    // Mark calendar as enabled in config (no secrets in config.json)
     {
-        let mut cfg = config_state.lock().unwrap();
+        let mut cfg = config_state
+            .lock()
+            .map_err(|e| format!("config mutex poisoned: {}", e))?;
         cfg.google_calendar_enabled = true;
-        cfg.google_access_token = Some(token_resp.access_token);
-        cfg.google_refresh_token = token_resp.refresh_token.or(cfg.google_refresh_token.clone());
-        cfg.google_token_expires_at = Some(expires_at);
         let _ = config::save_config(&cfg);
     }
 
@@ -131,39 +270,39 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
     Ok(())
 }
 
-/// Disconnect: clear tokens from config
-pub fn disconnect(config_state: &Arc<Mutex<AppConfig>>) {
-    let mut cfg = config_state.lock().unwrap();
+/// Disconnect: clear tokens from keyring and disable in config
+pub fn disconnect(config_state: &Arc<Mutex<AppConfig>>) -> Result<(), String> {
+    let _ = delete_tokens();
+    let mut cfg = config_state
+        .lock()
+        .map_err(|e| format!("config mutex poisoned: {}", e))?;
     cfg.google_calendar_enabled = false;
     cfg.google_access_token = None;
     cfg.google_refresh_token = None;
     cfg.google_token_expires_at = None;
     cfg.google_calendar_ids = Vec::new();
     let _ = config::save_config(&cfg);
+    Ok(())
 }
 
-/// Ensure access token is valid, refresh if needed
+/// Ensure access token is valid, refresh if needed. Reads and writes the
+/// keyring (never config.json) for token material.
 pub async fn ensure_valid_token(config_state: &Arc<Mutex<AppConfig>>) -> Result<String, String> {
-    let (access_token, refresh_token, expires_at) = {
-        let cfg = config_state.lock().unwrap();
-        (
-            cfg.google_access_token.clone(),
-            cfg.google_refresh_token.clone(),
-            cfg.google_token_expires_at,
-        )
-    };
-
+    let tokens = load_tokens();
     let now = chrono::Utc::now().timestamp();
-    let token_valid = expires_at.map(|e| now < e - 60).unwrap_or(false);
+    let token_valid = tokens.expires_at.map(|e| now < e - 60).unwrap_or(false);
 
     if token_valid {
-        if let Some(token) = access_token {
+        if let Some(token) = tokens.access_token {
             return Ok(token);
         }
     }
 
     // Need refresh
-    let refresh = refresh_token.ok_or("No refresh token — reconnect Google Calendar")?;
+    let refresh = tokens
+        .refresh_token
+        .clone()
+        .ok_or("No refresh token — reconnect Google Calendar")?;
 
     let client = reqwest::Client::new();
     let resp = client
@@ -171,7 +310,6 @@ pub async fn ensure_valid_token(config_state: &Arc<Mutex<AppConfig>>) -> Result<
         .form(&[
             ("refresh_token", refresh.as_str()),
             ("client_id", CLIENT_ID),
-            ("client_secret", CLIENT_SECRET),
             ("grant_type", "refresh_token"),
         ])
         .send()
@@ -180,26 +318,22 @@ pub async fn ensure_valid_token(config_state: &Arc<Mutex<AppConfig>>) -> Result<
 
     if !resp.status().is_success() {
         let body = resp.text().await.unwrap_or_default();
-        // If invalid_grant, tokens are revoked — disconnect
         if body.contains("invalid_grant") {
-            disconnect(config_state);
+            let _ = disconnect(config_state);
         }
         return Err(format!("Token refresh error: {}", body));
     }
 
     let token_resp: TokenResponse = resp.json().await.map_err(|e| e.to_string())?;
     let new_expires_at = chrono::Utc::now().timestamp() + token_resp.expires_in as i64;
-
     let access = token_resp.access_token.clone();
-    {
-        let mut cfg = config_state.lock().unwrap();
-        cfg.google_access_token = Some(token_resp.access_token);
-        cfg.google_token_expires_at = Some(new_expires_at);
-        if let Some(rt) = token_resp.refresh_token {
-            cfg.google_refresh_token = Some(rt);
-        }
-        let _ = config::save_config(&cfg);
-    }
+
+    let new_tokens = GoogleTokens {
+        access_token: Some(token_resp.access_token),
+        refresh_token: token_resp.refresh_token.or(Some(refresh)),
+        expires_at: Some(new_expires_at),
+    };
+    save_tokens(&new_tokens)?;
 
     Ok(access)
 }
@@ -291,7 +425,8 @@ pub async fn fetch_upcoming_events(access_token: &str, calendar_ids: &[String]) 
         let resp = match resp {
             Ok(r) => r,
             Err(e) => {
-                log::warn!("Calendar API error for {}: {}", cal_id, e);
+                // cal_id is often an email address — don't log it (PII)
+                log::warn!("Calendar API error: {}", e);
                 continue;
             }
         };
@@ -393,23 +528,31 @@ pub fn start_calendar_sync(
             tokio::time::sleep(std::time::Duration::from_secs(10)).await; // initial delay
 
             loop {
-                let enabled = {
-                    let cfg = config_state.lock().unwrap();
-                    cfg.google_calendar_enabled && cfg.google_refresh_token.is_some()
+                let (enabled, cal_ids) = match config_state.lock() {
+                    Ok(cfg) => (cfg.google_calendar_enabled, cfg.google_calendar_ids.clone()),
+                    Err(p) => {
+                        log::error!("sync: config mutex poisoned: {}", p);
+                        let cfg = p.into_inner();
+                        (cfg.google_calendar_enabled, cfg.google_calendar_ids.clone())
+                    }
                 };
+                let enabled = enabled && has_google_tokens();
 
                 if enabled {
-                    let cal_ids = {
-                        let cfg = config_state.lock().unwrap();
-                        cfg.google_calendar_ids.clone()
-                    };
                     match ensure_valid_token(&config_state).await {
                         Ok(token) => {
                             if let Ok(events) = fetch_upcoming_events(&token, &cal_ids).await {
-                                {
-                                    let mut state = calendar_state.lock().unwrap();
-                                    state.events = events.clone();
-                                    state.last_fetched = Some(Instant::now());
+                                match calendar_state.lock() {
+                                    Ok(mut state) => {
+                                        state.events = events.clone();
+                                        state.last_fetched = Some(Instant::now());
+                                    }
+                                    Err(p) => {
+                                        log::error!("sync: calendar_state mutex poisoned: {}", p);
+                                        let mut state = p.into_inner();
+                                        state.events = events.clone();
+                                        state.last_fetched = Some(Instant::now());
+                                    }
                                 }
                                 let _ = app.emit("calendar:events-updated", &events);
                             }
@@ -466,7 +609,10 @@ fn urlencoding(s: &str) -> String {
     s.replace(':', "%3A").replace('/', "%2F")
 }
 
-async fn wait_for_callback(listener: tokio::net::TcpListener) -> Result<String, String> {
+async fn wait_for_callback(
+    listener: tokio::net::TcpListener,
+    expected_state: String,
+) -> Result<String, String> {
     use tokio::io::{AsyncReadExt, AsyncWriteExt};
 
     let (mut stream, _) = listener.accept().await.map_err(|e| e.to_string())?;
@@ -475,24 +621,33 @@ async fn wait_for_callback(listener: tokio::net::TcpListener) -> Result<String, 
     let n = stream.read(&mut buf).await.map_err(|e| e.to_string())?;
     let request = String::from_utf8_lossy(&buf[..n]);
 
-    // Parse code from GET /?code=XXXX&scope=...
-    let code = request
+    // Extract the query string from `GET /?code=...&state=... HTTP/1.1`
+    let query = request
         .lines()
         .next()
         .and_then(|line| line.split_whitespace().nth(1))
-        .and_then(|path| {
-            path.split('?')
-                .nth(1)?
-                .split('&')
-                .find(|p| p.starts_with("code="))
-                .map(|p| p.trim_start_matches("code=").to_string())
-        })
-        .ok_or_else(|| "No code in callback".to_string())?;
+        .and_then(|path| path.split_once('?').map(|(_, q)| q.to_string()))
+        .ok_or_else(|| "No query in callback".to_string())?;
 
-    // Check for error
-    if request.contains("error=") {
-        return Err("User denied access".into());
+    let params = parse_query(&query);
+
+    if let Some(err) = params.get("error") {
+        return Err(format!("OAuth error: {}", err));
     }
+
+    // Validate state before trusting the code (CSRF / code-injection guard)
+    let received_state = params
+        .get("state")
+        .cloned()
+        .ok_or_else(|| "No state in callback".to_string())?;
+    if received_state != expected_state {
+        return Err("OAuth state mismatch — callback rejected".into());
+    }
+
+    let code = params
+        .get("code")
+        .cloned()
+        .ok_or_else(|| "No code in callback".to_string())?;
 
     // Send success response
     let html = r#"<html><body style="font-family:sans-serif;text-align:center;padding-top:60px;background:#1a1f2b;color:#fff">
@@ -508,6 +663,47 @@ async fn wait_for_callback(listener: tokio::net::TcpListener) -> Result<String, 
     let _ = stream.flush().await;
 
     Ok(code)
+}
+
+fn parse_query(query: &str) -> std::collections::HashMap<String, String> {
+    query
+        .split('&')
+        .filter_map(|pair| {
+            let (k, v) = pair.split_once('=')?;
+            Some((k.to_string(), pct_decode(v)))
+        })
+        .collect()
+}
+
+fn pct_decode(s: &str) -> String {
+    let bytes = s.as_bytes();
+    let mut out = Vec::with_capacity(bytes.len());
+    let mut i = 0;
+    while i < bytes.len() {
+        if bytes[i] == b'%' && i + 2 < bytes.len() {
+            if let (Some(h), Some(l)) = (hex(bytes[i + 1]), hex(bytes[i + 2])) {
+                out.push((h << 4) | l);
+                i += 3;
+                continue;
+            }
+        }
+        if bytes[i] == b'+' {
+            out.push(b' ');
+        } else {
+            out.push(bytes[i]);
+        }
+        i += 1;
+    }
+    String::from_utf8_lossy(&out).into_owned()
+}
+
+fn hex(b: u8) -> Option<u8> {
+    match b {
+        b'0'..=b'9' => Some(b - b'0'),
+        b'a'..=b'f' => Some(b - b'a' + 10),
+        b'A'..=b'F' => Some(b - b'A' + 10),
+        _ => None,
+    }
 }
 
 #[derive(Deserialize)]
