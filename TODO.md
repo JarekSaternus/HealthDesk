@@ -51,6 +51,18 @@
 - **P2.9 `app.emit("calendar:events-updated")`** rozsyła pełne dane eventów (title, organizer, meet link) do wszystkich nasłuchujących okien włącznie z popupami — rozważ filtrowanie per-window.
 - **P2.10 OAuth callback: `error` sprawdzany przed `state`** — lokalny spoof może przerwać flow bez CSRF check. Odwróć kolejność: najpierw `state`, potem `error`.
 
+## Znaleziska Gemini — Blog Studio (preistniejące, osobna sesja security)
+
+### P1 security (Blog Studio)
+- **Path traversal w findArticleFile** (`landing/studio/server.js:~1062`) — łączy `lang` i `slug` z path bez normalizacji. `path.normalize()` + sprawdzenie prefix `BLOG_DIR`.
+- **execSync blokujący event loop** (`server.js:~342`, `~621`, `~4271`, `~4474`, `~4856`, `~4978`, `~5321`) — wszystkie wywołania `node build.js` zamrażają Express na czas buildu (30-60s). Użyj asynchronicznego `exec` z `util.promisify`.
+- **API keys w studio.json** (`server.js:~2380`) — klucze API Gemini/Claude/Serper w pliku na dysku zamiast w env. studio.json jest gitignored ale to nadal przechowywanie sekretów w plaintext. Przenieś do `.env`.
+
+### P2 (Blog Studio)
+- `fs.readFileSync` w gorących ścieżkach Express — async/await
+- `analyzeSEO` łamie SRP (kilka regex'ów w jednej funkcji)
+- Duże stringi promptów AI bezpośrednio w server.js — wydziel do `prompts/*.txt`
+
 ## P5 — Przyszłość
 23. macOS tracker (NSWorkspace + Accessibility API)
 24. Microsoft Store
