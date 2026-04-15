@@ -241,7 +241,7 @@ pub async fn oauth_connect(app: AppHandle, config_state: Arc<Mutex<AppConfig>>) 
         urlencoding::encode(&code_challenge),
     );
 
-    // Open browser (tauri_plugin_shell::Shell::open is deprecated; use `open` crate)
+    // Open browser via `open` crate (no Tauri shell plugin needed)
     if let Err(e) = open::that(&auth_url) {
         log::warn!("failed to open browser for OAuth: {}", e);
     }

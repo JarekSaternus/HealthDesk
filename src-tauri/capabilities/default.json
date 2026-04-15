@@ -10,7 +10,6 @@
     "core:event:allow-emit",
     "core:webview:allow-webview-close",
     "core:window:allow-close",
-    "shell:allow-open",
     "notification:default",
     "autostart:default",
     "autostart:allow-enable",
