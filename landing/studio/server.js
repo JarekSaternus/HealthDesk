@@ -5166,12 +5166,12 @@ function startCalendarScheduler() {
           if (prev?.ga4 && snapshot.ga4) {
             const sessDiff = snapshot.ga4.sessions - prev.ga4.sessions;
             const viewsDiff = snapshot.ga4.pageviews - prev.ga4.pageviews;
-            conclusions.push(sessDiff >= 0 ? `Sesje: ${prev.ga4.sessions} â†’ ${snapshot.ga4.sessions} (+${sessDiff})` : `Sesje spadĹ‚y: ${prev.ga4.sessions} â†’ ${snapshot.ga4.sessions}`);
-            conclusions.push(`OdsĹ‚ony: ${prev.ga4.pageviews} â†’ ${snapshot.ga4.pageviews} (${viewsDiff >= 0 ? '+' : ''}${viewsDiff})`);
+            conclusions.push(sessDiff >= 0 ? `Sesje: ${prev.ga4.sessions} → ${snapshot.ga4.sessions} (+${sessDiff})` : `Sesje spadły: ${prev.ga4.sessions} → ${snapshot.ga4.sessions}`);
+            conclusions.push(`Odsłony: ${prev.ga4.pageviews} → ${snapshot.ga4.pageviews} (${viewsDiff >= 0 ? '+' : ''}${viewsDiff})`);
           }
           if (prev?.gsc && snapshot.gsc) {
             const impDiff = snapshot.gsc.total_impressions - prev.gsc.total_impressions;
-            conclusions.push(`GSC impresje: ${prev.gsc.total_impressions} â†’ ${snapshot.gsc.total_impressions} (${impDiff >= 0 ? '+' : ''}${impDiff})`);
+            conclusions.push(`GSC impresje: ${prev.gsc.total_impressions} → ${snapshot.gsc.total_impressions} (${impDiff >= 0 ? '+' : ''}${impDiff})`);
           }
           snapshot.conclusions = conclusions;
 
@@ -5185,16 +5185,16 @@ function startCalendarScheduler() {
           const opps = await runOpportunitiesAnalysis();
 
           // Popup with combined results
-          const ga4Line = snapshot.ga4 ? `GA4: ${snapshot.ga4.sessions} sesji, ${snapshot.ga4.pageviews} odsĹ‚on, bounce ${snapshot.ga4.bounce_rate}%` : '';
-          const gscLine = snapshot.gsc ? `GSC: ${snapshot.gsc.total_impressions} impresji, ${snapshot.gsc.total_clicks} klikniÄ™Ä‡` : '';
+          const ga4Line = snapshot.ga4 ? `GA4: ${snapshot.ga4.sessions} sesji, ${snapshot.ga4.pageviews} odsłon, bounce ${snapshot.ga4.bounce_rate}%` : '';
+          const gscLine = snapshot.gsc ? `GSC: ${snapshot.gsc.total_impressions} impresji, ${snapshot.gsc.total_clicks} kliknięć` : '';
           const oppsLine = opps.length > 0
-            ? `\nInsights: ${opps.length} okazji\n` + opps.slice(0, 3).map(o => `â€˘ "${o.query}" (${o.type})`).join('\n')
+            ? `\nInsights: ${opps.length} okazji\n` + opps.slice(0, 3).map(o => `• "${o.query}" (${o.type})`).join('\n')
             : '\nBrak nowych okazji';
           const concLine = conclusions.length > 0 ? '\n\nTrend:\n' + conclusions.join('\n') : '';
 
           showNotification(
             `Blog Studio: raport po batch`,
-            `${ga4Line}\n${gscLine}${oppsLine}${concLine}\n\nSzczegĂłĹ‚y: localhost:4000 â†’ Insights`
+            `${ga4Line}\n${gscLine}${oppsLine}${concLine}\n\nSzczegóły: localhost:4000 → Insights`
           );
         } catch (e) {
           console.error('[Insights] BĹ‚Ä…d analizy:', e.message);
@@ -5215,7 +5215,7 @@ function startCalendarScheduler() {
 
     } catch (err) {
       console.error('[Calendar Scheduler] Error:', err.message);
-      showNotification('Blog Studio: BĹÄ„D', err.message.substring(0, 150));
+      showNotification('Blog Studio: BŁĄD', err.message.substring(0, 150));
       if (calendarProgress) {
         calendarProgress.status = 'error';
         calendarProgress.error = err.message;
