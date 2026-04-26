@@ -3387,6 +3387,254 @@ app.post('/api/insights/opportunities', async (req, res) => {
   }
 });
 
+// ─── SEO Auto-Coach ───
+// Wykrywa wzorce z GSC (money pages w MVP), generuje propozycje SEO przez Claude
+// i zapisuje jako tickets. User akceptuje/odrzuca w UI/CLI; learning loop osobno.
+const SEO_COACH_STATE = path.join(__dirname, 'seo_coach_state.json');
+
+function loadCoachState() {
+  if (!fs.existsSync(SEO_COACH_STATE)) {
+    return { tickets: [], pattern_stats: {}, last_run: null };
+  }
+  try { return JSON.parse(fs.readFileSync(SEO_COACH_STATE, 'utf8')); }
+  catch { return { tickets: [], pattern_stats: {}, last_run: null }; }
+}
+
+function saveCoachState(state) {
+  fs.writeFileSync(SEO_COACH_STATE, JSON.stringify(state, null, 2), 'utf8');
+}
+
+// Detect Money Pages: pos ≤ 10, imps ≥ 20, ctr < 2%, age ≥ 21 dni
+async function detectMoneyPages() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return [];
+  const { google } = require('googleapis');
+  const auth = getGscAuth();
+  const sc = google.searchconsole({ version: 'v1', auth });
+  const end = new Date(), start = new Date();
+  start.setDate(start.getDate() - 28);
+
+  const result = await sc.searchanalytics.query({
+    siteUrl: SITE_URL_GSC,
+    requestBody: {
+      startDate: start.toISOString().slice(0, 10),
+      endDate: end.toISOString().slice(0, 10),
+      dimensions: ['page'], rowLimit: 100
+    }
+  });
+  const rows = result.data.rows || [];
+  const candidates = [];
+  for (const r of rows) {
+    const url = r.keys[0];
+    if (r.position > 10 || r.impressions < 20 || r.ctr * 100 >= 2) continue;
+    // Check age — extract slug + lang from URL, read frontmatter date
+    const m = url.match(/healthdesk\.site\/([^/]+)\/blog\/([^/]+)\//);
+    if (!m) continue;
+    const [_, lang, slug] = m;
+    const filePath = path.join(BLOG_DIR, lang, `${slug}.md`);
+    if (!fs.existsSync(filePath)) continue;
+    const md = fs.readFileSync(filePath, 'utf8');
+    const dateMatch = md.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+    if (!dateMatch) continue;
+    const ageDays = (new Date() - new Date(dateMatch[1])) / (1000 * 60 * 60 * 24);
+    if (ageDays < 21) continue;
+
+    const fmM = md.match(/^---\n([\s\S]*?)\n---/);
+    const titleM = fmM && fmM[1].match(/^title:\s*"?([^"\n]+)"?/m);
+    const descM = fmM && fmM[1].match(/^description:\s*"?([^"\n]+)"?/m);
+    const keywordM = fmM && fmM[1].match(/^keyword:\s*"?([^"\n]+)"?/m);
+
+    candidates.push({
+      url, lang, slug, ageDays: Math.round(ageDays),
+      position: Math.round(r.position * 10) / 10,
+      impressions: r.impressions, clicks: r.clicks, ctr: Math.round(r.ctr * 1000) / 10,
+      currentTitle: titleM?.[1] || '<no title>',
+      currentDescription: descM?.[1] || '',
+      keyword: keywordM?.[1] || ''
+    });
+  }
+  return candidates;
+}
+
+async function generateProposalsForTicket(c) {
+  const prompt = `You are an SEO copywriter optimizing for Google SERP CTR.
+
+Page metrics (28 days):
+- URL: ${c.url}
+- Position: ${c.position} (top 10)
+- Impressions: ${c.impressions}
+- Clicks: ${c.clicks}
+- CTR: ${c.ctr}% (very low — title/snippet not click-worthy)
+- Age: ${c.ageDays} days
+- Target keyword: "${c.keyword}"
+
+Current title: "${c.currentTitle}"
+Current description: "${c.currentDescription}"
+
+Diagnosis: page ranks in top 10 but no one clicks. Title likely lacks query match, hooks, or specificity.
+
+Generate EXACTLY 3 proposed (title, description) variants in JSON. Each variant uses different strategy:
+- A: anti-myth / contrarian / kontrast
+- B: personal experiment / "I tried X for N days" (EEAT signal)
+- C: practical / specific (number, schedule, timeframe)
+
+Constraints:
+- Title: max 60 chars, MUST include or strongly imply the target keyword
+- Description: 150-160 chars
+- NO em-dashes — (use regular hyphens or colons)
+- NO AI clichés ("boost your", "today", "discover", "unlock")
+- Sound like a human wrote it after research
+
+Return ONLY valid JSON, no preamble:
+{
+  "proposals": [
+    {"variant":"A","title":"...","description":"...","strategy":"anti-myth","rationale":"..."},
+    {"variant":"B","title":"...","description":"...","strategy":"personal-test","rationale":"..."},
+    {"variant":"C","title":"...","description":"...","strategy":"practical","rationale":"..."}
+  ],
+  "recommended": "A|B|C"
+}`;
+
+  const result = await callClaude(
+    'You are a senior SEO copywriter. Return only valid JSON, no commentary.',
+    prompt, 1500, { model: 'sonnet' }
+  );
+  try {
+    const cleaned = result.replace(/^```json\s*|\s*```$/g, '').trim();
+    return JSON.parse(cleaned);
+  } catch (e) {
+    return { proposals: [], recommended: null, error: 'parse failed: ' + e.message };
+  }
+}
+
+async function runSeoCoachScan() {
+  const state = loadCoachState();
+  const candidates = await detectMoneyPages();
+
+  // Skip if already has open ticket for this URL
+  const openUrls = new Set(state.tickets.filter(t => t.status === 'open').map(t => t.url));
+  // Skip if rejected in last 30 days
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const recentlyRejected = new Set(
+    state.tickets
+      .filter(t => t.status === 'rejected' && new Date(t.created) > cutoff)
+      .map(t => t.url)
+  );
+
+  const fresh = candidates.filter(c => !openUrls.has(c.url) && !recentlyRejected.has(c.url));
+  const newTickets = [];
+  for (const c of fresh.slice(0, 5)) {
+    try {
+      const ai = await generateProposalsForTicket(c);
+      const today = new Date().toISOString().slice(0, 10);
+      const expires = new Date(); expires.setDate(expires.getDate() + 30);
+      const ticket = {
+        id: `tk_${today}_${(state.tickets.length + newTickets.length + 1).toString().padStart(3, '0')}`,
+        type: 'money_page_low_ctr',
+        url: c.url, lang: c.lang, slug: c.slug,
+        status: 'open',
+        created: today,
+        expires: expires.toISOString().slice(0, 10),
+        metrics_before: {
+          impressions: c.impressions, clicks: c.clicks, ctr: c.ctr, position: c.position
+        },
+        evidence: `Pos ${c.position} / ${c.impressions} imps / ${c.clicks} clicks / ${c.ageDays}d old. CTR ${c.ctr}% well below ${c.position <= 5 ? '15%' : c.position <= 10 ? '5%' : '2%'} benchmark for this position.`,
+        currentTitle: c.currentTitle,
+        currentDescription: c.currentDescription,
+        proposals: ai.proposals || [],
+        recommended: ai.recommended || null,
+        applied_variant: null,
+        applied_at: null,
+        metrics_after: null,
+        outcome: null
+      };
+      newTickets.push(ticket);
+    } catch (e) {
+      console.error('[SEO Coach] Generate failed for', c.url, ':', e.message);
+    }
+  }
+  state.tickets.push(...newTickets);
+  state.last_run = new Date().toISOString();
+  saveCoachState(state);
+  return { detected: candidates.length, new_tickets: newTickets.length, tickets: newTickets };
+}
+
+app.post('/api/seo-coach/run', async (req, res) => {
+  try {
+    const result = await runSeoCoachScan();
+    res.json({ ok: true, ...result });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/api/seo-coach/tickets', (req, res) => {
+  const state = loadCoachState();
+  const { status: filter = 'open' } = req.query;
+  const tickets = filter === 'all'
+    ? state.tickets
+    : state.tickets.filter(t => t.status === filter);
+  res.json({
+    last_run: state.last_run,
+    count: tickets.length,
+    tickets,
+    pattern_stats: state.pattern_stats
+  });
+});
+
+app.post('/api/seo-coach/tickets/:id/reject', (req, res) => {
+  const state = loadCoachState();
+  const t = state.tickets.find(x => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'not found' });
+  t.status = 'rejected';
+  t.rejection_reason = req.body?.reason || 'manual reject';
+  saveCoachState(state);
+  res.json({ ok: true, ticket: t });
+});
+
+app.post('/api/seo-coach/tickets/:id/snooze', (req, res) => {
+  const state = loadCoachState();
+  const t = state.tickets.find(x => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'not found' });
+  const days = parseInt(req.body?.days) || 14;
+  const expires = new Date(); expires.setDate(expires.getDate() + days);
+  t.status = 'snoozed';
+  t.snooze_until = expires.toISOString().slice(0, 10);
+  saveCoachState(state);
+  res.json({ ok: true, ticket: t });
+});
+
+app.post('/api/seo-coach/tickets/:id/accept', async (req, res) => {
+  if (!isValidLang || !isValidSlug) return res.status(500).json({ error: 'guards missing' });
+  const state = loadCoachState();
+  const t = state.tickets.find(x => x.id === req.params.id);
+  if (!t) return res.status(404).json({ error: 'not found' });
+  const variant = req.body?.variant || t.recommended;
+  const proposal = t.proposals.find(p => p.variant === variant);
+  if (!proposal) return res.status(400).json({ error: 'variant not found' });
+  if (!isValidLang(t.lang) || !isValidSlug(t.slug)) {
+    return res.status(400).json({ error: 'invalid lang/slug in ticket' });
+  }
+
+  // Edit frontmatter title + description + bump date
+  const filePath = path.join(BLOG_DIR, t.lang, `${t.slug}.md`);
+  if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'md file missing' });
+  let md = fs.readFileSync(filePath, 'utf8');
+  const today = new Date().toISOString().slice(0, 10);
+  const escTitle = String(proposal.title).replace(/"/g, '\\"');
+  const escDesc = String(proposal.description).replace(/"/g, '\\"');
+  md = md.replace(/^title:\s*"[^"]*"/m, `title: "${escTitle}"`);
+  md = md.replace(/^description:\s*"[^"]*"/m, `description: "${escDesc}"`);
+  md = md.replace(/^date:\s*\d{4}-\d{2}-\d{2}/m, `date: ${today}`);
+  await fs.promises.writeFile(filePath, md, 'utf8');
+
+  t.status = 'applied';
+  t.applied_variant = variant;
+  t.applied_at = new Date().toISOString();
+  saveCoachState(state);
+
+  res.json({ ok: true, ticket: t, message: 'Frontmatter updated. Run build + deploy + GSC submit to publish.' });
+});
+
 app.get('/api/insights', (req, res) => {
   const insights = loadInsights();
   const { type, status: filterStatus } = req.query;

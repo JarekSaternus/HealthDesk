@@ -1,8 +1,8 @@
 ---
-title: "Water Intake for Desk Workers: Stay Hydrated"
+title: "How Much Water Should You Drink at a Desk? (Forget \"8 Cups\")"
 slug: "how-much-water-should-you-drink-while-working-at-a-computer"
-date: 2026-03-16
-description: "Stay hydrated at your desk: Learn how water intake impacts focus and productivity for desk workers. Boost your performance today."
+date: 2026-04-26
+description: "The \"8 cups a day\" rule wasn't made for screen workers. Real intake depends on your hours, room temp, and posture. Hourly schedule + warning signs."
 keyword: "how much water should you drink while working at a computer"
 tags: ["hydration", "desk workers", "workplace wellness", "water intake", "health tips"]
 lang: en
@@ -28,6 +28,7 @@ faq:
   - q: "Is there a real connection between hydration and mental performance?"
     a: "Yes. A 2012 Journal of Nutrition study found mild dehydration caused mood disturbances and reduced cognitive performance in young adults."
 image_alt: "Water Intake for Desk Workers: Stay Hydrated"
+heroImage: "how-much-water-should-you-drink-while-working-at-a-computer.webp"
 ---
 ## Why Hydration Matters for Desk Workers
 
