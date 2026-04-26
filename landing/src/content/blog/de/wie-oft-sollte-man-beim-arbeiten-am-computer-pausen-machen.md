@@ -29,6 +29,7 @@ siblings:
   es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "wie-oft-sollte-man-beim-arbeiten-am-computer-pausen-machen.webp"
 ---
 ## Wie oft sollte man Pausen beim Computer machen?
 

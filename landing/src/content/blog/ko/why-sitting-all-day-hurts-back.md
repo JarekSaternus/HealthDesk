@@ -7,5 +7,6 @@ keyword: "하루 종일 앉아서 일하면 허리 아픈 이유와 해결법"
 tags: ["허리통증", "책상일", "자세교정", "직장건강", "스트레칭"]
 lang: ko
 image_alt: "따뜻한 햇살이 드는 현대적인 서재에서 한 남성이 인체공학적 스탠딩 책상의 높이를 조절하고 있다."
+heroImage: "why-sitting-all-day-hurts-back.webp"
 ---
 

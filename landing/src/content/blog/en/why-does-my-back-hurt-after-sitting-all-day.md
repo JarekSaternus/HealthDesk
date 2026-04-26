@@ -28,6 +28,7 @@ faq:
     a: "Core muscles stop engaging when a chair supports you. Over time this causes deconditioning, leaving your spine with less active support."
   - q: "Can you get back pain from sitting even if you exercise regularly?"
     a: "Yes. Being physically fit doesn't protect you from prolonged static loading. Eight hours in a chair stresses the spine regardless of fitness level."
+heroImage: "why-does-my-back-hurt-after-sitting-all-day.webp"
 ---
 ## Why Does Sitting All Day Cause Back Pain?
 

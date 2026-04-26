@@ -17,6 +17,8 @@ faq:
     a: "Blue light from screens does not cause permanent eye damage according to the American Academy of Ophthalmology. However, it can contribute to eye fatigue and disrupt sleep by suppressing melatonin production in the evening."
   - q: "How often should you blink when working at a computer?"
     a: "You should aim for 15-20 blinks per minute. During screen work, most people blink only 5-7 times per minute — a 66% reduction that leads to dry, irritated eyes."
+heroImage: "healthy-eyes-at-computer.webp"
+image_alt: "Healthy Eyes at the Computer — 7 Habits Worth Adopting"
 ---
 
 ## Why do eyes suffer during long hours of computer work?

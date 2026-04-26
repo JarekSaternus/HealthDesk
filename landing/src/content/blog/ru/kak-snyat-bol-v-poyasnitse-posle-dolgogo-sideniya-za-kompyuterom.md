@@ -17,5 +17,6 @@ siblings:
   de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
   en: "why-does-my-back-hurt-after-sitting-all-day"
   pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
+heroImage: "kak-snyat-bol-v-poyasnitse-posle-dolgogo-sideniya-za-kompyuterom.webp"
 ---
 

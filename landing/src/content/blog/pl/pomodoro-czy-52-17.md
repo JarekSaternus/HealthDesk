@@ -17,6 +17,8 @@ faq:
     a: "Badania nad rytmami ultradian wskazują, że mózg pracuje w cyklach 90–120 minut. Zarówno Pomodoro (25 min), jak i 52-17 mieszczą się w tym zakresie — różnią się jedynie fragmentacją cyklu. Najważniejsze to robić regularne przerwy, niezależnie od wybranej metody."
   - q: "Jak wybrać między Pomodoro a 52-17?"
     a: "Przetestuj obie metody przez tydzień każdą i porównaj swoją produktywność. Jeśli często wchodzisz w stan flow i 25-minutowy timer Cię irytuje — wybierz 52-17. Jeśli masz problem z rozpoczęciem zadań i prokrastynujesz — Pomodoro obniży barierę startu."
+heroImage: "pomodoro-czy-52-17.webp"
+image_alt: "Pomodoro czy 52-17? Która metoda pracy jest lepsza?"
 ---
 ## Czym są dwie najpopularniejsze metody pracy z przerwami?
 

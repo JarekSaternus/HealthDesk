@@ -27,6 +27,7 @@ siblings:
   es: "como-sentarse-correctamente-frente-al-ordenador-sin-dolor"
   de: "wie-man-richtig-am-schreibtisch-sitzt-wirbelsaule-schonen"
 image_alt: "Desk Job Back Pain: Prevention Tips & Exercises"
+heroImage: "desk-job-back-pain-prevention-tips-and-exercises.webp"
 ---
 ## Why Desk Jobs Cause Back Pain
 

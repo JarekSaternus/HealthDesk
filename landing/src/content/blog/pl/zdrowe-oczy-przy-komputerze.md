@@ -24,6 +24,7 @@ faq:
   - q: "Czy krople do oczu pomagają przy pracy przy komputerze?"
     a: "Nawilżające krople do oczu (sztuczne łzy) łagodzą suchość i podrażnienie spowodowane rzadszym mruganiem przy ekranie. Wybieraj preparaty bez konserwantów — nadają się do częstego stosowania i nie podrażniają oczu przy regularnym użyciu."
 image_alt: "Nowoczesne stanowisko pracy z ergonomicznych monitorem, rośliną i okularami, oświetlone naturalnym światłem w biurze."
+heroImage: "zdrowe-oczy-przy-komputerze.webp"
 ---
 
 ## Dlaczego oczy cierpią przy wielogodzinnej pracy przy komputerze?

@@ -23,6 +23,7 @@ faq:
   - q: "Pourquoi la méthode Pomodoro est-elle efficace ?"
     a: "Elle respecte les limites naturelles de la concentration humaine et structure le travail à l'avance, évitant les décisions improvisées."
 image_alt: "Méthode Pomodoro : guide étape par étape pour débuter"
+heroImage: "methode-pomodoro-guide-etape-par-etape-pour-debuter.webp"
 ---
 ## Qu'est-ce que la méthode Pomodoro ?
 

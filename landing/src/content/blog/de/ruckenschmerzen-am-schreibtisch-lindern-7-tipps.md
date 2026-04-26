@@ -19,6 +19,7 @@ siblings:
   tr: "masa-basinda-bel-agrisi-healthdesk-ile-onleme"
   zh-CN: "desk-back-pain-5-minute-relief"
 image_alt: "Rückenschmerzen am Schreibtisch lindern: 7 Tipps"
+heroImage: "ruckenschmerzen-am-schreibtisch-lindern-7-tipps.webp"
 ---
 ## Warum entstehen Rückenschmerzen am Schreibtisch?
 

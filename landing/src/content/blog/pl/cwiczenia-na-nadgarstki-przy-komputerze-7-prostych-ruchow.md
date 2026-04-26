@@ -15,6 +15,8 @@ faq:
     a: "Regularne ćwiczenia rozciągające i wzmacniające zmniejszają ryzyko rozwoju zespołu cieśni nadgarstka, ale nie eliminują go całkowicie. Ważna jest też ergonomia stanowiska — neutralna pozycja nadgarstków przy klawiaturze i właściwa wysokość biurka."
   - q: "Czy ćwiczenia pomagają na ból od mysz komputerowej (mouse hand)?"
     a: "Tak — ból związany z intensywnym używaniem myszy wynika z napięcia mięśni przedramienia i nadgarstka. Ćwiczenia rozciągające zginacze i prostowniki nadgarstka oraz krążenia nadgarstkami skutecznie łagodzą te dolegliwości."
+heroImage: "cwiczenia-na-nadgarstki-przy-komputerze-7-prostych-ruchow.webp"
+image_alt: "Ćwiczenia na nadgarstki przy komputerze – 7 prostych ruchów"
 ---
 ## Dlaczego nadgarstki bolą przy pracy przy komputerze?
 

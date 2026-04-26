@@ -29,6 +29,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "easy-eye-exercises-telecommuting-fatigue.webp"
 ---
 ## テレワーク中に目が疲れるのはなぜ？
 

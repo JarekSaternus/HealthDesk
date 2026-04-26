@@ -18,5 +18,6 @@ siblings:
   de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
   en: "why-does-my-back-hurt-after-sitting-all-day"
   pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
+heroImage: "comment-bien-s-asseoir-devant-un-ecran-pour-eviter-le-mal-de-dos.webp"
 ---
 

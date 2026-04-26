@@ -16,6 +16,7 @@ faq:
   - q: "番茄工作法如何与休息结合使用？"
     a: "专注25分钟后休息5分钟，每5分钟可做眼部放松或起身活动；深度工作者可调整为50分钟专注+10分钟休息。"
 image_alt: "久坐族必看：如何通过科学休息提升工作效率与健康"
+heroImage: "scientific-breaks-for-sedentary-workers.webp"
 ---
 ## 久坐对身体有哪些危害？
 

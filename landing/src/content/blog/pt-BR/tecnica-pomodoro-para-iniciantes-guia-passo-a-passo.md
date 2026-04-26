@@ -23,6 +23,7 @@ faq:
     a: "Pausas breves funcionam como um 'reset' cognitivo. Estudo da Universidade de Illinois mostrou que elas melhoram significativamente o desempenho em tarefas longas."
   - q: "De onde vem o nome 'Pomodoro'?"
     a: "O nome vem do timer de cozinha em formato de tomate — pomodoro em italiano — que Cirillo usava quando criou o método nos anos 80."
+heroImage: "tecnica-pomodoro-para-iniciantes-guia-passo-a-passo.webp"
 ---
 ## O Que É a Técnica Pomodoro e Como Ela Funciona?
 

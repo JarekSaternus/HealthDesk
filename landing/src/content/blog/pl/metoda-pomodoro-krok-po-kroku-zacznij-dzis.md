@@ -22,6 +22,8 @@ faq:
     a: "Częściowo — 25-minutowe bloki pomagają zacząć, ale mogą przerywać stan flow. Rozwiązaniem jest elastyczne podejście: jeśli czujesz flow, pomiń przerwę i dokończ pomodoro dopiero po naturalnym spadku koncentracji."
   - q: "Czy można modyfikować długość interwałów Pomodoro?"
     a: "Tak, i wielu doświadczonych użytkowników to robi. Popularne warianty to 30/5, 45/10 i 50/10. Sam Francesco Cirillo zaleca, by zacząć od klasycznych 25/5 i eksperymentować po opanowaniu metody."
+heroImage: "metoda-pomodoro-krok-po-kroku-zacznij-dzis.webp"
+image_alt: "Metoda Pomodoro krok po kroku – zacznij dziś"
 ---
 ## Czym jest metoda Pomodoro i skąd pochodzi?
 

@@ -25,6 +25,7 @@ faq:
   - q: "Su quanti compiti ci si concentra durante un Pomodoro?"
     a: "Su un solo compito per volta, eliminando il multitasking per ridurre il carico cognitivo."
 image_alt: "Tecnica Pomodoro per Principianti: Guida Completa"
+heroImage: "tecnica-pomodoro-per-principianti-guida-completa.webp"
 ---
 ## Cos'è la Tecnica Pomodoro e come funziona?
 

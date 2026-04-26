@@ -30,6 +30,7 @@ faq:
   - q: "¿Las pausas activas afectan negativamente a la productividad?"
     a: "Al contrario, detenerse unos minutos aumenta la productividad al mejorar la claridad mental y reducir el agotamiento."
 image_alt: "Pausas Activas en Oficina: Guía Práctica con Ejercicios"
+heroImage: "como-hacer-pausas-activas-en-el-trabajo-de-oficina.webp"
 ---
 ## ¿Qué son las pausas activas y por qué son importantes?
 

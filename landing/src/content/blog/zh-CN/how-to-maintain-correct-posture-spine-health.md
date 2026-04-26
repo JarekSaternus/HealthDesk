@@ -30,6 +30,7 @@ faq:
   - q: "如何快速完成一次正确坐姿调整？"
     a: "只需5分钟，从腰部支撑和座椅高度开始，从下到上依次检查各身体部位的姿势状态即可。"
 image_alt: "办公室正确坐姿指南：5分钟护脊椎健康"
+heroImage: "how-to-maintain-correct-posture-spine-health.webp"
 ---
 ## 为什么办公室坐姿对脊椎健康至关重要？
 

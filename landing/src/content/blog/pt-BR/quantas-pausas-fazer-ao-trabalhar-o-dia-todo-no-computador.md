@@ -27,6 +27,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "quantas-pausas-fazer-ao-trabalhar-o-dia-todo-no-computador.webp"
 ---
 ## Quantas pausas devo fazer trabalhando no computador?
 

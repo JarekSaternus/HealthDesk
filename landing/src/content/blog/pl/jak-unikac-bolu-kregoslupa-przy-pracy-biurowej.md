@@ -16,6 +16,7 @@ faq:
   - q: "Jakie błędy przy biurku najczęściej szkodzą kręgosłupowi?"
     a: "Monitor ustawiony na złej wysokości, brak podparcia lędźwiowego i mysz za daleko od ciała to typowe błędy ergonomiczne."
 image_alt: "Ergonomiczne stanowisko pracy z laptopem przy oknie i zdrowa przekąska."
+heroImage: "jak-unikac-bolu-kregoslupa-przy-pracy-biurowej.webp"
 ---
 ## Dlaczego praca biurowa niszczy kręgosłup?
 

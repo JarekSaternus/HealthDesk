@@ -17,5 +17,6 @@ siblings:
   de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
   en: "why-does-my-back-hurt-after-sitting-all-day"
   pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
+heroImage: "come-sedersi-correttamente-alla-scrivania-senza-mal-di-schiena.webp"
 ---
 

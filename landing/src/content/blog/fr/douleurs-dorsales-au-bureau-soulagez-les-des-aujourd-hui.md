@@ -28,6 +28,7 @@ faq:
   - q: "Pourquoi les mauvaises postures sont-elles difficiles à détecter ?"
     a: "Elles ne provoquent pas de douleur immédiate : le corps compense progressivement jusqu'à atteindre ses limites."
 image_alt: "Douleurs dorsales au bureau : soulagez-les des aujourd'hui"
+heroImage: "douleurs-dorsales-au-bureau-soulagez-les-des-aujourd-hui.webp"
 ---
 ## Pourquoi les douleurs dorsales au bureau sont-elles si fréquentes ?
 

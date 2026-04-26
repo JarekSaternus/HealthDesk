@@ -27,6 +27,8 @@ faq:
     a: "Kluczowa jest regularność, nie pora dnia. Jednak szczególnie ważne są ćwiczenia po 2–3 godzinach pracy, gdy napięcie mięśniowe jest najwyższe. Warto też zacząć dzień od krótkiej mobilizacji kręgosłupa."
   - q: "Które ćwiczenie najlepiej pomaga na ból dolnego odcinka pleców?"
     a: "Cat-cow (koci grzbiet) i odchylenie miednicy w pozycji siedzącej to dwa najskuteczniejsze ćwiczenia na ból lędźwiowy przy biurku. Mobilizują krążki międzykręgowe i rozluźniają napięte zginacze bioder."
+heroImage: "cwiczenia-przy-biurku-na-bol-plecow-10-skutecznych.webp"
+image_alt: "Ćwiczenia przy biurku na ból pleców – 10 skutecznych"
 ---
 ## Dlaczego praca przy biurku powoduje ból pleców?
 

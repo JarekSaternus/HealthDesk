@@ -26,6 +26,7 @@ siblings:
   it: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione"
   de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
   en: "why-does-my-back-hurt-after-sitting-all-day"
+heroImage: "jak-ustawic-monitor-zeby-nie-bolaly-plecy.webp"
 ---
 ## Jak prawidłowe ustawienie monitora wpływa na zdrowie pleców?
 

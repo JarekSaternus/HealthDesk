@@ -28,6 +28,7 @@ faq:
   - q: "Как понять, что глаза устали от экрана?"
     a: "Сначала появляется лёгкое жжение вечером, затем тяжесть к обеду, потом человек начинает щуриться, чтобы сфокусироваться на тексте."
 image_alt: "Eye exercises for prolonged monitor work guide"
+heroImage: "uprazhneniya-dlya-glaz-pri-dlitelnoy-rabote-za-monitorom.webp"
 ---
 ## Почему глаза устают при работе за компьютером?
 

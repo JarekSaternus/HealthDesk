@@ -27,6 +27,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "kak-napominat-sebe-pit-vodu-v-techenie-rabochego-dnya.webp"
 ---
 ## Почему напоминания о воде важны для офисных работников?
 

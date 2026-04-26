@@ -30,6 +30,7 @@ faq:
     a: 'Yes. Remote workers lack organic office interruptions like colleague visits, so fatigue builds faster without structured reminders.'
   - q: Does the timing of breaks matter?
     a: 'Yes. Well-timed breaks improve work quality and texture, unlike reluctant late-day pauses that offer little recovery benefit.'
+heroImage: "how-to-set-up-break-reminders-for-better-productivity.webp"
 ---
 
 ## Why Break Reminders Matter for Productivity

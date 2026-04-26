@@ -27,6 +27,8 @@ faq:
     a: "The seated knee hug is one of the most effective quick-relief exercises. Pull one knee toward your chest, hold for 30 seconds, then switch legs. It gently decompresses the lower spine and stretches the piriformis muscle."
   - q: "How long does it take to form a desk exercise habit?"
     a: "Research from University College London found that forming a new habit takes an average of 66 days, not the commonly cited 21 days. Using automated reminders from apps like HealthDesk helps maintain consistency."
+heroImage: "desk-exercises-for-back-pain.webp"
+image_alt: "10 Desk Exercises to Relieve Back Pain at Work"
 ---
 ## 10 Desk Exercises to Relieve Back Pain at Work
 

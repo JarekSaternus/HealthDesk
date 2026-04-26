@@ -30,6 +30,7 @@ faq:
   - q: "20-20-20ルールを忘れずに実践するコツはありますか？"
     a: "リマインダーアプリを活用するか、ポモドーロテクニックの休憩時間と組み合わせると継続しやすいです。"
 image_alt: "Easy ways to relieve eye strain from desk work"
+heroImage: "easy-ways-relieve-eye-strain-desk-work.webp"
 ---
 ## デスクワーク中の目の疲れはなぜ起こる？
 

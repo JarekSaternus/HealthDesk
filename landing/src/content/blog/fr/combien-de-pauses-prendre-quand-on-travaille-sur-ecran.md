@@ -28,6 +28,7 @@ faq:
   - q: "Les pauses écran nuisent-elles à la productivité ?"
     a: "Non, au contraire : la fatigue oculaire non traitée réduit la concentration et augmente les erreurs."
 image_alt: "Une femme s'étire en regardant par la fenêtre de son bureau parisien, faisant une pause loin de ses écrans."
+heroImage: "combien-de-pauses-prendre-quand-on-travaille-sur-ecran.webp"
 ---
 ## Combien de temps devriez-vous passer sans écran ?
 

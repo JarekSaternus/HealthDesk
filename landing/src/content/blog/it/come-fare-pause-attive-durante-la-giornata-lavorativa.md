@@ -28,6 +28,7 @@ faq:
   - q: "Quali sono i benefici fisici delle pause attive?"
     a: "Aiutano a mantenere la pressione stabile, ridurre la rigidità muscolare e migliorare la mobilità articolare nel tempo."
 image_alt: "Pause Attive al Lavoro: Esercizi Semplici da Fare"
+heroImage: "come-fare-pause-attive-durante-la-giornata-lavorativa.webp"
 ---
 ## Perché le Pause Attive sono Importanti al Lavoro?
 

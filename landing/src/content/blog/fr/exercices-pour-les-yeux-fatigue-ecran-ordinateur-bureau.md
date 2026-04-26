@@ -27,6 +27,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "exercices-pour-les-yeux-fatigue-ecran-ordinateur-bureau.webp"
 ---
 ## Pourquoi les écrans fatiguent-ils les yeux ?
 

@@ -28,6 +28,7 @@ faq:
     a: "Causa fadiga muscular crônica, pressão nos discos intervertebrais e compressão de nervos, gerando dores e formigamentos."
   - q: "Os danos da má postura aparecem de forma imediata?"
     a: "Não. O dano se acumula gradualmente: semanas de postura ruim viram meses de desconforto e anos de tratamento."
+heroImage: "dicas-ergon-micas-para-quem-trabalha-sentado.webp"
 ---
 ## Por Que a Ergonomia É Essencial para Quem Trabalha Sentado?
 

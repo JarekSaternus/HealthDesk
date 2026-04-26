@@ -28,6 +28,7 @@ faq:
     a: "Hasta un 59% más que quienes interrumpen el sedentarismo con pausas regulares, según un estudio de 2021."
   - q: "¿Qué señales indican que debo prestar atención a mi espalda?"
     a: "Hormigueo en brazos o dedos, dolor que no cede al cambiar de postura o rigidez persistente son señales de alerta."
+heroImage: "estiramientos-de-espalda-en-la-oficina-guia-pr-ctica.webp"
 ---
 ## Por qué duele la espalda cuando trabajas sentado
 

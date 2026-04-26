@@ -16,6 +16,7 @@ faq:
   - q: "What common posture mistakes cause back pain at a desk?"
     a: "Tilting the pelvis back, rounding shoulders, crossing legs, and placing the keyboard too far from the body all strain the spine."
 image_alt: "Ergonomic Desk Setup Tips for Back Pain Relief"
+heroImage: "ergonomic-desk-setup-tips-for-back-pain-relief.webp"
 ---
 ## Why Your Desk Setup Is Causing Back Pain
 

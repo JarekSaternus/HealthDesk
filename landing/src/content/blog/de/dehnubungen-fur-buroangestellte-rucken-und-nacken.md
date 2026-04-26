@@ -28,6 +28,7 @@ faq:
     a: "Sie verlieren Durchblutung und Elastizität, was zu Steifheit und einem Schweregefühl führt."
   - q: "Wie schwer belastet der Kopf die Halswirbelsäule beim Bildschirmarbeiten?"
     a: "Der Kopf wiegt 5–6 kg; schiebt man ihn nach vorne, vervielfacht sich die Last auf die Halswirbelsäule."
+heroImage: "dehnubungen-fur-buroangestellte-rucken-und-nacken.webp"
 ---
 ## Warum sind Dehnübungen für Büroangestellte so wichtig?
 

@@ -16,6 +16,7 @@ faq:
   - q: "¿Qué músculos se ven afectados al trabajar sentado mucho tiempo?"
     a: "El erector de la columna, el cuadrado lumbar y el psoas se fatigan al mantener una posición fija prolongada."
 image_alt: "Dolor de espalda baja al trabajar: gu�a de prevenci�n"
+heroImage: "por-que-duele-la-espalda-baja-despues-de-trabajar-en-computadora.webp"
 ---
 ## ¿Por qué duele la espalda baja al trabajar?
 

@@ -27,6 +27,7 @@ faq:
   - q: "Warum entstehen Nackenverspannungen beim Büroarbeiten?"
     a: "Muskeln, die zu lange in derselben Position gehalten werden, ermüden und verhärten sich – das wird oft fälschlicherweise als Stress wahrgenommen."
 image_alt: "Richtig am Schreibtisch sitzen: Wirbelsäule schonen"
+heroImage: "wie-man-richtig-am-schreibtisch-sitzt-wirbelsaule-schonen.webp"
 ---
 ## Warum ist die richtige Sitzhaltung am Schreibtisch so wichtig?
 

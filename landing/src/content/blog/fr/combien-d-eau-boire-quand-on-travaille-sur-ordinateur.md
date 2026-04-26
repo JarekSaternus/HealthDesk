@@ -28,6 +28,7 @@ faq:
   - q: "L'écran d'ordinateur influence-t-il les besoins en hydratation ?"
     a: "L'écran assèche les yeux et la climatisation augmente les pertes en eau, aggravant les effets d'un manque d'hydratation."
 image_alt: "Hydratation au travail sur ordinateur : combien boire ?"
+heroImage: "combien-d-eau-boire-quand-on-travaille-sur-ordinateur.webp"
 ---
 ## Pourquoi l'hydratation est essentielle au travail sur ordinateur ?
 

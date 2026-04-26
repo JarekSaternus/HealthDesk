@@ -28,6 +28,7 @@ siblings:
   de: "wie-oft-sollte-man-am-schreibtisch-pause-machen"
   en: "how-much-water-should-you-drink-while-working-at-a-computer"
 image_alt: "Przerwy od komputera w pracy: praktyczny poradnik"
+heroImage: "jak-zrobic-przerwe-od-komputera-w-pracy.webp"
 ---
 ## Dlaczego przerwy od komputera są niezbędne w pracy?
 

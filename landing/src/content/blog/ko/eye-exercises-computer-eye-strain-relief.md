@@ -29,6 +29,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "eye-exercises-computer-eye-strain-relief.webp"
 ---
 ## PC 작업 중 눈 피로가 발생하는 이유는?
 

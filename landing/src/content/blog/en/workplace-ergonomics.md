@@ -15,6 +15,8 @@ faq:
     a: "You should stand up every 25-52 minutes for a short break lasting 5-17 minutes. Regular position changes prevent back and neck pain."
   - q: "Is a standing desk better than a regular desk?"
     a: "A standing desk is not inherently better — the key is regularly alternating between sitting and standing every 30-60 minutes. Research shows this reduces lower back discomfort by 32%."
+heroImage: "workplace-ergonomics.webp"
+image_alt: "Workplace Ergonomics — How to Set Up Your Desk, Chair, and Monitor"
 ---
 
 ## Why does workplace ergonomics matter?

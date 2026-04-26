@@ -28,6 +28,7 @@ faq:
   - q: "Was tun, wenn die 20-Minuten-Regel den Flow stört?"
     a: "Die Intervalle flexibel auf 25 oder 30 Minuten anpassen, ohne das Grundprinzip der regelmäßigen Pausen aufzugeben."
 image_alt: "Eine Frau steht am hellen Fenster im Home Office, macht eine Pause und blickt nach draußen."
+heroImage: "wie-oft-sollte-man-am-schreibtisch-pause-machen.webp"
 ---
 ## Wie oft solltest du Pausen am Schreibtisch machen?
 

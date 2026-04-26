@@ -28,6 +28,7 @@ faq:
   - q: "Jakie są skutki braku ruchu poza bólem pleców?"
     a: "Brak ruchu spowalnia krążenie w nogach, może powodować obrzęki, zakrzepicę i napięcie w nadgarstkach."
 image_alt: "Kobieta wykonująca ćwiczenia rozciągające przy biurku w nowoczesnym biurze"
+heroImage: "cwiczenia-rozciagajace-dla-pracownikow-biurowych.webp"
 ---
 ## Dlaczego ćwiczenia rozciągające są ważne dla pracowników biurowych?
 

@@ -28,6 +28,7 @@ faq:
     a: "No, spesso è il risultato di una postazione mal configurata, non di pigrizia personale."
   - q: "Quali fattori ambientali peggiorano il dolore alla schiena?"
     a: "Scrivania troppo alta o bassa, monitor laterale e sedia senza supporto lombare sono dettagli che aggravano il dolore."
+heroImage: "mal-di-schiena-al-pc-esercizi-e-pause-per-alleviarlo.webp"
 ---
 ## Perché il lavoro al PC causa mal di schiena?
 

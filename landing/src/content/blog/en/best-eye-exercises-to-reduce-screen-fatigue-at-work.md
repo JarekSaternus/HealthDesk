@@ -27,6 +27,7 @@ siblings:
   es: "ejercicios-para-los-ojos-por-cansancio-frente-al-ordenador"
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "best-eye-exercises-to-reduce-screen-fatigue-at-work.webp"
 ---
 ## What Causes Digital Eye Strain and Screen Fatigue?
 

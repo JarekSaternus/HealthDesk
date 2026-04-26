@@ -29,6 +29,7 @@ faq:
     a: 'Nur noch 5–7 Mal pro Minute statt normal 15–20 Mal, was die Augen austrocknet und reizt.'
   - q: Welche Langzeitfolgen hat Bildschirmarbeit ohne Pausen?
     a: Neben Müdigkeit kann anhaltende Naharbeit besonders bei Jüngeren das Fortschreiten von Kurzsichtigkeit begünstigen.
+heroImage: "wie-oft-sollte-man-beim-computerarbeiten-pausen-machen.webp"
 ---
 
 ## Warum sind Bildschirmpausen so wichtig?

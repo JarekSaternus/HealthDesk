@@ -28,6 +28,7 @@ faq:
     a: "Bel desteği olmadan oturmak omurga baskısını ikiye katlar; öne eğilmek ise lumbar diskleri ve boyun-omuz kaslarını kronik gerilime sokar."
   - q: "Hareketsiz oturmak omurga disklerini nasıl etkiler?"
     a: "Omurga diskleri hareketle beslenir; uzun süre oturmak bu beslenme mekanizmasını durdurarak disklere zarar verir."
+heroImage: "masa-basinda-bel-agrisi-healthdesk-ile-onleme.webp"
 ---
 ## Masa Başında Bel Ağrısı Neden Olur?
 

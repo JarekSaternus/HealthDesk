@@ -23,6 +23,7 @@ faq:
     a: "Francesco Cirillo, un estudiante italiano que en los años 80 usó un temporizador de cocina con forma de tomate para mejorar su concentración."
   - q: "¿Cuánto duran los bloques de trabajo en el método Pomodoro?"
     a: "25 minutos, intervalo al que llegó Cirillo tras experimentar con diferentes duraciones comenzando con bloques de 10 minutos."
+heroImage: "metodo-pomodoro-paso-a-paso-empieza-hoy-mismo.webp"
 ---
 ## ¿Qué es el método Pomodoro y por qué funciona?
 

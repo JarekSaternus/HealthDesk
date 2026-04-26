@@ -23,6 +23,7 @@ faq:
   - q: "Pomodoro Tekniğinin temel felsefesi nedir?"
     a: "Zamanı tehdit değil müttefik olarak görür; çalışmayı somut, yönetilebilir bloklara bölerek odaklanmayı kolaylaştırır."
 image_alt: "Pomodoro Tekniği: Yeni Başlayanlar İçin Tam Rehber"
+heroImage: "pomodoro-tekni-i-yeni-ba-layanlar-i-in-tam-rehber.webp"
 ---
 ## Pomodoro Tekniği Nedir ve Nasıl Ortaya Çıktı?
 

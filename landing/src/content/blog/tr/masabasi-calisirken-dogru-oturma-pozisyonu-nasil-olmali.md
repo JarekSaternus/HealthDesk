@@ -17,5 +17,6 @@ siblings:
   de: "dehnubungen-fur-buroangestellte-rucken-und-nacken"
   en: "why-does-my-back-hurt-after-sitting-all-day"
   pl: "rozciaganie-kregoslupa-przy-dlugim-siedzeniu"
+heroImage: "masabasi-calisirken-dogru-oturma-pozisyonu-nasil-olmali.webp"
 ---
 

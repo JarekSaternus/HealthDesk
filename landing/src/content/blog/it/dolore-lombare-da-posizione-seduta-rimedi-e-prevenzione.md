@@ -28,6 +28,7 @@ faq:
     a: "Rompere il ciclo di seduta continua ogni cinquanta minuti circa aiuta a ridurre significativamente il dolore lombare."
   - q: "Il dolore lombare da seduta è sempre un problema strutturale?"
     a: "No, spesso non è genetico né strutturale: migliorare la sedia e aumentare le pause può cambiare completamente la situazione."
+heroImage: "dolore-lombare-da-posizione-seduta-rimedi-e-prevenzione.webp"
 ---
 ## Perché il Dolore Lombare da Seduta è Sempre Più Diffuso?
 

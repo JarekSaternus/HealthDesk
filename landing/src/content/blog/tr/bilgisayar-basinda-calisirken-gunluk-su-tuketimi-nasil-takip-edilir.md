@@ -28,6 +28,7 @@ faq:
   - q: "Günde kaç litre su içilmeli?"
     a: "Genel kılavuzlar ortalama bir yetişkin için günde 2 ile 3 litre su tüketimini önermektedir."
 image_alt: "Bilgisayar başında çalışan ve akıllı bileklik takan bir kişinin su bardağına uzandığı sağlıklı çalışma ortamı."
+heroImage: "bilgisayar-basinda-calisirken-gunluk-su-tuketimi-nasil-takip-edilir.webp"
 ---
 ## Bilgisayar Başında Çalışanlar Neden Yeterince Su İçmiyor?
 

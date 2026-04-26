@@ -20,6 +20,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "cu-ntas-pausas-hacer-trabajando-frente-a-la-pantalla.webp"
 ---
 ## ¿Cuánto tiempo es seguro estar frente a la pantalla?
 

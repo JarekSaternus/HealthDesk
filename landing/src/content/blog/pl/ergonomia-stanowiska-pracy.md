@@ -16,6 +16,7 @@ faq:
   - q: "Czy biurko stojące jest lepsze od zwykłego?"
     a: "Biurko stojące nie jest samo w sobie lepsze — kluczem jest regularna zmiana pozycji. Najlepsze efekty daje naprzemienne stanie i siedzenie co 30-60 minut."
 image_alt: "Ergonomia stanowiska pracy - jak ustawic biurko, krzeslo i monitor"
+heroImage: "ergonomia-stanowiska-pracy.webp"
 ---
 
 ## Dlaczego ergonomia stanowiska pracy ma znaczenie?

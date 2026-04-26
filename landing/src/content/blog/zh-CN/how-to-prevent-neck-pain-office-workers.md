@@ -30,6 +30,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "how-to-prevent-neck-pain-office-workers.webp"
 ---
 ## 为什么办公族容易出现颈椎疼痛？
 

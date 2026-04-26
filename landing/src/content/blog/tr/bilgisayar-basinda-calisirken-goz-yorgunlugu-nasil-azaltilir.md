@@ -27,6 +27,7 @@ siblings:
   de: "augenubungen-gegen-bildschirmermudung-im-buro"
   en: "how-often-should-you-take-breaks-from-computer-screen"
   pl: "jak-poprawic-postawe-siedzaca-przy-biurku"
+heroImage: "bilgisayar-basinda-calisirken-goz-yorgunlugu-nasil-azaltilir.webp"
 ---
 ## Bilgisayar Göz Yorgunluğu Nedir?
 

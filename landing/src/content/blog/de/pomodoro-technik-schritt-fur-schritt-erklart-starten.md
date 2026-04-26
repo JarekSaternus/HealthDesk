@@ -21,6 +21,8 @@ faq:
     a: "Bedingt — 25-Minuten-Blöcke helfen beim Anfangen, können aber den Flow-Zustand unterbrechen. Die Lösung: Wenn du im Flow bist, überspringe die Pause und beende das Pomodoro erst nach einem natürlichen Konzentrationsabfall."
   - q: "Darf man die Pomodoro-Intervalle anpassen?"
     a: "Ja, und viele erfahrene Nutzer tun das. Beliebte Varianten sind 30/5, 45/10 und 50/10. Francesco Cirillo selbst empfiehlt, mit den klassischen 25/5 zu starten und nach einiger Übung zu experimentieren."
+heroImage: "pomodoro-technik-schritt-fur-schritt-erklart-starten.webp"
+image_alt: "Pomodoro-Technik: Schritt für Schritt erklärt & starten"
 ---
 ## Was ist die Pomodoro-Technik und woher stammt sie?
 
