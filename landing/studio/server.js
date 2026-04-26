@@ -33,7 +33,11 @@ function readJsonFile(filePath, fallback = undefined) {
 function showNotification(title, message) {
   try {
     const scriptPath = path.join(__dirname, 'notify.ps1');
-    execFile('powershell', ['-ExecutionPolicy', 'Bypass', '-File', scriptPath, '-Title', title, '-Message', message], { timeout: 10000 }, (err) => {
+    // Base64-UTF8 args — Windows ANSI code page (CP1250) psuje polskie znaki
+    // gdy przekazujemy je bezpośrednio jako execFile args do powershell.exe.
+    const titleB64 = Buffer.from(String(title), 'utf8').toString('base64');
+    const messageB64 = Buffer.from(String(message), 'utf8').toString('base64');
+    execFile('powershell', ['-ExecutionPolicy', 'Bypass', '-File', scriptPath, '-TitleB64', titleB64, '-MessageB64', messageB64], { timeout: 10000 }, (err) => {
       if (err) console.error('[Notification] Failed:', err.message);
     });
   } catch (e) {
@@ -259,6 +263,15 @@ const STUDIO_DATA = path.join(__dirname, 'studio.json');
 const DIST_DIR = path.join(LANDING_ROOT, 'dist');
 const DEPLOY_TIMEOUT_MS = 10 * 60 * 1000;
 
+// Path-traversal guards: req.params.lang / req.params.slug / req.params.filename
+// trafiają do path.join — bez tych regexów `../../etc/passwd` ucieka z BLOG_DIR.
+const VALID_LANG_RE = /^[a-z]{2}(-[A-Z]{2})?$/;          // pl, en, pt-BR, zh-CN
+const VALID_SLUG_RE = /^[a-z0-9][a-z0-9-]{0,98}[a-z0-9]$/;
+const VALID_WEBP_RE = /^[a-z0-9][a-z0-9-]{0,98}[a-z0-9]\.webp$/;
+function isValidLang(s)  { return typeof s === 'string' && VALID_LANG_RE.test(s); }
+function isValidSlug(s)  { return typeof s === 'string' && VALID_SLUG_RE.test(s); }
+function isValidWebp(s)  { return typeof s === 'string' && VALID_WEBP_RE.test(s); }
+
 // Middleware
 app.use(express.json({ limit: '2mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
@@ -452,7 +465,9 @@ app.get('/api/articles/:lang/:slug', (req, res) => {
 // â”€â”€â”€ API: Save article â”€â”€â”€
 app.put('/api/articles/:lang/:slug', (req, res) => {
   const { lang, slug } = req.params;
+  if (!isValidLang(lang) || !isValidSlug(slug)) return res.status(400).json({ error: 'Invalid lang or slug' });
   const { frontmatter, markdown } = req.body;
+  if (frontmatter && frontmatter.slug && !isValidSlug(frontmatter.slug)) return res.status(400).json({ error: 'Invalid frontmatter.slug' });
 
   // Build frontmatter YAML
   let yamlLines = ['---'];
@@ -494,7 +509,7 @@ app.put('/api/articles/:lang/:slug', (req, res) => {
 // â”€â”€â”€ API: Create new article â”€â”€â”€
 app.post('/api/articles', (req, res) => {
   const { lang, slug, title } = req.body;
-  if (!lang || !slug) return res.status(400).json({ error: 'lang and slug required' });
+  if (!isValidLang(lang) || !isValidSlug(slug)) return res.status(400).json({ error: 'Invalid lang or slug' });
 
   const langDir = path.join(BLOG_DIR, lang);
   fs.mkdirSync(langDir, { recursive: true });
@@ -620,12 +635,12 @@ app.post('/api/check/readability', (req, res) => {
 });
 
 // â”€â”€â”€ API: Build â”€â”€â”€
-app.post('/api/build', (req, res) => {
+app.post('/api/build', async (req, res) => {
   try {
-    const output = execSync('node build.js', { cwd: LANDING_ROOT, encoding: 'utf8', timeout: 30000 });
+    const output = await runBuild(30000);
     res.json({ ok: true, output });
   } catch (err) {
-    res.status(500).json({ error: err.stderr || err.message });
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -643,7 +658,7 @@ app.use(express.static(DIST_DIR));
 
 // â”€â”€â”€ API: Deploy â”€â”€â”€
 app.post('/api/deploy', (req, res) => {
-  exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+  exec('node --use-system-ca deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
     if (err) {
       res.status(500).json({ error: stderr || err.message });
     } else {
@@ -720,9 +735,29 @@ const LANG_MAP = {
   ru: { gl: 'ru', hl: 'ru' }
 };
 
+function truncateSerperQuery(q, maxChars = 100) {
+  if (typeof q !== 'string' || q.length <= maxChars) return q;
+  const slice = q.slice(0, maxChars);
+  const lastSpace = slice.lastIndexOf(' ');
+  return lastSpace > maxChars * 0.6 ? slice.slice(0, lastSpace) : slice;
+}
+
+function runBuild(timeoutMs = 60000) {
+  return new Promise((resolve, reject) => {
+    exec('node build.js', { cwd: LANDING_ROOT, encoding: 'utf8', timeout: timeoutMs }, (err, stdout, stderr) => {
+      if (err) reject(new Error(stderr || err.message));
+      else resolve(stdout);
+    });
+  });
+}
+
 async function serperRequest(endpoint, body) {
   const key = getSerperKey();
   if (!key) throw new Error('No serper_api_key configured in studio.json');
+
+  if (body && typeof body.q === 'string') {
+    body = { ...body, q: truncateSerperQuery(body.q) };
+  }
 
   const response = await fetch(`https://google.serper.dev/${endpoint}`, {
     method: 'POST',
@@ -1847,6 +1882,7 @@ Write the full article in ${targetName}. Use proper Markdown with ## and ### hea
 
 // â”€â”€â”€ Helpers â”€â”€â”€
 function findArticleFile(lang, slug) {
+  if (!isValidLang(lang) || !isValidSlug(slug)) return null;
   const dir = path.join(BLOG_DIR, lang);
   if (!fs.existsSync(dir)) return null;
 
@@ -2613,6 +2649,7 @@ app.post('/api/ai/generate-image', async (req, res) => {
 
 // Serve blog images for preview
 app.get('/api/preview-image/:filename', (req, res) => {
+  if (!isValidWebp(req.params.filename)) return res.status(400).send('Invalid filename');
   const filepath = path.join(BLOG_IMAGES_DIR, req.params.filename);
   if (!fs.existsSync(filepath)) return res.status(404).send('Not found');
   res.type('image/webp').sendFile(filepath);
@@ -2620,6 +2657,7 @@ app.get('/api/preview-image/:filename', (req, res) => {
 
 // Check if hero image exists for a slug
 app.get('/api/hero-image/:slug', (req, res) => {
+  if (!isValidSlug(req.params.slug)) return res.status(400).json({ error: 'Invalid slug' });
   const filename = `${req.params.slug}.webp`;
   const filepath = path.join(BLOG_IMAGES_DIR, filename);
   if (!fs.existsSync(filepath)) return res.json({ exists: false });
@@ -2629,6 +2667,7 @@ app.get('/api/hero-image/:slug', (req, res) => {
 
 // Delete hero image
 app.delete('/api/hero-image/:slug', (req, res) => {
+  if (!isValidSlug(req.params.slug)) return res.status(400).json({ error: 'Invalid slug' });
   const filepath = path.join(BLOG_IMAGES_DIR, `${req.params.slug}.webp`);
   if (fs.existsSync(filepath)) fs.unlinkSync(filepath);
   res.json({ ok: true });
@@ -2641,7 +2680,7 @@ app.get('/api/image-regen-queue', (req, res) => {
 
 app.post('/api/image-regen-queue', (req, res) => {
   const { slug, lang, reason } = req.body;
-  if (!slug || !lang) return res.status(400).json({ error: 'slug and lang required' });
+  if (!isValidSlug(slug) || !isValidLang(lang)) return res.status(400).json({ error: 'Invalid slug or lang' });
   addToRegenQueue(slug, lang, reason || 'manual request');
   res.json({ ok: true, queue: loadRegenQueue() });
 });
@@ -4272,13 +4311,13 @@ app.post('/api/calendar/run-next', async (req, res) => {
       // Step 2: Build
       calendarProgress.step = `build (${i + 1}/${batch.length})`;
       console.log(`${label} Building...`);
-      execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+      await runBuild();
 
       // Step 3: Deploy to FTP
       calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
       console.log(`${label} Deploying...`);
       await new Promise((resolve, reject) => {
-        exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+        exec('node --use-system-ca deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
           if (err) reject(new Error(stderr || err.message));
           else resolve(stdout);
         });
@@ -4475,9 +4514,9 @@ Return ONLY the improved markdown body (no frontmatter).`,
     fs.writeFileSync(filePath, updatedFm + '\n' + improveResult, 'utf8');
 
     // Rebuild + redeploy
-    execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+    await runBuild();
     await new Promise((resolve, reject) => {
-      exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+      exec('node --use-system-ca deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
         if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
       });
     });
@@ -4857,10 +4896,10 @@ function startCalendarScheduler() {
 
         if (repaired > 0) {
           console.log(`[Repair] Repaired ${repaired} images, rebuilding...`);
-          execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+          await runBuild();
           try {
             await new Promise((resolve, reject) => {
-              exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+              exec('node --use-system-ca deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
                 if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
               });
             });
@@ -4979,7 +5018,7 @@ function startCalendarScheduler() {
           // Step 2: Build
           calendarProgress.step = `build (${i + 1}/${batch.length})`;
           console.log(`${label} Building...`);
-          execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+          await runBuild();
 
           // Step 3: Deploy to FTP (with retry)
           calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
@@ -4989,7 +5028,7 @@ function startCalendarScheduler() {
           for (let d = 1; d <= deployAttempts; d++) {
             try {
               await new Promise((resolve, reject) => {
-                exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+                exec('node --use-system-ca deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
                   if (err) reject(new Error(stderr || err.message)); else resolve(stdout);
                 });
               });
@@ -5322,7 +5361,7 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
 
       calendarProgress.step = `build (${i + 1}/${batch.length})`;
       console.log(`${label} Building...`);
-      execSync('node build.js', { cwd: LANDING_ROOT, timeout: 60000 });
+      await runBuild();
 
       calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
       console.log(`${label} Deploying...`);
@@ -5330,7 +5369,7 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           await new Promise((resolve, reject) => {
-            exec('node deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
+            exec('node --use-system-ca deploy.js', { cwd: LANDING_ROOT, timeout: DEPLOY_TIMEOUT_MS }, (err, stdout, stderr) => {
               if (err) reject(new Error(stderr || err.message));
               else resolve(stdout);
             });
