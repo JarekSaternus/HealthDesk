@@ -5479,6 +5479,164 @@ function startCalendarScheduler() {
   // Run first check 30s after startup (don't wait a full hour)
   setTimeout(schedulerCheck, 30000);
 
+  // ─── SEO Coach: daily checkpoint check + weekly auto-scan ───
+  const REPORTS_DIR = path.join(__dirname, 'reports');
+  const seoCoachDailyCheck = async () => {
+    try {
+      if (!fs.existsSync(GSC_KEY_PATH)) return;
+      const state = loadCoachState();
+      const today = new Date().toISOString().slice(0, 10);
+      const pending = (state.checkpoints || []).filter(c => !c.completed && c.date <= today);
+      if (pending.length === 0) {
+        // Sprawdź czy weekly scan jest należny (co 7 dni)
+        const lastScan = state.last_run ? new Date(state.last_run) : new Date(0);
+        const daysSinceScan = (new Date() - lastScan) / (1000 * 60 * 60 * 24);
+        if (daysSinceScan >= 7) {
+          console.log('[SEO Coach] Weekly auto-scan triggered (last scan ' + Math.round(daysSinceScan) + ' days ago)');
+          try {
+            const result = await runSeoCoachScan();
+            console.log(`[SEO Coach] Weekly scan: ${result.detected} detected, ${result.new_tickets} new tickets`);
+            if (result.new_tickets > 0) {
+              showNotification(
+                `SEO Coach: ${result.new_tickets} nowych tickets`,
+                `Wykryto ${result.detected} kandydatów (money pages low CTR).\nSzczegóły: node tools/seo-coach.js list`
+              );
+            }
+          } catch (e) { console.error('[SEO Coach] Weekly scan failed:', e.message); }
+        }
+        return;
+      }
+
+      console.log(`[SEO Coach] ${pending.length} checkpoint(s) pending for ${today}`);
+      if (!fs.existsSync(REPORTS_DIR)) fs.mkdirSync(REPORTS_DIR, { recursive: true });
+
+      const { google } = require('googleapis');
+      const auth = getGscAuth();
+      const sc = google.searchconsole({ version: 'v1', auth });
+      const end = new Date(), start = new Date();
+      start.setDate(start.getDate() - 28);
+
+      for (const cp of pending) {
+        try {
+          // Fetch GSC metrics for każdy URL w checkpoincie
+          const results = [];
+          for (const baseline of cp.baselines || []) {
+            const r = await sc.searchanalytics.query({
+              siteUrl: SITE_URL_GSC,
+              requestBody: {
+                startDate: start.toISOString().slice(0, 10),
+                endDate: end.toISOString().slice(0, 10),
+                dimensions: ['page'],
+                rowLimit: 100
+              }
+            });
+            const row = (r.data.rows || []).find(x => x.keys[0] === baseline.url);
+            const after = row ? {
+              impressions: row.impressions,
+              clicks: row.clicks,
+              ctr: Math.round(row.ctr * 1000) / 10,
+              position: Math.round(row.position * 10) / 10
+            } : { impressions: 0, clicks: 0, ctr: 0, position: null };
+
+            // Klasyfikacja outcome
+            const ctrDiff = after.ctr - baseline.ctr;
+            const posDiff = baseline.position - (after.position || baseline.position); // positive = lepiej
+            let outcome;
+            if (after.clicks >= 1 || (ctrDiff >= 1 && posDiff >= -3)) outcome = 'WINNER';
+            else if (Math.abs(ctrDiff) <= 1 && posDiff >= -3) outcome = 'NEUTRAL';
+            else outcome = 'LOSER';
+
+            results.push({ ...baseline, after, ctrDiff, posDiff, outcome });
+
+            // Update pattern_stats jeśli WINNER
+            if (outcome === 'WINNER') {
+              state.pattern_stats[cp.pattern_type || 'money_page_low_ctr'] = state.pattern_stats[cp.pattern_type || 'money_page_low_ctr'] || {
+                tickets_total: 0, applied: 0, successful: 0, avg_ctr_gain: 0, winning_strategies: {}
+              };
+              const ps = state.pattern_stats[cp.pattern_type || 'money_page_low_ctr'];
+              ps.successful++;
+              ps.avg_ctr_gain = ((ps.avg_ctr_gain * (ps.successful - 1)) + ctrDiff) / ps.successful;
+              if (baseline.strategy) ps.winning_strategies[baseline.strategy] = (ps.winning_strategies[baseline.strategy] || 0) + 1;
+            }
+          }
+
+          // Generuj raport markdown
+          const reportLines = [
+            `# SEO Coach Checkpoint Report — ${cp.date}`,
+            ``,
+            `**Checkpoint:** ${cp.label || cp.id}`,
+            `**Created:** ${cp.created || 'unknown'}`,
+            ``,
+            `## Wyniki`,
+            ``,
+            `| URL | Pos before→after | Imps before→after | Clicks | CTR before→after | Outcome |`,
+            `|---|---|---|---|---|---|`
+          ];
+          for (const r of results) {
+            const url = r.url.replace('https://healthdesk.site', '');
+            const posStr = r.after.position !== null ? `${r.position} → ${r.after.position}` : `${r.position} → (no data)`;
+            const impStr = `${r.impressions} → ${r.after.impressions}`;
+            const ctrStr = `${r.ctr}% → ${r.after.ctr}% (${r.ctrDiff >= 0 ? '+' : ''}${r.ctrDiff.toFixed(1)}pp)`;
+            const emoji = r.outcome === 'WINNER' ? '🟢' : r.outcome === 'NEUTRAL' ? '🟡' : '🔴';
+            reportLines.push(`| ${url} | ${posStr} | ${impStr} | ${r.after.clicks} | ${ctrStr} | ${emoji} ${r.outcome} |`);
+          }
+          reportLines.push('', '## Next steps', '');
+          const winners = results.filter(r => r.outcome === 'WINNER');
+          const neutrals = results.filter(r => r.outcome === 'NEUTRAL');
+          const losers = results.filter(r => r.outcome === 'LOSER');
+          if (winners.length) {
+            reportLines.push(`### 🟢 Winners (${winners.length})`);
+            reportLines.push(`- Skaluj winning pattern (\`${winners.map(w => w.strategy).filter(Boolean).join(', ') || 'detected'}\`) na siblings (PL/DE/...) — nowe tickets w innych językach`);
+            reportLines.push(`- Update \`pattern_stats\` — Coach będzie biased toward this strategy`);
+            reportLines.push('');
+          }
+          if (neutrals.length) {
+            reportLines.push(`### 🟡 Neutral (${neutrals.length})`);
+            reportLines.push(`- Wait 2 more weeks — Google A/B testing CTR może wymagać dłuższego okresu`);
+            reportLines.push(`- Lub: snooze ticket na 14d i zaproponuj inny variant przez Coach`);
+            reportLines.push('');
+          }
+          if (losers.length) {
+            reportLines.push(`### 🔴 Losers (${losers.length})`);
+            reportLines.push(`- Revert title (commit history) lub`);
+            reportLines.push(`- Generate fresh proposals z innym strategy preset (np. jeśli "personal-test" failed → spróbuj "anti-myth")`);
+            reportLines.push('');
+          }
+          reportLines.push('## Komendy');
+          reportLines.push('```bash');
+          reportLines.push('# Sprawdź ticket details');
+          reportLines.push('node tools/seo-coach.js list');
+          reportLines.push('# Auto-scan dla nowych money pages');
+          reportLines.push('node tools/seo-coach.js scan');
+          reportLines.push('```');
+
+          const reportPath = path.join(REPORTS_DIR, `${cp.date}-${cp.id}.md`);
+          await fs.promises.writeFile(reportPath, reportLines.join('\n'), 'utf8');
+
+          cp.completed = true;
+          cp.completed_at = new Date().toISOString();
+          cp.results = results.map(r => ({ url: r.url, outcome: r.outcome, ctrDiff: r.ctrDiff, posDiff: r.posDiff }));
+          cp.report_path = reportPath;
+
+          // Notification
+          const summary = `${winners.length}W / ${neutrals.length}N / ${losers.length}L`;
+          showNotification(
+            `SEO Coach raport: ${cp.label || cp.id}`,
+            `Wyniki: ${summary}\nRaport: ${reportPath}\nUruchom: node tools/seo-coach.js list`
+          );
+          console.log(`[SEO Coach] Checkpoint ${cp.id} completed: ${summary}`);
+        } catch (e) {
+          console.error(`[SEO Coach] Checkpoint ${cp.id} failed:`, e.message);
+        }
+      }
+      saveCoachState(state);
+    } catch (e) {
+      console.error('[SEO Coach] Daily check failed:', e.message);
+    }
+  };
+  setInterval(seoCoachDailyCheck, 24 * 3600000); // raz dziennie
+  setTimeout(seoCoachDailyCheck, 60000);          // pierwszy check minutę po starcie
+
   // â”€â”€â”€ Sitemap resubmit co 7 dni â”€â”€â”€
   const SITEMAP_RESUBMIT_STATE = path.join(__dirname, '.sitemap-resubmit.json');
   const sitemapResubmitCheck = async () => {
