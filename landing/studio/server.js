@@ -54,10 +54,48 @@ const LANG_NAMES = {
 };
 function getLangName(lang) { return LANG_NAMES[lang] || lang; }
 
-const MOJIBAKE_PATTERN = /(?:Ă.|Ä.|Å.|â€|ďż˝|\?\?\?|cannotreliablyprocess|imunabletogenerate)/i;
+// Wymaga konkretnych bigramów które pojawiają się TYLKO w mojibake CP1250→UTF-8
+// (po prostu Ă/Ä byłoby false-positive na poprawnych znakach jak Ä, Ć, Č).
+// - Łacina/PL/DE/ES/IT: Ă³, Ă©, Ă¨, ĂĽ, ĂŁ, Ä…, Ä‡, Ä™, ÄŤ, Ĺ‚, Ĺ›, ĹĽ, Ĺş, Ăź
+// - Cyrillic: Đ°-Đż, ĐĽ, ĐĽ, ŃŤ, Ńŕ, Ńŋ
+// - CJK po CP1250: ăÂ, ăĽ, ăŤ, ĺ®, ĺ‹, ĺş, ć–, ě», í"
+// - Smart-quotes: â€™, â€"
+// - Replacement char: ďż˝, ???
+// - Pathological AI output (np. zwrócone jako tekst slug)
+const MOJIBAKE_PATTERN = /(?:Ă[³©¨ĽąŁĽłŻş]|Ä[…‡™ŤĽą]|Ĺ[‚›ĽşĽż]|Ăź|Đ[°-żĽ]|ŃŤ|Ńŕ|Ńŋ|Ń€|ăÂ|ă[ĽŤÂ]|ĺ[®‹ş]|ć[–"]|ě[»–]|í[""°"]|â€[™"-]|ďż˝|\?\?\?|cannotreliablyprocess|imunabletogenerate)/i;
 
 function hasBrokenEncoding(value) {
   return MOJIBAKE_PATTERN.test(String(value || ''));
+}
+
+// Próba odzyskania mojibake przez round-trip CP1250 → UTF-8.
+// Zwraca naprawiony string lub null jeśli odzyskanie zostawiło utracone znaki.
+// Mojibake powstaje gdy UTF-8 bytes są odczytane jako CP1250 i zapisane jako UTF-8.
+const _iconv = require('iconv-lite');
+const PATHOLOGICAL_RE = /(cannotreliablyprocess|imunabletogenerate|notreadableguide|cannot-process)/i;
+function recoverMojibake(value) {
+  const s = String(value || '');
+  if (!hasBrokenEncoding(s)) return s;
+  try {
+    const recovered = _iconv.decode(_iconv.encode(s, 'win1250'), 'utf-8');
+    if ((recovered.match(/[�]/g) || []).length >= 2) return null; // utracone znaki
+    if (PATHOLOGICAL_RE.test(recovered)) return null; // AI error message
+    return recovered;
+  } catch {
+    return null;
+  }
+}
+
+// Sanityzacja keywordów/topiców przed wysłaniem do Claude API:
+// próbuje odzyskać mojibake. Zwraca clean string albo null (caller powinien
+// odrzucić zadanie zamiast wysyłać śmieci do AI — to one tworzy patological
+// slugs typu "icannotreliablyprocess..." gdy dostaje zepsuty tekst).
+function sanitizeKeywordForAI(value) {
+  const s = String(value || '').trim();
+  if (!s) return null;
+  if (PATHOLOGICAL_RE.test(s)) return null;
+  if (!hasBrokenEncoding(s)) return s;
+  return recoverMojibake(s);
 }
 
 function normalizeDateOnly(value) {
@@ -3412,48 +3450,6 @@ app.get('/api/ai/autopilot/status', (req, res) => {
   res.json(autopilotProgress || { status: 'idle' });
 });
 
-// â”€â”€â”€ Helper: slugify for autopilot â”€â”€â”€
-function autoSlugify(text) {
-  let slug = text.toLowerCase()
-    .replace(/[Ä…Ă ]/g,'a').replace(/[Ä‡ÄŤ]/g,'c').replace(/[Ä™]/g,'e')
-    .replace(/[Ĺ‚Äş]/g,'l').replace(/[Ĺ„Ă±]/g,'n').replace(/[ĂłĂ˛]/g,'o')
-    .replace(/[Ĺ›Ĺˇ]/g,'s').replace(/[ĹşĹĽĹľ]/g,'z').replace(/[ĂĽĂş]/g,'u')
-    .replace(/[Ă¶]/g,'o').replace(/[Ă¤]/g,'a').replace(/[Ăź]/g,'ss')
-    .replace(/[Ă¨Ă©ĂŞĂ«]/g,'e').replace(/[Ă¬Ă­Ă®ĂŻ]/g,'i').replace(/[ĂąĂ»ĂĽ]/g,'u')
-    // Cyrillic transliteration
-    .replace(/[Đ°]/g,'a').replace(/[Đ±]/g,'b').replace(/[Đ˛]/g,'v').replace(/[Đł]/g,'g')
-    .replace(/[Đ´]/g,'d').replace(/[Đµ]/g,'e').replace(/[Đ¶]/g,'zh').replace(/[Đ·]/g,'z')
-    .replace(/[Đ¸]/g,'i').replace(/[Đą]/g,'y').replace(/[Đş]/g,'k').replace(/[Đ»]/g,'l')
-    .replace(/[ĐĽ]/g,'m').replace(/[Đ˝]/g,'n').replace(/[Đľ]/g,'o').replace(/[Đż]/g,'p')
-    .replace(/[Ń€]/g,'r').replace(/[Ń]/g,'s').replace(/[Ń‚]/g,'t').replace(/[Ń]/g,'u')
-    .replace(/[Ń„]/g,'f').replace(/[Ń…]/g,'kh').replace(/[Ń†]/g,'ts').replace(/[Ń‡]/g,'ch')
-    .replace(/[Ń]/g,'sh').replace(/[Ń‰]/g,'sch').replace(/[ŃŠŃŚ]/g,'').replace(/[Ń‹]/g,'y')
-    .replace(/[ŃŤ]/g,'e').replace(/[ŃŽ]/g,'yu').replace(/[ŃŹ]/g,'ya').replace(/[Ń‘]/g,'yo')
-    // Turkish special chars
-    .replace(/[Äź]/g,'g').replace(/[Ä±]/g,'i').replace(/[Ĺź]/g,'s').replace(/[Ă§]/g,'c')
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '')
-    .slice(0, 80);
-  return slug;
-}
-
-// â”€â”€â”€ Helper: AI-based slug for CJK languages â”€â”€â”€
-async function aiSlugify(keyword, lang) {
-  const isCJK = ['ja', 'ko', 'zh-CN'].includes(lang);
-  if (!isCJK) return autoSlugify(keyword);
-  try {
-    const result = await callClaude(
-      'You generate URL slugs. Return ONLY the slug, nothing else.',
-      `Generate a descriptive English URL slug (3-6 words, lowercase, hyphens) for this ${lang} blog topic:\n"${keyword}"\n\nReturn ONLY the slug like: desk-exercises-back-pain`,
-      100, { model: 'haiku' }
-    );
-    const slug = result.trim().toLowerCase().replace(/[^a-z0-9-]/g, '').replace(/-+/g, '-').replace(/^-|-$/g, '').slice(0, 80);
-    return slug || autoSlugify(keyword);
-  } catch (e) {
-    console.error('[aiSlugify] Failed, using fallback:', e.message);
-    return autoSlugify(keyword);
-  }
-}
 
 function autoSlugify(text) {
   if (hasBrokenEncoding(text)) return '';
@@ -3461,19 +3457,24 @@ function autoSlugify(text) {
 }
 
 async function aiSlugify(keyword, lang) {
+  // Sanityzacja keyworda przed Claude — zepsuty tekst tworzy patological
+  // slugs typu "icannotreliablyprocess..." które potem trafiają na FS.
+  const cleanKw = sanitizeKeywordForAI(keyword);
+  if (!cleanKw) return autoSlugify(keyword);
+
   const needsAiSlug = ['ja', 'ko', 'zh-CN', 'ru'].includes(lang);
-  if (!needsAiSlug) return autoSlugify(keyword);
+  if (!needsAiSlug) return autoSlugify(cleanKw);
   try {
     const result = await callClaude(
       'You generate URL slugs. Return ONLY the slug, nothing else.',
-      `Generate a descriptive English URL slug (3-6 words, lowercase, hyphens) for this ${lang} blog topic:\n"${keyword}"\n\nReturn ONLY the slug like: desk-exercises-back-pain`,
+      `Generate a descriptive English URL slug (3-6 words, lowercase, hyphens) for this ${lang} blog topic:\n"${cleanKw}"\n\nReturn ONLY the slug like: desk-exercises-back-pain`,
       100, { model: 'haiku' }
     );
     const slug = sanitizeSlug(result);
-    return !isSuspiciousSlug(slug) ? slug : autoSlugify(keyword);
+    return !isSuspiciousSlug(slug) ? slug : autoSlugify(cleanKw);
   } catch (e) {
     console.error('[aiSlugify] Failed, using fallback:', e.message);
-    return autoSlugify(keyword);
+    return autoSlugify(cleanKw);
   }
 }
 
@@ -3488,6 +3489,13 @@ async function runAutopilot(lang, topic, persona) {
       autopilotProgress.steps = steps;
     }
   };
+
+  // Sanityzacja inputu — bez tego mojibake topic produkuje patological slugs.
+  const cleanTopic = sanitizeKeywordForAI(topic);
+  if (!cleanTopic) {
+    throw new Error(`Topic ma uszkodzone kodowanie i nie da się go odzyskać: "${topic}"`);
+  }
+  topic = cleanTopic;
 
   try {
     // Step 1: Keyword Research
