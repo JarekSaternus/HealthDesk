@@ -25,3 +25,5 @@ landing/studio/server-*.log
 landing/studio/gsc_history.json
 landing/studio/insights.json
 landing/studio/scheduler_log.json
+landing/studio/seo_coach_state.json
+landing/studio/studio.json.bak.*
