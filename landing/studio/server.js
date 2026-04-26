@@ -1131,7 +1131,7 @@ Return ONLY valid JSON:
         '---'
       ].filter(Boolean).join('\n');
       // Note: tags populated later by autopilot's final save step
-      fs.writeFileSync(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
+      await fs.promises.writeFile(path.join(langDir, `${slug}.md`), frontmatterYaml + '\n' + markdown, 'utf8');
       console.log(`[AI Draft] Auto-saved to ${lang}/${slug}.md`);
     } catch (saveErr) {
       console.error(`[AI Draft] Auto-save failed: ${saveErr.message}`);
@@ -1882,7 +1882,7 @@ Write the full article in ${targetName}. Use proper Markdown with ## and ### hea
     yamlLines.push('---');
 
     const fileContent = yamlLines.join('\n') + '\n' + contentResult;
-    fs.writeFileSync(targetPath, fileContent, 'utf8');
+    await fs.promises.writeFile(targetPath, fileContent, 'utf8');
 
     // Step 4: Update source article with sibling reference
     const sourceFile = findArticleFile(sourceLang, slug);
@@ -1899,7 +1899,7 @@ Write the full article in ${targetName}. Use proper Markdown with ## and ### hea
             sourceContent = sourceContent.slice(0, fmEnd) + `siblings:\n  ${targetLang}: "${targetSlug}"\n` + sourceContent.slice(fmEnd);
           }
         }
-        fs.writeFileSync(sourceFile, sourceContent, 'utf8');
+        await fs.promises.writeFile(sourceFile, sourceContent, 'utf8');
       }
     }
 
@@ -3528,7 +3528,7 @@ async function runAutopilot(lang, topic, persona) {
     const filePath = path.join(langDir, `${slug}.md`);
     if (!fs.existsSync(filePath)) {
       const content = `---\ntitle: "${title.replace(/"/g, '\\"')}"\nslug: "${slug}"\ndate: ${new Date().toISOString().split('T')[0]}\ndescription: "${description.replace(/"/g, '\\"')}"\nkeyword: "${topic.replace(/"/g, '\\"')}"\ntags: [${(outline.tags || []).map(t => `"${t}"`).join(', ')}]\nlang: ${lang}\n---\n\n`;
-      fs.writeFileSync(filePath, content, 'utf8');
+      await fs.promises.writeFile(filePath, content, 'utf8');
     }
     const studio = loadStudioData();
     studio.articles[`${lang}/${slug}`] = { status: 'draft' };
@@ -3632,7 +3632,7 @@ async function runAutopilot(lang, topic, persona) {
       '---'
     ].filter(Boolean).join('\n');
 
-    fs.writeFileSync(filePath, finalFrontmatter + '\n' + currentMarkdown, 'utf8');
+    await fs.promises.writeFile(filePath, finalFrontmatter + '\n' + currentMarkdown, 'utf8');
     syncArticleKeyword(lang, slug, topic);
 
     // Update siblings in existing posts to include this new one
@@ -3650,7 +3650,7 @@ async function runAutopilot(lang, topic, persona) {
                 sibContent = sibContent.slice(0, fmEnd) + `siblings:\n  ${lang}: "${slug}"\n` + sibContent.slice(fmEnd);
               }
             }
-            fs.writeFileSync(sibFile, sibContent, 'utf8');
+            await fs.promises.writeFile(sibFile, sibContent, 'utf8');
             console.log(`[Autopilot] Updated sibling ${sibLang}/${sibSlug} with ${lang}/${slug}`);
           }
         }
@@ -4354,11 +4354,13 @@ app.post('/api/calendar/run-next', async (req, res) => {
     }
   }
 
-  // Schedule next run
+  // Schedule next run — bump pełen interwał tylko jeśli był sukces;
+  // inaczej retry jutro (mirror logiki z calendar scheduler).
   const cal3 = loadCalendar();
   if (cal3.auto_enabled) {
     const nextDate = new Date();
-    nextDate.setDate(nextDate.getDate() + (cal3.interval_days || 3));
+    const bumpDays = completed > 0 ? (cal3.interval_days || 3) : 1;
+    nextDate.setDate(nextDate.getDate() + bumpDays);
     cal3.next_run = nextDate.toISOString();
     saveCalendar(cal3);
   }
@@ -4519,7 +4521,7 @@ Return ONLY the improved markdown body (no frontmatter).`,
     const updatedDate = new Date().toISOString().split('T')[0];
     const frontmatterStr = content.split('---').slice(0, 2).join('---') + '---';
     const updatedFm = frontmatterStr.replace(/date: .+/, `date: ${updatedDate}`);
-    fs.writeFileSync(filePath, updatedFm + '\n' + improveResult, 'utf8');
+    await fs.promises.writeFile(filePath, updatedFm + '\n' + improveResult, 'utf8');
 
     // Rebuild + redeploy
     await runBuild();
@@ -5084,19 +5086,22 @@ function startCalendarScheduler() {
       runLog.errors = runLog.results.filter(r => r.status === 'error').length;
       schedulerLog.runs.push(runLog);
       if (schedulerLog.runs.length > 50) schedulerLog.runs = schedulerLog.runs.slice(-50);
-      fs.writeFileSync(SCHEDULER_LOG, JSON.stringify(schedulerLog, null, 2), 'utf-8');
+      await fs.promises.writeFile(SCHEDULER_LOG, JSON.stringify(schedulerLog, null, 2), 'utf-8');
       console.log(`[Scheduler] Log saved: ${completed} ok, ${runLog.errors} errors`);
 
-      // Set next_run to the next scheduled date (date-only, no time component)
+      // Set next_run: bump tylko jeśli batch dał co najmniej 1 sukces.
+      // Inaczej retry jutro (nie skipuj naprzód mimo że nic się nie udało —
+      // bug poprzedniej wersji: next_run leciał +3 dni mimo 0/12 successes).
       const cal3 = loadCalendar();
       const nextDate = new Date(today);
-      nextDate.setDate(nextDate.getDate() + (cal3.interval_days || 3));
+      const bumpDays = completed > 0 ? (cal3.interval_days || 3) : 1;
+      nextDate.setDate(nextDate.getDate() + bumpDays);
       cal3.next_run = nextDate.toISOString().split('T')[0];
       saveCalendar(cal3);
 
       calendarProgress.status = 'done';
       calendarProgress.batch_done = batch.length;
-      console.log(`[Scheduler] Batch done: ${completed}/${batch.length}, next: ${cal3.next_run}`);
+      console.log(`[Scheduler] Batch done: ${completed}/${batch.length}, next: ${cal3.next_run} (+${bumpDays}d)`);
 
       // Windows notification with results
       const okResults = calendarProgress.results.filter(r => r.status === 'ok');
@@ -5105,8 +5110,8 @@ function startCalendarScheduler() {
       showNotification(
         `Blog Studio: ${completed}/${batch.length} opublikowanych`,
         errResults.length > 0
-          ? `JÄ™zyki: ${langs}. BĹ‚Ä™dy: ${errResults.length}. NastÄ™pny: ${cal3.next_run}`
-          : `JÄ™zyki: ${langs}. NastÄ™pny run: ${cal3.next_run}`
+          ? `Języki: ${langs}. Błędy: ${errResults.length}. Następny: ${cal3.next_run}`
+          : `Języki: ${langs}. Następny run: ${cal3.next_run}`
       );
 
       // Run GA4+GSC snapshot and opportunities analysis after batch
@@ -5172,7 +5177,7 @@ function startCalendarScheduler() {
 
           history.snapshots.push(snapshot);
           if (history.snapshots.length > 100) history.snapshots = history.snapshots.slice(-100);
-          fs.writeFileSync(historyPath, JSON.stringify(history, null, 2), 'utf-8');
+          await fs.promises.writeFile(historyPath, JSON.stringify(history, null, 2), 'utf-8');
           console.log('[Snapshot] GA4+GSC saved to history');
 
           // Opportunities analysis (GSC + GA4 combined)
@@ -5244,7 +5249,7 @@ function startCalendarScheduler() {
         feedpath: 'https://healthdesk.site/sitemap.xml',
       });
       state.lastResubmit = new Date().toISOString();
-      fs.writeFileSync(SITEMAP_RESUBMIT_STATE, JSON.stringify(state, null, 2), 'utf-8');
+      await fs.promises.writeFile(SITEMAP_RESUBMIT_STATE, JSON.stringify(state, null, 2), 'utf-8');
       console.log(`[Sitemap Resubmit] Sitemap zgĹ‚oszona ponownie do GSC (co 7 dni)`);
     } catch (e) {
       console.error('[Sitemap Resubmit] Error:', e.message);
