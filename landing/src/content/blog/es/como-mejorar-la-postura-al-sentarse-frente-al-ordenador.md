@@ -1,9 +1,10 @@
 ---
 title: "Postura Correcta al Ordenador: Guía Práctica"
-slug: "c-omo-mejorar-la-postura-al-sentarse-frente-al-ordenador"
+slug: "como-mejorar-la-postura-al-sentarse-frente-al-ordenador"
+legacy_slugs: ["c-omo-mejorar-la-postura-al-sentarse-frente-al-ordenador"]
 date: 2026-04-06
 description: "Aprende la postura correcta al trabajar en el ordenador para evitar dolores de espalda y cuello. Consejos prácticos y ejercicios efectivos."
-keyword: "cĂłmo mejorar la postura al sentarse frente al ordenador"
+keyword: "cómo mejorar la postura al sentarse frente al ordenador"
 tags: []
 lang: es
 faq:
@@ -16,7 +17,7 @@ faq:
   - q: "¿Puede la postura encorvada afectar la concentración mental?"
     a: "Sí, la postura encorvada cierra el tórax, reduce la capacidad pulmonar y disminuye la oxigenación cerebral, causando sensación de niebla mental."
 image_alt: "Postura Correcta al Ordenador: Guía Práctica"
-heroImage: "c-omo-mejorar-la-postura-al-sentarse-frente-al-ordenador.webp"
+heroImage: "como-mejorar-la-postura-al-sentarse-frente-al-ordenador.webp"
 ---
 ## ¿Por qué es importante la postura correcta al ordenador?
 
