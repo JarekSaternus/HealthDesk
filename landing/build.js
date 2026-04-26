@@ -476,7 +476,7 @@ function build() {
       _resolve: resolve,
       lang,
       lang_links: generateLangLinks(lang, '/'),
-      blog_link: hasBlog ? `<li><a href="/${lang}/blog/">Blog</a></li>` : ''
+      blog_link: hasBlog ? `<li><a href="/${lang}/blog/">${resolve('footer.blog')}</a></li>` : ''
     };
     const landingContent = renderTemplate(landingTemplate, landingVars);
 
@@ -562,7 +562,21 @@ function build() {
           : '';
 
         // Generate visible FAQ section from frontmatter
-        const faqLabel = lang === 'pl' ? 'Najczęściej zadawane pytania' : 'Frequently Asked Questions';
+        const FAQ_LABELS = {
+          pl: 'Najczęściej zadawane pytania',
+          en: 'Frequently Asked Questions',
+          de: 'Häufig gestellte Fragen',
+          es: 'Preguntas frecuentes',
+          fr: 'Questions fréquentes',
+          it: 'Domande frequenti',
+          ja: 'よくある質問',
+          ko: '자주 묻는 질문',
+          'pt-BR': 'Perguntas frequentes',
+          ru: 'Часто задаваемые вопросы',
+          tr: 'Sıkça Sorulan Sorular',
+          'zh-CN': '常见问题'
+        };
+        const faqLabel = FAQ_LABELS[lang] || FAQ_LABELS.en;
         const visibleFaqHtml = (post.faq && Array.isArray(post.faq) && post.faq.length > 0)
           ? `<section class="blog-faq"><h2>${faqLabel}</h2><div class="faq-list">${post.faq.map(item =>
               `<details class="faq-item"><summary>${item.q}</summary><p>${item.a}</p></details>`
