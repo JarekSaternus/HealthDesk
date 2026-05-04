@@ -1475,7 +1475,7 @@ Return ONLY valid JSON, no markdown fences.
 
 ARTICLE TO AUDIT:
 ${markdown}`,
-    3000, { model: 'haiku' }
+    5000, { model: 'haiku' }
   );
 
   const parsed = parseJsonResponse(result);
@@ -2579,7 +2579,9 @@ Requirements:
 
 After generating the image, write a single line of SEO alt text (max 125 characters) in ${langName} describing what the image shows. Format: ALT: <your alt text>`;
 
-  const MAX_RETRIES = 3;
+  const MAX_RETRIES = 5;
+  // Exp backoff dla Gemini "high demand" — overload zwykle ustępuje po ~30-60s.
+  const RETRY_DELAYS = [3000, 6000, 12000, 30000, 60000];
   let imageBase64 = null;
   let imageMime = null;
   let altText = title;
@@ -2625,7 +2627,7 @@ After generating the image, write a single line of SEO alt text (max 125 charact
       lastError = err;
       console.error(`[Image] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
       if (attempt < MAX_RETRIES) {
-        const delay = attempt * 3000;
+        const delay = RETRY_DELAYS[attempt - 1] || 60000;
         console.log(`[Image] Retrying in ${delay / 1000}s...`);
         await new Promise(r => setTimeout(r, delay));
       }
