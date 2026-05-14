@@ -1,7 +1,8 @@
 ---
 title: "Pomodoro vs 52-17: I Tried Both for 30 Days (Honest Results)"
 slug: "pomodoro-vs-52-17"
-date: 2026-04-26
+date: 2026-02-25
+updated: 2026-04-26
 description: "Real 30-day side-by-side test of Pomodoro 25/5 and the 52/17 method. Which one had me getting more done — and where each technique falls short."
 keyword: "pomodoro vs 52-17"
 tags: ["productivity", "pomodoro", "breaks", "52-17"]

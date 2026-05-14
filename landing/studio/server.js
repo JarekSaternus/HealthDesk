@@ -154,11 +154,36 @@ async function callClaude(systemPrompt, userPrompt, maxTokens = 2000, { model = 
 
     const data = await response.json();
     console.log(`[AI] Response received (${data.usage?.output_tokens || '?'} tokens)`);
-    return data.content[0].text;
+    return fixMojibake(data.content[0].text);
   } catch (err) {
     clearTimeout(timeout);
     if (err.name === 'AbortError') throw new Error('Claude API timeout (180s)');
     throw err;
+  }
+}
+
+// Heuristic mojibake fix: detect UTF-8 misinterpreted as cp1250 and reverse it.
+// Common markers: "Ä", "Ĺ", "Ăł" (cp1250 representations of Polish/Latin diacritics).
+let _iconvLite = null;
+function fixMojibake(text) {
+  if (!text || typeof text !== 'string') return text;
+  const markers = ['Ä', 'Ĺ', 'Ăł', 'Ä‡', 'Ä…', 'Ä™', 'Ă©', 'ÄŤ', 'Ĺ›', 'Ĺ‚'];
+  if (!markers.some(m => text.includes(m))) return text;
+  if (!_iconvLite) {
+    try { _iconvLite = require('iconv-lite'); }
+    catch { return text; }
+  }
+  try {
+    const fixed = _iconvLite.encode(text, 'win1250').toString('utf-8');
+    const before = markers.reduce((n, m) => n + (text.split(m).length - 1), 0);
+    const after = markers.reduce((n, m) => n + (fixed.split(m).length - 1), 0);
+    if (after < before) {
+      console.log(`[AI] Mojibake auto-fixed (${before} → ${after} markers)`);
+      return fixed;
+    }
+    return text;
+  } catch {
+    return text;
   }
 }
 
@@ -3617,7 +3642,7 @@ app.post('/api/seo-coach/tickets/:id/accept', async (req, res) => {
     return res.status(400).json({ error: 'invalid lang/slug in ticket' });
   }
 
-  // Edit frontmatter title + description + bump date
+  // Edit frontmatter title + description + bump `updated` (preserve original `date` to keep freshness signal in GSC)
   const filePath = path.join(BLOG_DIR, t.lang, `${t.slug}.md`);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'md file missing' });
   let md = fs.readFileSync(filePath, 'utf8');
@@ -3626,7 +3651,11 @@ app.post('/api/seo-coach/tickets/:id/accept', async (req, res) => {
   const escDesc = String(proposal.description).replace(/"/g, '\\"');
   md = md.replace(/^title:\s*"[^"]*"/m, `title: "${escTitle}"`);
   md = md.replace(/^description:\s*"[^"]*"/m, `description: "${escDesc}"`);
-  md = md.replace(/^date:\s*\d{4}-\d{2}-\d{2}/m, `date: ${today}`);
+  if (/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(md)) {
+    md = md.replace(/^updated:\s*\d{4}-\d{2}-\d{2}/m, `updated: ${today}`);
+  } else {
+    md = md.replace(/^(date:\s*\d{4}-\d{2}-\d{2})$/m, `$1\nupdated: ${today}`);
+  }
   await fs.promises.writeFile(filePath, md, 'utf8');
 
   t.status = 'applied';
@@ -5711,6 +5740,12 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
 
   res.json({ ok: true, batch_size: batch.length, keywords: batch.map(k => ({ lang: k.lang, keyword: k.keyword })) });
 
+  const SCHEDULER_LOG = path.join(__dirname, 'scheduler_log.json');
+  let schedulerLog;
+  try { schedulerLog = JSON.parse(fs.readFileSync(SCHEDULER_LOG, 'utf-8')); }
+  catch { schedulerLog = { runs: [] }; }
+  const runLog = { date: new Date().toISOString(), source: 'recover-scheduled', batch_size: batch.length, results: [] };
+
   let completed = 0;
 
   for (let i = 0; i < batch.length; i++) {
@@ -5814,16 +5849,30 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
       console.log(`${label} Finalized: ${articleUrl}`);
 
       calendarProgress.results.push({ lang: item.lang, slug, status: 'ok' });
+      runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'ok', slug });
       completed++;
       console.log(`${label} DONE - ${slug} is LIVE (${completed}/${batch.length})`);
     } catch (err) {
       console.error(`${label} Error: ${err.message}`);
       calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
+      runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'error', error: err.message });
 
       const cal2 = loadCalendar();
       updateKeywordStatus(cal2, item.lang, item.keyword, { status: 'scheduled' });
       saveCalendar(cal2);
     }
+  }
+
+  // Save scheduler log
+  runLog.completed = completed;
+  runLog.errors = runLog.results.filter(r => r.status === 'error').length;
+  schedulerLog.runs.push(runLog);
+  if (schedulerLog.runs.length > 50) schedulerLog.runs = schedulerLog.runs.slice(-50);
+  try {
+    await fs.promises.writeFile(SCHEDULER_LOG, JSON.stringify(schedulerLog, null, 2), 'utf-8');
+    console.log(`[Recovery] Log saved: ${completed} ok, ${runLog.errors} errors`);
+  } catch (e) {
+    console.error(`[Recovery] Failed to save scheduler log: ${e.message}`);
   }
 
   const cal3 = loadCalendar();

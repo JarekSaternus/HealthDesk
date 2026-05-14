@@ -9,6 +9,36 @@ const path = require('path');
 const { marked } = require('marked');
 const fm = require('front-matter');
 
+// Slugify heading IDs (diacritics-safe) so ToC anchors work
+function slugifyHeading(text) {
+  return String(text)
+    .normalize('NFKD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 80);
+}
+{
+  const usedIds = new Map();
+  marked.use({
+    renderer: {
+      heading({ tokens, depth }) {
+        const text = this.parser.parseInline(tokens);
+        const plain = String(text).replace(/<[^>]+>/g, '');
+        let id = slugifyHeading(plain);
+        if (!id) id = `h${depth}`;
+        const count = usedIds.get(id) || 0;
+        usedIds.set(id, count + 1);
+        if (count) id = `${id}-${count}`;
+        return `<h${depth} id="${id}">${text}</h${depth}>\n`;
+      }
+    }
+  });
+}
+
 // ─── Config ───
 const SITE_URL = 'https://healthdesk.site';
 const LANGUAGES = ['pl', 'en', 'de', 'es', 'fr', 'pt-BR', 'ja', 'zh-CN', 'ko', 'it', 'tr', 'ru'];

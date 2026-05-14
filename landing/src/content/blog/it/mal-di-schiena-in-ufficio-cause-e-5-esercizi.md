@@ -3,7 +3,7 @@ title: "Mal di schiena in ufficio: cause e 5 esercizi"
 slug: "mal-di-schiena-in-ufficio-cause-e-5-esercizi"
 date: 2026-04-20
 description: "Scopri le cause del mal di schiena in ufficio e 5 esercizi efficaci per prevenirlo. Guida completa con consigli pratici."
-keyword: "perchĂ© mi fa male la schiena dopo una giornata in ufficio"
+keyword: "perché mi fa male la schiena dopo una giornata in ufficio"
 tags: []
 lang: it
 faq:
@@ -18,11 +18,20 @@ faq:
 image_alt: "Mal di schiena in ufficio: cause e 5 esercizi"
 heroImage: "mal-di-schiena-in-ufficio-cause-e-5-esercizi.webp"
 ---
+**In breve:** il mal di schiena dopo una giornata in ufficio dipende quasi sempre da tre fattori che si sommano — postura statica per ore, sedia o scrivania mal configurate, e tensione muscolare da stress. La soluzione non è "una postura giusta", ma **micro-pause ogni 45–60 minuti** combinate con 5 esercizi specifici che inverti la flessione lombare. Sotto trovi cause, esercizi pratici e quando rivolgerti a un medico.
+
+### Indice dei contenuti
+- [Perché il mal di schiena è così comune in ufficio](#perche-il-mal-di-schiena-e-cosi-comune-in-ufficio)
+- [Le principali cause del mal di schiena da scrivania](#le-principali-cause-del-mal-di-schiena-da-scrivania)
+- [I 5 migliori esercizi per alleviarlo](#i-5-migliori-esercizi-per-alleviare-il-mal-di-schiena-in-ufficio)
+- [Segnali di allarme per il mal di schiena cronico](#quali-sono-i-segnali-di-allarme-per-il-mal-di-schiena-cronico)
+- [Consigli ergonomici e routine quotidiana](#consigli-ergonomici-per-trasformare-il-tuo-spazio-di-lavoro)
+
 ## Perché il mal di schiena è così comune in ufficio?
 
-Ricordo ancora la prima volta che ho finito una giornata di lavoro e non riuscivo quasi ad alzarmi dalla sedia. Non avevo sollevato pesi, non avevo fatto nulla di "fisicamente impegnativo" — eppure la schiena urlava. Suona familiare?
-
 Il mal di schiena da lavoro sedentario è oggi una delle cause più frequenti di assenza lavorativa in Europa. Uno [studio pubblicato su The Lancet](https://doi.org/10.1016/S0140-6736(12)60694-8) ha stimato che il dolore lombare è la prima causa mondiale di disabilità lavorativa — un dato che fa riflettere, considerando quanto diamo per scontato stare semplicemente seduti.
+
+Ricordo ancora la prima volta che ho finito una giornata di lavoro e non riuscivo quasi ad alzarmi dalla sedia. Non avevo sollevato pesi, non avevo fatto nulla di "fisicamente impegnativo" — eppure la schiena urlava. Suona familiare?
 
 ### La postura scorretta davanti al computer
 
