@@ -3748,6 +3748,77 @@ app.post('/api/seo-coach/cannibalization-scan', async (req, res) => {
   catch (err) { console.error('[Cannibalization] scan error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ CWV monitoring per template (PageSpeed Insights) â”€â”€â”€
+const CWV_HISTORY = path.join(__dirname, 'cwv_history.json');
+const CWV_TEMPLATES = {
+  landing: 'https://healthdesk.site/en/',
+  'blog-index': 'https://healthdesk.site/en/blog/',
+  'blog-post': 'https://healthdesk.site/en/blog/workrave-vs-stretchly-which-break-reminder-fits-you/',
+};
+
+async function runCwvScan() {
+  const { parsePsi, assess, detectRegression } = require('./tools/cwv-monitor');
+  let history = {};
+  try { history = JSON.parse(fs.readFileSync(CWV_HISTORY, 'utf8')); } catch { /* pierwszy run */ }
+  const psiKey = (() => { try { return JSON.parse(fs.readFileSync(STUDIO_DATA, 'utf8')).pagespeed_api_key || ''; } catch { return ''; } })();
+  const today = new Date().toISOString().slice(0, 10);
+  const snapshot = {};
+  const regressions = [];
+
+  for (const [tpl, url] of Object.entries(CWV_TEMPLATES)) {
+    try {
+      const api = `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance${psiKey ? `&key=${psiKey}` : ''}`;
+      const resp = await fetch(api, { signal: AbortSignal.timeout(60000) });
+      if (!resp.ok) throw new Error(`PSI ${resp.status}`);
+      const cur = assess(parsePsi(await resp.json()));
+      const prev = history[tpl] && history[tpl].latest;
+      const reg = detectRegression(prev, cur);
+      if (reg.length) regressions.push({ template: tpl, url, issues: reg });
+      history[tpl] = history[tpl] || { snapshots: [] };
+      history[tpl].latest = cur;
+      history[tpl].snapshots.push({ date: today, ...cur });
+      if (history[tpl].snapshots.length > 30) history[tpl].snapshots = history[tpl].snapshots.slice(-30);
+      snapshot[tpl] = cur;
+      console.log(`[CWV] ${tpl}: LCP ${cur.lcp.value}(${cur.lcp.rating}) INP ${cur.inp.value}(${cur.inp.rating}) CLS ${cur.cls.value}(${cur.cls.rating}) [${cur.source}]`);
+    } catch (e) {
+      console.error(`[CWV] ${tpl} failed: ${e.message}`);
+      snapshot[tpl] = { error: e.message };
+    }
+  }
+  fs.writeFileSync(CWV_HISTORY, JSON.stringify(history, null, 2), 'utf8');
+
+  if (regressions.length) {
+    const state = loadCoachState();
+    state.tickets = state.tickets || [];
+    const expires = new Date(); expires.setDate(expires.getDate() + 30);
+    for (const r of regressions) {
+      const key = `cwv:${r.template}`;
+      if (state.tickets.some(t => t.type === 'cwv_regression' && t.status === 'open' && t.template === r.template)) continue;
+      state.tickets.push({
+        id: `wk_${today}_${(state.tickets.length + 1).toString().padStart(3, '0')}`,
+        type: 'cwv_regression', template: r.template, url: r.url, status: 'open',
+        created: today, expires: expires.toISOString().slice(0, 10),
+        evidence: `CWV regresja [${r.template}]: ${r.issues.join(' · ')}`,
+        recommended_actions: ['sprawdź zmiany w templatce/CSS/obrazach', 'hero LCP: priorytet/preload', 'CLS: width/height na media', 'INP: zmniejsz JS/long tasks'],
+        outcome: null
+      });
+    }
+    saveCoachState(state);
+  }
+  try {
+    const dir = path.join(__dirname, 'reports', 'seo-audits');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `${today}-cwv.json`), JSON.stringify({ snapshot, regressions }, null, 2), 'utf8');
+  } catch { /* best-effort */ }
+  console.log(`[CWV] Scan done — ${regressions.length} regresji`);
+  return { snapshot, regressions };
+}
+
+app.post('/api/seo/cwv-scan', async (req, res) => {
+  try { res.json({ ok: true, ...(await runCwvScan()) }); }
+  catch (err) { console.error('[CWV] scan error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/seo-coach/run', async (req, res) => {
   try {
     const result = await runSeoCoachScan();
@@ -5817,6 +5888,17 @@ function startCalendarScheduler() {
               );
             }
           } catch (e) { console.error('[Cannibalization] Weekly scan failed:', e.message); }
+
+          // CWV weekly scan (per template, PSI)
+          try {
+            const wv = await runCwvScan();
+            if (wv.regressions.length) {
+              showNotification(
+                `CWV regresja: ${wv.regressions.length} szablon(y)`,
+                wv.regressions.map(r => `${r.template}: ${r.issues.join(', ')}`).join('\n')
+              );
+            }
+          } catch (e) { console.error('[CWV] Weekly scan failed:', e.message); }
         }
         return;
       }

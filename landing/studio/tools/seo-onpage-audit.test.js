@@ -127,5 +127,20 @@ can = detectCannibalization([
 ]);
 check('cannibalization: poniżej progu impresji ignoruj', can.length === 0);
 
+// 12. CWV monitor
+const { parsePsi, assess, detectRegression } = require('./cwv-monitor');
+const psiMock = { loadingExperience: { metrics: {
+  LARGEST_CONTENTFUL_PAINT_MS: { percentile: 2100 },
+  INTERACTION_TO_NEXT_PAINT: { percentile: 180 },
+  CUMULATIVE_LAYOUT_SHIFT_SCORE: { percentile: 5 },
+} } };
+const cwvCur = assess(parsePsi(psiMock));
+check('cwv: parsuje field data + rating good', cwvCur.lcp.rating === 'good' && cwvCur.cls.value === 0.05 && cwvCur.source === 'field', JSON.stringify(cwvCur));
+const cwvBad = assess(parsePsi({ loadingExperience: { metrics: { LARGEST_CONTENTFUL_PAINT_MS: { percentile: 5200 } } } }));
+check('cwv: LCP 5200 → poor', cwvBad.lcp.rating === 'poor');
+const reg = detectRegression(cwvCur, assess(parsePsi({ loadingExperience: { metrics: { LARGEST_CONTENTFUL_PAINT_MS: { percentile: 3000 }, INTERACTION_TO_NEXT_PAINT: { percentile: 180 }, CUMULATIVE_LAYOUT_SHIFT_SCORE: { percentile: 5 } } } })));
+check('cwv: wykrywa regresję LCP good→needs-improvement', reg.length >= 1, JSON.stringify(reg));
+check('cwv: brak prev → brak regresji', detectRegression(null, cwvCur).length === 0);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
