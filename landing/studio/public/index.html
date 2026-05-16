@@ -774,6 +774,10 @@
         <div style="display:flex;gap:.5rem;flex-wrap:wrap">
           <button class="btn btn-sm" onclick="seoLoad()">Odśwież</button>
           <button class="btn btn-sm" onclick="seoScanAll()">Skanuj wszystko</button>
+          <label style="display:flex;align-items:center;gap:.35rem;color:#9aa;font-size:.85rem;cursor:pointer">
+            <input type="checkbox" id="seo-autopilot-toggle" onchange="seoSetAutopilot(this.checked)">
+            Autopilot money-page (auto-apply + rollback)
+          </label>
         </div>
       </div>
       <div class="kw-tabs" style="margin:1rem 0">
@@ -926,7 +930,15 @@
       catch (e) { el.innerHTML = '<p style="color:#e57">Błąd: ' + esc(e.message) + '</p>'; }
     };
 
-    window.seoLoad = function () { seoLoadTickets(); };
+    window.seoSetAutopilot = async function (enabled) {
+      try { await j('/api/seo-coach/autopilot', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ enabled }) }); }
+      catch (e) { alert('Błąd: ' + e.message); }
+    };
+
+    window.seoLoad = function () {
+      seoLoadTickets();
+      j('/api/seo-coach/autopilot').then(d => { const c = document.getElementById('seo-autopilot-toggle'); if (c) c.checked = !!d.autopilot_money_page; }).catch(() => {});
+    };
 
     // Doładuj dane gdy wejdziesz w widok SEO (switchView z studio-app.js
     // tylko pokazuje sekcję — dane ciągniemy tu, niezależnie).

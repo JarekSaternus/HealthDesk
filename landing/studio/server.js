@@ -3603,9 +3603,108 @@ async function runSeoCoachScan() {
   }
   state.tickets.push(...newTickets);
   state.last_run = new Date().toISOString();
+
+  // Autopilot money-page (opt-in): auto-apply recommended wariant od razu.
+  // Rollback przy LOSER ogarnia runAutopilotRollbackCheck (≥21d, GSC).
+  let autoApplied = 0;
+  if (state.autopilot_money_page) {
+    for (const t of newTickets) {
+      try {
+        const prop = (t.proposals || []).find(p => p.variant === t.recommended) || (t.proposals || [])[0];
+        if (!prop || !isValidLang(t.lang) || !isValidSlug(t.slug)) continue;
+        const fp = path.join(BLOG_DIR, t.lang, `${t.slug}.md`);
+        if (!fs.existsSync(fp)) continue;
+        applyTitleDescRewrite(fp, prop.title, prop.description);
+        t.status = 'applied';
+        t.applied_variant = prop.variant;
+        t.applied_at = new Date().toISOString();
+        t.auto_applied = true;
+        autoApplied++;
+      } catch (e) { console.error(`[Coach Autopilot] apply ${t.id} failed: ${e.message}`); }
+    }
+    if (autoApplied) console.log(`[Coach Autopilot] auto-zaaplikowano ${autoApplied} money-page rewrite (rollback przy LOSER po ≥21d)`);
+  }
+
   saveCoachState(state);
-  return { detected: candidates.length, new_tickets: newTickets.length, tickets: newTickets };
+  return { detected: candidates.length, new_tickets: newTickets.length, auto_applied: autoApplied, tickets: newTickets };
 }
+
+// Wspólny helper apply title/desc + bump `updated` (DRY: accept + autopilot).
+function applyTitleDescRewrite(filePath, title, description) {
+  let md = fs.readFileSync(filePath, 'utf8');
+  const today = new Date().toISOString().slice(0, 10);
+  md = md.replace(/^title:\s*"[^"]*"/m, `title: "${String(title).replace(/"/g, '\\"')}"`);
+  md = md.replace(/^description:\s*"[^"]*"/m, `description: "${String(description).replace(/"/g, '\\"')}"`);
+  if (/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(md)) md = md.replace(/^updated:\s*\d{4}-\d{2}-\d{2}/m, `updated: ${today}`);
+  else md = md.replace(/^(date:\s*\d{4}-\d{2}-\d{2})$/m, `$1\nupdated: ${today}`);
+  fs.writeFileSync(filePath, md, 'utf8');
+}
+
+// Autopilot rollback: auto_applied tickety ≥21d → GSC outcome; LOSER → cofnij
+// frontmatter do oryginalnego title/desc (ticket.currentTitle/Description).
+async function runAutopilotRollbackCheck() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return { evaluated: 0, rolled_back: 0 };
+  const { google } = require('googleapis');
+  const sc = google.searchconsole({ version: 'v1', auth: getGscAuth() });
+  const state = loadCoachState();
+  const due = (state.tickets || []).filter(t =>
+    t.auto_applied && t.status === 'applied' && t.applied_at &&
+    (Date.now() - new Date(t.applied_at).getTime()) / 86400000 >= 21);
+  let rolledBack = 0, evaluated = 0;
+  const end = new Date(), start = new Date(); start.setDate(start.getDate() - 28);
+  for (const t of due) {
+    try {
+      const r = await sc.searchanalytics.query({
+        siteUrl: SITE_URL_GSC,
+        requestBody: { startDate: start.toISOString().slice(0, 10), endDate: end.toISOString().slice(0, 10),
+          dimensions: ['page'], dimensionFilterGroups: [{ filters: [{ dimension: 'page', expression: t.url }] }], rowLimit: 1 }
+      });
+      const row = (r.data.rows || [])[0];
+      const after = row ? { ctr: row.ctr * 100, position: row.position, clicks: row.clicks } : { ctr: 0, position: null, clicks: 0 };
+      const b = t.metrics_before || { ctr: 0, position: after.position };
+      const ctrDiff = after.ctr - (b.ctr || 0);
+      const posDiff = (b.position || after.position || 0) - (after.position || b.position || 0);
+      let outcome;
+      if (after.clicks >= 1 || (ctrDiff >= 1 && posDiff >= -3)) outcome = 'WINNER';
+      else if (Math.abs(ctrDiff) <= 1 && posDiff >= -3) outcome = 'NEUTRAL';
+      else outcome = 'LOSER';
+      evaluated++;
+      t.autopilot_outcome = outcome;
+      t.autopilot_evaluated_at = new Date().toISOString();
+      if (outcome === 'LOSER' && isValidLang(t.lang) && isValidSlug(t.slug)) {
+        const fp = path.join(BLOG_DIR, t.lang, `${t.slug}.md`);
+        if (fs.existsSync(fp) && t.currentTitle && t.currentDescription) {
+          applyTitleDescRewrite(fp, t.currentTitle, t.currentDescription);
+          t.status = 'rolled_back';
+          t.rolled_back_at = new Date().toISOString();
+          rolledBack++;
+          console.warn(`[Coach Autopilot] ROLLBACK ${t.lang}/${t.slug} — LOSER (ctrΔ${ctrDiff.toFixed(1)} posΔ${posDiff.toFixed(1)}), przywrócono oryginał (wymaga rebuild+deploy)`);
+        } else { t.status = 'rollback_failed'; }
+      } else {
+        t.status = 'kept';
+      }
+    } catch (e) { console.error(`[Coach Autopilot] eval ${t.id} failed: ${e.message}`); }
+  }
+  saveCoachState(state);
+  if (rolledBack) showNotification(`Coach Autopilot: ${rolledBack} rollback`, `Rewrite'y które zaszkodziły cofnięte. Wymaga rebuild+deploy.`);
+  console.log(`[Coach Autopilot] Rollback check: evaluated ${evaluated}, rolled_back ${rolledBack}`);
+  return { evaluated, rolled_back: rolledBack };
+}
+
+app.get('/api/seo-coach/autopilot', (req, res) => {
+  res.json({ autopilot_money_page: !!loadCoachState().autopilot_money_page });
+});
+app.post('/api/seo-coach/autopilot', (req, res) => {
+  const st = loadCoachState();
+  st.autopilot_money_page = !!req.body?.enabled;
+  saveCoachState(st);
+  console.log(`[Coach Autopilot] money-page autopilot ${st.autopilot_money_page ? 'ON' : 'OFF'}`);
+  res.json({ ok: true, autopilot_money_page: st.autopilot_money_page });
+});
+app.post('/api/seo-coach/rollback-check', async (req, res) => {
+  try { res.json({ ok: true, ...(await runAutopilotRollbackCheck()) }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
 
 // â”€â”€â”€ Warstwa F: Content Decay / Refresh Coach â”€â”€â”€
 async function fetchGscPageWindow(daysAgoStart, daysAgoEnd) {
@@ -4100,21 +4199,9 @@ app.post('/api/seo-coach/tickets/:id/accept', async (req, res) => {
     return res.status(400).json({ error: 'invalid lang/slug in ticket' });
   }
 
-  // Edit frontmatter title + description + bump `updated` (preserve original `date` to keep freshness signal in GSC)
   const filePath = path.join(BLOG_DIR, t.lang, `${t.slug}.md`);
   if (!fs.existsSync(filePath)) return res.status(404).json({ error: 'md file missing' });
-  let md = fs.readFileSync(filePath, 'utf8');
-  const today = new Date().toISOString().slice(0, 10);
-  const escTitle = String(proposal.title).replace(/"/g, '\\"');
-  const escDesc = String(proposal.description).replace(/"/g, '\\"');
-  md = md.replace(/^title:\s*"[^"]*"/m, `title: "${escTitle}"`);
-  md = md.replace(/^description:\s*"[^"]*"/m, `description: "${escDesc}"`);
-  if (/^updated:\s*\d{4}-\d{2}-\d{2}/m.test(md)) {
-    md = md.replace(/^updated:\s*\d{4}-\d{2}-\d{2}/m, `updated: ${today}`);
-  } else {
-    md = md.replace(/^(date:\s*\d{4}-\d{2}-\d{2})$/m, `$1\nupdated: ${today}`);
-  }
-  await fs.promises.writeFile(filePath, md, 'utf8');
+  applyTitleDescRewrite(filePath, proposal.title, proposal.description);
 
   t.status = 'applied';
   t.applied_variant = variant;
@@ -6322,6 +6409,10 @@ function startCalendarScheduler() {
               );
             }
           } catch (e) { console.error('[Indexing] Weekly failed:', e.message); }
+
+          // Coach autopilot money-page rollback check (≥21d, LOSER→cofnij)
+          try { await runAutopilotRollbackCheck(); }
+          catch (e) { console.error('[Coach Autopilot] Weekly rollback failed:', e.message); }
         }
         return;
       }
