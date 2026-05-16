@@ -87,9 +87,15 @@ fi
 # ---------------------------------------------------------------------------
 if [ -n "$STAGED_CODE" ]; then
   if command -v gemini >/dev/null 2>&1; then
-    echo "${BLUE}[3/4] gemini code review${NC}"
+    echo "${BLUE}[3/4] gemini code review (diff-only)${NC}"
     FILES_ARG=$(echo "$STAGED_CODE" | tr '\n' ' ')
-    GEMINI_OUT=$(gemini --yolo -p "Przejrzyj te zmienione pliki pod katem clean code i konwencji z GEMINI.md. Badz zwiezly - max 10 uwag. Format: [PLIK:LINIA] [POZIOM] opis. Pliki: $FILES_ARG" 2>&1 || true)
+    # Recenzja TYLKO staged diffa — nie calych plikow. Bez tego Gemini
+    # flaguje preexisting issues spoza naszej zmiany i blokuje commit.
+    STAGED_DIFF=$(git diff --cached --unified=3 -- $FILES_ARG | head -c 60000)
+    GEMINI_OUT=$(gemini --yolo -p "Przejrzyj WYLACZNIE ten staged git diff (zmiany w tym commicie) pod katem clean code i konwencji z GEMINI.md. Oceniaj tylko dodane/zmienione linie. IGNORUJ kod spoza diffa — NIE zglaszaj preexisting issues. Badz zwiezly - max 10 uwag. Format: [PLIK:LINIA] [POZIOM] opis. POZIOM=KRYTYCZNY tylko dla realnych bledow WPROWADZONYCH w tym diffie.
+
+DIFF:
+$STAGED_DIFF" 2>&1 || true)
     echo "$GEMINI_OUT"
     if echo "$GEMINI_OUT" | grep -qE '\[(KRYTYCZNY|CRITICAL)\]'; then
       echo "${RED}[healthdesk] Gemini zglosil uwagi KRYTYCZNE — commit zablokowany${NC}"

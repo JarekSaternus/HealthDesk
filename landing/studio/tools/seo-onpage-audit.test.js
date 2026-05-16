@@ -158,5 +158,19 @@ check('backlink: diffReferrers — nowy reddit, ignoruje google, oldblog bez ruc
   dr.new.length === 1 && dr.new[0].source_domain === 'reddit.com' && dr.no_traffic.includes('oldblog.com'),
   JSON.stringify(dr));
 
+// 14. Serper backlink candidates
+const { extractBacklinkCandidates } = require('./backlink-tracker');
+const ebc = extractBacklinkCandidates(
+  [
+    { link: 'https://news.ycombinator.com/item?id=1', title: 'HN thread' },
+    { link: 'https://healthdesk.site/en/', title: 'self' },
+    { link: 'https://google.com/x', title: 'ignored' },
+    { link: 'https://reddit.com/r/x', title: 'reddit' },
+  ],
+  [{ source_domain: 'reddit.com', status: 'live' }]
+);
+check('serper-backlink: nowy HN, pomija self/google/known',
+  ebc.length === 1 && ebc[0].source_domain === 'news.ycombinator.com', JSON.stringify(ebc.map(c => c.source_domain)));
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

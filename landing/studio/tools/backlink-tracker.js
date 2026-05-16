@@ -21,6 +21,16 @@ const IGNORED_SOURCES = new Set([
   SELF, 'healthdesk', '(not set)',
 ]);
 
+// True dla search engines / self / placeholderów — działa zarówno dla
+// nazw źródeł GA4 ("google") jak i domen ("google.com", "www.bing.de").
+function isIgnoredSource(s) {
+  const d = normDomain(s);
+  if (!d) return true;
+  if (IGNORED_SOURCES.has(d) || IGNORED_SOURCES.has(d.split('.')[0])) return true;
+  if (d.endsWith(SELF)) return true;
+  return /(^|\.)(google|bing|duckduckgo|yahoo|yandex|ecosia|baidu)\.[a-z.]+$/.test(d);
+}
+
 // Czy w HTML jest link do naszej domeny (backlink żywy).
 function linkPresent(html, selfDomain = SELF) {
   if (!html) return false;
@@ -35,7 +45,7 @@ function diffReferrers(ga4Rows, registry) {
   const fresh = [];
   for (const r of ga4Rows || []) {
     const src = normDomain(r.source);
-    if (!src || IGNORED_SOURCES.has(src) || src.endsWith(SELF)) continue;
+    if (!src || isIgnoredSource(r.source)) continue;
     if ((r.sessions || 0) < 1) continue;
     seen.add(src);
     if (!known.has(src)) fresh.push({ source_domain: src, sessions: r.sessions });
@@ -48,4 +58,23 @@ function diffReferrers(ga4Rows, registry) {
   return { new: fresh, active: [...seen], no_traffic: noTraffic };
 }
 
-module.exports = { linkPresent, diffReferrers, normDomain };
+// Z organic Serper (wyszukiwanie wzmianek domeny) wyciąga NOWE domeny-
+// kandydatów na backlinki (nieznane, nie self, nie ignorowane).
+// UWAGA: wzmianka ≠ link — wymaga potem weryfikacji linkPresent.
+function extractBacklinkCandidates(organic, registry) {
+  const known = new Set((registry || []).map(b => normDomain(b.source_domain)));
+  const seen = new Set();
+  const out = [];
+  for (const r of organic || []) {
+    const link = r && (r.link || r.url);
+    if (!link) continue;
+    const dom = normDomain(link);
+    if (!dom || isIgnoredSource(dom)) continue;
+    if (known.has(dom) || seen.has(dom)) continue;
+    seen.add(dom);
+    out.push({ source_url: link, source_domain: dom, title: r.title || null });
+  }
+  return out;
+}
+
+module.exports = { linkPresent, diffReferrers, normDomain, extractBacklinkCandidates };

@@ -3926,9 +3926,50 @@ app.post('/api/backlinks/check', async (req, res) => {
   try { res.json({ ok: true, ...(await checkBacklinks()) }); }
   catch (err) { res.status(500).json({ error: err.message }); }
 });
+// Discovery przez Serper (wzmianki domeny w Google). Wzmianka ≠ link →
+// weryfikujemy każdą stronę linkPresent. Łapie backlinki bez ruchu
+// (czego GA4 nie widzi). Operator link: Google nie działa — używamy
+// wyszukiwania frazowego domeny z wykluczeniem self.
+async function discoverBacklinksFromSerper() {
+  const { extractBacklinkCandidates, linkPresent } = require('./tools/backlink-tracker');
+  const queries = ['"healthdesk.site" -site:healthdesk.site', '"HealthDesk" pomodoro -site:healthdesk.site'];
+  const organic = [];
+  for (const q of queries) {
+    try {
+      const data = await serperRequest('search', { q, gl: 'us', hl: 'en', num: 20 });
+      organic.push(...(data.organic || []));
+    } catch (e) { console.error(`[Backlinks] Serper "${q}" failed: ${e.message}`); }
+  }
+  const d = loadBacklinks();
+  const cands = extractBacklinkCandidates(organic, d.backlinks);
+  const today = new Date().toISOString().slice(0, 10);
+  let added = 0, verified = 0;
+  for (const c of cands.slice(0, 25)) {
+    let status = 'mention';
+    try {
+      const resp = await fetch(c.source_url, { signal: AbortSignal.timeout(15000), headers: { 'User-Agent': 'HealthDeskBacklinkBot/1.0' } });
+      if (resp.ok && linkPresent(await resp.text())) { status = 'live'; verified++; }
+      else if (resp.ok) status = 'mention';
+      else status = 'unreachable';
+    } catch { status = 'unreachable'; }
+    d.backlinks.push({
+      source_url: c.source_url, source_domain: c.source_domain,
+      target_url: 'https://healthdesk.site/', anchor: null,
+      first_seen: today, last_checked: today, status, via: 'serper', title: c.title
+    });
+    added++;
+  }
+  saveBacklinks(d);
+  console.log(`[Backlinks] Serper discovery: ${added} kandydatów (${verified} potwierdzonych jako link)`);
+  return { discovered: added, verified_links: verified };
+}
+
 app.post('/api/backlinks/discover', async (req, res) => {
-  try { res.json({ ok: true, ...(await discoverBacklinksFromGa4()) }); }
-  catch (err) { console.error('[Backlinks] discover error:', err.message); res.status(500).json({ error: err.message }); }
+  try {
+    const ga4 = await discoverBacklinksFromGa4();
+    const serper = await discoverBacklinksFromSerper();
+    res.json({ ok: true, ga4, serper });
+  } catch (err) { console.error('[Backlinks] discover error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
 app.post('/api/seo-coach/run', async (req, res) => {
@@ -6015,11 +6056,14 @@ function startCalendarScheduler() {
           // Backlinks weekly: GA4 discovery + liveness check
           try {
             const disc = await discoverBacklinksFromGa4();
+            let serp = { discovered: 0 };
+            try { serp = await discoverBacklinksFromSerper(); } catch (se) { console.error('[Backlinks] Serper discovery failed:', se.message); }
             const chk = await checkBacklinks();
-            if (disc.discovered > 0 || chk.newly_dead > 0) {
+            const totalNew = disc.discovered + serp.discovered;
+            if (totalNew > 0 || chk.newly_dead > 0) {
               showNotification(
-                `Backlinks: +${disc.discovered} nowych, ${chk.newly_dead} utraconych`,
-                `GA4 discovery + liveness check.\nSzczegóły: zakładka Backlinks w Studio`
+                `Backlinks: +${totalNew} nowych, ${chk.newly_dead} utraconych`,
+                `GA4 (${disc.discovered}) + Serper (${serp.discovered}) discovery + liveness.\nSzczegóły: zakładka Backlinks w Studio`
               );
             }
           } catch (e) { console.error('[Backlinks] Weekly failed:', e.message); }
