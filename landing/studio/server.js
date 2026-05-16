@@ -30,16 +30,19 @@ function readJsonFile(filePath, fallback = undefined) {
 }
 
 // â”€â”€â”€ Windows Toast Notification helper â”€â”€â”€
-function showNotification(title, message) {
+function showNotification(title, message, url) {
   try {
     const scriptPath = path.join(__dirname, 'notify.ps1');
-    // Base64-UTF8 args — Windows ANSI code page (CP1250) psuje polskie znaki
-    // gdy przekazujemy je bezpośrednio jako execFile args do powershell.exe.
-    const titleB64 = Buffer.from(String(title), 'utf8').toString('base64');
-    const messageB64 = Buffer.from(String(message), 'utf8').toString('base64');
-    execFile('powershell', ['-ExecutionPolicy', 'Bypass', '-File', scriptPath, '-TitleB64', titleB64, '-MessageB64', messageB64], { timeout: 10000 }, (err) => {
-      if (err) console.error('[Notification] Failed:', err.message);
-    });
+    // Base64-UTF8 args — Windows ANSI code page (CP1250) psuje polskie znaki.
+    const b64 = (s) => Buffer.from(String(s), 'utf8').toString('base64');
+    const args = ['-ExecutionPolicy', 'Bypass', '-File', scriptPath,
+      '-TitleB64', b64(title), '-MessageB64', b64(message)];
+    if (url) args.push('-UrlB64', b64(url));
+    // DETACHED + unref: akcyjny popup z przyciskiem musi przeżyć (bez 10s
+    // kill-timeout, który ucinał MessageBox po 10s).
+    const child = require('child_process').spawn('powershell', args, { detached: true, stdio: 'ignore' });
+    child.on('error', (e) => console.error('[Notification] Failed:', e.message));
+    child.unref();
   } catch (e) {
     console.error('[Notification] Failed:', e.message);
   }
@@ -5074,6 +5077,70 @@ app.post('/api/seo/audit-corpus', async (req, res) => {
   } catch (err) { console.error('[Corpus Audit] error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ Dzienny brief „co dziś zrobić" (popup z przyciskiem) â”€â”€â”€
+function buildDailyDigest() {
+  const today = new Date().toISOString().slice(0, 10);
+  const lines = [];
+  const todo = [];
+
+  // 1) Co autopilot robi dziś
+  let cal; try { cal = loadCalendar(); } catch { cal = { clusters: [] }; }
+  let todayKw = null, scheduledLeft = 0, techBlocked = [];
+  for (const cl of cal.clusters || []) {
+    for (const lg of Object.keys(cl.keywords || {})) {
+      for (const k of cl.keywords[lg]) {
+        if (k.status === 'scheduled') {
+          scheduledLeft++;
+          if (k.scheduled_date === today) todayKw = `${lg.toUpperCase()} — ${k.keyword}`;
+        }
+        if (k.status === 'tech_blocked') techBlocked.push(`${lg}/${k.slug || k.keyword}`);
+      }
+    }
+  }
+  lines.push(`📅 ${today}`);
+  lines.push(todayKw ? `Dziś autopilot publikuje: ${todayKw}` : `Dziś brak zaplanowanego postu (scheduled w kolejce: ${scheduledLeft}).`);
+  lines.push(`Pivot: ${scheduledLeft} KW w kolejce, next_run ${cal.content_calendar ? '' : (cal.next_run || '?')}`);
+
+  // 2) Otwarte tickety
+  let st; try { st = loadCoachState(); } catch { st = { tickets: [] }; }
+  const open = (st.tickets || []).filter(t => t.status === 'open');
+  const byType = {};
+  for (const t of open) byType[t.type] = (byType[t.type] || 0) + 1;
+  lines.push('');
+  lines.push(`🎫 Otwarte tickety: ${open.length}`);
+  for (const [ty, n] of Object.entries(byType)) lines.push(`   • ${ty}: ${n}`);
+
+  // 3) URGENT — wymaga Ciebie
+  const crit = open.filter(t => t.type === 'technical_critical');
+  if (crit.length || techBlocked.length) {
+    lines.push('');
+    lines.push('🔴 PILNE — wymaga Twojej akcji:');
+    if (crit.length) { lines.push(`   ${crit.length} post(y) ZABLOKOWANE technicznie (poza rotacją).`); todo.push('Napraw technical_critical → zmień status KW tech_blocked→scheduled'); }
+    if (techBlocked.length) lines.push(`   tech_blocked: ${techBlocked.slice(0, 5).join(', ')}`);
+  }
+
+  // 4) Co masz zrobić dziś (lista akcji)
+  if (open.length) todo.push(`Przejrzyj ${open.length} ticketów w SEO Coach (Akceptuj/Snooze/Odrzuć)`);
+  if (!scheduledLeft) todo.push('Pivot pusty — dodaj nowe keywordy do content_calendar albo zostaw');
+  if (!todo.length) todo.push('Nic pilnego — system pracuje sam. Możesz tylko zerknąć.');
+  lines.push('');
+  lines.push('✅ DO ZROBIENIA DZIŚ:');
+  todo.forEach((a, i) => lines.push(`   ${i + 1}. ${a}`));
+  lines.push('');
+  lines.push('Kliknij „Otwórz SEO Coach" aby przejść do ticketów →');
+
+  const urgent = crit.length > 0 || techBlocked.length > 0;
+  return { title: urgent ? '🔴 SEO — PILNE działanie' : 'SEO — dzienny brief', message: lines.join('\n'), urgent, open_tickets: open.length };
+}
+
+app.get('/api/seo/daily-digest', (req, res) => {
+  try { res.json(buildDailyDigest()); } catch (e) { res.status(500).json({ error: e.message }); }
+});
+app.post('/api/seo/daily-digest/notify', (req, res) => {
+  try { const d = buildDailyDigest(); showNotification(d.title, d.message, 'http://localhost:4000'); res.json({ ok: true, ...d }); }
+  catch (e) { res.status(500).json({ error: e.message }); }
+});
+
 async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
   const finalDate = normalizeDateOnly(publishedDate) || new Date().toISOString().slice(0, 10);
   syncPublishedFrontmatterDate(lang, slug, finalDate);
@@ -6635,6 +6702,12 @@ function startCalendarScheduler() {
   };
   setInterval(seoCoachDailyCheck, 24 * 3600000); // raz dziennie
   setTimeout(seoCoachDailyCheck, 60000);          // pierwszy check minutę po starcie
+
+  // Dzienny brief „co dziś zrobić" — popup z przyciskiem. Raz/dobę +
+  // 90s po starcie (po restarcie/logowaniu od razu widzisz co robić).
+  const dailyDigestFire = () => { try { const d = buildDailyDigest(); showNotification(d.title, d.message, 'http://localhost:4000'); } catch (e) { console.error('[Daily Digest] failed:', e.message); } };
+  setInterval(dailyDigestFire, 24 * 3600000);
+  setTimeout(dailyDigestFire, 90000);
 
   // â”€â”€â”€ Sitemap resubmit co 7 dni â”€â”€â”€
   const SITEMAP_RESUBMIT_STATE = path.join(__dirname, '.sitemap-resubmit.json');
