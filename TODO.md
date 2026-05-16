@@ -98,11 +98,18 @@ Z już pobieranego Serper top10 klasyfikuj typ SERP (listicle/ranking/category/l
 - ✅ **CWV** — `tools/cwv-monitor.js` + `POST /api/seo/cwv-scan` (PSI per template) + weekly → tickety `cwv_regression`. ⚠️ **Wymaga `pagespeed_api_key` w studio.json** (bez klucza PSI = HTTP 429; darmowy klucz Google Cloud)
 - ✅ **Backlink tracker** — `tools/backlink-tracker.js` + `backlinks.json` + `/api/backlinks` (GET/POST), `/api/backlinks/check` (liveness), `/api/backlinks/discover` (GA4 referrery) + weekly. ⚠️ **Ograniczenie:** discovery łapie tylko backlinki dające ruch (GA4); pełny indeks wymaga płatnego API (Ahrefs/Majestic) — świadoma decyzja zakresu
 
-### Pozostało (operacyjne / nie-kod)
-- 🔑 Dodać darmowy `pagespeed_api_key` do studio.json (odblokowuje CWV scan)
-- Warstwa D (technical HTML audit po buildzie) — osobny moduł, NIE zrobiony (był poza listą „leć w całości")
-- UI w Studio dla nowych ticketów (decay/cannibalization/cwv/backlink) + zakładka Backlinks (jest API, brak frontu)
-- Wpiąć `usedIds` reset (build.js:25 bug) — istotne dla Warstwy E (Internal Linking Engine — NIE zrobiona)
+### Status II tura (2026-05-16) — ZBUDOWANE
+- ✅ **pagespeed_api_key** dodany do studio.json (gitignored), CWV ciągnie realne dane (landing LCP 2167ms / blog-post 2418ms — GOOD, zero 429)
+- ✅ **Warstwa D** — `tools/technical-audit.js` + `enforceTechnicalGate` (po build, przed deploy, FAIL→retry≤2) + endpoint `/api/seo/technical-audit`. Fix krytyczny: `mailto:` false-positive
+- ✅ **Warstwa E** — `tools/internal-link-engine.js` + `/api/seo/internal-links` (Jaccard, outbound/inbound/money/anchor-diversity) + **fix `build.js` usedIds** (reset per post — czyste anchory)
+- ✅ **UI SEO Coach** w Studio (sidebar) — tickety wszystkich typów (accept/snooze/reject + Skanuj wszystko) + zakładka Backlinks (add/check/discover). Self-contained, zero zmian w studio-app.js
+- ✅ **Hook diff-only** — Gemini I Codex recenzują tylko staged diff (nie całe pliki). Koniec z wymuszonym `--no-verify` (zwalidowane: 804533b przeszedł czysto z server.js)
+- Testy: 42/42 (`npm run test:seo`)
+
+### Pozostało (drobne, opcjonalne)
+- Warstwa C: `auto_fixes` na razie = rekomendacje (auto-apply tylko title/meta); rozszerzyć o internal-links auto-inject (ostrożnie)
+- `saveCoachState`/`saveBacklinks` bez try/catch (preexisting wzorzec — Gemini WAŻNY)
+- Powiadomienia tylko popup Windows (Telegram/digest — odrzucone teraz, kiedyś agent-herald)
 
 ### Odblokowane przez cert (z pamięci, do uruchomienia)
 - Podpis `.exe` w build/CI (signtool + cryptoCertum) — warunek wszystkiego poniżej
