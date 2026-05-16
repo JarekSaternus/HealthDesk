@@ -1375,9 +1375,49 @@ const LANG_GUIDELINES = {
   },
 };
 
-async function doHumanize(markdown, lang) {
+// Usuwa blok diagnostyczny humanize: <!-- DIAGNOSIS ... --> (z ":" lub bez,
+// dowolna wielkość liter, wiele wystąpień). Defensywny — wołany też przed zapisem.
+function stripDiagnosis(text) {
+  return String(text || '').replace(/<!--\s*DIAGNOSIS\b[\s\S]*?-->\s*/gi, '').trim();
+}
+
+const { mechanicalDefingerprint } = require('./tools/defingerprint');
+
+async function doHumanize(markdown, lang, opts = {}) {
   const lg = LANG_GUIDELINES[lang] || LANG_GUIDELINES.en;
-  console.log(`[AI Humanize] Processing ${markdown?.length || 0} chars in ${lg.name}`);
+  const targets = Array.isArray(opts.targets) ? opts.targets.filter(Boolean) : [];
+  console.log(`[AI Humanize] Processing ${markdown?.length || 0} chars in ${lg.name}${targets.length ? ` (CELOWANY: ${targets.length} problemów)` : ''}`);
+
+  // TRYB CELOWANY: chirurgiczne edycje TYLKO wskazanych problemów z audytu.
+  // Minimalna ingerencja → mniej nowych AI-wzorców niż pełne przepisanie.
+  if (targets.length) {
+    const tlist = targets.map((t, i) =>
+      `${i + 1}. PROBLEM: ${t.problem || t}\n   ${t.quote ? `CYTAT: ${t.quote}\n   ` : ''}${t.fix ? `FIX: ${t.fix}` : ''}`).join('\n');
+    const tResult = await callClaude(
+      `You are a precise ${lg.name}-language copy editor. Write ENTIRELY in ${lg.name}. You make SURGICAL edits only — you fix exactly the listed problems and change nothing else.`,
+      `Below is an article and a numbered list of specific AI-pattern problems found by an audit. Fix ONLY these problems with the MINIMUM necessary edits.
+
+HARD RULES:
+- Do NOT rewrite the whole article. Do NOT restructure sections.
+- Do NOT touch paragraphs/sentences that are not part of a listed problem.
+- PRESERVE all personal anecdotes, opinions, digressions, voice, headings (## ###), tables (|), and ALL existing links exactly.
+- PRESERVE factual accuracy and source citations (e.g. "a 2022 study") verbatim.
+- Each fix should be the smallest change that resolves the problem (rephrase a sentence, delete a duplicate, unbold a term, vary an opening) — not a full-section rewrite.
+- Do NOT output a diagnosis comment. Output ONLY the corrected article, starting with the first ## heading. No markdown fences.
+
+PROBLEMS TO FIX:
+${tlist}
+
+ARTICLE:
+${markdown}`,
+      8000
+    );
+    let tc = tResult.trim();
+    if (tc.startsWith('```')) tc = tc.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
+    const tArticle = stripDiagnosis(tc);
+    console.log(`[AI Humanize] Targeted done: ${tArticle.length} chars`);
+    return { markdown: tArticle, articleText: tArticle, mode: 'targeted' };
+  }
 
   const result = await callClaude(
     `You are an experienced ${lg.name}-language editor who humanizes AI-generated content. Write ENTIRELY in ${lg.name}. Your task is to transform the given text so it sounds like it was written by a real person â€” a ${lg.name}-speaking expert who blogs with passion, not a robot producing content.`,
@@ -1447,10 +1487,11 @@ ${markdown}`,
   if (cleaned.startsWith('```')) {
     cleaned = cleaned.replace(/^```(?:markdown)?\s*\n?/, '').replace(/\n?```\s*$/, '');
   }
-  // Strip diagnosis comment for clean output
-  const articleText = cleaned.replace(/<!--\s*DIAGNOSIS:\s*[\s\S]*?-->\s*/, '').trim();
+  // Strip diagnosis comment for clean output.
+  // Tolerancyjny: bez wymogu ":", dowolna wielkość liter, wiele wystąpień.
+  const articleText = stripDiagnosis(cleaned);
   console.log(`[AI Humanize] Done: ${articleText.length} chars`);
-  return { markdown: cleaned, articleText };
+  return { markdown: articleText, articleText };
 }
 
 // â”€â”€â”€ AI: Humanize article (remove AI patterns) â”€â”€â”€
@@ -2648,7 +2689,10 @@ After generating the image, write a single line of SEO alt text (max 125 charact
           body: JSON.stringify({
             contents: [{ parts: [{ text: imagePrompt }] }],
             generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-          })
+          }),
+          // Bez timeoutu zawieszony POST wisi pełny TCP timeout ×5 prób
+          // (~minuty). 90s wystarcza na realną generację; awaria pada szybko.
+          signal: AbortSignal.timeout(90000)
         }
       );
 
@@ -2674,6 +2718,11 @@ After generating the image, write a single line of SEO alt text (max 125 charact
       if (!imageBase64) throw new Error('Gemini did not return an image');
       break; // success
     } catch (err) {
+      // AbortSignal.timeout → DOMException 'TimeoutError' (lub 'AbortError').
+      // Czytelny komunikat zamiast generycznego 'fetch failed'.
+      if (err && (err.name === 'TimeoutError' || err.name === 'AbortError')) {
+        err = new Error('image gen timeout (90s) — Gemini generateContent nie odpowiedział');
+      }
       lastError = err;
       console.error(`[Image] Attempt ${attempt}/${MAX_RETRIES} failed: ${err.message}`);
       if (attempt < MAX_RETRIES) {
@@ -4375,45 +4424,59 @@ async function runAutopilot(lang, topic, persona) {
     steps[5].status = 'done';
     steps[5].detail = `Score: ${aiScore}/10`;
 
-    let currentMarkdown = markdown;
-    let finalAiScore = aiScore;
+    // Steps 6-8: best-version pipeline. Trzymamy WSZYSTKIE warianty z ich
+    // AI-score; na końcu wybieramy NAJLEPSZY (najniższy score). Oryginał jest
+    // zawsze kandydatem → nigdy nie zostawiamy wersji gorszej niż wejściowa.
+    // AI-fingerprint jest MIĘKKI: nie blokuje publikacji (gate = Warstwa C).
+    const versions = [{ label: 'original', md: markdown, score: aiScore, problems: audit.top_problems || [] }];
+    // bestSoFar: min score; remis → wcześniejszy (mniej inwazyjny) wariant.
+    const bestSoFar = () => versions.reduce((b, v) => (v.score < b.score ? v : b), versions[0]);
 
-    // Steps 7-8: Humanize + Grammar with iteration (max 2 rounds)
+    // (a) Mechaniczny defingerprint — deterministyczny, word-preserving, PRZED AI.
+    const mech = mechanicalDefingerprint(markdown, topic);
+    if (mech.changed) {
+      console.log(`[Autopilot] Mechanical defingerprint: ${JSON.stringify(mech.stats)}`);
+      const mAudit = await doAudit(mech.markdown, lang);
+      versions.push({ label: 'mechanical', md: mech.markdown, score: mAudit.score || 0, problems: mAudit.top_problems || [] });
+    }
+
+    // (b) Celowany humanize ≤2 rundy — startuje od najlepszego wariantu,
+    //     fixuje TYLKO top_problems tego wariantu (chirurgicznie).
     const MAX_ROUNDS = 2;
     for (let round = 1; round <= MAX_ROUNDS; round++) {
-      const roundLabel = MAX_ROUNDS > 1 ? ` (${round}/${MAX_ROUNDS})` : '';
-
-      // Step 7: Humanize (if score > 5)
-      updateStep(7, `Humanize${roundLabel}`, finalAiScore > 5 ? 'running' : 'skipped');
-      if (finalAiScore > 5) {
-        const humanized = await doHumanize(currentMarkdown, lang);
-        currentMarkdown = humanized.articleText || humanized.markdown;
-        steps[6].status = 'done';
-      }
-
-      // Step 8: Grammar Fix
-      updateStep(8, `Grammar Fix${roundLabel}`, 'running');
-      const grammarResult = await doGrammarFix(currentMarkdown, lang);
-      if (grammarResult.changed) currentMarkdown = grammarResult.markdown;
-      steps[7].status = 'done';
-      steps[7].detail = `${grammarResult.issueCount} issues`;
-
-      // Re-audit after corrections to check improvement
-      if (round < MAX_ROUNDS && finalAiScore > 5) {
-        updateStep(6, `Re-audit${roundLabel}`, 'running');
-        const reAudit = await doAudit(currentMarkdown, lang);
-        finalAiScore = reAudit.score || 0;
-        steps[5].status = 'done';
-        steps[5].detail = `Score: ${finalAiScore}/10`;
-        console.log(`[Autopilot] Round ${round} re-audit: ${finalAiScore}/10`);
-        if (finalAiScore <= 5) {
-          console.log(`[Autopilot] Score OK after round ${round}, skipping further rounds`);
-          break;
-        }
-      } else {
+      const base = bestSoFar();
+      if (base.score <= 5) break; // już wystarczająco "ludzki"
+      updateStep(7, `Humanize (${round}/${MAX_ROUNDS}, celowany)`, 'running');
+      try {
+        const h = await doHumanize(base.md, lang, { targets: base.problems });
+        const hMd = h.articleText || h.markdown;
+        const hAudit = await doAudit(hMd, lang);
+        versions.push({ label: `humanize${round}`, md: hMd, score: hAudit.score || 0, problems: hAudit.top_problems || [] });
+        console.log(`[Autopilot] Humanize round ${round}: ${base.label}(${base.score}) → ${hAudit.score}/10`);
+      } catch (hErr) {
+        console.error(`[Autopilot] Humanize round ${round} failed (non-fatal): ${hErr.message}`);
         break;
       }
+      steps[6].status = 'done';
     }
+
+    // (c) Wybór najlepszego wariantu (gwarantowanie ≤ oryginał).
+    const best = bestSoFar();
+    let currentMarkdown = best.md;
+    let finalAiScore = best.score;
+    console.log(`[Autopilot] Best version: ${best.label} (${finalAiScore}/10) z ${versions.length} wariantów [${versions.map(v => `${v.label}:${v.score}`).join(', ')}]`);
+    updateStep(7, `Humanize → ${best.label}`, 'done');
+    steps[6].status = 'done';
+    steps[6].detail = `${best.label} ${finalAiScore}/10`;
+    steps[5].status = 'done';
+    steps[5].detail = `Score: ${aiScore}→${finalAiScore}/10`;
+
+    // (d) Grammar fix — RAZ, na wybranym wariancie.
+    updateStep(8, 'Grammar Fix', 'running');
+    const grammarResult = await doGrammarFix(currentMarkdown, lang);
+    if (grammarResult.changed) currentMarkdown = grammarResult.markdown;
+    steps[7].status = 'done';
+    steps[7].detail = `${grammarResult.issueCount} issues`;
 
     // Step 9: AI Description
     updateStep(9, 'AI Description', 'running');
@@ -4459,6 +4522,9 @@ async function runAutopilot(lang, topic, persona) {
       '---'
     ].filter(Boolean).join('\n');
 
+    // Defensywny strip: ostatnia linia obrony przed wyciekiem <!-- DIAGNOSIS -->
+    // do pliku, niezależnie od ścieżki (humanize/grammar/rewrite).
+    currentMarkdown = stripDiagnosis(currentMarkdown);
     await fs.promises.writeFile(filePath, finalFrontmatter + '\n' + currentMarkdown, 'utf8');
     syncArticleKeyword(lang, slug, topic);
 
@@ -4507,6 +4573,27 @@ async function runAutopilot(lang, topic, persona) {
       };
       let r = await runAudit();
       console.log(`[SEO On-Page] ${r.status} ${r.score}/100 (${lang}/${slug}) — blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
+
+      // Stale-year auto-fix (deterministyczny, zawsze gdy wykryty —
+      // niezależnie od statusu): usuwa nieaktualny rok z title/nagłówków.
+      if (Array.isArray(r.auto_fixes) && r.auto_fixes.some(f => f.type === 'stale_year')) {
+        try {
+          const { fixStaleYear } = require('./tools/seo-onpage-audit');
+          const parsed = parseFrontmatter(await fs.promises.readFile(filePath, 'utf8'));
+          const sy = fixStaleYear(parsed.body, parsed.frontmatter.title, new Date().getFullYear());
+          if (sy.changed) {
+            const raw = await fs.promises.readFile(filePath, 'utf8');
+            const fmM = raw.match(/^(---\n[\s\S]*?\n---\n)([\s\S]*)$/);
+            if (fmM) await fs.promises.writeFile(filePath, fmM[1] + sy.markdown, 'utf8');
+            if (sy.title && sy.title !== parsed.frontmatter.title) upsertFrontmatterFields(filePath, { title: sy.title });
+            console.log(`[SEO On-Page] stale-year auto-fix applied (title/nagłówki)`);
+            r = await runAudit();
+            console.log(`[SEO On-Page] re-audit po stale-year: ${r.status} ${r.score}/100`);
+          }
+        } catch (syErr) {
+          console.error(`[SEO On-Page] stale-year auto-fix failed (non-fatal): ${syErr.message}`);
+        }
+      }
 
       // Auto-fix (1 runda): tanie deterministyczne poprawki title/meta.
       if (r.status === 'FAIL' && ((r.category_scores.title ?? 100) < 100 || (r.category_scores.meta ?? 100) < 100)) {

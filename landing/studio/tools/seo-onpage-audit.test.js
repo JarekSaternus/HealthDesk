@@ -232,5 +232,45 @@ check('CJK: krótki (znakowo) title NIE flagowany jako za krótki', !rc.warnings
 const { auditOnPage: _a } = require('./seo-onpage-audit');
 check('CJK: łaciński post nadal działa (sanity)', auditOnPage({ markdown: GOOD_BODY, frontmatter: GOOD_FM, lang: 'en', keyword: GOOD_FM.keyword, sitemapUrls: [] }).status === 'PASS');
 
+// 18. Stale-year guard (Task #17)
+const { detectStaleYear, fixStaleYear } = require('./seo-onpage-audit');
+const _y = new Date().getFullYear();
+const dSy = detectStaleYear(`Best App in ${_y - 2}`, `## Top Apps in ${_y - 2}\nbody`, _y);
+check('stale-year: rok w tytule/nagłówku wykryty', dSy.stale && dSy.hits.length === 2);
+check('stale-year: cytat w PROZIE nietknięty (skan tylko title+nagłówki)',
+  !detectStaleYear('Clean', `## H\nA ${_y - 4} study in PLOS ONE found...`, _y).stale);
+check('stale-year: future-year NIE flagowany',
+  !detectStaleYear(`${_y + 1} Outlook`, `## Trends ${_y + 1}`, _y).stale);
+check('stale-year: cytat w NAGŁÓWKU nietknięty (looksLikeCitation)',
+  !detectStaleYear('T', `## The ${_y - 4} PLOS ONE Study`, _y).stale);
+const fSy = fixStaleYear(`## Top Apps in ${_y - 2}\n\nProza ${_y - 4} study (nietknięta).`, `Best App in ${_y - 2}`, _y);
+check('stale-year: auto-fix usuwa rok z tytułu', fSy.changed && !/\d{4}/.test(fSy.title));
+check('stale-year: auto-fix tnie nagłówek, prozy NIE rusza',
+  !/in \d{4}/.test(fSy.markdown) && fSy.markdown.includes(`${_y - 4} study`));
+check('stale-year: cytat-nagłówek NIE jest auto-fixowany',
+  fixStaleYear(`## The ${_y - 4} PLOS Study`, 'T', _y).changed === false);
+const rSy = auditOnPage({ markdown: `## Best Picks in ${_y - 2}\n\n${GOOD_BODY}`, frontmatter: GOOD_FM, lang: 'en', keyword: GOOD_FM.keyword, sitemapUrls: [] });
+check('stale-year: auditOnPage daje warning + auto_fixes',
+  rSy.warnings.some(x => /Nieaktualny rok/i.test(x)) && rSy.auto_fixes.some(f => f.type === 'stale_year'),
+  JSON.stringify(rSy.auto_fixes));
+
+// 19. mechanicalDefingerprint (Task #18 — deterministyczny, word-preserving)
+const { mechanicalDefingerprint } = require('./defingerprint');
+const mdf1 = mechanicalDefingerprint('## H\n\nThe **pomodoro app** is great. Use the **pomodoro app** daily.', 'pomodoro app');
+check('defingerprint: unbold dokładnego keyworda', mdf1.stats.unboldedKeyword === 2 && !/\*\*pomodoro app\*\*/i.test(mdf1.markdown));
+const longBold = '## H\n\n' + Array.from({ length: 12 }, (_, i) => `Para ${i} has a **bold term ${i}** inside it for testing purposes here.`).join('\n\n');
+const mdf2 = mechanicalDefingerprint(longBold, 'x');
+check('defingerprint: cap bold (część zdjęta)', mdf2.stats.boldStripped > 0 && (mdf2.markdown.match(/\*\*/g) || []).length < (longBold.match(/\*\*/g) || []).length);
+const dupS = 'Regular breaks reduce mental fatigue by a measurable margin in studies.';
+const mdf3 = mechanicalDefingerprint(`## A\n\n${dupS} Some unique tail sentence here for context.\n\n## B\n\n${dupS} Another distinct closing thought entirely.`, 'x');
+check('defingerprint: dedupe powtórzonego zdania (zostaw 1)', mdf3.stats.dedupedSentences === 1 && (mdf3.markdown.split(dupS).length - 1) === 1);
+const cleanIn = '## Heading stays\n\nA perfectly normal unique paragraph with enough length to be considered prose content.';
+const mdf4 = mechanicalDefingerprint(cleanIn, 'x');
+check('defingerprint: czysty tekst bez zmian (idempotent)', mdf4.changed === false && mdf4.markdown === cleanIn);
+const wordsBefore = 'The **alpha** beta gamma delta. Repeated unique line for body length padding here friend.';
+const mdf5 = mechanicalDefingerprint(wordsBefore + '\n\n' + wordsBefore, 'alpha');
+check('defingerprint: word-preserving (nie gubi słów poza duplikatem)',
+  /alpha beta gamma delta/.test(mdf5.markdown.replace(/\*\*/g, '')));
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

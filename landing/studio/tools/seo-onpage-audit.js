@@ -120,6 +120,7 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
   const blocking = [], warnings = [], opportunities = [];
   const titleRecs = [], metaRecs = [], schemaRecs = [], cannRisks = [], linkSugg = [];
   const scores = {};
+  let staleYearFix = null;
 
   // — TITLE —
   const title = fm.title || '';
@@ -248,7 +249,21 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
   // (false positive). Walidacja realnego renderu (schema + widoczny byline)
   // należy do Warstwy D (audyt HTML po buildzie).
   s = 100;
-  const expSignals = /(\bI tried\b|\bI tested\b|in my experience|I remember|I found|when I|hands-on|after using|przetestowa|z mojego doświadczenia|sprawdziłem|używałem)/i;
+  const expSignals = new RegExp([
+    // EN — first-person experience verbs (też po "I've"/"I have"/"I still"/"I'd")
+    "\\bI(?:'ve| have| still| had| also| once| even| 'd| would| used to)?\\s+" +
+      "(?:tried|tested|test|used|use|found|find|noticed|switched|spent|ran|run|relied|" +
+      "struggled|learned|discovered|started|stopped|kept|measured|tracked|experimented|remember)\\b",
+    "\\bwhen I\\b", "\\bafter (?:using|testing|trying|switching)\\b",
+    "in my (?:experience|own|case|testing|workflow|setup|routine)",
+    "\\b(?:hands-on|first-?hand|personally|over the years|in practice|from experience)\\b",
+    "\\bmy own (?:experience|testing|setup|workflow|results?)\\b",
+    // PL
+    "przetestowa", "z (?:mojego|własnego) doświadczenia", "sprawdz(?:iłem|iłam|ałem|ałam)",
+    "używ(?:ałem|ałam|am)", "testow(?:ałem|ałam)", "korzyst(?:ałem|ałam)",
+    "pamiętam", "osobiście", "z własnego doświadczenia",
+    "sam(?:a)?\\s+(?:sprawdz|przetestow|używ|testow)"
+  ].join("|"), "i");
   if (!expSignals.test(body)) { warnings.push('Brak sygnałów first-hand experience (Experience w E-E-A-T)'); s -= 35; }
   const srcLinks = links.filter(l => /^https?:\/\//i.test(l.href) && !/healthdesk\.site/i.test(l.href)).length;
   if (srcLinks === 0) { opportunities.push('Brak linków do źródeł zewnętrznych (autorytet/trust)'); s -= 15; }
@@ -271,6 +286,15 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
   }
   scores.cannibalization = Math.max(0, s);
 
+  // — FRESHNESS (stale-year guard) —
+  const freshness = detectStaleYear(title, body, new Date().getFullYear());
+  if (freshness.stale) {
+    const yrs = [...new Set(freshness.hits.map(h => h.year))].join(', ');
+    warnings.push(`Nieaktualny rok ${yrs} w tytule/nagłówku (bieżący: ${freshness.currentYear}) — podkopuje świeżość`);
+    scores.title = Math.max(0, (scores.title ?? 100) - 12 * Math.min(2, freshness.hits.length));
+    staleYearFix = { type: 'stale_year', hits: freshness.hits, current_year: freshness.currentYear };
+  }
+
   // — FINAL —
   let final = 0;
   for (const k of Object.keys(WEIGHTS)) final += (scores[k] ?? 100) * WEIGHTS[k] / 100;
@@ -284,7 +308,7 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
     blocking_issues: blocking,
     warnings,
     opportunities,
-    auto_fixes: [], // MVP: same rekomendacje; auto-fix w kolejnym etapie
+    auto_fixes: staleYearFix ? [staleYearFix] : [],
     internal_link_suggestions: linkSugg,
     schema_recommendations: schemaRecs,
     title_recommendations: titleRecs,
@@ -349,4 +373,56 @@ if (require.main === module) {
   process.exit(result.status === 'FAIL' ? 1 : 0);
 }
 
-module.exports = { auditOnPage, parseFrontmatter, loadSitemapUrls, WEIGHTS, THRESHOLD_PASS, THRESHOLD_WARN };
+// ─── Strażnik stale-year ─────────────────────────────────────────────
+// Halucynowany/nieaktualny rok w TYTULE lub NAGŁÓWKACH (jak "...in 2024"
+// w poście z 2026). Skanuje WYŁĄCZNIE tytuł + linie ATX (#..######),
+// nigdy prozy — cytowania źródeł ("A 2022 study...") żyją w akapitach,
+// więc są strukturalnie nietykalne. Dodatkowy guard na cytat w nagłówku.
+function looksLikeCitation(text) {
+  return /\b(stud(?:y|ies)|review|paper|report|research|survey|meta-?analysis|trial|et al\.?|journal|published)\b/i.test(text || '');
+}
+function detectStaleYear(title, body, currentYear) {
+  currentYear = currentYear || new Date().getFullYear();
+  const hits = [];
+  const consider = (text, where) => {
+    if (!text || looksLikeCitation(text)) return;
+    for (const ys of (text.match(/\b20\d{2}\b/g) || [])) {
+      const y = +ys;
+      if (y >= 2015 && y < currentYear) hits.push({ where, year: y, currentYear, text: text.trim().slice(0, 90) });
+    }
+  };
+  consider(title, 'title');
+  for (const line of String(body || '').split('\n')) {
+    if (/^#{1,6}\s/.test(line)) consider(line.replace(/^#{1,6}\s+/, ''), 'heading');
+  }
+  return { stale: hits.length > 0, currentYear, hits };
+}
+// Auto-fix: usuwa nieaktualny rok (+ przyległy łącznik/nawias) z tytułu
+// i linii nagłówków. Linie wyglądające na cytat są pomijane (tylko warning).
+function fixStaleYear(markdown, fmTitle, currentYear) {
+  currentYear = currentYear || new Date().getFullYear();
+  const dec = /(\s*\(\s*(20\d{2})\s*\))|(\s*(?:[-–—:]|\bin\b|\bfor\b|\bupdated for\b)\s+(20\d{2})\b)|(\s+(20\d{2})\b)/gi;
+  const isStale = (y) => { const n = +y; return n >= 2015 && n < currentYear; };
+  const stripLine = (s) => {
+    if (looksLikeCitation(s)) return s;
+    return s
+      .replace(dec, (full, _g1, y1, _g2, y2, _g3, y3) => (isStale(y1 || y2 || y3) ? '' : full))
+      .replace(/\s{2,}/g, ' ')
+      .replace(/\(\s*\)/g, '')
+      .replace(/[\s\-–—:]+$/u, '')
+      .trim();
+  };
+  let changed = false;
+  let newTitle = fmTitle || '';
+  if (fmTitle) { const t = stripLine(fmTitle); if (t !== fmTitle) { newTitle = t; changed = true; } }
+  const out = String(markdown || '').split('\n').map((line) => {
+    const m = line.match(/^(#{1,6}\s+)([\s\S]*)$/);
+    if (!m) return line;
+    const fixed = stripLine(m[2]);
+    if (fixed !== m[2]) changed = true;
+    return m[1] + fixed;
+  });
+  return { changed, title: newTitle, markdown: out.join('\n') };
+}
+
+module.exports = { auditOnPage, parseFrontmatter, loadSitemapUrls, WEIGHTS, THRESHOLD_PASS, THRESHOLD_WARN, detectStaleYear, fixStaleYear };
