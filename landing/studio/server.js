@@ -4985,6 +4985,93 @@ app.post('/api/seo/internal-links', (req, res) => {
   } catch (err) { console.error('[InternalLinks] error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ Batch corpus audit: C+D+E po ISTNIEJĄCYCH postach â”€â”€â”€
+// limitPerLang=0 → wszystkie; createTickets=false → dry-run (sam raport).
+async function runCorpusAudit({ limitPerLang = 0, createTickets = false } = {}) {
+  const { auditOnPage, parseFrontmatter, loadSitemapUrls } = require('./tools/seo-onpage-audit');
+  const { suggestLinks } = require('./tools/internal-link-engine');
+  const sm = loadSitemapUrls(path.join(__dirname, '..', 'dist', 'sitemap.xml'));
+  let langs;
+  try { langs = fs.readdirSync(BLOG_DIR).filter(d => fs.statSync(path.join(BLOG_DIR, d)).isDirectory()); }
+  catch { return { error: 'BLOG_DIR niedostępny' }; }
+
+  const rows = [];
+  for (const lang of langs) {
+    const idx = buildUrlIndex(lang);
+    let files;
+    try {
+      files = fs.readdirSync(path.join(BLOG_DIR, lang)).filter(f => f.endsWith('.md'))
+        .map(f => ({ f, m: fs.statSync(path.join(BLOG_DIR, lang, f)).mtimeMs }))
+        .sort((a, b) => b.m - a.m).map(x => x.f);
+    } catch { continue; }
+    if (limitPerLang > 0) files = files.slice(0, limitPerLang);
+    for (const f of files) {
+      const slug = f.replace(/\.md$/, '');
+      try {
+        const { frontmatter, body } = parseFrontmatter(fs.readFileSync(path.join(BLOG_DIR, lang, f), 'utf8'));
+        const c = auditOnPage({ markdown: body, frontmatter, lang, keyword: frontmatter.keyword, sitemapUrls: sm });
+        const d = runTechnicalAudit(lang, slug); // czyta dist HTML (jeśli brak → FAIL "brak HTML")
+        const tgt = idx.find(e => e.slug === slug) || { lang, slug, title: frontmatter.title, keyword: frontmatter.keyword, tags: [], body };
+        const e = suggestLinks(tgt, idx);
+        const dCrit = (d.critical_issues || []).length;
+        const priority = dCrit ? 'P0'
+          : (c.status === 'FAIL' || d.status === 'FAIL') ? 'P1'
+          : (c.status === 'WARN' || d.status === 'WARN' || e.outbound.length < 3 || !e.money_page_ok) ? 'P2' : 'ok';
+        rows.push({
+          lang, slug, priority,
+          c_score: c.score, c_status: c.status, c_blocking: c.blocking_issues.length,
+          d_status: d.status, d_critical: d.critical_issues || [], d_blocking: d.blocking_issues.length,
+          e_outbound: e.outbound.length, e_money_ok: e.money_page_ok,
+          top_issues: [...(d.critical_issues || []), ...c.blocking_issues, ...c.warnings.slice(0, 2)].slice(0, 5)
+        });
+      } catch (err) { rows.push({ lang, slug, priority: 'ERR', error: err.message }); }
+    }
+  }
+
+  const rank = { P0: 0, P1: 1, P2: 2, ERR: 3, ok: 4 };
+  rows.sort((a, b) => (rank[a.priority] ?? 9) - (rank[b.priority] ?? 9) || (a.c_score || 0) - (b.c_score || 0));
+  const summary = { audited: rows.length, P0: rows.filter(r => r.priority === 'P0').length, P1: rows.filter(r => r.priority === 'P1').length, P2: rows.filter(r => r.priority === 'P2').length, ok: rows.filter(r => r.priority === 'ok').length, err: rows.filter(r => r.priority === 'ERR').length };
+
+  let ticketsCreated = 0;
+  if (createTickets) {
+    const st = loadCoachState(); st.tickets = st.tickets || [];
+    const today = new Date().toISOString().slice(0, 10);
+    for (const r of rows.filter(x => x.priority === 'P0' || x.priority === 'P1')) {
+      const url = `https://healthdesk.site/${r.lang}/blog/${r.slug}/`;
+      if (st.tickets.some(t => t.type === 'corpus_audit' && t.status === 'open' && t.url === url)) continue;
+      const exp = new Date(); exp.setDate(exp.getDate() + 30);
+      st.tickets.push({
+        id: `ca_${today}_${(st.tickets.length + 1).toString().padStart(3, '0')}`,
+        type: 'corpus_audit', lang: r.lang, slug: r.slug, url,
+        status: 'open', created: today, expires: exp.toISOString().slice(0, 10),
+        severity: r.priority === 'P0' ? 'high' : 'medium',
+        evidence: `Audyt korpusu ${r.priority}: C ${r.c_status} ${r.c_score}/100, D ${r.d_status}. ${r.top_issues.join('; ')}`,
+        recommended_actions: ['napraw critical technical (D)', 'popraw on-page wg audytu (C)', 'dodaj internal links (E)'],
+        outcome: null
+      });
+      ticketsCreated++;
+    }
+    saveCoachState(st);
+  }
+
+  try {
+    const dir = path.join(__dirname, 'reports', 'seo-audits');
+    fs.mkdirSync(dir, { recursive: true });
+    const tag = limitPerLang > 0 ? `corpus-sample${limitPerLang}` : 'corpus-full';
+    fs.writeFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}-${tag}.json`), JSON.stringify({ summary, rows }, null, 2), 'utf8');
+  } catch { /* best-effort */ }
+  console.log(`[Corpus Audit] ${JSON.stringify(summary)} tickets:${ticketsCreated}`);
+  return { ...summary, tickets_created: ticketsCreated, top: rows.slice(0, 25) };
+}
+
+app.post('/api/seo/audit-corpus', async (req, res) => {
+  try {
+    const limitPerLang = parseInt(req.body?.limitPerLang) || 0;
+    const createTickets = !!req.body?.createTickets;
+    res.json({ ok: true, ...(await runCorpusAudit({ limitPerLang, createTickets })) });
+  } catch (err) { console.error('[Corpus Audit] error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
   const finalDate = normalizeDateOnly(publishedDate) || new Date().toISOString().slice(0, 10);
   syncPublishedFrontmatterDate(lang, slug, finalDate);
