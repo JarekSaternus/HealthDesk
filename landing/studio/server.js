@@ -4022,6 +4022,17 @@ app.post('/api/seo-coach/tickets/:id/accept', async (req, res) => {
   const state = loadCoachState();
   const t = state.tickets.find(x => x.id === req.params.id);
   if (!t) return res.status(404).json({ error: 'not found' });
+
+  // Tickety advisory (decay/cannibalization/cwv/backlink) NIE mają proposals
+  // ani auto-apply — accept = potwierdzenie/odhaczenie, działania ręczne wg
+  // recommended_actions. Tylko money_page_low_ctr ma auto-rewrite title/desc.
+  if (!Array.isArray(t.proposals) || t.proposals.length === 0) {
+    t.status = 'accepted';
+    t.accepted_at = new Date().toISOString();
+    saveCoachState(state);
+    return res.json({ ok: true, ticket: t, note: 'oznaczone jako accepted (typ advisory — wykonaj recommended_actions ręcznie)' });
+  }
+
   const variant = req.body?.variant || t.recommended;
   const proposal = t.proposals.find(p => p.variant === variant);
   if (!proposal) return res.status(400).json({ error: 'variant not found' });

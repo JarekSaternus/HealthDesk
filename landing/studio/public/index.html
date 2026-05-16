@@ -43,6 +43,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
         Insights
       </a></li>
+      <li><a href="#" data-view="seo">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+        SEO Coach
+      </a></li>
       <li><a href="#" data-view="build">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>
         Build & Deploy
@@ -763,6 +767,44 @@
       </div>
     </section>
 
+    <!-- ===== SEO Coach (Warstwa C–G tickety + Backlinks) ===== -->
+    <section class="view hidden" id="view-seo">
+      <div class="view-header">
+        <h1>SEO Coach</h1>
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap">
+          <button class="btn btn-sm" onclick="seoLoad()">Odśwież</button>
+          <button class="btn btn-sm" onclick="seoScanAll()">Skanuj wszystko</button>
+        </div>
+      </div>
+      <div class="kw-tabs" style="margin:1rem 0">
+        <button class="btn btn-sm kw-tab active" id="seo-tab-btn-tickets" onclick="seoTab('tickets')">Tickety</button>
+        <button class="btn btn-sm kw-tab" id="seo-tab-btn-backlinks" onclick="seoTab('backlinks')">Backlinks</button>
+      </div>
+
+      <div id="seo-sub-tickets">
+        <div style="margin-bottom:.75rem;color:#9aa">
+          <label>Status: </label>
+          <select id="seo-ticket-filter" onchange="seoLoadTickets()" style="background:#222836;color:#fff;border:1px solid #3a4252;border-radius:6px;padding:.3rem">
+            <option value="open">open</option><option value="all">all</option>
+            <option value="rejected">rejected</option><option value="snoozed">snoozed</option>
+          </select>
+          <span id="seo-ticket-count" style="margin-left:.75rem"></span>
+        </div>
+        <div id="seo-tickets-list">Ładowanie…</div>
+      </div>
+
+      <div id="seo-sub-backlinks" style="display:none">
+        <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.75rem">
+          <input id="bl-url" placeholder="https://źródło-backlinka.com/strona" style="flex:1;min-width:260px;background:#222836;color:#fff;border:1px solid #3a4252;border-radius:6px;padding:.4rem">
+          <button class="btn btn-sm" onclick="blAdd()">+ Dodaj ręcznie</button>
+          <button class="btn btn-sm" onclick="blAction('check')">Sprawdź żywotność</button>
+          <button class="btn btn-sm" onclick="blAction('discover')">Discover (GA4+Serper)</button>
+        </div>
+        <div id="bl-stats" style="color:#9aa;margin-bottom:.5rem"></div>
+        <div id="bl-list">Ładowanie…</div>
+      </div>
+    </section>
+
   </main>
 
   <!-- New Article Modal -->
@@ -786,5 +828,109 @@
   </div>
 
   <script src="studio-app.js"></script>
+  <script>
+  // ===== SEO Coach view (self-contained, nie dotyka studio-app.js) =====
+  (function () {
+    const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const j = (u, o) => fetch(u, o).then(r => r.json());
+
+    window.seoTab = function (t) {
+      document.getElementById('seo-sub-tickets').style.display = t === 'tickets' ? '' : 'none';
+      document.getElementById('seo-sub-backlinks').style.display = t === 'backlinks' ? '' : 'none';
+      document.getElementById('seo-tab-btn-tickets').classList.toggle('active', t === 'tickets');
+      document.getElementById('seo-tab-btn-backlinks').classList.toggle('active', t === 'backlinks');
+      if (t === 'backlinks') blLoad();
+    };
+
+    const TYPE_LABEL = {
+      money_page_low_ctr: '💰 Money page CTR', content_decay: '📉 Decay',
+      cannibalization: '🔁 Kanibalizacja', cwv_regression: '⚡ CWV', backlink_lost: '🔗 Backlink utracony'
+    };
+
+    window.seoLoadTickets = async function () {
+      const f = document.getElementById('seo-ticket-filter').value;
+      const el = document.getElementById('seo-tickets-list');
+      el.innerHTML = 'Ładowanie…';
+      try {
+        const d = await j('/api/seo-coach/tickets?status=' + f);
+        document.getElementById('seo-ticket-count').textContent = (d.count || 0) + ' ticketów';
+        const ts = d.tickets || [];
+        if (!ts.length) { el.innerHTML = '<p style="color:#9aa">Brak ticketów.</p>'; return; }
+        el.innerHTML = ts.map(t => {
+          const acts = (t.recommended_actions || (t.proposals || []).map(p => p.title || p) || []);
+          return `<div style="background:#222836;border:1px solid #3a4252;border-radius:8px;padding:1rem;margin-bottom:.75rem">
+            <div style="display:flex;justify-content:space-between;gap:1rem;flex-wrap:wrap">
+              <strong>${TYPE_LABEL[t.type] || esc(t.type)}</strong>
+              <span style="color:#9aa">${esc(t.severity || '')} · ${esc(t.created || '')} · ${esc(t.status)}</span>
+            </div>
+            <div style="color:#cdd; margin:.4rem 0; font-size:.9rem">${esc(t.url || t.query || '')}</div>
+            <div style="color:#9aa; font-size:.85rem; margin-bottom:.5rem">${esc(t.evidence || '')}</div>
+            ${acts.length ? '<ul style="margin:.3rem 0 .6rem 1rem;color:#aeb6c6;font-size:.85rem">' + acts.slice(0, 6).map(a => '<li>' + esc(a) + '</li>').join('') + '</ul>' : ''}
+            ${t.status === 'open' ? `<div style="display:flex;gap:.4rem">
+              <button class="btn btn-sm" onclick="seoTicket('${esc(t.id)}','accept')">Akceptuj</button>
+              <button class="btn btn-sm" onclick="seoTicket('${esc(t.id)}','snooze')">Snooze 14d</button>
+              <button class="btn btn-sm" onclick="seoTicket('${esc(t.id)}','reject')">Odrzuć</button>
+            </div>` : ''}
+          </div>`;
+        }).join('');
+      } catch (e) { el.innerHTML = '<p style="color:#e57">Błąd: ' + esc(e.message) + '</p>'; }
+    };
+
+    window.seoTicket = async function (id, action) {
+      if (action === 'reject' && !confirm('Odrzucić ticket ' + id + '?')) return;
+      const body = action === 'snooze' ? { days: 14 } : {};
+      try { await j('/api/seo-coach/tickets/' + id + '/' + action, { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify(body) }); seoLoadTickets(); }
+      catch (e) { alert('Błąd: ' + e.message); }
+    };
+
+    window.seoScanAll = async function () {
+      const btnTxt = 'Skanowanie… (może potrwać)';
+      const el = document.getElementById('seo-tickets-list'); el.innerHTML = btnTxt;
+      try {
+        await Promise.allSettled([
+          j('/api/seo-coach/run', { method: 'POST' }),
+          j('/api/seo-coach/decay-scan', { method: 'POST' }),
+          j('/api/seo-coach/cannibalization-scan', { method: 'POST' }),
+          j('/api/seo/cwv-scan', { method: 'POST' }),
+        ]);
+      } catch (e) { /* poszczególne błędy nieblokujące */ }
+      seoLoadTickets();
+    };
+
+    window.blLoad = async function () {
+      const el = document.getElementById('bl-list'); el.innerHTML = 'Ładowanie…';
+      try {
+        const d = await j('/api/backlinks');
+        document.getElementById('bl-stats').textContent = `Razem: ${d.total} · ` + Object.entries(d.by_status || {}).map(([k, v]) => `${k}: ${v}`).join(' · ');
+        const bl = d.backlinks || [];
+        if (!bl.length) { el.innerHTML = '<p style="color:#9aa">Brak backlinków. Użyj Discover.</p>'; return; }
+        el.innerHTML = '<table style="width:100%;border-collapse:collapse;font-size:.85rem">' +
+          '<tr style="text-align:left;color:#9aa"><th>Domena</th><th>Status</th><th>Via</th><th>Sprawdzono</th><th>URL</th></tr>' +
+          bl.map(b => `<tr style="border-top:1px solid #2a3140">
+            <td>${esc(b.source_domain)}</td>
+            <td style="color:${b.status === 'live' ? '#2ecc71' : b.status === 'mention' ? '#e6b800' : '#e57'}">${esc(b.status)}</td>
+            <td>${esc(b.via || '')}</td><td>${esc(b.last_checked || '—')}</td>
+            <td><a href="${esc(b.source_url)}" target="_blank" style="color:#2ecc71">link</a></td></tr>`).join('') + '</table>';
+      } catch (e) { el.innerHTML = '<p style="color:#e57">Błąd: ' + esc(e.message) + '</p>'; }
+    };
+    window.blAdd = async function () {
+      const u = document.getElementById('bl-url').value.trim();
+      if (!u) return;
+      try { const r = await j('/api/backlinks', { method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ source_url: u }) }); if (r.error) alert(r.error); else { document.getElementById('bl-url').value = ''; blLoad(); } }
+      catch (e) { alert('Błąd: ' + e.message); }
+    };
+    window.blAction = async function (a) {
+      const el = document.getElementById('bl-list'); el.innerHTML = a === 'discover' ? 'Discovery (GA4+Serper)…' : 'Sprawdzanie żywotności…';
+      try { await j('/api/backlinks/' + a, { method: 'POST' }); blLoad(); }
+      catch (e) { el.innerHTML = '<p style="color:#e57">Błąd: ' + esc(e.message) + '</p>'; }
+    };
+
+    window.seoLoad = function () { seoLoadTickets(); };
+
+    // Doładuj dane gdy wejdziesz w widok SEO (switchView z studio-app.js
+    // tylko pokazuje sekcję — dane ciągniemy tu, niezależnie).
+    document.querySelector('[data-view="seo"]').addEventListener('click', () => setTimeout(seoLoad, 50));
+  })();
+  </script>
 </body>
 </html>
