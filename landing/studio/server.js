@@ -3748,6 +3748,66 @@ app.post('/api/seo-coach/cannibalization-scan', async (req, res) => {
   catch (err) { console.error('[Cannibalization] scan error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ #5 Indexing verification po publikacji (GSC URL Inspection) â”€â”€â”€
+// Posty opublikowane 7-30 dni temu sprawdzane czy weszly do indeksu.
+// not indexed → ticket. <7d = za wcześnie, >30d = decay/inny problem.
+async function runIndexingCheck() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return { checked: 0, not_indexed: 0 };
+  const { google } = require('googleapis');
+  const sc = google.searchconsole({ version: 'v1', auth: getGscAuth() });
+  const cal = loadCalendar();
+  const now = Date.now();
+  const candidates = [];
+  for (const cl of cal.clusters || []) {
+    for (const lg of Object.keys(cl.keywords || {})) {
+      for (const k of cl.keywords[lg]) {
+        if (k.status !== 'published' || !k.published_date || !k.slug) continue;
+        const ageD = (now - new Date(k.published_date).getTime()) / 86400000;
+        if (ageD >= 7 && ageD <= 30 && !k.index_verified) {
+          candidates.push({ lang: lg, slug: k.slug, keyword: k.keyword, ageD: Math.round(ageD),
+            url: `https://healthdesk.site/${lg}/blog/${k.slug}/` });
+        }
+      }
+    }
+  }
+  const st = loadCoachState(); st.tickets = st.tickets || [];
+  const openIdx = new Set(st.tickets.filter(t => t.type === 'not_indexed' && t.status === 'open').map(t => t.url));
+  let checked = 0, notIndexed = 0;
+  for (const c of candidates.slice(0, 30)) {
+    try {
+      const r = await sc.urlInspection.index.inspect({ requestBody: { inspectionUrl: c.url, siteUrl: SITE_URL_GSC } });
+      const ir = r.data.inspectionResult?.indexStatusResult || {};
+      checked++;
+      const indexed = ir.verdict === 'PASS' || /indexed/i.test(ir.coverageState || '');
+      if (indexed) {
+        updateKeywordStatus(cal, c.lang, c.keyword, { index_verified: true });
+      } else if (!openIdx.has(c.url)) {
+        notIndexed++;
+        const today = new Date().toISOString().slice(0, 10);
+        const exp = new Date(); exp.setDate(exp.getDate() + 30);
+        st.tickets.push({
+          id: `ni_${today}_${(st.tickets.length + 1).toString().padStart(3, '0')}`,
+          type: 'not_indexed', lang: c.lang, slug: c.slug, url: c.url,
+          status: 'open', created: today, expires: exp.toISOString().slice(0, 10), severity: 'high',
+          evidence: `Nie zaindeksowany po ${c.ageD} dniach. verdict=${ir.verdict || '?'} coverage="${ir.coverageState || '?'}" robots=${ir.robotsTxtState || '?'}`,
+          recommended_actions: ['sprawdź noindex/canonical w wyrenderowanym HTML (Warstwa D)', 'wzmocnij internal links do tego URL (Warstwa E)', 'dodaj unikalną wartość/dane', 'ponów Request Indexing w GSC', 'sprawdź czy nie kanibalizacja'],
+          outcome: null
+        });
+      }
+      await new Promise(rs => setTimeout(rs, 250));
+    } catch (e) { console.error(`[Indexing] ${c.url}: ${e.message}`); }
+  }
+  saveCalendar(cal);
+  saveCoachState(st);
+  console.log(`[Indexing] Sprawdzono ${checked}, nie zaindeksowanych ${notIndexed}`);
+  return { checked, not_indexed: notIndexed, candidates: candidates.length };
+}
+
+app.post('/api/seo/indexing-check', async (req, res) => {
+  try { res.json({ ok: true, ...(await runIndexingCheck()) }); }
+  catch (err) { console.error('[Indexing] error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 // â”€â”€â”€ CWV monitoring per template (PageSpeed Insights) â”€â”€â”€
 const CWV_HISTORY = path.join(__dirname, 'cwv_history.json');
 const CWV_TEMPLATES = {
@@ -6251,6 +6311,17 @@ function startCalendarScheduler() {
               );
             }
           } catch (e) { console.error('[Backlinks] Weekly failed:', e.message); }
+
+          // #5 Indexing verification weekly
+          try {
+            const ix = await runIndexingCheck();
+            if (ix.not_indexed > 0) {
+              showNotification(
+                `Indexing: ${ix.not_indexed} URL nie w indeksie`,
+                `Sprawdzono ${ix.checked}.\nSzczegóły: SEO Coach → tickety not_indexed`
+              );
+            }
+          } catch (e) { console.error('[Indexing] Weekly failed:', e.message); }
         }
         return;
       }
