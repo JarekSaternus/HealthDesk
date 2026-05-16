@@ -3691,6 +3691,63 @@ app.post('/api/seo-coach/decay-scan', async (req, res) => {
   catch (err) { console.error('[Decay Coach] scan error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ Cannibalization scan (GSC query+page overlap) â”€â”€â”€
+async function runCannibalizationScan() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return { detected: 0, new_tickets: 0, tickets: [] };
+  const { google } = require('googleapis');
+  const { detectCannibalization } = require('./tools/cannibalization');
+  const sc = google.searchconsole({ version: 'v1', auth: getGscAuth() });
+  const start = new Date(); start.setDate(start.getDate() - 28);
+  const end = new Date();
+  const result = await sc.searchanalytics.query({
+    siteUrl: SITE_URL_GSC,
+    requestBody: {
+      startDate: start.toISOString().slice(0, 10),
+      endDate: end.toISOString().slice(0, 10),
+      dimensions: ['query', 'page'], rowLimit: 2000
+    }
+  });
+  const cand = detectCannibalization(result.data.rows || []);
+  const state = loadCoachState();
+  state.tickets = state.tickets || [];
+  const openKeys = new Set(state.tickets.filter(t => t.status === 'open' && t.type === 'cannibalization').map(t => t.query));
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const rejected = new Set(state.tickets.filter(t => t.type === 'cannibalization' && t.status === 'rejected' && new Date(t.created) > cutoff).map(t => t.query));
+  const fresh = cand.filter(c => !openKeys.has(c.query) && !rejected.has(c.query));
+  const newTickets = [];
+  for (const c of fresh.slice(0, 8)) {
+    const today = new Date().toISOString().slice(0, 10);
+    const expires = new Date(); expires.setDate(expires.getDate() + 30);
+    newTickets.push({
+      id: `ck_${today}_${(state.tickets.length + newTickets.length + 1).toString().padStart(3, '0')}`,
+      type: 'cannibalization',
+      query: c.query, url: c.pages[0].url, status: 'open',
+      created: today, expires: expires.toISOString().slice(0, 10),
+      severity: c.severity,
+      evidence: `"${c.query}" — ${c.pages.length} URL konkuruje (${c.impressions} imps łącznie): ${c.pages.map(p => `${p.url} @${p.position.toFixed(1)}`).join(' · ')}`,
+      pages: c.pages,
+      recommended_actions: [c.recommendation],
+      outcome: null
+    });
+  }
+  state.tickets.push(...newTickets);
+  state.last_cannibalization_run = new Date().toISOString();
+  saveCoachState(state);
+  try {
+    const dir = path.join(__dirname, 'reports', 'seo-audits');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}-cannibalization.json`),
+      JSON.stringify({ detected: cand.length, new_tickets: newTickets.length, candidates: cand }, null, 2), 'utf8');
+  } catch { /* best-effort */ }
+  console.log(`[Cannibalization] Detected ${cand.length}, ${newTickets.length} nowych ticketów`);
+  return { detected: cand.length, new_tickets: newTickets.length, tickets: newTickets };
+}
+
+app.post('/api/seo-coach/cannibalization-scan', async (req, res) => {
+  try { res.json({ ok: true, ...(await runCannibalizationScan()) }); }
+  catch (err) { console.error('[Cannibalization] scan error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/seo-coach/run', async (req, res) => {
   try {
     const result = await runSeoCoachScan();
@@ -5748,6 +5805,18 @@ function startCalendarScheduler() {
               );
             }
           } catch (e) { console.error('[Decay Coach] Weekly scan failed:', e.message); }
+
+          // Cannibalization weekly scan
+          try {
+            const cr = await runCannibalizationScan();
+            console.log(`[Cannibalization] Weekly: ${cr.detected} detected, ${cr.new_tickets} new tickets`);
+            if (cr.new_tickets > 0) {
+              showNotification(
+                `Cannibalization: ${cr.new_tickets} kolizji`,
+                `${cr.detected} zapytań z konkurującymi URL.\nSzczegóły: node tools/seo-coach.js list`
+              );
+            }
+          } catch (e) { console.error('[Cannibalization] Weekly scan failed:', e.message); }
         }
         return;
       }

@@ -111,5 +111,21 @@ check('decay: stabilny ruch → brak', dec.length === 0);
 dec = detectDecay([], [{ keys: ['u'], impressions: 3, clicks: 0, ctr: 0, position: 5 }], {});
 check('decay: za mało prev impressions → ignoruj', dec.length === 0);
 
+// 11. Cannibalization detector
+const { detectCannibalization } = require('./cannibalization');
+let can = detectCannibalization([
+  { keys: ['pomodoro app', 'https://healthdesk.site/en/blog/a/'], impressions: 20, clicks: 1, position: 8 },
+  { keys: ['pomodoro app', 'https://healthdesk.site/en/blog/b/'], impressions: 15, clicks: 0, position: 14 },
+  { keys: ['pomodoro app', 'https://healthdesk.site/en/blog/c/'], impressions: 10, clicks: 0, position: 19 },
+  { keys: ['unique q', 'https://healthdesk.site/en/blog/d/'], impressions: 50, clicks: 5, position: 3 },
+]);
+check('cannibalization: wykrywa kolizję 3 URL', can.length === 1 && can[0].pages.length === 3 && can[0].severity === 'high', JSON.stringify(can.map(c => c.query)));
+check('cannibalization: pojedynczy URL nie jest kolizją', !can.some(c => c.query === 'unique q'));
+can = detectCannibalization([
+  { keys: ['low q', 'https://healthdesk.site/en/blog/a/'], impressions: 4, clicks: 0, position: 8 },
+  { keys: ['low q', 'https://healthdesk.site/en/blog/b/'], impressions: 3, clicks: 0, position: 9 },
+]);
+check('cannibalization: poniżej progu impresji ignoruj', can.length === 0);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
