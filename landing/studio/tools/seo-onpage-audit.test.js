@@ -72,5 +72,31 @@ if (fs.existsSync(real)) {
   check('parseFrontmatter: title + faq z realnego posta', !!p.frontmatter.title && p.frontmatter.__hasFaq === true);
 } else { console.log('  ~ skip: realny post nieobecny'); }
 
+// 8. SERP intent classifier
+const { classifySerpIntent, evaluateIntentMatch } = require('./serp-intent');
+let si = classifySerpIntent([
+  { title: '10 Best Pomodoro Apps for Windows', link: 'https://a.com/best' },
+  { title: 'Top 7 Focus Timer Tools', link: 'https://b.com/top' },
+  { title: 'Best pomodoro software 2026', link: 'https://c.com' },
+], 'best pomodoro app windows');
+check('serp-intent: wykrywa listicle', si.dominant === 'listicle', JSON.stringify(si));
+
+si = classifySerpIntent([
+  { title: 'Workrave vs Stretchly compared', link: 'https://a.com' },
+  { title: 'Stretchly vs Workrave: which is better', link: 'https://b.com' },
+], 'workrave vs stretchly');
+check('serp-intent: wykrywa comparison', si.dominant === 'comparison', JSON.stringify(si));
+
+si = classifySerpIntent([], 'x');
+check('serp-intent: pusty organic → dominant null', si.dominant === null);
+
+const im = evaluateIntentMatch({ dominant: 'listicle', confidence: 1 }, 'short body', [{ level: 2, text: 'A' }]);
+check('serp-intent: listicle mismatch daje penalty', !im.ok && im.penalty > 0, JSON.stringify(im));
+
+// 9. auditOnPage z serpIntent mismatch obniża content_intent
+const rNo = auditOnPage({ markdown: GOOD_BODY, frontmatter: GOOD_FM, lang: 'en', keyword: GOOD_FM.keyword, sitemapUrls: [] });
+const rMis = auditOnPage({ markdown: GOOD_BODY, frontmatter: GOOD_FM, lang: 'en', keyword: GOOD_FM.keyword, sitemapUrls: [], serpIntent: { dominant: 'how_to', confidence: 1, distribution: {}, sample: 5 } });
+check('serp-intent: mismatch obniża content_intent', rMis.category_scores.content_intent < rNo.category_scores.content_intent, `${rMis.category_scores.content_intent} vs ${rNo.category_scores.content_intent}`);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

@@ -80,7 +80,7 @@ function extractImages(body) {
 }
 
 // ─── Audyt ───
-function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [] }) {
+function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], serpIntent = null }) {
   const fm = frontmatter || {};
   lang = lang || fm.lang || 'en';
   const primaryKw = (keyword || fm.keyword || '').trim();
@@ -162,6 +162,17 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [] })
   const lastH = headings[headings.length - 1];
   if (!lastH || !/(conclusion|verdict|which|should you|final|takeaway|summary|wniosk|podsumowanie|który wybrać|werdykt)/i.test(lastH.text)) {
     opportunities.push('Brak wyraźnej sekcji konkluzji/werdyktu'); s -= 8;
+  }
+  // Warstwa G: zgodność struktury z dominującym intentem SERP
+  let serpIntentInfo = null;
+  if (serpIntent && serpIntent.dominant) {
+    try {
+      const { evaluateIntentMatch } = require('./serp-intent');
+      const im = evaluateIntentMatch(serpIntent, body, headings);
+      serpIntentInfo = { dominant: serpIntent.dominant, confidence: serpIntent.confidence, match: im.ok };
+      if (!im.ok) { warnings.push(`SERP intent mismatch: ${im.message}`); s -= im.penalty; }
+      else if (im.message) opportunities.push(`SERP intent: ${im.message}`);
+    } catch { /* serp-intent niedostępny — pomiń */ }
   }
   scores.content_intent = Math.max(0, s);
 
@@ -247,6 +258,7 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [] })
     title_recommendations: titleRecs,
     meta_recommendations: metaRecs,
     cannibalization_risks: cannRisks,
+    serp_intent: serpIntentInfo,
     meta: { lang, keyword: primaryKw, word_count: wc, headings: headings.length, internal_links: internal.length },
   };
 }

@@ -3971,10 +3971,13 @@ async function runAutopilot(lang, topic, persona) {
     let seoOnPage = null;
     try {
       const { auditOnPage, parseFrontmatter, loadSitemapUrls } = require('./tools/seo-onpage-audit');
+      const { classifySerpIntent } = require('./tools/serp-intent');
       const sm = loadSitemapUrls(path.join(__dirname, '..', 'dist', 'sitemap.xml'));
+      const serpIntent = classifySerpIntent(serp && serp.organic, topic);
+      if (serpIntent.dominant) console.log(`[SEO On-Page] SERP intent: ${serpIntent.dominant} (conf ${serpIntent.confidence}, n=${serpIntent.sample})`);
       const runAudit = async () => {
         const parsedMd = parseFrontmatter(await fs.promises.readFile(filePath, 'utf8'));
-        return auditOnPage({ markdown: parsedMd.body, frontmatter: parsedMd.frontmatter, lang, keyword: topic, sitemapUrls: sm });
+        return auditOnPage({ markdown: parsedMd.body, frontmatter: parsedMd.frontmatter, lang, keyword: topic, sitemapUrls: sm, serpIntent });
       };
       let r = await runAudit();
       console.log(`[SEO On-Page] ${r.status} ${r.score}/100 (${lang}/${slug}) — blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
