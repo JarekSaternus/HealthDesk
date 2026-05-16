@@ -4716,6 +4716,60 @@ app.post('/api/seo/technical-audit', (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ Warstwa E: Internal Linking Engine (sugestie) â”€â”€â”€
+function buildUrlIndex(filterLang) {
+  const { parseFrontmatter } = require('./tools/seo-onpage-audit');
+  const index = [];
+  let langs;
+  try { langs = fs.readdirSync(BLOG_DIR).filter(d => fs.statSync(path.join(BLOG_DIR, d)).isDirectory()); }
+  catch { return index; }
+  for (const lang of langs) {
+    if (filterLang && lang !== filterLang) continue;
+    let files;
+    try { files = fs.readdirSync(path.join(BLOG_DIR, lang)).filter(f => f.endsWith('.md')); }
+    catch { continue; }
+    for (const f of files) {
+      try {
+        const raw = fs.readFileSync(path.join(BLOG_DIR, lang, f), 'utf8');
+        const { frontmatter, body } = parseFrontmatter(raw);
+        const slug = frontmatter.slug || f.replace(/\.md$/, '');
+        let tags = [];
+        const tm = raw.match(/^tags:\s*\[([^\]]*)\]/m);
+        if (tm) tags = tm[1].split(',').map(s => s.replace(/["'\s]/g, '')).filter(Boolean);
+        index.push({
+          url: `https://healthdesk.site/${lang}/blog/${slug}/`,
+          lang, slug, title: frontmatter.title || slug.replace(/-/g, ' '),
+          keyword: frontmatter.keyword || '', tags,
+          money_page: false, body
+        });
+      } catch { /* skip uszkodzony plik */ }
+    }
+  }
+  return index;
+}
+
+function runInternalLinkSuggestions(lang, slug) {
+  const { suggestLinks } = require('./tools/internal-link-engine');
+  const index = buildUrlIndex(lang);
+  const target = index.find(e => e.slug === slug && e.lang === lang);
+  if (!target) return { error: 'Article not found in index' };
+  const r = suggestLinks(target, index);
+  try {
+    const dir = path.join(__dirname, 'reports', 'seo-audits');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}-${slug}-internal-links.json`), JSON.stringify(r, null, 2), 'utf8');
+  } catch { /* best-effort */ }
+  return r;
+}
+
+app.post('/api/seo/internal-links', (req, res) => {
+  try {
+    const { lang, slug } = req.body || {};
+    if (!isValidLang(lang) || !isValidSlug(slug)) return res.status(400).json({ error: 'lang+slug required' });
+    res.json(runInternalLinkSuggestions(lang, slug));
+  } catch (err) { console.error('[InternalLinks] error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
   const finalDate = normalizeDateOnly(publishedDate) || new Date().toISOString().slice(0, 10);
   syncPublishedFrontmatterDate(lang, slug, finalDate);

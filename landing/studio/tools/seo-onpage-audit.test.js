@@ -201,5 +201,23 @@ th = auditHtml(htmlMailto, { expectedCanonical: 'https://healthdesk.site/en/blog
 check('technical: mailto:@healthdesk.site NIE jest linkiem wewn (no false FAIL)',
   th.status !== 'FAIL' && th.checks.internal_links.broken === 0, JSON.stringify(th.blocking_issues) + ' ' + JSON.stringify(th.checks.internal_links));
 
+// 16. Internal Linking Engine (Warstwa E)
+const { suggestLinks } = require('./internal-link-engine');
+const idx = [
+  { url: 'https://healthdesk.site/en/blog/a/', lang: 'en', slug: 'a', title: 'Best pomodoro timer for Windows', keyword: 'pomodoro timer windows', tags: ['pomodoro','windows'], body: 'some text' },
+  { url: 'https://healthdesk.site/en/blog/b/', lang: 'en', slug: 'b', title: 'Pomodoro vs 52-17 method', keyword: 'pomodoro vs 52-17', tags: ['pomodoro','productivity'], body: 'about pomodoro' },
+  { url: 'https://healthdesk.site/en/blog/c/', lang: 'en', slug: 'c', title: 'Back pain at desk', keyword: 'back pain desk', tags: ['ergonomics'], body: 'links to /en/blog/target/ already' },
+  { url: 'https://healthdesk.site/de/blog/d/', lang: 'de', slug: 'd', title: 'German pomodoro', keyword: 'pomodoro de', tags: ['pomodoro'], body: 'x' },
+];
+const tgt = { url: 'https://healthdesk.site/en/blog/target/', lang: 'en', slug: 'target', title: 'Open source pomodoro app for Windows', keyword: 'open source pomodoro windows', tags: ['pomodoro','windows','open source'], body: 'Content with no internal links and no money page.' };
+const sl = suggestLinks(tgt, idx);
+check('internal-link: outbound proponuje powiązane EN (nie DE)',
+  sl.outbound.length >= 1 && sl.outbound.every(o => o.slug !== 'd'), JSON.stringify(sl.outbound.map(o => o.slug)));
+check('internal-link: wykrywa brak money page', sl.money_page_ok === false && !!sl.money_page_suggestion);
+check('internal-link: inbound pomija post który już linkuje (c)',
+  !sl.inbound.some(i => i.slug === 'c'), JSON.stringify(sl.inbound.map(i => i.slug)));
+const tgt2 = { ...tgt, body: 'see https://healthdesk.site/en/ for the app' };
+check('internal-link: money page OK gdy jest link do landinga', suggestLinks(tgt2, idx).money_page_ok === true);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

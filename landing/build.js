@@ -21,8 +21,11 @@ function slugifyHeading(text) {
     .replace(/-+/g, '-')
     .slice(0, 80);
 }
+const usedIds = new Map();
+// Reset PRZED każdą konwersją posta — inaczej Map akumuluje między
+// postami i kolejne dostają id "introduction-1" (psuje anchory/TOC).
+function resetHeadingIds() { usedIds.clear(); }
 {
-  const usedIds = new Map();
   marked.use({
     renderer: {
       heading({ tokens, depth }) {
@@ -399,6 +402,7 @@ function loadBlogPosts() {
       }
       const title = parsed.attributes.title || slug.replace(/-/g, ' ');
       const body = parsed.body || '';
+      resetHeadingIds();
       const html = marked(body);
       // Check if hero image exists
       const heroImg = path.join(SRC, 'content', 'images', 'blog', `${slug}.webp`);
