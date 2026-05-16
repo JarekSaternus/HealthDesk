@@ -3943,10 +3943,30 @@ async function runAutopilot(lang, topic, persona) {
       steps[10].detail = `${Object.keys(siblingsMap).length} siblings linked`;
     }
 
+    // Warstwa C: pre-publish SEO on-page audit — NON-blocking logger.
+    // Nie wplywa na deploy; loguje score + zapisuje raport JSON.
+    // SEO Coach czyta wynik po czasie (porownanie z GSC).
+    let seoOnPage = null;
+    try {
+      const { auditOnPage, parseFrontmatter, loadSitemapUrls } = require('./tools/seo-onpage-audit');
+      const rawMd = await fs.promises.readFile(filePath, 'utf8');
+      const parsedMd = parseFrontmatter(rawMd);
+      const sm = loadSitemapUrls(path.join(__dirname, '..', 'dist', 'sitemap.xml'));
+      const r = auditOnPage({ markdown: parsedMd.body, frontmatter: parsedMd.frontmatter, lang, keyword: topic, sitemapUrls: sm });
+      seoOnPage = { score: r.score, status: r.status, blocking: r.blocking_issues.length, warnings: r.warnings.length };
+      console.log(`[SEO On-Page] ${r.status} ${r.score}/100 (${lang}/${slug}) — blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
+      const adir = path.join(__dirname, 'reports', 'seo-audits');
+      await fs.promises.mkdir(adir, { recursive: true });
+      const abase = path.join(adir, `${new Date().toISOString().slice(0, 10)}-${slug}`);
+      await fs.promises.writeFile(`${abase}.json`, JSON.stringify(r, null, 2), 'utf8');
+    } catch (seoErr) {
+      console.error(`[SEO On-Page] audit failed (non-blocking): ${seoErr.message}`);
+    }
+
     const wordCount = currentMarkdown.split(/\s+/).filter(Boolean).length;
     return {
       slug, lang, title, score: finalAiScore, wordCount,
-      description: metaDescription, steps,
+      description: metaDescription, steps, seoOnPage,
       heroImage: heroResult ? heroResult.filename : null
     };
 
@@ -5679,6 +5699,7 @@ function startCalendarScheduler() {
       const daysSince = (Date.now() - lastResubmit.getTime()) / (1000 * 60 * 60 * 24);
       if (daysSince < 7) return;
 
+      const { google } = require('googleapis');
       const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/webmasters'] });
       const wm = google.webmasters({ version: 'v3', auth });
       await wm.sitemaps.submit({
