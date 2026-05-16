@@ -44,7 +44,7 @@ const EXP_SIGNALS = new RegExp([
   "używ(?:ałem|ałam|am)", "testow(?:ałem|ałam)", "korzyst(?:ałem|ałam)",
   "pamiętam", "osobiście", "z własnego doświadczenia",
   "sam(?:a)?\\s+(?:sprawdz|przetestow|używ|testow)"
-].join("|"), "i");
+].join("|"), "iu");
 
 // ─── Parsowanie frontmatter (płaskie pola + wykrycie obecności kluczy) ───
 function parseFrontmatter(raw) {
