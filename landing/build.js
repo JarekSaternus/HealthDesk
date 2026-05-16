@@ -201,12 +201,34 @@ function generateLandingSchema(lang, resolve) {
 
 const AUTHOR_SCHEMA = {
   '@type': 'Person',
-  name: 'Jarek Saternus',
+  name: 'Jarosław Saternus',
   jobTitle: 'CEO at Drocad & SaaS Developer',
   url: 'https://healthdesk.site',
   description: 'CEO Drocad sp. z o.o. i twórca HealthDesk. Projektuje i buduje małe aplikacje SaaS z naciskiem na ergonomię, produktywność i zdrowie przy pracy. Łączy doświadczenie w zarządzaniu firmą z pasją do tworzenia narzędzi, które realnie poprawiają codzienną pracę przy komputerze.',
   sameAs: ['https://github.com/JarekSaternus']
 };
+
+// ─── Visible author byline + last-updated (E-E-A-T, Warstwa C #2) ───
+const AUTHOR_BY = { en:'By', pl:'Autor:', de:'Von', es:'Por', fr:'Par', it:'Di', 'pt-BR':'Por', ru:'Автор:', tr:'Yazan:', ja:'著者:', ko:'작성자:', 'zh-CN':'作者:' };
+const AUTHOR_ROLE = {
+  en:'CEO @ Drocad · creator of HealthDesk', pl:'CEO Drocad · twórca HealthDesk',
+  de:'CEO @ Drocad · Entwickler von HealthDesk', es:'CEO @ Drocad · creador de HealthDesk',
+  fr:'CEO @ Drocad · créateur de HealthDesk', it:'CEO @ Drocad · creatore di HealthDesk',
+  'pt-BR':'CEO @ Drocad · criador do HealthDesk', ru:'CEO @ Drocad · создатель HealthDesk',
+  tr:'CEO @ Drocad · HealthDesk geliştiricisi', ja:'CEO @ Drocad · HealthDesk 開発者',
+  ko:'CEO @ Drocad · HealthDesk 제작자', 'zh-CN':'CEO @ Drocad · HealthDesk 作者'
+};
+const UPDATED_LABELS_BLOG = { pl:'Ostatnia aktualizacja:', en:'Last updated:', de:'Letzte Aktualisierung:', es:'Última actualización:', fr:'Dernière mise à jour :', 'pt-BR':'Última atualização:', ja:'最終更新日:', 'zh-CN':'最后更新:', ko:'최종 업데이트:', it:'Ultimo aggiornamento:', tr:'Son güncelleme:', ru:'Последнее обновление:' };
+function generateAuthorByline(lang) {
+  const by = AUTHOR_BY[lang] || AUTHOR_BY.en;
+  const role = AUTHOR_ROLE[lang] || AUTHOR_ROLE.en;
+  return `<span class="blog-author">${by} <a rel="author" href="${SITE_URL}/${lang}/">${AUTHOR_SCHEMA.name}</a> <span class="blog-author-role">· ${role}</span></span>`;
+}
+function generateUpdatedLine(post, lang) {
+  if (!post.updated || post.updated === post.date) return '';
+  const label = UPDATED_LABELS_BLOG[lang] || UPDATED_LABELS_BLOG.en;
+  return `<span class="blog-updated">&middot; ${label} <time datetime="${post.updated}">${formatDate(post.updated, lang)}</time></span>`;
+}
 
 function generateBlogPostSchema(meta, lang, articleHtml) {
   const schema = {
@@ -625,6 +647,8 @@ function build() {
           article_date: post.date,
           article_date_formatted: formatDate(post.date, lang),
           article_reading_time: String(readingTime),
+          article_author: generateAuthorByline(lang),
+          article_updated: generateUpdatedLine(post, lang),
           article_html: post.html + visibleFaqHtml,
           article_tags: tagsHtml,
           article_hero_image: heroImageHtml

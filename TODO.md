@@ -9,7 +9,7 @@
 - ✅ Help page: nowe sekcje
 
 ## P0 — Blokery
-1. **Certum Code Signing** — karta cryptoCertum do kupienia, aktywacja certyfikatu w toku
+1. ✅ **Certum Code Signing — ZDOBYTY (2026-05-16)** — odblokowuje promo + SEO engine. Następny krok: wpiąć podpis `.exe` do build/CI (signtool + Certum cryptoCertum) i odpalić wstrzymane kampanie.
 2. **Weryfikacja Google OAuth** — brand verification ✅ (2026-04-15), zostało: app verification dla sensitive scope `calendar.readonly` (review 1-2 tyg po złożeniu).
    - Scope justification draft gotowy: `docs/google-verification-justification.md`
    - PKCE flow end-to-end zweryfikowany w praktyce ✅ (connect + fetch calendars action w HealthDesk 2026-04-15)
@@ -56,6 +56,49 @@ Kod React używa kluczy które nie istnieją w `locales/*.json`, UI pokazuje sur
 17. ✅ Blog autopilot pipeline — AI draft, humanize, grammar, hero image, auto-siblings, AI CJK slugs
 18. Pitch do HR — one-pager "HealthDesk dla firm"
 19. SEO nice-to-have: Author schema (E-E-A-T), lazy loading images
+
+## SEO Engine — Warstwy C–G (po Certum cert, 2026-05-16)
+
+Cel: z "AI quality gate + GSC loop" → pełny **SEO production pipeline + technical QA + internal linking + learning loop**.
+Stan: Warstwa A = `doAudit()` AI-fingerprint (`landing/studio/server.js:1466`, pętla `:3823-3868`). Warstwa B = SEO Coach (`server.js:3420+`, `tools/seo-coach.js`, `seo_coach_state.json`).
+**Twarda zasada:** NIE mieszać audytu AI-human ze SEO score — osobne moduły, osobne progi. AI-fingerprint docelowo waga ~5-10%.
+
+Docelowy pipeline: `1 keyword → 2 SERP+intent → 3 brief → 4 draft → 5 AI-human audit → 6 humanize/grammar → 7 SEO on-page audit → 8 internal links → 9 meta → 10 image → 11 build → 12 technical HTML audit → 13 deploy → 14 GSC submit/sitemap → 15 GSC monitor → 16 Coach experiments → 17 decay/refresh → 18 learning loop`
+
+### Warstwa C — Pre-publish SEO On-Page Audit  ⬅ START
+Moduł `landing/studio/tools/seo-onpage-audit.js` (NIE w server.js). Wejście: markdown + frontmatter (title, slug, description, keyword, tags, lang, faq) + sitemap/URL-index. Wyjście JSON:
+`{ score 0-100, status PASS|WARN|FAIL, blocking_issues[], warnings[], opportunities[], auto_fixes[], internal_link_suggestions[], schema_recommendations[], title_recommendations[], meta_recommendations[], cannibalization_risks[] }`
+Kategorie score: title / meta / heading / content_intent / internal_link / image / schema / eeat / technical / cannibalization.
+Checki markdown: 1×H1 (lub potwierdź że H1 z templatki), struktura H2/H3 bez przeskoków, title len + primary KW + ≠ duplikat H1, meta len/intencja/CTA, intro odpowiada na intent szybko, brak keyword stuffing, ≥3 internal link opportunities, ≥1 link do money page (= landing root per lang, np. `healthdesk.site/en/`), alt obrazów opisowy, sekcja praktycznego doświadczenia, konkluzja nie-filler.
+**E-E-A-T uwaga:** frontmatter NIE ma `author` ani `updated/modified` — audit musi to flagować.
+Progi: **≥80 PASS · 65-79 WARN** (deploy + zapis rekomendacji) **· <64 FAIL** (block deploy + ticket).
+Integracja autopilot: AI-human audit → jeśli pass → SEO on-page audit → <80/FAIL: 1 runda auto-fix → re-audit → dalej FAIL: block + raport; WARN: deploy + zapis; PASS: dalej.
+API: `POST /api/seo/audit-onpage`. CLI: `node tools/seo-onpage-audit.js --file post.md --keyword "..."`. Raporty: `reports/seo-audits/YYYY-MM-DD-slug.{md,json}`.
+Testy: brak meta → WARN/FAIL; duplikat H1 → FAIL; brak internal links → WARN; dobry post → ≥80.
+
+### Warstwa D — Technical URL Audit po buildzie (przed deploy)
+Audyt wyrenderowanego HTML (nie markdown): title obecny i nie-duplikat, meta description, canonical = finalny URL, robots valid, OG/Twitter, JSON-LD valid + `Article/BlogPosting` + `BreadcrumbList`, img width/height, lazy-load poza hero/LCP, brak broken/404 internal links, dokładnie 1×H1 w DOM.
+CLI: `node tools/seo-onpage-audit.js --url http://localhost:4000/...`. **Critical → block deploy** (brak title/canonical, błędny noindex, broken page, JSON-LD crash, zły H1 count).
+Uwaga: landing statyczny → większość ustawiana raz w templatce; to walidator regresji, nie generator.
+
+### Warstwa E — Internal Linking Engine  (największa dźwignia in-site)
+Indeks URL z sitemapy/contentu: `{url,title,h1,topics,money_page,target_keywords,last_updated}`. Dla nowego wpisu: (a) linki out do podobnych, (b) stare posty które mają linkować in, (c) anchory (bez over-optimized exact-match), (d) gwarancja ścieżki do money page. Reuse Serper embeddings/topiki.
+
+### Warstwa F — Content Decay / Refresh Coach
+Osobny moduł obok SEO Coach. Reguły GSC: impressions_28d ↓>25% vs prev, avg_position ↓>3, CTR ↓>20%, age>180d → **refresh ticket** (title/FAQ/rok/świeże dane/internal links/schema/intro pod intent).
+
+### Warstwa G — SERP Intent Analyzer (przed pisaniem)
+Z już pobieranego Serper top10 klasyfikuj typ SERP (listicle/ranking/category/local/video/FAQ/comparison/definition/"best X"/"how to"). Wymuś zgodność struktury draftu; mismatch intent → FAIL audytu (wpina się w Warstwę C jako content_intent_score).
+
+### Priorytety
+- **Must-have teraz:** C (title/meta/H1-3, internal links, schema, canonical/robots, obrazy, raport md+json, integracja autopilot, Coach czyta wynik po czasie).
+- **Następny etap:** G (SERP analyzer), F (decay), cannibalization detector, backlink/opportunity tracker, CWV monitoring per template.
+
+### Odblokowane przez cert (z pamięci, do uruchomienia)
+- Podpis `.exe` w build/CI (signtool + cryptoCertum) — warunek wszystkiego poniżej
+- Money pages title rewrite re-check (≥50 imp); diagnoza `pomodoro-vs-52-17` (0 imp od 04-10 — zaindeksowany?)
+- Social UTM helper w Studio (~1-2h), Backlink tracker w Studio (~3-4h)
+- HN / Reddit / Product Hunt / AlternativeTo / Softpedia promo
 
 ## P4 — Backend / analytics
 20. Web dashboard telemetrii (Chart.js)
