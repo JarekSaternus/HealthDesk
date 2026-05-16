@@ -28,3 +28,6 @@ landing/studio/scheduler_log.json
 landing/studio/seo_coach_state.json
 landing/studio/studio.json.bak.*
 landing/studio/.sitemap-resubmit.json
+landing/studio/backlinks.json
+landing/studio/cwv_history.json
+landing/studio/reports/seo-audits/
