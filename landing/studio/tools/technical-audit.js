@@ -84,7 +84,13 @@ function auditHtml(html, opts = {}) {
   // — LINKI WEWNĘTRZNE: martwe (jeśli podano internalExists) —
   if (typeof opts.internalExists === 'function') {
     const hrefs = [...html.matchAll(/<a\b[^>]*href=["']([^"'#?]+)[^"']*["']/gi)].map(m => m[1]);
-    const internal = hrefs.filter(h => h.startsWith('/') || /healthdesk\.site/i.test(h));
+    // Tylko realne linki nawigacyjne: root-relative LUB http(s) do naszej
+    // domeny. Wyklucz mailto:/tel:/javascript:/data: itp. (mailto z adresem
+    // @healthdesk.site fałszywie łapał się na /healthdesk.site/).
+    const internal = hrefs.filter(h =>
+      (h.startsWith('/') && !h.startsWith('//')) ||
+      /^https?:\/\/(www\.)?healthdesk\.site\//i.test(h)
+    );
     const broken = [];
     for (const h of [...new Set(internal)]) {
       const pathPart = h.replace(/^https?:\/\/[^/]+/, '');

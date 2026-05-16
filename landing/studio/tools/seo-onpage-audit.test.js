@@ -195,6 +195,11 @@ th = auditHtml(goodHtml.replace('{"@type":"BlogPosting","headline":"x"}', '{bad 
 check('technical: zepsuty JSON-LD → FAIL', th.blocking_issues.some(x => /JSON-LD/i.test(x)));
 th = auditHtml(goodHtml, { expectedCanonical: 'https://healthdesk.site/en/blog/x/', internalExists: () => false });
 check('technical: martwy link wewn (gdy są <a>) — brak <a> więc czysto', th.checks.internal_links === undefined || th.checks.internal_links.broken >= 0);
+// regresja: mailto/tel z domeną w adresie NIE może być traktowane jako link wewn.
+const htmlMailto = goodHtml.replace('</body>', '<a href="mailto:kontakt@healthdesk.site">mail</a><a href="tel:+48123">tel</a><a href="/en/blog/x/">ok</a></body>');
+th = auditHtml(htmlMailto, { expectedCanonical: 'https://healthdesk.site/en/blog/x/', internalExists: (p) => p === '/en/blog/x/' });
+check('technical: mailto:@healthdesk.site NIE jest linkiem wewn (no false FAIL)',
+  th.status !== 'FAIL' && th.checks.internal_links.broken === 0, JSON.stringify(th.blocking_issues) + ' ' + JSON.stringify(th.checks.internal_links));
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
