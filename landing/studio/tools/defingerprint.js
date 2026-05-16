@@ -38,7 +38,8 @@ function mechanicalDefingerprint(markdown, keyword) {
     if (!t || /^(#{1,6}\s|[-*>|]|\d+\.\s|!?\[)/.test(t) || t.length < 40) return line;
     const sentences = line.split(/(?<=[.!?])\s+/);
     const kept = sentences.filter((s) => {
-      const norm = s.toLowerCase().replace(/[^a-z0-9À-ɏ一-鿿]+/gi, ' ').trim();
+      // \p{L}\p{N} — wszystkie alfabety (łac./cyrylica/CJK/...), nie tylko ASCII.
+      const norm = s.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
       if (norm.length < 30) return true;
       if (seen.has(norm)) { stats.dedupedSentences++; return false; }
       seen.add(norm);

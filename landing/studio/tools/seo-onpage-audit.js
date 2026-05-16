@@ -29,6 +29,23 @@ const WEIGHTS = {
 const THRESHOLD_PASS = 80;
 const THRESHOLD_WARN = 65;
 
+// Sygnały first-hand experience (E-E-A-T). Skompilowany RAZ (nie per audyt).
+const EXP_SIGNALS = new RegExp([
+  // EN — first-person experience verbs (też po "I've"/"I have"/"I still"/"I'd")
+  "\\bI(?:'ve| have| still| had| also| once| even| 'd| would| used to)?\\s+" +
+    "(?:tried|tested|test|used|use|found|find|noticed|switched|spent|ran|run|relied|" +
+    "struggled|learned|discovered|started|stopped|kept|measured|tracked|experimented|remember)\\b",
+  "\\bwhen I\\b", "\\bafter (?:using|testing|trying|switching)\\b",
+  "in my (?:experience|own|case|testing|workflow|setup|routine)",
+  "\\b(?:hands-on|first-?hand|personally|over the years|in practice|from experience)\\b",
+  "\\bmy own (?:experience|testing|setup|workflow|results?)\\b",
+  // PL
+  "przetestowa", "z (?:mojego|własnego) doświadczenia", "sprawdz(?:iłem|iłam|ałem|ałam)",
+  "używ(?:ałem|ałam|am)", "testow(?:ałem|ałam)", "korzyst(?:ałem|ałam)",
+  "pamiętam", "osobiście", "z własnego doświadczenia",
+  "sam(?:a)?\\s+(?:sprawdz|przetestow|używ|testow)"
+].join("|"), "i");
+
 // ─── Parsowanie frontmatter (płaskie pola + wykrycie obecności kluczy) ───
 function parseFrontmatter(raw) {
   const m = raw.match(/^---\n([\s\S]*?)\n---\n?([\s\S]*)$/);
@@ -249,22 +266,7 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
   // (false positive). Walidacja realnego renderu (schema + widoczny byline)
   // należy do Warstwy D (audyt HTML po buildzie).
   s = 100;
-  const expSignals = new RegExp([
-    // EN — first-person experience verbs (też po "I've"/"I have"/"I still"/"I'd")
-    "\\bI(?:'ve| have| still| had| also| once| even| 'd| would| used to)?\\s+" +
-      "(?:tried|tested|test|used|use|found|find|noticed|switched|spent|ran|run|relied|" +
-      "struggled|learned|discovered|started|stopped|kept|measured|tracked|experimented|remember)\\b",
-    "\\bwhen I\\b", "\\bafter (?:using|testing|trying|switching)\\b",
-    "in my (?:experience|own|case|testing|workflow|setup|routine)",
-    "\\b(?:hands-on|first-?hand|personally|over the years|in practice|from experience)\\b",
-    "\\bmy own (?:experience|testing|setup|workflow|results?)\\b",
-    // PL
-    "przetestowa", "z (?:mojego|własnego) doświadczenia", "sprawdz(?:iłem|iłam|ałem|ałam)",
-    "używ(?:ałem|ałam|am)", "testow(?:ałem|ałam)", "korzyst(?:ałem|ałam)",
-    "pamiętam", "osobiście", "z własnego doświadczenia",
-    "sam(?:a)?\\s+(?:sprawdz|przetestow|używ|testow)"
-  ].join("|"), "i");
-  if (!expSignals.test(body)) { warnings.push('Brak sygnałów first-hand experience (Experience w E-E-A-T)'); s -= 35; }
+  if (!EXP_SIGNALS.test(body)) { warnings.push('Brak sygnałów first-hand experience (Experience w E-E-A-T)'); s -= 35; }
   const srcLinks = links.filter(l => /^https?:\/\//i.test(l.href) && !/healthdesk\.site/i.test(l.href)).length;
   if (srcLinks === 0) { opportunities.push('Brak linków do źródeł zewnętrznych (autorytet/trust)'); s -= 15; }
   if (fm.__hasUpdated) opportunities.push('frontmatter ma updated — dobrze (Warstwa D zweryfikuje dateModified w schema)');

@@ -272,5 +272,10 @@ const mdf5 = mechanicalDefingerprint(wordsBefore + '\n\n' + wordsBefore, 'alpha'
 check('defingerprint: word-preserving (nie gubi słów poza duplikatem)',
   /alpha beta gamma delta/.test(mdf5.markdown.replace(/\*\*/g, '')));
 
+const ruDup = 'Регулярные перерывы заметно снижают умственную усталость по данным исследований.';
+const mdf6 = mechanicalDefingerprint(`## А\n\n${ruDup} Уникальный хвост предложения для контекста здесь.\n\n## Б\n\n${ruDup} Совсем другая завершающая мысль полностью.`, 'x');
+check('defingerprint: dedupe cyrylicy (ru — fix \\p{L})',
+  mdf6.stats.dedupedSentences === 1 && (mdf6.markdown.split(ruDup).length - 1) === 1);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
