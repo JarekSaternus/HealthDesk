@@ -118,13 +118,18 @@ STAGED_SEC="$(echo "$STAGED_CODE" | grep -E "$SECURITY_REGEX" || true)"
 
 if [ -n "$STAGED_SEC" ]; then
   if command -v codex >/dev/null 2>&1; then
-    echo "${BLUE}[4/4] codex security review${NC}"
+    echo "${BLUE}[4/4] codex security review (diff-only)${NC}"
     FILES_ARG=$(echo "$STAGED_SEC" | tr '\n' ' ')
     OUT_FILE=".tmp-codex-review.txt"
+    DIFF_FILE=".tmp-staged-sec-diff.txt"
+    # Tylko staged diff plikow wrazliwych — nie cale pliki. Bez tego Codex
+    # flaguje preexisting security debt spoza zmiany i blokuje commit.
+    git diff --cached --unified=3 -- $FILES_ARG > "$DIFF_FILE" 2>/dev/null || true
     timeout 180 codex exec --sandbox read-only --ephemeral \
       -c approval_policy=never \
       -o "$OUT_FILE" \
-      "Review these files for OWASP Top 10 issues: injection, broken auth, sensitive data exposure, XXE, broken access control, security misconfig, XSS, insecure deserialization, known vulns, insufficient logging. Bad zwiezly. Format: [PLIK:LINIA] [severity] opis. Pliki: $FILES_ARG" >/dev/null 2>&1 || true
+      "Read ONLY the file $DIFF_FILE (a staged git diff). Review WYLACZNIE wprowadzone/zmienione linie (+) pod katem OWASP Top 10: injection, broken auth, sensitive data exposure, XXE, broken access control, security misconfig, XSS, insecure deserialization, known vulns, insufficient logging. IGNORUJ preexisting kod spoza diffa. Nie czytaj innych plikow. Bad zwiezly. Format: [PLIK:LINIA] [severity] opis. severity=critical/high tylko dla realnych podatnosci WPROWADZONYCH w tym diffie." >/dev/null 2>&1 || true
+    rm -f "$DIFF_FILE"
     if [ -f "$OUT_FILE" ]; then
       cat "$OUT_FILE"
       if grep -qE '\[(critical|CRITICAL|krytyczn|KRYTYCZN|high severity|HIGH SEVERITY)\]|severity: (critical|high)' "$OUT_FILE"; then
