@@ -4987,13 +4987,14 @@ app.post('/api/seo/internal-links', (req, res) => {
 
 // â”€â”€â”€ Batch corpus audit: C+D+E po ISTNIEJĄCYCH postach â”€â”€â”€
 // limitPerLang=0 → wszystkie; createTickets=false → dry-run (sam raport).
-async function runCorpusAudit({ limitPerLang = 0, createTickets = false } = {}) {
+async function runCorpusAudit({ limitPerLang = 0, createTickets = false, lang = null } = {}) {
   const { auditOnPage, parseFrontmatter, loadSitemapUrls } = require('./tools/seo-onpage-audit');
   const { suggestLinks } = require('./tools/internal-link-engine');
   const sm = loadSitemapUrls(path.join(__dirname, '..', 'dist', 'sitemap.xml'));
   let langs;
   try { langs = fs.readdirSync(BLOG_DIR).filter(d => fs.statSync(path.join(BLOG_DIR, d)).isDirectory()); }
   catch { return { error: 'BLOG_DIR niedostępny' }; }
+  if (lang) langs = langs.filter(l => l === lang);
 
   const rows = [];
   for (const lang of langs) {
@@ -5068,7 +5069,8 @@ app.post('/api/seo/audit-corpus', async (req, res) => {
   try {
     const limitPerLang = parseInt(req.body?.limitPerLang) || 0;
     const createTickets = !!req.body?.createTickets;
-    res.json({ ok: true, ...(await runCorpusAudit({ limitPerLang, createTickets })) });
+    const lang = req.body?.lang && isValidLang(req.body.lang) ? req.body.lang : null;
+    res.json({ ok: true, ...(await runCorpusAudit({ limitPerLang, createTickets, lang })) });
   } catch (err) { console.error('[Corpus Audit] error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
