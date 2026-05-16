@@ -4406,6 +4406,33 @@ async function runAutopilot(lang, topic, persona) {
       console.error(`[SEO On-Page] audit failed (non-blocking): ${seoErr.message}`);
     }
 
+    // Warstwa E #3: auto sugestie internal-links przy publikacji (raport +
+    // advisory ticket). BEZ auto-injekcji — człowiek decyduje.
+    try {
+      const il = runInternalLinkSuggestions(lang, slug);
+      if (il && !il.error) {
+        const need = il.outbound.length >= 3 && il.money_page_ok;
+        console.log(`[InternalLinks] ${lang}/${slug} — out ${il.outbound.length}, in ${il.inbound.length}, money ${il.money_page_ok ? 'ok' : 'MISSING'}`);
+        if (!need) {
+          const st = loadCoachState(); st.tickets = st.tickets || [];
+          const today = new Date().toISOString().slice(0, 10);
+          if (!st.tickets.some(t => t.type === 'internal_links' && t.status === 'open' && t.slug === slug)) {
+            const exp = new Date(); exp.setDate(exp.getDate() + 30);
+            st.tickets.push({
+              id: `il_${today}_${(st.tickets.length + 1).toString().padStart(3, '0')}`,
+              type: 'internal_links', lang, slug, url: `https://healthdesk.site/${lang}/blog/${slug}/`,
+              status: 'open', created: today, expires: exp.toISOString().slice(0, 10), severity: 'medium',
+              evidence: `Internal linking słabe: ${il.outbound.length} outbound (cel ≥3), money page ${il.money_page_ok ? 'ok' : 'BRAK'}`,
+              suggestions: { outbound: il.outbound.slice(0, 8), inbound: il.inbound.slice(0, 5), money_page: il.money_page_suggestion },
+              recommended_actions: ['dodaj kontekstowe linki out do sugerowanych', 'dodaj link do money page', 'rozważ linki in ze starych powiązanych postów'],
+              outcome: null
+            });
+            saveCoachState(st);
+          }
+        }
+      }
+    } catch (ilErr) { console.error(`[InternalLinks] non-blocking: ${ilErr.message}`); }
+
     const wordCount = currentMarkdown.split(/\s+/).filter(Boolean).length;
     return {
       slug, lang, title, score: finalAiScore, wordCount,
