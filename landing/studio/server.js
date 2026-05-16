@@ -3819,6 +3819,118 @@ app.post('/api/seo/cwv-scan', async (req, res) => {
   catch (err) { console.error('[CWV] scan error:', err.message); res.status(500).json({ error: err.message }); }
 });
 
+// â”€â”€â”€ Backlink tracker (rejestr manualny + liveness + GA4 discovery) â”€â”€â”€
+const BACKLINKS_FILE = path.join(__dirname, 'backlinks.json');
+function loadBacklinks() {
+  try { return JSON.parse(fs.readFileSync(BACKLINKS_FILE, 'utf8')); } catch { return { backlinks: [] }; }
+}
+function saveBacklinks(d) { fs.writeFileSync(BACKLINKS_FILE, JSON.stringify(d, null, 2), 'utf8'); }
+
+app.get('/api/backlinks', (req, res) => {
+  const d = loadBacklinks();
+  const by = {}; for (const b of d.backlinks) by[b.status] = (by[b.status] || 0) + 1;
+  res.json({ total: d.backlinks.length, by_status: by, backlinks: d.backlinks });
+});
+
+app.post('/api/backlinks', (req, res) => {
+  const { normDomain } = require('./tools/backlink-tracker');
+  const { source_url, target_url, anchor } = req.body || {};
+  if (!source_url || !/^https?:\/\//i.test(source_url)) return res.status(400).json({ error: 'source_url (http/https) required' });
+  const d = loadBacklinks();
+  if (d.backlinks.some(b => b.source_url === source_url)) return res.status(409).json({ error: 'already tracked' });
+  const bl = {
+    source_url, source_domain: normDomain(source_url),
+    target_url: target_url || 'https://healthdesk.site/',
+    anchor: anchor || null,
+    first_seen: new Date().toISOString().slice(0, 10),
+    last_checked: null, status: 'unverified', via: 'manual'
+  };
+  d.backlinks.push(bl);
+  saveBacklinks(d);
+  res.json({ ok: true, backlink: bl });
+});
+
+async function checkBacklinks() {
+  const { linkPresent } = require('./tools/backlink-tracker');
+  const d = loadBacklinks();
+  const today = new Date().toISOString().slice(0, 10);
+  const newlyDead = [];
+  for (const b of d.backlinks) {
+    try {
+      const resp = await fetch(b.source_url, { signal: AbortSignal.timeout(20000), headers: { 'User-Agent': 'HealthDeskBacklinkBot/1.0' } });
+      const html = resp.ok ? await resp.text() : '';
+      const live = resp.ok && linkPresent(html);
+      const prev = b.status;
+      b.status = live ? 'live' : (resp.ok ? 'dead' : 'unreachable');
+      b.last_checked = today;
+      if (prev === 'live' && b.status !== 'live') newlyDead.push(b);
+    } catch (e) {
+      b.status = 'unreachable'; b.last_checked = today; b.last_error = e.message;
+    }
+  }
+  saveBacklinks(d);
+  if (newlyDead.length) {
+    const state = loadCoachState(); state.tickets = state.tickets || [];
+    const expires = new Date(); expires.setDate(expires.getDate() + 30);
+    for (const b of newlyDead) {
+      if (state.tickets.some(t => t.type === 'backlink_lost' && t.status === 'open' && t.url === b.source_url)) continue;
+      state.tickets.push({
+        id: `bk_${today}_${(state.tickets.length + 1).toString().padStart(3, '0')}`,
+        type: 'backlink_lost', url: b.source_url, status: 'open',
+        created: today, expires: expires.toISOString().slice(0, 10),
+        evidence: `Backlink z ${b.source_domain} zniknął/niedostępny (status ${b.status})`,
+        recommended_actions: ['zweryfikuj ręcznie', 'outreach o przywrócenie linku', 'jeśli trwale utracony — szukaj zamiennika'],
+        outcome: null
+      });
+    }
+    saveCoachState(state);
+  }
+  console.log(`[Backlinks] Sprawdzono ${d.backlinks.length}, ${newlyDead.length} nowo utraconych`);
+  return { checked: d.backlinks.length, newly_dead: newlyDead.length };
+}
+
+async function discoverBacklinksFromGa4() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return { discovered: 0 };
+  const { google } = require('googleapis');
+  const { diffReferrers } = require('./tools/backlink-tracker');
+  const auth = new google.auth.GoogleAuth({ keyFile: GSC_KEY_PATH, scopes: ['https://www.googleapis.com/auth/analytics.readonly'] });
+  const analyticsdata = google.analyticsdata({ version: 'v1beta', auth });
+  const rep = await analyticsdata.properties.runReport({
+    property: GA4_PROPERTY,
+    requestBody: {
+      dateRanges: [{ startDate: '90daysAgo', endDate: 'today' }],
+      dimensions: [{ name: 'sessionSource' }],
+      metrics: [{ name: 'sessions' }],
+      orderBys: [{ metric: { metricName: 'sessions' }, desc: true }],
+      limit: 100
+    }
+  });
+  const rows = (rep.data.rows || []).map(r => ({ source: r.dimensionValues[0].value, sessions: +(r.metricValues[0].value || 0) }));
+  const d = loadBacklinks();
+  const diff = diffReferrers(rows, d.backlinks);
+  const today = new Date().toISOString().slice(0, 10);
+  for (const n of diff.new) {
+    d.backlinks.push({
+      source_url: `https://${n.source_domain}/`, source_domain: n.source_domain,
+      target_url: 'https://healthdesk.site/', anchor: null,
+      first_seen: today, last_checked: null, status: 'unverified', via: 'ga4',
+      ga4_sessions_90d: n.sessions
+    });
+  }
+  saveBacklinks(d);
+  console.log(`[Backlinks] GA4 discovery: ${diff.new.length} nowych domen referralowych`);
+  return { discovered: diff.new.length, new_domains: diff.new.map(n => n.source_domain) };
+}
+
+app.post('/api/backlinks/check', async (req, res) => {
+  try { res.json({ ok: true, ...(await checkBacklinks()) }); }
+  catch (err) { res.status(500).json({ error: err.message }); }
+});
+app.post('/api/backlinks/discover', async (req, res) => {
+  try { res.json({ ok: true, ...(await discoverBacklinksFromGa4()) }); }
+  catch (err) { console.error('[Backlinks] discover error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/seo-coach/run', async (req, res) => {
   try {
     const result = await runSeoCoachScan();
@@ -5899,6 +6011,18 @@ function startCalendarScheduler() {
               );
             }
           } catch (e) { console.error('[CWV] Weekly scan failed:', e.message); }
+
+          // Backlinks weekly: GA4 discovery + liveness check
+          try {
+            const disc = await discoverBacklinksFromGa4();
+            const chk = await checkBacklinks();
+            if (disc.discovered > 0 || chk.newly_dead > 0) {
+              showNotification(
+                `Backlinks: +${disc.discovered} nowych, ${chk.newly_dead} utraconych`,
+                `GA4 discovery + liveness check.\nSzczegóły: zakładka Backlinks w Studio`
+              );
+            }
+          } catch (e) { console.error('[Backlinks] Weekly failed:', e.message); }
         }
         return;
       }

@@ -142,5 +142,21 @@ const reg = detectRegression(cwvCur, assess(parsePsi({ loadingExperience: { metr
 check('cwv: wykrywa regresję LCP good→needs-improvement', reg.length >= 1, JSON.stringify(reg));
 check('cwv: brak prev → brak regresji', detectRegression(null, cwvCur).length === 0);
 
+// 13. Backlink tracker
+const { linkPresent, diffReferrers, normDomain } = require('./backlink-tracker');
+check('backlink: linkPresent wykrywa link do healthdesk.site',
+  linkPresent('<p>x</p><a href="https://healthdesk.site/en/">HealthDesk</a>') === true);
+check('backlink: linkPresent false gdy brak',
+  linkPresent('<a href="https://other.com/">x</a>') === false);
+check('backlink: normDomain czyści www/protokół/ścieżkę',
+  normDomain('https://www.GitHub.com/Jarek/x?a=1') === 'github.com', normDomain('https://www.GitHub.com/Jarek/x?a=1'));
+const dr = diffReferrers(
+  [{ source: 'github.com', sessions: 10 }, { source: 'google', sessions: 99 }, { source: 'reddit.com', sessions: 3 }],
+  [{ source_domain: 'github.com', status: 'live' }, { source_domain: 'oldblog.com', status: 'live' }]
+);
+check('backlink: diffReferrers — nowy reddit, ignoruje google, oldblog bez ruchu',
+  dr.new.length === 1 && dr.new[0].source_domain === 'reddit.com' && dr.no_traffic.includes('oldblog.com'),
+  JSON.stringify(dr));
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
