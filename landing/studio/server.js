@@ -4663,6 +4663,59 @@ function enforceSeoGate(item, result, label) {
   saveCalendar(cal);
 }
 
+// Warstwa D — technical audit wyrenderowanego HTML (po build, przed deploy).
+function runTechnicalAudit(lang, slug) {
+  const { auditHtml } = require('./tools/technical-audit');
+  const file = path.join(DIST_DIR, lang, 'blog', slug, 'index.html');
+  if (!fs.existsSync(file)) return { score: 0, status: 'FAIL', blocking_issues: ['Brak zbudowanego HTML w dist'], warnings: [], opportunities: [], checks: {} };
+  const html = fs.readFileSync(file, 'utf8');
+  const expectedCanonical = `https://healthdesk.site/${lang}/blog/${slug}/`;
+  const internalExists = (p) => {
+    const clean = p.replace(/^\/+|\/+$/g, '');
+    if (!clean) return true;
+    const cand = path.join(DIST_DIR, clean, 'index.html');
+    const candFile = path.join(DIST_DIR, clean);
+    return fs.existsSync(cand) || fs.existsSync(candFile);
+  };
+  return auditHtml(html, { expectedCanonical, internalExists });
+}
+
+const TECH_GATE_MAX_ATTEMPTS = 2;
+function enforceTechnicalGate(item, slug, label) {
+  let r;
+  try { r = runTechnicalAudit(item.lang, slug); }
+  catch (e) { console.error(`${label} technical audit error (non-blocking): ${e.message}`); return; }
+  try {
+    const dir = path.join(__dirname, 'reports', 'seo-audits');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}-${slug}-technical.json`), JSON.stringify(r, null, 2), 'utf8');
+  } catch { /* best-effort */ }
+  console.log(`[Technical] ${r.status} ${r.score}/100 (${item.lang}/${slug}) — blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
+  if (r.status !== 'FAIL') return;
+  const cal = loadCalendar();
+  let attempts = 0;
+  for (const cl of cal.clusters) {
+    const kw = (cl.keywords[item.lang] || []).find(k => k.keyword === item.keyword);
+    if (kw) { attempts = (kw.tech_fail_attempts || 0) + 1; break; }
+  }
+  if (attempts < TECH_GATE_MAX_ATTEMPTS) {
+    updateKeywordStatus(cal, item.lang, item.keyword, { tech_fail_attempts: attempts });
+    saveCalendar(cal);
+    throw new Error(`Technical gate FAIL ${r.score}/100 (${r.blocking_issues.join('; ')}) — retry (${attempts}/${TECH_GATE_MAX_ATTEMPTS})`);
+  }
+  console.warn(`${label} Technical gate FAIL — attempts>=${TECH_GATE_MAX_ATTEMPTS}, deploy mimo to (tech_review_needed)`);
+  updateKeywordStatus(cal, item.lang, item.keyword, { tech_fail_attempts: 0, tech_review_needed: true });
+  saveCalendar(cal);
+}
+
+app.post('/api/seo/technical-audit', (req, res) => {
+  try {
+    const { lang, slug } = req.body || {};
+    if (!isValidLang(lang) || !isValidSlug(slug)) return res.status(400).json({ error: 'lang+slug required' });
+    res.json(runTechnicalAudit(lang, slug));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
   const finalDate = normalizeDateOnly(publishedDate) || new Date().toISOString().slice(0, 10);
   syncPublishedFrontmatterDate(lang, slug, finalDate);
@@ -5792,6 +5845,10 @@ function startCalendarScheduler() {
           console.log(`${label} Building...`);
           await runBuild();
 
+          // Step 2.5: Warstwa D — technical HTML audit (FAIL → block deploy, retry)
+          calendarProgress.step = `tech-audit (${i + 1}/${batch.length})`;
+          enforceTechnicalGate(item, slug, label);
+
           // Step 3: Deploy to FTP (with retry)
           calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
           console.log(`${label} Deploying...`);
@@ -6353,6 +6410,9 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
       calendarProgress.step = `build (${i + 1}/${batch.length})`;
       console.log(`${label} Building...`);
       await runBuild();
+
+      calendarProgress.step = `tech-audit (${i + 1}/${batch.length})`;
+      enforceTechnicalGate(item, slug, label);
 
       calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
       console.log(`${label} Deploying...`);

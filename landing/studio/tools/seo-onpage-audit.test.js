@@ -172,5 +172,29 @@ const ebc = extractBacklinkCandidates(
 check('serper-backlink: nowy HN, pomija self/google/known',
   ebc.length === 1 && ebc[0].source_domain === 'news.ycombinator.com', JSON.stringify(ebc.map(c => c.source_domain)));
 
+// 15. Technical HTML audit (Warstwa D)
+const { auditHtml } = require('./technical-audit');
+const goodHtml = `<!doctype html><html><head>
+<title>Best Pomodoro App for Windows 11 — HealthDesk</title>
+<meta name="description" content="A solid 60+ char meta description about the best pomodoro app for Windows 11 with tips.">
+<link rel="canonical" href="https://healthdesk.site/en/blog/x/">
+<meta property="og:title" content="x"><meta property="og:image" content="x"><meta property="og:type" content="article">
+<meta name="twitter:card" content="summary">
+<script type="application/ld+json">{"@type":"BlogPosting","headline":"x"}</script>
+<script type="application/ld+json">{"@type":"BreadcrumbList"}</script>
+</head><body><h1>Title</h1><img src="a.webp" width="1200" height="630"><img src="b.webp" width="800" height="400" loading="lazy"></body></html>`;
+let th = auditHtml(goodHtml, { expectedCanonical: 'https://healthdesk.site/en/blog/x/' });
+check('technical: dobry HTML → PASS', th.status === 'PASS' && th.blocking_issues.length === 0, JSON.stringify(th.blocking_issues));
+th = auditHtml(goodHtml.replace('<link rel="canonical" href="https://healthdesk.site/en/blog/x/">', ''));
+check('technical: brak canonical → FAIL', th.status === 'FAIL' && th.blocking_issues.some(x => /canonical/i.test(x)));
+th = auditHtml(goodHtml.replace('<h1>Title</h1>', '<h1>A</h1><h1>B</h1>'));
+check('technical: 2×H1 → FAIL', th.status === 'FAIL' && th.blocking_issues.some(x => /Wiele <h1>/.test(x)));
+th = auditHtml(goodHtml.replace('<head>', '<head><meta name="robots" content="noindex">'));
+check('technical: noindex → FAIL', th.blocking_issues.some(x => /noindex/i.test(x)));
+th = auditHtml(goodHtml.replace('{"@type":"BlogPosting","headline":"x"}', '{bad json}'));
+check('technical: zepsuty JSON-LD → FAIL', th.blocking_issues.some(x => /JSON-LD/i.test(x)));
+th = auditHtml(goodHtml, { expectedCanonical: 'https://healthdesk.site/en/blog/x/', internalExists: () => false });
+check('technical: martwy link wewn (gdy są <a>) — brak <a> więc czysto', th.checks.internal_links === undefined || th.checks.internal_links.broken >= 0);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
