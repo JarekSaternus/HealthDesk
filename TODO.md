@@ -90,9 +90,19 @@ Osobny moduł obok SEO Coach. Reguły GSC: impressions_28d ↓>25% vs prev, avg_
 ### Warstwa G — SERP Intent Analyzer (przed pisaniem)
 Z już pobieranego Serper top10 klasyfikuj typ SERP (listicle/ranking/category/local/video/FAQ/comparison/definition/"best X"/"how to"). Wymuś zgodność struktury draftu; mismatch intent → FAIL audytu (wpina się w Warstwę C jako content_intent_score).
 
-### Priorytety
-- **Must-have teraz:** C (title/meta/H1-3, internal links, schema, canonical/robots, obrazy, raport md+json, integracja autopilot, Coach czyta wynik po czasie).
-- **Następny etap:** G (SERP analyzer), F (decay), cannibalization detector, backlink/opportunity tracker, CWV monitoring per template.
+### Status realizacji (2026-05-16) — ZBUDOWANE
+- ✅ **Warstwa C** — `tools/seo-onpage-audit.js` + endpoint `POST /api/seo/audit-onpage` + autopilot non-blocking logger + 1 runda auto-fix (title/meta) + `enforceSeoGate` (FAIL<64 → retry do 2× → potem publish+`seo_review_needed`) + raport json/md + 30 testów (`npm run test:seo`)
+- ✅ **Warstwa G** — `tools/serp-intent.js`, wpięty w `content_intent` (mismatch struktury vs SERP intent → penalty)
+- ✅ **Warstwa F** — `tools/decay-coach.js` + `runDecayScan` + `POST /api/seo-coach/decay-scan` + weekly hook → tickety `content_decay`
+- ✅ **Cannibalization** — `tools/cannibalization.js` + `POST /api/seo-coach/cannibalization-scan` (GSC query+page overlap) + weekly → tickety `cannibalization`
+- ✅ **CWV** — `tools/cwv-monitor.js` + `POST /api/seo/cwv-scan` (PSI per template) + weekly → tickety `cwv_regression`. ⚠️ **Wymaga `pagespeed_api_key` w studio.json** (bez klucza PSI = HTTP 429; darmowy klucz Google Cloud)
+- ✅ **Backlink tracker** — `tools/backlink-tracker.js` + `backlinks.json` + `/api/backlinks` (GET/POST), `/api/backlinks/check` (liveness), `/api/backlinks/discover` (GA4 referrery) + weekly. ⚠️ **Ograniczenie:** discovery łapie tylko backlinki dające ruch (GA4); pełny indeks wymaga płatnego API (Ahrefs/Majestic) — świadoma decyzja zakresu
+
+### Pozostało (operacyjne / nie-kod)
+- 🔑 Dodać darmowy `pagespeed_api_key` do studio.json (odblokowuje CWV scan)
+- Warstwa D (technical HTML audit po buildzie) — osobny moduł, NIE zrobiony (był poza listą „leć w całości")
+- UI w Studio dla nowych ticketów (decay/cannibalization/cwv/backlink) + zakładka Backlinks (jest API, brak frontu)
+- Wpiąć `usedIds` reset (build.js:25 bug) — istotne dla Warstwy E (Internal Linking Engine — NIE zrobiona)
 
 ### Odblokowane przez cert (z pamięci, do uruchomienia)
 - Podpis `.exe` w build/CI (signtool + cryptoCertum) — warunek wszystkiego poniżej
@@ -122,6 +132,7 @@ Z już pobieranego Serper top10 klasyfikuj typ SERP (listicle/ranking/category/l
 - **Path traversal w findArticleFile** (`landing/studio/server.js:~1062`) — łączy `lang` i `slug` z path bez normalizacji. `path.normalize()` + sprawdzenie prefix `BLOG_DIR`.
 - **execSync blokujący event loop** (`server.js:~342`, `~621`, `~4271`, `~4474`, `~4856`, `~4978`, `~5321`) — wszystkie wywołania `node build.js` zamrażają Express na czas buildu (30-60s). Użyj asynchronicznego `exec` z `util.promisify`.
 - **API keys w studio.json** (`server.js:~2380`) — klucze API Gemini/Claude/Serper w pliku na dysku zamiast w env. studio.json jest gitignored ale to nadal przechowywanie sekretów w plaintext. Przenieś do `.env`.
+- **🐛 `usedIds` nie resetowane między postami** (`landing/build.js:~25`) — mapa unikalnych ID nagłówków w zasięgu modułu, nie czyszczona per-plik. Kolejne artykuły dostają błędne sufiksy ID (`-1`, `-2`) → **psuje anchory/linkowanie wewnętrzne** (TOC, deep-linki, fragment URLs). Bug funkcjonalny (nie security), preexisting. Reset `usedIds` na początku renderowania każdego posta. **Istotne dla Warstwy E (Internal Linking Engine)** — patrz sekcja "SEO Engine".
 
 ### P2 (Blog Studio)
 - `fs.readFileSync` w gorących ścieżkach Express — async/await
