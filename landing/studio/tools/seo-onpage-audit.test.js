@@ -223,5 +223,14 @@ check('internal-link: inbound pomija post który już linkuje (c)',
 const tgt2 = { ...tgt, body: 'see https://healthdesk.site/en/ for the app' };
 check('internal-link: money page OK gdy jest link do landinga', suggestLinks(tgt2, idx).money_page_ok === true);
 
+// 17. CJK-aware (false-positive fix)
+const cjkFm = { title: '减少电脑屏幕对眼睛伤害的日常护眼技巧', slug: 'x', description: '这是一篇关于减少电脑屏幕对眼睛伤害的日常护眼技巧的详细指南，包含实用建议和具体步骤说明帮助你保护视力。', keyword: '电脑屏幕 护眼技巧', lang: 'zh-CN', heroImage: 'x.webp', image_alt: '护眼技巧', __hasFaq: true };
+const cjkBody = '## 护眼技巧\n\n减少电脑屏幕对眼睛伤害的方法很多。我亲自测试了这些护眼技巧两周。' + '更多内容请见 [HealthDesk](https://healthdesk.site/zh-CN/) 和 [博客](https://healthdesk.site/zh-CN/blog/)。'.repeat(1) + '\n\n'.padEnd(1200, '护眼内容详细说明保护视力的重要性以及如何正确调整屏幕亮度和距离。');
+let rc = auditOnPage({ markdown: cjkBody, frontmatter: cjkFm, lang: 'zh-CN', keyword: cjkFm.keyword, sitemapUrls: [] });
+check('CJK: keyword NIE flagowany jako nieobecny (bigramy)', !rc.blocking_issues.some(x => /keyword nieobecny/i.test(x)), JSON.stringify(rc.blocking_issues));
+check('CJK: krótki (znakowo) title NIE flagowany jako za krótki', !rc.warnings.some(x => /Title za krótki/i.test(x)), JSON.stringify(rc.warnings));
+const { auditOnPage: _a } = require('./seo-onpage-audit');
+check('CJK: łaciński post nadal działa (sanity)', auditOnPage({ markdown: GOOD_BODY, frontmatter: GOOD_FM, lang: 'en', keyword: GOOD_FM.keyword, sitemapUrls: [] }).status === 'PASS');
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

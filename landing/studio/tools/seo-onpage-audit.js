@@ -56,6 +56,29 @@ const norm = (s) => (s || '').toLowerCase().normalize('NFKD').replace(/[^\p{L}\p
 const tokens = (s) => norm(s).split(' ').filter(t => t.length > 2);
 function wordCount(text) { return (text.replace(/[#*_>`\-]/g, ' ').match(/\b[\p{L}\p{N}]+\b/gu) || []).length; }
 
+// CJK (chiński/japoński/koreański) — brak spacji, większa gęstość znaku.
+// Tokenizacja po spacjach i progi długości Latin dają false-positive.
+const CJK_RE = /[぀-ヿ㐀-䶿一-鿿가-힯豈-﫿]/;
+const isCJK = (s) => CJK_RE.test(String(s || ''));
+function cjkBigrams(s) {
+  const c = String(s || '').replace(/\s+/g, '').toLowerCase();
+  const out = new Set();
+  for (let i = 0; i < c.length - 1; i++) out.add(c.slice(i, i + 2));
+  return out;
+}
+// Czy keyword obecny w treści — działa dla CJK (bigramy) i Latin (substring/tokeny).
+function keywordPresent(kwNorm, primaryKw, bodyNorm, body) {
+  if (!kwNorm) return true;
+  if (bodyNorm.includes(kwNorm)) return true;
+  if (isCJK(primaryKw)) {
+    const kb = cjkBigrams(primaryKw), bb = cjkBigrams(body);
+    if (!kb.size) return true;
+    let hit = 0; for (const g of kb) if (bb.has(g)) hit++;
+    return hit / kb.size >= 0.6; // ≥60% bigramów frazy obecnych
+  }
+  return tokens(primaryKw).some(t => bodyNorm.includes(t));
+}
+
 function extractHeadings(body) {
   const out = [];
   for (const line of body.split('\n')) {
@@ -103,11 +126,12 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
   let s = 100;
   if (!title) { blocking.push('Brak title w frontmatter'); s = 0; }
   else {
-    if (title.length < 30) { warnings.push(`Title za krótki (${title.length}<30 zn.)`); s -= 25; }
-    if (title.length > 65) { warnings.push(`Title za długi (${title.length}>65 zn., ucięcie w SERP)`); s -= 20; }
-    if (kwNorm && !norm(title).includes(kwNorm)) {
-      const cov = tokens(primaryKw).filter(t => norm(title).includes(t)).length / Math.max(1, tokens(primaryKw).length);
-      if (cov < 0.6) { warnings.push('Title nie zawiera primary keyword'); s -= 25; titleRecs.push(`Wpleć "${primaryKw}" naturalnie w title`); }
+    const tCjk = isCJK(title);
+    const tMin = tCjk ? 10 : 30, tMax = tCjk ? 42 : 65; // CJK: ~2x gęstość znaku
+    if (title.length < tMin) { warnings.push(`Title za krótki (${title.length}<${tMin} zn.)`); s -= 25; }
+    if (title.length > tMax) { warnings.push(`Title za długi (${title.length}>${tMax} zn., ucięcie w SERP)`); s -= 20; }
+    if (kwNorm && !norm(title).includes(kwNorm) && !keywordPresent(kwNorm, primaryKw, norm(title), title)) {
+      warnings.push('Title nie zawiera primary keyword'); s -= 25; titleRecs.push(`Wpleć "${primaryKw}" naturalnie w title`);
     }
     const h1 = headings.find(h => h.level === 1);
     if (h1 && norm(h1.text) === norm(title)) { warnings.push('Title = H1 (duplikat) — zróżnicuj'); s -= 10; }
@@ -119,8 +143,10 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
   s = 100;
   if (!desc) { blocking.push('Brak meta description'); s = 0; }
   else {
-    if (desc.length < 80) { warnings.push(`Meta za krótka (${desc.length}<80 zn.)`); s -= 25; }
-    if (desc.length > 170) { warnings.push(`Meta za długa (${desc.length}>170 zn.)`); s -= 20; }
+    const dCjk = isCJK(desc);
+    const dMin = dCjk ? 40 : 80, dMax = dCjk ? 100 : 170;
+    if (desc.length < dMin) { warnings.push(`Meta za krótka (${desc.length}<${dMin} zn.)`); s -= 25; }
+    if (desc.length > dMax) { warnings.push(`Meta za długa (${desc.length}>${dMax} zn.)`); s -= 20; }
     if (kwNorm && !norm(desc).includes(kwNorm) && tokens(primaryKw).filter(t => norm(desc).includes(t)).length === 0) {
       warnings.push('Meta nie nawiązuje do keyword'); s -= 15; metaRecs.push(`Wpleć frazę/intencję "${primaryKw}" w meta`);
     }
@@ -148,14 +174,20 @@ function auditOnPage({ markdown, frontmatter, lang, keyword, sitemapUrls = [], s
 
   // — CONTENT / INTENT —
   s = 100;
-  if (wc < 600) { warnings.push(`Treść krótka (${wc} słów) — ryzyko thin content`); s -= 30; }
+  const bodyCjk = isCJK(body);
+  // CJK: wordCount (\b) zaniża — przybliż słowa jako znaki niebiałe / 2.
+  const wcEff = bodyCjk ? Math.round(body.replace(/\s+/g, '').length / 2) : wc;
+  if (wcEff < 600) { warnings.push(`Treść krótka (~${wcEff} słów) — ryzyko thin content`); s -= 30; }
   if (kwNorm) {
-    const occ = (bodyNorm.match(new RegExp(escapeRe(kwNorm), 'g')) || []).length;
-    if (occ === 0 && tokens(primaryKw).every(t => !bodyNorm.includes(t))) { blocking.push('Primary keyword nieobecny w treści'); s -= 40; }
-    const density = wc ? (occ * tokens(primaryKw).length) / wc : 0;
-    if (density > 0.035) { warnings.push(`Gęstość keyword ~${(density * 100).toFixed(1)}% — możliwy stuffing`); s -= 20; }
-    if (occ > 0 && !first100.includes(kwNorm) && tokens(primaryKw).filter(t => first100.includes(t)).length === 0) {
-      opportunities.push('Primary keyword nie pada w pierwszych ~100 słowach (intro)'); s -= 10;
+    if (!keywordPresent(kwNorm, primaryKw, bodyNorm, body)) { blocking.push('Primary keyword nieobecny w treści'); s -= 40; }
+    if (!bodyCjk) {
+      // stuffing tylko dla nie-CJK (gęstość tokenowa dla CJK niemiarodajna)
+      const occ = (bodyNorm.match(new RegExp(escapeRe(kwNorm), 'g')) || []).length;
+      const density = wc ? (occ * tokens(primaryKw).length) / wc : 0;
+      if (density > 0.035) { warnings.push(`Gęstość keyword ~${(density * 100).toFixed(1)}% — możliwy stuffing`); s -= 20; }
+      if (occ > 0 && !first100.includes(kwNorm) && tokens(primaryKw).filter(t => first100.includes(t)).length === 0) {
+        opportunities.push('Primary keyword nie pada w pierwszych ~100 słowach (intro)'); s -= 10;
+      }
     }
   }
   // konkluzja
