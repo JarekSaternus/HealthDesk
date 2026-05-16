@@ -106,6 +106,13 @@ Z już pobieranego Serper top10 klasyfikuj typ SERP (listicle/ranking/category/l
 - ✅ **Hook diff-only** — Gemini I Codex recenzują tylko staged diff (nie całe pliki). Koniec z wymuszonym `--no-verify` (zwalidowane: 804533b przeszedł czysto z server.js)
 - Testy: 42/42 (`npm run test:seo`)
 
+### Status III tura (2026-05-16, review-driven hardening)
+- ✅ **#1+#2 Technical critical hard-block** — `critical_issues` (noindex/canonical/title/H1/JSON-LD) → NIGDY publish, KW→tech_blocked (poza rotacją) + ticket `technical_critical`. Non-critical → retry≤2→publish+flaga
+- ✅ **#3 Internal-link auto przy publikacji** — runAutopilot → raport + advisory ticket `internal_links` (bez auto-injekcji)
+- ✅ **#5 Indexing verification** — published 7-30d → GSC URL Inspection → `not_indexed` ticket (na żywo: 10 wykrytych). Endpoint `/api/seo/indexing-check` + weekly
+- ✅ **Coach autopilot money-page** — opt-in flag (default OFF), auto-apply recommended + `runAutopilotRollbackCheck` (≥21d, LOSER→cofnij do oryginału). UI checkbox. Tylko money-page (mierzalne+odwracalne); reszta advisory
+- Testy: 44/44. Wszystkie commity bez --no-verify (hook diff-only działa)
+
 ### Pozostało (drobne, opcjonalne)
 - Warstwa C: `auto_fixes` na razie = rekomendacje (auto-apply tylko title/meta); rozszerzyć o internal-links auto-inject (ostrożnie)
 - `saveCoachState`/`saveBacklinks` bez try/catch (preexisting wzorzec — Gemini WAŻNY)
