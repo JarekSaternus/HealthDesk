@@ -98,5 +98,18 @@ const rNo = auditOnPage({ markdown: GOOD_BODY, frontmatter: GOOD_FM, lang: 'en',
 const rMis = auditOnPage({ markdown: GOOD_BODY, frontmatter: GOOD_FM, lang: 'en', keyword: GOOD_FM.keyword, sitemapUrls: [], serpIntent: { dominant: 'how_to', confidence: 1, distribution: {}, sample: 5 } });
 check('serp-intent: mismatch obniża content_intent', rMis.category_scores.content_intent < rNo.category_scores.content_intent, `${rMis.category_scores.content_intent} vs ${rNo.category_scores.content_intent}`);
 
+// 10. Decay detector
+const { detectDecay } = require('./decay-coach');
+const cur = [{ keys: ['https://healthdesk.site/en/blog/a/'], impressions: 10, clicks: 0, ctr: 0, position: 18 }];
+const prev = [{ keys: ['https://healthdesk.site/en/blog/a/'], impressions: 100, clicks: 5, ctr: 0.05, position: 6 }];
+let dec = detectDecay(cur, prev, { 'https://healthdesk.site/en/blog/a/': 300 });
+check('decay: wykrywa rozpad (impr+pos+ctr)', dec.length === 1 && dec[0].severity === 'high', JSON.stringify(dec));
+dec = detectDecay(cur, prev, { 'https://healthdesk.site/en/blog/a/': 30 }); // świeży
+check('decay: świeży post (age<180) pomijany', dec.length === 0);
+dec = detectDecay(prev, prev, { 'https://healthdesk.site/en/blog/a/': 300 }); // stabilny
+check('decay: stabilny ruch → brak', dec.length === 0);
+dec = detectDecay([], [{ keys: ['u'], impressions: 3, clicks: 0, ctr: 0, position: 5 }], {});
+check('decay: za mało prev impressions → ignoruj', dec.length === 0);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

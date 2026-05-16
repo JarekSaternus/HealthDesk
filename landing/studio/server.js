@@ -3607,6 +3607,90 @@ async function runSeoCoachScan() {
   return { detected: candidates.length, new_tickets: newTickets.length, tickets: newTickets };
 }
 
+// â”€â”€â”€ Warstwa F: Content Decay / Refresh Coach â”€â”€â”€
+async function fetchGscPageWindow(daysAgoStart, daysAgoEnd) {
+  const { google } = require('googleapis');
+  const sc = google.searchconsole({ version: 'v1', auth: getGscAuth() });
+  const start = new Date(); start.setDate(start.getDate() - daysAgoStart);
+  const end = new Date(); end.setDate(end.getDate() - daysAgoEnd);
+  const result = await sc.searchanalytics.query({
+    siteUrl: SITE_URL_GSC,
+    requestBody: {
+      startDate: start.toISOString().slice(0, 10),
+      endDate: end.toISOString().slice(0, 10),
+      dimensions: ['page'], rowLimit: 500
+    }
+  });
+  return result.data.rows || [];
+}
+
+function ageDaysForUrl(url) {
+  const m = url.match(/healthdesk\.site\/([^/]+)\/blog\/([^/]+)\//);
+  if (!m) return null;
+  const filePath = path.join(BLOG_DIR, m[1], `${m[2]}.md`);
+  if (!fs.existsSync(filePath)) return null;
+  const md = fs.readFileSync(filePath, 'utf8');
+  const dateMatch = md.match(/^date:\s*(\d{4}-\d{2}-\d{2})/m);
+  if (!dateMatch) return null;
+  return Math.round((Date.now() - new Date(dateMatch[1]).getTime()) / 86400000);
+}
+
+async function detectDecayingPages() {
+  if (!fs.existsSync(GSC_KEY_PATH)) return [];
+  const { detectDecay } = require('./tools/decay-coach');
+  const [cur, prev] = await Promise.all([
+    fetchGscPageWindow(28, 0),   // ostatnie 28 dni
+    fetchGscPageWindow(56, 28),  // poprzednie 28 dni
+  ]);
+  const ages = {};
+  for (const r of prev) { const u = r.keys && r.keys[0]; if (u) ages[u] = ageDaysForUrl(u); }
+  return detectDecay(cur, prev, ages);
+}
+
+async function runDecayScan() {
+  const state = loadCoachState();
+  state.tickets = state.tickets || [];
+  const decaying = await detectDecayingPages();
+  const openUrls = new Set(state.tickets.filter(t => t.status === 'open').map(t => t.url));
+  const cutoff = new Date(); cutoff.setDate(cutoff.getDate() - 30);
+  const recentlyRejected = new Set(state.tickets.filter(t => t.status === 'rejected' && new Date(t.created) > cutoff).map(t => t.url));
+  const fresh = decaying.filter(d => !openUrls.has(d.url) && !recentlyRejected.has(d.url));
+  const newTickets = [];
+  for (const d of fresh.slice(0, 8)) {
+    const m = d.url.match(/healthdesk\.site\/([^/]+)\/blog\/([^/]+)\//);
+    const today = new Date().toISOString().slice(0, 10);
+    const expires = new Date(); expires.setDate(expires.getDate() + 30);
+    newTickets.push({
+      id: `dk_${today}_${(state.tickets.length + newTickets.length + 1).toString().padStart(3, '0')}`,
+      type: 'content_decay',
+      url: d.url, lang: m ? m[1] : null, slug: m ? m[2] : null,
+      status: 'open', created: today, expires: expires.toISOString().slice(0, 10),
+      severity: d.severity, age_days: d.age_days,
+      evidence: `Decay (${d.severity}): ${d.reasons.join(' · ')}. Wiek ${d.age_days}d.`,
+      metrics_before: d.before, metrics_after: d.after,
+      recommended_actions: ['refresh title pod intent', 'dodaj/odśwież FAQ', 'zaktualizuj rok i dane', 'wzmocnij internal links', 'rozbuduj sekcję pod aktualny SERP intent', 'sprawdź schema'],
+      outcome: null
+    });
+  }
+  state.tickets.push(...newTickets);
+  state.last_decay_run = new Date().toISOString();
+  saveCoachState(state);
+  // raport
+  try {
+    const dir = path.join(__dirname, 'reports', 'seo-audits');
+    fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}-decay-scan.json`),
+      JSON.stringify({ detected: decaying.length, new_tickets: newTickets.length, decaying }, null, 2), 'utf8');
+  } catch { /* raport best-effort */ }
+  console.log(`[Decay Coach] Detected ${decaying.length} decaying, ${newTickets.length} nowych ticketów`);
+  return { detected: decaying.length, new_tickets: newTickets.length, tickets: newTickets };
+}
+
+app.post('/api/seo-coach/decay-scan', async (req, res) => {
+  try { res.json({ ok: true, ...(await runDecayScan()) }); }
+  catch (err) { console.error('[Decay Coach] scan error:', err.message); res.status(500).json({ error: err.message }); }
+});
+
 app.post('/api/seo-coach/run', async (req, res) => {
   try {
     const result = await runSeoCoachScan();
@@ -5652,6 +5736,18 @@ function startCalendarScheduler() {
               );
             }
           } catch (e) { console.error('[SEO Coach] Weekly scan failed:', e.message); }
+
+          // Warstwa F: weekly content-decay scan
+          try {
+            const dr = await runDecayScan();
+            console.log(`[Decay Coach] Weekly: ${dr.detected} decaying, ${dr.new_tickets} new tickets`);
+            if (dr.new_tickets > 0) {
+              showNotification(
+                `Decay Coach: ${dr.new_tickets} wpisów z rozpadem`,
+                `Wykryto ${dr.detected} URL tracących ruch.\nSzczegóły: node tools/seo-coach.js list`
+              );
+            }
+          } catch (e) { console.error('[Decay Coach] Weekly scan failed:', e.message); }
         }
         return;
       }
