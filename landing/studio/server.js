@@ -1519,6 +1519,28 @@ app.post('/api/ai/audit', async (req, res) => {
   }
 });
 
+// â”€â”€â”€ SEO: Warstwa C on-page audit (inline lub po lang+slug) â”€â”€â”€
+app.post('/api/seo/audit-onpage', async (req, res) => {
+  try {
+    const { auditOnPage, parseFrontmatter, loadSitemapUrls } = require('./tools/seo-onpage-audit');
+    let { markdown, frontmatter, lang, keyword, slug } = req.body || {};
+    if ((!markdown || !frontmatter) && lang && slug) {
+      if (!isValidLang(lang) || !isValidSlug(slug)) return res.status(400).json({ error: 'Invalid lang/slug' });
+      const f = findArticleFile(lang, slug);
+      if (!f) return res.status(404).json({ error: 'Article not found' });
+      const parsed = parseFrontmatter(fs.readFileSync(f, 'utf8'));
+      markdown = parsed.body; frontmatter = parsed.frontmatter;
+    }
+    if (!markdown) return res.status(400).json({ error: 'markdown or lang+slug required' });
+    const sm = loadSitemapUrls(path.join(__dirname, '..', 'dist', 'sitemap.xml'));
+    const result = auditOnPage({ markdown, frontmatter: frontmatter || {}, lang: lang || (frontmatter && frontmatter.lang), keyword: keyword || (frontmatter && frontmatter.keyword), sitemapUrls: sm });
+    res.json(result);
+  } catch (err) {
+    console.error(`[SEO On-Page] API error: ${err.message}`);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // â”€â”€â”€ Helper: Full grammar fix (LanguageTool + AI) â”€â”€â”€
 // Languages supported by LanguageTool API
 const LT_SUPPORTED_LANGS = new Set(['pl', 'en', 'de', 'fr', 'es', 'it', 'pt-BR', 'nl', 'ru', 'sv']);
@@ -3943,22 +3965,64 @@ async function runAutopilot(lang, topic, persona) {
       steps[10].detail = `${Object.keys(siblingsMap).length} siblings linked`;
     }
 
-    // Warstwa C: pre-publish SEO on-page audit — NON-blocking logger.
-    // Nie wplywa na deploy; loguje score + zapisuje raport JSON.
-    // SEO Coach czyta wynik po czasie (porownanie z GSC).
+    // Warstwa C: pre-publish SEO on-page audit + 1 runda auto-fix.
+    // NIE blokuje tu deploya — decyzja gate (block/retry) jest w schedulerze
+    // (enforceSeoGate). Loguje, auto-fixuje title/meta, zapisuje raport.
     let seoOnPage = null;
     try {
       const { auditOnPage, parseFrontmatter, loadSitemapUrls } = require('./tools/seo-onpage-audit');
-      const rawMd = await fs.promises.readFile(filePath, 'utf8');
-      const parsedMd = parseFrontmatter(rawMd);
       const sm = loadSitemapUrls(path.join(__dirname, '..', 'dist', 'sitemap.xml'));
-      const r = auditOnPage({ markdown: parsedMd.body, frontmatter: parsedMd.frontmatter, lang, keyword: topic, sitemapUrls: sm });
-      seoOnPage = { score: r.score, status: r.status, blocking: r.blocking_issues.length, warnings: r.warnings.length };
+      const runAudit = async () => {
+        const parsedMd = parseFrontmatter(await fs.promises.readFile(filePath, 'utf8'));
+        return auditOnPage({ markdown: parsedMd.body, frontmatter: parsedMd.frontmatter, lang, keyword: topic, sitemapUrls: sm });
+      };
+      let r = await runAudit();
       console.log(`[SEO On-Page] ${r.status} ${r.score}/100 (${lang}/${slug}) — blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
+
+      // Auto-fix (1 runda): tanie deterministyczne poprawki title/meta.
+      if (r.status === 'FAIL' && ((r.category_scores.title ?? 100) < 100 || (r.category_scores.meta ?? 100) < 100)) {
+        try {
+          const fixes = {};
+          if ((r.category_scores.title ?? 100) < 100) {
+            const t = await callClaude(
+              `You write concise SEO titles. Respond ONLY with the title text, no quotes.`,
+              `Primary keyword: "${topic}". Current title: "${title}". Write a compelling SEO <title> in ${getLangName(lang)}: 40-60 chars, include the primary keyword naturally, not identical to the H1, with a clear hook.`,
+              120, { model: 'haiku' }
+            );
+            const nt = (t || '').trim().replace(/^["']|["']$/g, '').split('\n')[0];
+            if (nt && nt.length >= 25 && nt.length <= 70) fixes.title = nt;
+          }
+          if ((r.category_scores.meta ?? 100) < 100) {
+            const nd = await doDescription(currentMarkdown, fixes.title || title, lang);
+            if (nd && nd.length >= 70) fixes.description = nd;
+          }
+          if (Object.keys(fixes).length) {
+            upsertFrontmatterFields(filePath, fixes);
+            console.log(`[SEO On-Page] auto-fix applied: ${Object.keys(fixes).join(', ')}`);
+            const r2 = await runAudit();
+            console.log(`[SEO On-Page] re-audit: ${r2.status} ${r2.score}/100 (was ${r.score})`);
+            r = r2;
+          }
+        } catch (fixErr) {
+          console.error(`[SEO On-Page] auto-fix failed (non-fatal): ${fixErr.message}`);
+        }
+      }
+
+      seoOnPage = { score: r.score, status: r.status, blocking: r.blocking_issues.length, warnings: r.warnings.length };
       const adir = path.join(__dirname, 'reports', 'seo-audits');
       await fs.promises.mkdir(adir, { recursive: true });
       const abase = path.join(adir, `${new Date().toISOString().slice(0, 10)}-${slug}`);
       await fs.promises.writeFile(`${abase}.json`, JSON.stringify(r, null, 2), 'utf8');
+      const mdReport = [
+        `# SEO On-Page — ${slug}`, ``,
+        `**${r.score}/100 — ${r.status}** · ${lang} · kw: ${topic}`, ``,
+        `## Category scores`, ...Object.entries(r.category_scores).map(([k, v]) => `- ${k}: ${v}`), ``,
+        r.blocking_issues.length ? `## 🔴 Blocking\n${r.blocking_issues.map(x => `- ${x}`).join('\n')}` : '',
+        r.warnings.length ? `## 🟡 Warnings\n${r.warnings.map(x => `- ${x}`).join('\n')}` : '',
+        r.opportunities.length ? `## 💡 Opportunities\n${r.opportunities.map(x => `- ${x}`).join('\n')}` : '',
+        r.cannibalization_risks.length ? `## ⚠️ Cannibalization\n${r.cannibalization_risks.map(x => `- ${x.url} (${x.overlap})`).join('\n')}` : '',
+      ].filter(Boolean).join('\n');
+      await fs.promises.writeFile(`${abase}.md`, mdReport, 'utf8');
     } catch (seoErr) {
       console.error(`[SEO On-Page] audit failed (non-blocking): ${seoErr.message}`);
     }
@@ -4200,6 +4264,35 @@ function updateKeywordStatus(cal, lang, keyword, updates) {
     }
   }
   return false;
+}
+
+// Warstwa C gate — decyduje czy post z FAIL audytu blokuje publikację.
+// FAIL + attempts<MAX → throw (caller resetuje KW do scheduled → retry next run).
+// FAIL + attempts>=MAX → publikuj mimo to (nie zapętlaj cadence), flag review.
+// PASS/WARN lub brak audytu → przepuść, wyczyść licznik.
+const SEO_GATE_MAX_ATTEMPTS = 2;
+function enforceSeoGate(item, result, label) {
+  const seo = result && result.seoOnPage;
+  if (!seo || !seo.status) return; // audyt niedostępny — nie blokuj
+  const cal = loadCalendar();
+  if (seo.status === 'FAIL') {
+    let attempts = 0;
+    for (const cl of cal.clusters) {
+      const kw = (cl.keywords[item.lang] || []).find(k => k.keyword === item.keyword);
+      if (kw) { attempts = (kw.seo_fail_attempts || 0) + 1; break; }
+    }
+    if (attempts < SEO_GATE_MAX_ATTEMPTS) {
+      updateKeywordStatus(cal, item.lang, item.keyword, { seo_fail_attempts: attempts });
+      saveCalendar(cal);
+      throw new Error(`SEO gate FAIL ${seo.score}/100 — retry (attempt ${attempts}/${SEO_GATE_MAX_ATTEMPTS})`);
+    }
+    console.warn(`${label} SEO gate FAIL ${seo.score}/100 — attempts>=${SEO_GATE_MAX_ATTEMPTS}, publikuję mimo to (seo_review_needed)`);
+    updateKeywordStatus(cal, item.lang, item.keyword, { seo_fail_attempts: 0, seo_review_needed: true });
+    saveCalendar(cal);
+    return;
+  }
+  updateKeywordStatus(cal, item.lang, item.keyword, { seo_fail_attempts: 0 });
+  saveCalendar(cal);
 }
 
 async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
@@ -5295,6 +5388,8 @@ function startCalendarScheduler() {
             console.log(`${label} Autopilot: ${item.keyword}`);
             const result = await runAutopilot(item.lang, item.keyword);
             slug = result.slug;
+            // Warstwa C gate — FAIL blokuje deploy (retry) do SEO_GATE_MAX_ATTEMPTS
+            enforceSeoGate(item, result, label);
           }
 
           // Step 1.5: Validate post completeness
@@ -5813,6 +5908,7 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
         console.log(`${label} Autopilot: ${item.keyword}`);
         const result = await runAutopilot(item.lang, item.keyword);
         slug = result.slug;
+        enforceSeoGate(item, result, label);
       }
 
       calendarProgress.step = `validate (${i + 1}/${batch.length})`;
