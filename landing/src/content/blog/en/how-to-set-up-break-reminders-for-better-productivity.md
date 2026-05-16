@@ -195,3 +195,5 @@ The goal isn't perfect adherence. It's a system that bends without breaking.
 ## Start Small, Then Build
 
 Pick one change — a single 10-minute break added to your afternoon. Track how you feel for a week. That single data point, repeated consistently, is where every sustainable routine begins.
+
+*Related: [Take Better Breaks While Working From Home](/en/blog/take-better-breaks-while-working-from-home/)*

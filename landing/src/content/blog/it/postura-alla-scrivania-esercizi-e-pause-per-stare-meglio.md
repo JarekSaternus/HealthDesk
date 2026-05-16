@@ -194,3 +194,5 @@ Ogni due settimane vale la pena fermarsi a riflettere: il mal di schiena è dimi
 ## Un ultimo pensiero
 
 **Migliorare la postura seduti alla scrivania tutto il giorno** non è un obiettivo che si raggiunge una volta e poi si dimentica — è un processo in divenire. Il corpo cambia, il lavoro cambia, le abitudini si erodono e si ricostruiscono. L'unica cosa che fa davvero la differenza è tornare sempre al punto di partenza: ascoltare come ti senti, aggiustare, riprovare.
+
+*Da leggere anche: [Postura alla scrivania: 10 consigli + esercizi](/it/blog/postura-alla-scrivania-10-consigli-esercizi/)*

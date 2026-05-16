@@ -216,3 +216,5 @@ Progress in posture is subtle. You rarely feel yourself getting better — you j
 ## One Last Thing
 
 Good posture isn't a destination you arrive at — it's something you return to, repeatedly, across every workday. The setup matters, the exercises matter, but what matters most is building a workspace and a routine that keep bringing your attention back before the damage accumulates. Start with one change today, and build from there.
+
+*Related: [Improve Posture While Working from Home: Complete Guide](/en/blog/improve-posture-while-working-from-home-complete-guide/)*

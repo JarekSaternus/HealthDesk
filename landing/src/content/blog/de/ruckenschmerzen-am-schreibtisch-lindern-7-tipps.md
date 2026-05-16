@@ -199,3 +199,5 @@ Strukturierte Pausen helfen nicht nur dem Rücken, sondern auch der Produktivit�
 ## Rückenschmerzen sind kein Schicksal
 
 Die meisten bürobedingten Rückenschmerzen lassen sich durch kleine, konsequente Veränderungen deutlich reduzieren – ein besserer Stuhl, mehr Bewegungspausen, gezielte Übungen. Der entscheidende Schritt ist nicht der große Umbau, sondern das erste bewusste Innehalten mitten im Arbeitstag.
+
+*Auch interessant: [Ergonomischer Arbeitsplatz zu Hause: 7 praktische Tipps](/de/blog/ergonomischer-arbeitsplatz-zu-hause-7-praktische-tipps/)*

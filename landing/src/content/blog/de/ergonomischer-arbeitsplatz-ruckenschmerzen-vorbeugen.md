@@ -209,5 +209,4 @@ Das Tracking macht sichtbar, an welchen Tagen man besonders lange sitzt, wann di
 
 Die gute Nachricht: Selbst kleine Anpassungen – ein besser positionierter Monitor, eine konsequente Pausenroutine, eine Fußstütze für 20 Euro – können den Unterschied zwischen täglichen Rückenschmerzen und einem produktiven Arbeitstag ausmachen. Wer einmal verstanden hat, wie stark Körperhaltung, Bewegung und Arbeitsumgebung zusammenhängen, blickt nie wieder gleichgültig auf seinen Schreibtisch. Fangen Sie heute mit einer einzigen Veränderung an – und beobachten Sie, was passiert.
 
-
-
+*Auch interessant: [Ergonomischer Arbeitsplatz zuhause: Anleitung + App-Tipps](/de/blog/ergonomischer-arbeitsplatz-zuhause-anleitung-app-tipps/)*

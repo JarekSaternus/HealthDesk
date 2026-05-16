@@ -163,3 +163,5 @@ Bel sağlığı büyük bir hamleyle değil, her gün tekrarlanan küçük karar
 Sana şunu sormak istiyorum: bugün kaç kez kalktın masandan?
 
 Eğer cevabın seni şüpheye düşürdüyse, başlamak için iyi bir an bu.
+
+*Ayrıca okuyun: [Ofis Çalışanları İçin Günlük Bel-Sırt Egzersiz Rutini](/tr/blog/ofis-calisanlari-icin-gunluk-bel-sirt-egzersiz-rutini/)*

@@ -200,5 +200,4 @@ La prevención real no es solo hacer estiramientos: es construir una cultura de 
 
 Cómo mejorar la postura trabajando desde casa no tiene una respuesta única ni instantánea. Es un proceso de ajustes pequeños, constantes y conscientes. Empieza por una sola cosa hoy —recolocar el monitor, levantarte cada media hora, un estiramiento cervical— y construye desde ahí.
 
-
-
+*Lee también: [Postura Sentado: Ejercicios y Pausas Activas](/es/blog/postura-sentado-ejercicios-y-pausas-activas/)*

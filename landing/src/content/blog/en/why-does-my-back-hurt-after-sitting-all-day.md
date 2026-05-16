@@ -201,3 +201,5 @@ Tracking without intention is just data collection. Tools that pair activity tra
 Back pain from sitting all day rarely has one cause. It's usually a slow accumulation of pressure, inactivity, and ignored signals — each one manageable in isolation, but compounding into something genuinely disruptive over months and years.
 
 The fix is equally cumulative. Small, consistent adjustments to your setup, your movement habits, and your daily routines add up faster than most people expect. You don't need to overhaul everything at once. Pick one change — raise the monitor, set a break reminder, spend five minutes moving before you sit down — and build from there. The spine is more resilient than we give it credit for; it just needs the conditions to recover.
+
+*Related: [8 Healthy Habits for Office Workers: Beat Sitting](/en/blog/8-healthy-habits-for-office-workers-beat-sitting/)*

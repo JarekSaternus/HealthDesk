@@ -154,3 +154,5 @@ Baş ağrısı ve yorgunluk aynı anda geldiyse önce bir bardak su içip birka�
 Açıkçası, su içmeyi "önemli bir alışkanlık" olarak bilmek onu otomatik hale getirmiyor. Bunu yıllarca bildim ve yine de ihmal ettim.
 
 İşin püf noktası şu: vücudun sana haber vermesini bekleme, çünkü o sinyal çoğunlukla geç gelir. Küçük bir hatırlatıcı, doğru zamanda kurulmuş basit bir yapı — bunlar günün sonunda nasıl hissettiğini gerçekten değiştirebiliyor. Yarın sabah bilgisayarı açarken masana bir bardak su koy. Sadece o kadar.
+
+*Ayrıca okuyun: [Uzaktan Çalışırken Mola Vermenin En İyi Yöntemleri](/tr/blog/uzaktan-calisirken-mola-vermenin-en-iyi-yontemleri/)*

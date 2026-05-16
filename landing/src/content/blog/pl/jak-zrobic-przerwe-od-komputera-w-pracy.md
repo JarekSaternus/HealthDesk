@@ -233,3 +233,5 @@ Jeśli pracujesz w trybie głębokiej koncentracji — programowanie, pisanie �
 ## Zacznij od jednej zmiany
 
 Nie musisz od razu przebudowywać całego dnia. Wybierz jedną konkretną przerwę — określoną godzinę, jedno ćwiczenie dla oczu albo szklankę wody przed południem — i zrób z niej nawyk przez dwa tygodnie. Z mojego doświadczenia wynika, że jeden dobrze utrwalony nawyk otwiera drzwi do kolejnych znacznie łatwiej niż ambitny plan zmiany wszystkiego naraz.
+
+*Czytaj też: [Standing desk na ból pleców: czy naprawdę pomaga?](/pl/blog/standing-desk-na-bol-plecow-czy-naprawde-pomaga/)*

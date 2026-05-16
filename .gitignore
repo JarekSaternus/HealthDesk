@@ -32,4 +32,5 @@ landing/studio/backlinks.json
 landing/studio/cwv_history.json
 landing/studio/reports/seo-audits/
 landing/studio/.tmp-*.json
+landing/studio/.orphan-fix-plan.json
 landing/studio/image_regen_queue.json

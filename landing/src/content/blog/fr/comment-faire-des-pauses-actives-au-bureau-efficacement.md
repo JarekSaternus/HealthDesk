@@ -200,3 +200,5 @@ L'aspect social transforme une contrainte en rituel. Et un rituel partagé, ça 
 ## Ce qu'il reste à faire demain matin
 
 Choisissez une seule chose : un rappel à paramétrer, un étirement à tester, ou une collègue à inviter dans votre prochaine pause. Les grandes transformations au bureau commencent toujours par un geste petit et immédiatement faisable — pas par un plan parfait qu'on reporte à lundi prochain.
+
+*À lire aussi: [7 étirements assis au bureau sans se lever](/fr/blog/7-etirements-assis-au-bureau-sans-se-lever/)*

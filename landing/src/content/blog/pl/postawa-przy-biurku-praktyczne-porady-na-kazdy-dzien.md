@@ -183,3 +183,5 @@ Powiem szczerze — żadne narzędzie nie zastąpi własnej świadomości ciała
 ## Zadbaj o siebie przy biurku — jeden krok dziennie
 
 Zmiana nawyków posturalnych nie wymaga rewolucji. U mnie sprawdza się zasada, że każda zmiana, której wykonanie zajmuje mniej niż pięć minut, nie ma prawa czekać na "lepszy moment" — więc zacznij od regulacji wysokości krzesła albo od ustawienia pierwszego przypomnienia o przerwie. Twoje ciało nie zapomni, że o nie zadbałeś. I odwdzięczy się brakiem bólu w miejscach, gdzie dotąd był go za dużo.
+
+*Czytaj też: [Postawa przy biurku: praktyczne ćwiczenia i przypomnienia](/pl/blog/postawa-przy-biurku-praktyczne-cwiczenia-i-przypomnienia/)*
