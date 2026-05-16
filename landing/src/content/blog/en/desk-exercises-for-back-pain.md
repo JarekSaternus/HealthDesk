@@ -48,7 +48,7 @@ Here's a start that tends to get people's attention: sitting puts roughly **40% 
 
 When you hold a static seated position for hours, several things go wrong simultaneously. Your spinal muscles lose their natural tension, your intervertebral discs bear uneven loads, and blood flow to the soft tissues slows significantly. The **World Health Organization** identifies lower back pain as the leading cause of disability worldwide, with research published in *The Lancet* estimating that over **500 million people** are affected at any given time.
 
-Then there's what ergonomists call **"text neck"** — that familiar forward head posture where your chin juts toward the screen. Shifting your head just one inch forward from neutral alignment can add up to **10 additional pounds of load** on your cervical spine. Multiply that by eight hours a day and five days a week, and the cumulative strain becomes significant.
+Then there's what ergonomists call **"text neck"** — that familiar forward head posture where your chin juts toward the screen. Shifting your head just one inch forward from neutral alignment can add up to **10 additional pounds of load** on your cervical spine. Multiply that by eight hours a day and five days a week, and the cumulative strain becomes significant. If that strain already shows up higher up, here's [why pain settles between your shoulder blades](/en/blog/pain-between-shoulder-blades-from-computer-work-causes-and-fixes/) and how to release it.
 
 ### The Muscles That Take the Biggest Hit
 
@@ -59,7 +59,7 @@ Long hours at a desk don't damage all muscles equally. The ones that suffer most
 - **Core stabilizers** — When your deep abdominal and spinal muscles weaken, your lumbar spine loses its protective "corset" of support.
 - **Upper trapezius and neck muscles** — Chronically overloaded when your monitor is positioned too low or too high, leading to that persistent tension headache-and-shoulder-ache combo.
 
-Understanding this helps explain why the exercises below target these specific areas rather than just telling you to "stretch more."
+Understanding this helps explain why the exercises below target these specific areas rather than just telling you to "stretch more." For a broader prevention plan that goes beyond exercises, see our [desk job back pain prevention guide](/en/blog/desk-job-back-pain-prevention-tips-and-exercises/).
 
 ---
 
@@ -117,7 +117,7 @@ Here's the honest truth: the best exercise routine in the world does nothing if 
 
 A useful approach is to piggyback movement breaks onto an existing structure. If you already use the **Pomodoro Technique** — working in focused 25-minute blocks — use every break as a movement cue rather than a phone-scrolling session. Even two or three of the exercises above done back-to-back takes under three minutes.
 
-Research from University College London found that forming a new habit takes an average of **66 days**, not the 21 days you may have heard. The implication is clear: set up systems that prompt you automatically rather than relying on willpower alone. Phone alarms, sticky notes on your monitor, or dedicated wellness apps can all serve as external triggers until the behavior becomes self-sustaining.
+Research from University College London found that forming a new habit takes an average of **66 days**, not the 21 days you may have heard. The implication is clear: set up systems that prompt you automatically rather than relying on willpower alone. Phone alarms, sticky notes on your monitor, or dedicated wellness apps can all serve as external triggers until the behavior becomes self-sustaining. [HealthDesk](https://healthdesk.site/en/) was built for exactly this — it schedules movement, stretch, and eye breaks automatically so the routine runs without willpower.
 
 A study published in *Medicine & Science in Sport & Exercise* found that regular micro-breaks — just 2 to 5 minutes of movement every 45 to 60 minutes — reduced reported back pain by **54%** compared to uninterrupted sitting. That's not a small effect. That's the kind of result people spend money on physical therapy to achieve, and it's available for free every time you stand up from your desk.
 
@@ -125,6 +125,6 @@ A study published in *Medicine & Science in Sport & Exercise* found that regular
 
 ## The Bottom Line
 
-Back pain from desk work isn't inevitable — it's largely a product of static posture held for too long without interruption. The solution isn't complicated: move more frequently, target the muscles that sitting weakens and tightens, and build a routine you can actually maintain.
+Back pain from desk work isn't inevitable — it's largely a product of static posture held for too long without interruption. The solution isn't complicated: move more frequently, target the muscles that sitting weakens and tightens, and build a routine you can actually maintain. Pair these exercises with an [ergonomic desk setup](/en/blog/ergonomic-desk-setup-tips-for-back-pain-relief/) so you fix the root cause, not just the symptom.
 
 Start with two or three of the exercises above. Pick the ones that address where you feel tension right now. Do them consistently for a week, then add more. Small, regular movement beats sporadic, heroic effort every single time — and your spine will thank you for it long before those 66 days are up.

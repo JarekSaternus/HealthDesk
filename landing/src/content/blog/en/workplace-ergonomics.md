@@ -1,5 +1,5 @@
 ---
-title: "Workplace Ergonomics — How to Set Up Your Desk, Chair, and Monitor"
+title: "Workplace Ergonomics: Desk, Chair & Monitor Setup"
 slug: "workplace-ergonomics"
 date: 2026-02-21
 description: "A practical guide to computer workstation ergonomics. Learn how to position your monitor, chair, and desk to avoid back and neck pain."
@@ -142,7 +142,7 @@ This checklist lets you verify your workstation meets basic ergonomic principles
 - ✅ Keyboard positioned for neutral wrist angle, mouse immediately beside it
 - ✅ No glare on the screen, lighting from the side
 - ✅ Timer or app reminding you about breaks every 25-52 min
-- ✅ Water bottle within reach — [hydration supports focus and muscle recovery](https://healthdesk.site/en/blog/hydration-and-productivity/)
+- ✅ Water bottle within reach — [hydration supports focus and muscle recovery](https://healthdesk.site/en/blog/how-much-water-should-you-drink-while-working-at-a-computer/)
 - ✅ Phone calls handled with a headset or speakerphone
 
 If even one point is missing — it's worth fixing today. Even a single correction can reduce discomfort within days. Work through the list systematically rather than trying to fix everything at once; introducing too many changes simultaneously makes it hard to identify which adjustment made the biggest difference.
