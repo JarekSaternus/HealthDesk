@@ -4701,8 +4701,37 @@ function enforceTechnicalGate(item, slug, label) {
     fs.mkdirSync(dir, { recursive: true });
     fs.writeFileSync(path.join(dir, `${new Date().toISOString().slice(0, 10)}-${slug}-technical.json`), JSON.stringify(r, null, 2), 'utf8');
   } catch { /* best-effort */ }
-  console.log(`[Technical] ${r.status} ${r.score}/100 (${item.lang}/${slug}) — blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
-  if (r.status !== 'FAIL') return;
+  const crit = r.critical_issues || [];
+  console.log(`[Technical] ${r.status} ${r.score}/100 (${item.lang}/${slug}) — critical ${crit.length}, blocking ${r.blocking_issues.length}, warnings ${r.warnings.length}`);
+  if (r.status !== 'FAIL') return 'ok';
+
+  // CRITICAL → NIGDY nie publikuj. Wyjmij KW z rotacji (status tech_blocked,
+  // żeby scheduler nie zapętlił) + ticket. Caller robi `continue` (skip deploy).
+  if (crit.length) {
+    const cal = loadCalendar();
+    updateKeywordStatus(cal, item.lang, item.keyword, { status: 'tech_blocked', tech_blocked_reason: crit.join('; '), tech_fail_attempts: 0 });
+    saveCalendar(cal);
+    try {
+      const st = loadCoachState(); st.tickets = st.tickets || [];
+      const today = new Date().toISOString().slice(0, 10);
+      const expires = new Date(); expires.setDate(expires.getDate() + 30);
+      if (!st.tickets.some(t => t.type === 'technical_critical' && t.status === 'open' && t.slug === slug)) {
+        st.tickets.push({
+          id: `tc_${today}_${(st.tickets.length + 1).toString().padStart(3, '0')}`,
+          type: 'technical_critical', lang: item.lang, slug, url: `https://healthdesk.site/${item.lang}/blog/${slug}/`,
+          status: 'open', created: today, expires: expires.toISOString().slice(0, 10), severity: 'high',
+          evidence: `Technical CRITICAL — deploy ZABLOKOWANY, KW poza rotacją: ${crit.join('; ')}`,
+          recommended_actions: ['napraw build/templatkę (canonical/robots/H1/JSON-LD)', 'po naprawie zmień status KW tech_blocked→scheduled', 're-build + re-audit'],
+          outcome: null
+        });
+        saveCoachState(st);
+      }
+    } catch (e) { console.error(`${label} technical_critical ticket failed: ${e.message}`); }
+    console.error(`${label} 🔴 Technical CRITICAL (${crit.join('; ')}) — DEPLOY ZABLOKOWANY, KW→tech_blocked (wymaga ręcznej naprawy)`);
+    return 'blocked';
+  }
+
+  // Non-critical FAIL → retry≤2 → potem publish + flaga (jak dotąd).
   const cal = loadCalendar();
   let attempts = 0;
   for (const cl of cal.clusters) {
@@ -4714,9 +4743,10 @@ function enforceTechnicalGate(item, slug, label) {
     saveCalendar(cal);
     throw new Error(`Technical gate FAIL ${r.score}/100 (${r.blocking_issues.join('; ')}) — retry (${attempts}/${TECH_GATE_MAX_ATTEMPTS})`);
   }
-  console.warn(`${label} Technical gate FAIL — attempts>=${TECH_GATE_MAX_ATTEMPTS}, deploy mimo to (tech_review_needed)`);
+  console.warn(`${label} Technical gate FAIL non-critical — attempts>=${TECH_GATE_MAX_ATTEMPTS}, deploy mimo to (tech_review_needed)`);
   updateKeywordStatus(cal, item.lang, item.keyword, { tech_fail_attempts: 0, tech_review_needed: true });
   saveCalendar(cal);
+  return 'ok';
 }
 
 app.post('/api/seo/technical-audit', (req, res) => {
@@ -5910,9 +5940,14 @@ function startCalendarScheduler() {
           console.log(`${label} Building...`);
           await runBuild();
 
-          // Step 2.5: Warstwa D — technical HTML audit (FAIL → block deploy, retry)
+          // Step 2.5: Warstwa D — technical HTML audit. critical → block (continue),
+          // non-critical FAIL → retry≤2 (throw), PASS/WARN → ok.
           calendarProgress.step = `tech-audit (${i + 1}/${batch.length})`;
-          enforceTechnicalGate(item, slug, label);
+          if (enforceTechnicalGate(item, slug, label) === 'blocked') {
+            calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'tech_blocked' });
+            runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'tech_blocked' });
+            continue;
+          }
 
           // Step 3: Deploy to FTP (with retry)
           calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
@@ -6477,7 +6512,11 @@ app.post('/api/calendar/recover-scheduled', async (req, res) => {
       await runBuild();
 
       calendarProgress.step = `tech-audit (${i + 1}/${batch.length})`;
-      enforceTechnicalGate(item, slug, label);
+      if (enforceTechnicalGate(item, slug, label) === 'blocked') {
+        calendarProgress.results.push({ lang: item.lang, keyword: item.keyword, status: 'tech_blocked' });
+        runLog.results.push({ lang: item.lang, keyword: item.keyword, status: 'tech_blocked' });
+        continue;
+      }
 
       calendarProgress.step = `deploy (${i + 1}/${batch.length})`;
       console.log(`${label} Deploying...`);

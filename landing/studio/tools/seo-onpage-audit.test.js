@@ -185,14 +185,18 @@ const goodHtml = `<!doctype html><html><head>
 </head><body><h1>Title</h1><img src="a.webp" width="1200" height="630"><img src="b.webp" width="800" height="400" loading="lazy"></body></html>`;
 let th = auditHtml(goodHtml, { expectedCanonical: 'https://healthdesk.site/en/blog/x/' });
 check('technical: dobry HTML → PASS', th.status === 'PASS' && th.blocking_issues.length === 0, JSON.stringify(th.blocking_issues));
+check('technical: dobry HTML → critical_issues puste', (th.critical_issues || []).length === 0);
 th = auditHtml(goodHtml.replace('<link rel="canonical" href="https://healthdesk.site/en/blog/x/">', ''));
-check('technical: brak canonical → FAIL', th.status === 'FAIL' && th.blocking_issues.some(x => /canonical/i.test(x)));
+check('technical: brak canonical → CRITICAL', th.status === 'FAIL' && th.critical_issues.some(x => /canonical/i.test(x)));
 th = auditHtml(goodHtml.replace('<h1>Title</h1>', '<h1>A</h1><h1>B</h1>'));
-check('technical: 2×H1 → FAIL', th.status === 'FAIL' && th.blocking_issues.some(x => /Wiele <h1>/.test(x)));
+check('technical: 2×H1 → CRITICAL', th.critical_issues.some(x => /Wiele <h1>/.test(x)));
 th = auditHtml(goodHtml.replace('<head>', '<head><meta name="robots" content="noindex">'));
-check('technical: noindex → FAIL', th.blocking_issues.some(x => /noindex/i.test(x)));
+check('technical: noindex → CRITICAL', th.critical_issues.some(x => /noindex/i.test(x)));
 th = auditHtml(goodHtml.replace('{"@type":"BlogPosting","headline":"x"}', '{bad json}'));
-check('technical: zepsuty JSON-LD → FAIL', th.blocking_issues.some(x => /JSON-LD/i.test(x)));
+check('technical: zepsuty JSON-LD → CRITICAL', th.critical_issues.some(x => /JSON-LD/i.test(x)));
+// meta description brak = blocking ale NIE critical (można przepchnąć z flagą)
+th = auditHtml(goodHtml.replace(/<meta name="description"[^>]*>/, ''));
+check('technical: brak meta = blocking ale NIE critical', th.blocking_issues.some(x => /meta description/i.test(x)) && !th.critical_issues.some(x => /meta description/i.test(x)));
 th = auditHtml(goodHtml, { expectedCanonical: 'https://healthdesk.site/en/blog/x/', internalExists: () => false });
 check('technical: martwy link wewn (gdy są <a>) — brak <a> więc czysto', th.checks.internal_links === undefined || th.checks.internal_links.broken >= 0);
 // regresja: mailto/tel z domeną w adresie NIE może być traktowane jako link wewn.

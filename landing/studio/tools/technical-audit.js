@@ -15,12 +15,16 @@ function tag(html, re) { const m = html.match(re); return m ? m[1].trim() : null
 
 function auditHtml(html, opts = {}) {
   const blocking = [], warnings = [], opportunities = [];
+  // critical = NIGDY nie publikuj (zero escape). Podzbiór blocking.
+  // Reszta blocking = retry≤2 → publish + tech_review_needed.
+  const critical = [];
+  const crit = (m) => { critical.push(m); blocking.push(m); };
   const checks = {};
   html = html || '';
 
   // — TITLE —
   const title = tag(html, /<title[^>]*>([\s\S]*?)<\/title>/i);
-  if (!title) blocking.push('Brak <title>');
+  if (!title) crit('Brak <title>');
   else if (title.length < 15 || title.length > 70) warnings.push(`<title> długość ${title.length} poza 15-70`);
   checks.title = title;
 
@@ -32,15 +36,15 @@ function auditHtml(html, opts = {}) {
 
   // — CANONICAL —
   const canonical = tag(html, /<link[^>]+rel=["']canonical["'][^>]*href=["']([^"']+)["']/i);
-  if (!canonical) blocking.push('Brak <link rel=canonical>');
+  if (!canonical) crit('Brak <link rel=canonical>');
   else if (opts.expectedCanonical && canonical.replace(/\/$/, '') !== opts.expectedCanonical.replace(/\/$/, '')) {
-    blocking.push(`canonical ≠ oczekiwany URL (${canonical} vs ${opts.expectedCanonical})`);
+    crit(`canonical ≠ oczekiwany URL (${canonical} vs ${opts.expectedCanonical})`);
   }
   checks.canonical = canonical;
 
   // — ROBOTS (noindex = krytyczny dla posta który ma być w indeksie) —
   const robots = tag(html, /<meta[^>]+name=["']robots["'][^>]*content=["']([^"']+)["']/i);
-  if (robots && /noindex/i.test(robots)) blocking.push(`robots zawiera noindex: "${robots}"`);
+  if (robots && /noindex/i.test(robots)) crit(`robots zawiera noindex: "${robots}"`);
   checks.robots = robots || '(brak — ok, domyślnie index)';
 
   // — OPEN GRAPH / TWITTER —
@@ -58,7 +62,7 @@ function auditHtml(html, opts = {}) {
       const parsed = JSON.parse(b);
       const arr = Array.isArray(parsed) ? parsed : [parsed];
       for (const o of arr) if (o && o['@type']) types.push(o['@type']);
-    } catch (e) { blocking.push(`JSON-LD nie parsuje się (${e.message.slice(0, 40)})`); }
+    } catch (e) { crit(`JSON-LD nie parsuje się (${e.message.slice(0, 40)})`); }
   }
   if (ldBlocks.length && !types.some(t => /BlogPosting|Article/.test(t))) warnings.push('Brak schematu BlogPosting/Article');
   if (ldBlocks.length && !types.includes('BreadcrumbList')) warnings.push('Brak BreadcrumbList schema');
@@ -66,8 +70,8 @@ function auditHtml(html, opts = {}) {
 
   // — H1 (dokładnie 1) —
   const h1 = (html.match(/<h1[\s>]/gi) || []).length;
-  if (h1 === 0) blocking.push('Brak <h1> w DOM');
-  else if (h1 > 1) blocking.push(`Wiele <h1> w DOM (${h1})`);
+  if (h1 === 0) crit('Brak <h1> w DOM');
+  else if (h1 > 1) crit(`Wiele <h1> w DOM (${h1})`);
   checks.h1_count = h1;
 
   // — OBRAZY: width/height + lazy (poza pierwszym = hero/LCP) —
@@ -105,7 +109,7 @@ function auditHtml(html, opts = {}) {
   let score = 100 - blocking.length * 25 - warnings.length * 6 - opportunities.length * 2;
   score = Math.max(0, Math.min(100, score));
   const status = blocking.length ? 'FAIL' : (warnings.length > 2 ? 'WARN' : 'PASS');
-  return { score, status, blocking_issues: blocking, warnings, opportunities, checks };
+  return { score, status, critical_issues: critical, blocking_issues: blocking, warnings, opportunities, checks };
 }
 
 module.exports = { auditHtml };
