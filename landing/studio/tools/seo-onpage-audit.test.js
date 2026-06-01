@@ -277,5 +277,16 @@ const mdf6 = mechanicalDefingerprint(`## А\n\n${ruDup} Уникальный х�
 check('defingerprint: dedupe cyrylicy (ru — fix \\p{L})',
   mdf6.stats.dedupedSentences === 1 && (mdf6.markdown.split(ruDup).length - 1) === 1);
 
+// 20. mojibake (tools/mojibake.js) — brak false-positive na poprawnych diakrytykach + delimiterze
+// Regresja: klasy CJK ć[…]/í[…] nie mogą zawierać U+0022 (zwykły cudzysłów), bo "produktywność",
+// "gość", aquí" to legalne frontmatter/proza, nie mojibake.
+const { hasBrokenEncoding, recoverMojibake } = require('./mojibake');
+// NIE mojibake (false-positive guard):
+check('mojibake: "produktywność", nie jest flagowane', hasBrokenEncoding('tags: ["produktywność", "gość"]') === false);
+check('mojibake: "aquí" (es) nie jest flagowane', hasBrokenEncoding('título: "aquí está la guía"') === false);
+// NADAL mojibake (regresja detekcji) + odzysk:
+check('mojibake: prawdziwe Ä‡/Ä™ nadal łapane', hasBrokenEncoding('Ä‡wiczenia na zmÄ™czenie') === true);
+check('mojibake: recoverMojibake odzyskuje ćwiczenia', recoverMojibake('Ä‡wiczenia') === 'ćwiczenia');
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

@@ -57,37 +57,9 @@ const LANG_NAMES = {
 };
 function getLangName(lang) { return LANG_NAMES[lang] || lang; }
 
-// Wymaga konkretnych bigramów które pojawiają się TYLKO w mojibake CP1250→UTF-8
-// (po prostu Ă/Ä byłoby false-positive na poprawnych znakach jak Ä, Ć, Č).
-// - Łacina/PL/DE/ES/IT: Ă³, Ă©, Ă¨, ĂĽ, ĂŁ, Ä…, Ä‡, Ä™, ÄŤ, Ĺ‚, Ĺ›, ĹĽ, Ĺş, Ăź
-// - Cyrillic: Đ°-Đż, ĐĽ, ĐĽ, ŃŤ, Ńŕ, Ńŋ
-// - CJK po CP1250: ăÂ, ăĽ, ăŤ, ĺ®, ĺ‹, ĺş, ć–, ě», í"
-// - Smart-quotes: â€™, â€"
-// - Replacement char: ďż˝, ???
-// - Pathological AI output (np. zwrócone jako tekst slug)
-const MOJIBAKE_PATTERN = /(?:Ă[³©¨ĽąŁĽłŻş]|Ä[…‡™ŤĽą]|Ĺ[‚›ĽşĽż]|Ăź|Đ[°-żĽ]|ŃŤ|Ńŕ|Ńŋ|Ń€|ăÂ|ă[ĽŤÂ]|ĺ[®‹ş]|ć[–"]|ě[»–]|í[""°"]|â€[™"-]|ďż˝|\?\?\?|cannotreliablyprocess|imunabletogenerate)/i;
-
-function hasBrokenEncoding(value) {
-  return MOJIBAKE_PATTERN.test(String(value || ''));
-}
-
-// Próba odzyskania mojibake przez round-trip CP1250 → UTF-8.
-// Zwraca naprawiony string lub null jeśli odzyskanie zostawiło utracone znaki.
-// Mojibake powstaje gdy UTF-8 bytes są odczytane jako CP1250 i zapisane jako UTF-8.
-const _iconv = require('iconv-lite');
-const PATHOLOGICAL_RE = /(cannotreliablyprocess|imunabletogenerate|notreadableguide|cannot-process)/i;
-function recoverMojibake(value) {
-  const s = String(value || '');
-  if (!hasBrokenEncoding(s)) return s;
-  try {
-    const recovered = _iconv.decode(_iconv.encode(s, 'win1250'), 'utf-8');
-    if ((recovered.match(/[�]/g) || []).length >= 2) return null; // utracone znaki
-    if (PATHOLOGICAL_RE.test(recovered)) return null; // AI error message
-    return recovered;
-  } catch {
-    return null;
-  }
-}
+// Detekcja/odzyskiwanie mojibake CP1250→UTF-8 — wydzielone do tools/mojibake.js
+// (jednostkowo testowane). Wzorzec NIE może zawierać U+0022 w klasach ć/í — patrz tam.
+const { PATHOLOGICAL_RE, hasBrokenEncoding, recoverMojibake } = require('./tools/mojibake');
 
 // Sanityzacja keywordów/topiców przed wysłaniem do Claude API:
 // próbuje odzyskać mojibake. Zwraca clean string albo null (caller powinien

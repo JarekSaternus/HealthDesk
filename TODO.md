@@ -113,8 +113,23 @@ Z już pobieranego Serper top10 klasyfikuj typ SERP (listicle/ranking/category/l
 - ✅ **Coach autopilot money-page** — opt-in flag (default OFF), auto-apply recommended + `runAutopilotRollbackCheck` (≥21d, LOSER→cofnij do oryginału). UI checkbox. Tylko money-page (mierzalne+odwracalne); reszta advisory
 - Testy: 44/44. Wszystkie commity bez --no-verify (hook diff-only działa)
 
+### Status IV tura (2026-05-16, walkthrough hardening + not_indexed fix)
+- ✅ **Warstwa C: detektor experience poszerzony** — `EXP_SIGNALS` (first-person EN/PL, "I still remember"/"I find"/"I have tested"), brak false-pos na "I think". Hoist do stałej modułowej, flaga `iu`
+- ✅ **Humanize DIAGNOSIS leak** — `stripDiagnosis()` tolerancyjny (z/bez ":", wielokrotny, lowercase); endpoint zwraca czysty tekst; defensywny strip przed zapisem
+- ✅ **Strażnik stale-year** (Warstwa C) — `detectStaleYear`/`fixStaleYear`: skan TYLKO tytuł+nagłówki (proza/cytaty nietknięte) + `looksLikeCitation` + future-year ignorowany; wpięty w autopilot (auto-fix)
+- ✅ **Hero image timeout** — `AbortSignal.timeout(90s)` + czytelny komunikat zamiast wiszenia ~min ×5
+- ✅ **Redesign pętli humanize** — `tools/defingerprint.js` (deterministyczny, word-preserving: unbold kw, cap bold, dedupe zdań, `\p{L}` dla cyrylicy); pętla śledzi WSZYSTKIE warianty {original, mechanical, humanize×2}, humanize CELOWANY (tylko `top_problems`), wybiera NAJLEPSZY — nigdy gorszy niż oryginał; AI-fingerprint miękki
+- ✅ **14 not_indexed naprawione** — root cause: strony-sieroty (0 inbound). Fix: 14 kontekstowych linków z NIE-sierocych powiązanych postów (Warstwa E inbound) → sieroty 0/14, deploy + 28 URL re-submit + snooze 14d. ⚠️ wzorzec do uważania: ręczne wpisy poza autopilotem nie dostają inbound — autopilot powinien je dolinkować
+- Testy: **61/61** (`npm run test:seo`)
+
+### Status V tura (2026-06-01, autopilot unblock — krytyczny false-positive)
+- 🔴 **Root cause 11-dniowego zacięcia autopilota** — `MOJIBAKE_PATTERN` (server.js) miał `U+0022` (zwykły cudzysłów) w klasach CJK `ć[…]`/`í[…]`. Każdy PL frontmatter/proza z wyrazem na `ć`/`í` przed cudzysłowem (`"produktywność"`, `"gość"`, `aquí"`) był FAŁSZYWIE wykrywany jako mojibake → walidacja blokowała publikację → keyword `aplikacja pomodoro na komputer` retry'owany 50× od 22.05, blokując całą kolejkę (12 KW)
+- ✅ **Fix** — usunięto `U+0022` z klas `ć`/`í` (zostały high-Unicode follow-chars: en-dash, °). Detekcja prawdziwego mojibake (`Ä‡`, `Ä™`, `â€`) nietknięta
+- ✅ **Test regresyjny** — suite **64/64**; pipeline przeszedł end-to-end (validate→build→deploy→gsc), wpis live (slug `pomodoro-na-komputer-technika-do-lepszej-produktywnosci`, 06-01)
+- ✅ **5 zaległych wpisów** (17.05–01.06) zacommitowane; sierota 05-21 (po nieudanej walidacji) usunięta
+
 ### Pozostało (drobne, opcjonalne)
-- Warstwa C: `auto_fixes` na razie = rekomendacje (auto-apply tylko title/meta); rozszerzyć o internal-links auto-inject (ostrożnie)
+- Warstwa C: `auto_fixes` na razie = rekomendacje (auto-apply title/meta + stale_year); rozszerzyć o internal-links auto-inject (ostrożnie — patrz wzorzec sierot)
 - `saveCoachState`/`saveBacklinks` bez try/catch (preexisting wzorzec — Gemini WAŻNY)
 - Powiadomienia tylko popup Windows (Telegram/digest — odrzucone teraz, kiedyś agent-herald)
 
