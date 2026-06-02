@@ -60,6 +60,8 @@ function getLangName(lang) { return LANG_NAMES[lang] || lang; }
 // Detekcja/odzyskiwanie mojibake CP1250→UTF-8 — wydzielone do tools/mojibake.js
 // (jednostkowo testowane). Wzorzec NIE może zawierać U+0022 w klasach ć/í — patrz tam.
 const { PATHOLOGICAL_RE, hasBrokenEncoding, recoverMojibake } = require('./tools/mojibake');
+// Alert "cicha śmierć autopilota" — N kolejnych runów bez publikacji (patrz tools/autopilot-health.js)
+const { countConsecutiveFailures, shouldAlert } = require('./tools/autopilot-health');
 
 // Sanityzacja keywordów/topiców przed wysłaniem do Claude API:
 // próbuje odzyskać mojibake. Zwraca clean string albo null (caller powinien
@@ -6396,6 +6398,20 @@ function startCalendarScheduler() {
       if (schedulerLog.runs.length > 50) schedulerLog.runs = schedulerLog.runs.slice(-50);
       await fs.promises.writeFile(SCHEDULER_LOG, JSON.stringify(schedulerLog, null, 2), 'utf-8');
       console.log(`[Scheduler] Log saved: ${completed} ok, ${runLog.errors} errors`);
+
+      // Alert "cicha śmierć autopilota": N kolejnych runów = całkowita porażka (0 publikacji).
+      // Eskalujący popup, by nie powtórzyć 11-dniowego cichego zacięcia z 2026-06.
+      try {
+        const fail = countConsecutiveFailures(schedulerLog.runs);
+        if (shouldAlert(fail.count)) {
+          showNotification(
+            `⚠️ Autopilot ZACIĘTY — ${fail.count}× z rzędu bez publikacji`,
+            `Utknął na [${fail.lang || '?'}] "${fail.keyword || '?'}": ${(fail.error || 'nieznany błąd').slice(0, 120)}. Sprawdź scheduler_log.json / Studio.`,
+            'http://localhost:4000'
+          );
+          console.warn(`[Scheduler] ALERT: ${fail.count} kolejnych porażek — utknięto na "${fail.keyword}"`);
+        }
+      } catch (e) { console.error('[Scheduler] consecutive-failure alert failed:', e.message); }
 
       // Set next_run: bump tylko jeśli batch dał co najmniej 1 sukces.
       // Inaczej retry jutro (nie skipuj naprzód mimo że nic się nie udało —

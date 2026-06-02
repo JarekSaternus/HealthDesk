@@ -288,5 +288,19 @@ check('mojibake: "aquí" (es) nie jest flagowane', hasBrokenEncoding('título: "
 check('mojibake: prawdziwe Ä‡/Ä™ nadal łapane', hasBrokenEncoding('Ä‡wiczenia na zmÄ™czenie') === true);
 check('mojibake: recoverMojibake odzyskuje ćwiczenia', recoverMojibake('Ä‡wiczenia') === 'ćwiczenia');
 
+// 21. autopilot-health — alert na N kolejnych porażek (cicha śmierć autopilota)
+const ah = require('./autopilot-health');
+const ok = { completed: 1, errors: 0, results: [{ status: 'ok', lang: 'en' }] };
+const err = (kw = 'x', lang = 'pl') => ({ completed: 0, errors: 1, results: [{ status: 'error', lang, keyword: kw, error: 'Validation failed' }] });
+check('autopilot-health: total failure wykryty', ah.isTotalFailure(err()) === true);
+check('autopilot-health: run z sukcesem nie jest porażką', ah.isTotalFailure(ok) === false);
+check('autopilot-health: completed=0 bez błędów nie jest porażką', ah.isTotalFailure({ completed: 0, errors: 0, results: [] }) === false);
+const c5 = ah.countConsecutiveFailures([ok, err(), err(), err('aplikacja pomodoro na komputer'), err('aplikacja pomodoro na komputer'), err('aplikacja pomodoro na komputer')]);
+check('autopilot-health: liczy kolejne porażki od końca (sukces przerywa)', c5.count === 5 && c5.keyword === 'aplikacja pomodoro na komputer');
+check('autopilot-health: sukces na końcu zeruje licznik', ah.countConsecutiveFailures([err(), err(), ok]).count === 0);
+check('autopilot-health: alert dokładnie na progu (3)', ah.shouldAlert(2) === false && ah.shouldAlert(3) === true);
+check('autopilot-health: anti-spam między progiem a repeat', ah.shouldAlert(4) === false && ah.shouldAlert(5) === false);
+check('autopilot-health: przypomnienie co ALERT_REPEAT (9, 15)', ah.shouldAlert(9) === true && ah.shouldAlert(15) === true);
+
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);
