@@ -6402,14 +6402,14 @@ function startCalendarScheduler() {
       // Alert "cicha śmierć autopilota": N kolejnych runów = całkowita porażka (0 publikacji).
       // Eskalujący popup, by nie powtórzyć 11-dniowego cichego zacięcia z 2026-06.
       try {
-        const fail = countConsecutiveFailures(schedulerLog.runs);
-        if (shouldAlert(fail.count)) {
+        const failureCtx = countConsecutiveFailures(schedulerLog.runs);
+        if (shouldAlert(failureCtx.count)) {
           showNotification(
-            `⚠️ Autopilot ZACIĘTY — ${fail.count}× z rzędu bez publikacji`,
-            `Utknął na [${fail.lang || '?'}] "${fail.keyword || '?'}": ${(fail.error || 'nieznany błąd').slice(0, 120)}. Sprawdź scheduler_log.json / Studio.`,
+            `⚠️ Autopilot ZACIĘTY — ${failureCtx.count}× z rzędu bez publikacji`,
+            `Utknął na [${failureCtx.lang || '?'}] "${failureCtx.keyword || '?'}": ${String(failureCtx.error || 'nieznany błąd').slice(0, 120)}. Sprawdź scheduler_log.json / Studio.`,
             'http://localhost:4000'
           );
-          console.warn(`[Scheduler] ALERT: ${fail.count} kolejnych porażek — utknięto na "${fail.keyword}"`);
+          console.warn(`[Scheduler] ALERT: ${failureCtx.count} kolejnych porażek — utknięto na "${failureCtx.keyword}"`);
         }
       } catch (e) { console.error('[Scheduler] consecutive-failure alert failed:', e.message); }
 
