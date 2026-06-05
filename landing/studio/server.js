@@ -1526,6 +1526,21 @@ ${markdown}`,
   return parsed;
 }
 
+// Audyt to MIĘKKA bramka jakości (służy do wyboru najlepszego wariantu), a NIE warunek
+// publikacji. Gdy odpowiedź LLM jest niepoprawnym JSON-em (Haiku bywa zwraca nieucieczony
+// `"` w polskim polu `detail`), rzucony wyjątek zabijał CAŁĄ publikację → kolejka stawała
+// (ten sam wzorzec „cichej śmierci" co przy mojibake). Tu łapiemy błąd, logujemy i zwracamy
+// neutralny domyślny audyt (score 5, brak problemów), żeby pipeline szedł dalej i wpis
+// został opublikowany. Geneza: incydent 2026-06-05 (KW „darmowa aplikacja pomodoro").
+async function safeAudit(markdown, lang) {
+  try {
+    return await doAudit(markdown, lang);
+  } catch (err) {
+    console.warn(`[AI Audit] Parsowanie odpowiedzi nie powiodło się (non-fatal): ${err.message} — publikuję z domyślnym score 5`);
+    return { score: 5, dimensions: [], top_problems: [], summary: 'audit-failed-default', _auditFailed: true };
+  }
+}
+
 // â”€â”€â”€ AI: Audit article for AI fingerprints â”€â”€â”€
 app.post('/api/ai/audit', async (req, res) => {
   const { markdown, lang } = req.body;
@@ -4393,7 +4408,7 @@ async function runAutopilot(lang, topic, persona) {
 
     // Step 6: AI Audit
     updateStep(6, 'AI Audit', 'running');
-    const audit = await doAudit(markdown, lang);
+    const audit = await safeAudit(markdown, lang);
     const aiScore = audit.score || 0;
     steps[5].status = 'done';
     steps[5].detail = `Score: ${aiScore}/10`;
@@ -4410,7 +4425,7 @@ async function runAutopilot(lang, topic, persona) {
     const mech = mechanicalDefingerprint(markdown, topic);
     if (mech.changed) {
       console.log(`[Autopilot] Mechanical defingerprint: ${JSON.stringify(mech.stats)}`);
-      const mAudit = await doAudit(mech.markdown, lang);
+      const mAudit = await safeAudit(mech.markdown, lang);
       versions.push({ label: 'mechanical', md: mech.markdown, score: mAudit.score || 0, problems: mAudit.top_problems || [] });
     }
 
@@ -4424,7 +4439,7 @@ async function runAutopilot(lang, topic, persona) {
       try {
         const h = await doHumanize(base.md, lang, { targets: base.problems });
         const hMd = h.articleText || h.markdown;
-        const hAudit = await doAudit(hMd, lang);
+        const hAudit = await safeAudit(hMd, lang);
         versions.push({ label: `humanize${round}`, md: hMd, score: hAudit.score || 0, problems: hAudit.top_problems || [] });
         console.log(`[Autopilot] Humanize round ${round}: ${base.label}(${base.score}) → ${hAudit.score}/10`);
       } catch (hErr) {
