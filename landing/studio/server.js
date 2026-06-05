@@ -297,6 +297,7 @@ function parseJsonResponse(text) {
 
 // Paths
 const LANDING_ROOT = path.join(__dirname, '..');
+const REPO_ROOT = path.join(__dirname, '..', '..'); // git root (healthdesk-tauri)
 const BLOG_DIR = path.join(LANDING_ROOT, 'src', 'content', 'blog');
 const I18N_DIR = path.join(LANDING_ROOT, 'src', 'i18n');
 const STUDIO_DATA = path.join(__dirname, 'studio.json');
@@ -5233,6 +5234,67 @@ app.post('/api/seo/daily-digest/notify', (req, res) => {
   catch (e) { res.status(500).json({ error: e.message }); }
 });
 
+// Auto-commit + push opublikowanego wpisu (po udanym deployu). Geneza: wpisy autopilota
+// lądowały jako untracked/niepushowane (studio.json jest gitignored, a pipeline nie commitował
+// .md ani hero image) — patrz pamięć projektu. NON-FATAL: wpis jest już LIVE na FTP, więc
+// błąd git (brak zmian, konflikt push, brak auth) NIE może wywrócić publikacji.
+// GIT_TERMINAL_PROMPT=0 + timeout: nigdy nie wisimy na interaktywnym prompcie o hasło.
+// Commit zawiera tylko 2 konkretne pliki → hook pre-commit pomija build/cargo/gemini/codex
+// (brak plików kodu w stage) i przechodzi natychmiast.
+async function gitCommitAndPushPost(lang, slug) {
+  // Walidacja wejścia (defense-in-depth, anty path-traversal): lang/slug trafiają do ścieżek
+  // plików. Akceptujemy tylko bezpieczne wzorce (kod locale + slug z [a-z0-9-]); cokolwiek
+  // innego (np. ".." czy "/") → pomijamy commit zamiast budować ścieżkę poza repo.
+  if (!/^[a-z]{2}(-[A-Za-z]{2})?$/.test(lang || '') || !/^[a-z0-9][a-z0-9-]*$/.test(slug || '')) {
+    console.warn(`[Git] Pomijam auto-commit — niedozwolony lang/slug: "${lang}"/"${slug}"`);
+    return;
+  }
+  try {
+    const mdAbs = path.join(BLOG_DIR, lang, `${slug}.md`);
+    if (!fs.existsSync(mdAbs)) {
+      console.warn(`[Git] Pomijam auto-commit — brak pliku ${lang}/${slug}.md`);
+      return;
+    }
+    const files = [path.relative(REPO_ROOT, mdAbs)];
+    const imgAbs = path.join(BLOG_IMAGES_DIR, `${slug}.webp`);
+    if (fs.existsSync(imgAbs)) files.push(path.relative(REPO_ROOT, imgAbs));
+
+    // process.env potrzebny (PATH do znalezienia git, HOME do configu/creds); dokładamy tylko
+    // GIT_TERMINAL_PROMPT=0, by git nie wisiał na interaktywnym prompcie o hasło.
+    const gitEnv = { ...process.env, GIT_TERMINAL_PROMPT: '0' };
+    // Async execFile — NIE blokuje event-loopu Express (push bywa wolny). Mirror wzorca exec()
+    // używanego w pipeline deployu.
+    const git = (args) => new Promise((resolve, reject) => {
+      execFile('git', args, { cwd: REPO_ROOT, timeout: 60000, env: gitEnv }, (err, stdout) => {
+        if (err) reject(err); else resolve(stdout);
+      });
+    });
+
+    await git(['add', '--', ...files]);
+    // `git diff --cached --quiet` → exit 0 gdy BRAK zmian, exit 1 gdy są (rzuca err.code===1).
+    let hasStaged = false;
+    try {
+      await git(['diff', '--cached', '--quiet']);
+    } catch (diffErr) {
+      if (diffErr && diffErr.code === 1) hasStaged = true; else throw diffErr;
+    }
+    if (!hasStaged) {
+      console.log(`[Git] Brak zmian do commitu dla ${lang}/${slug} — pomijam`);
+      return;
+    }
+    await git(['commit', '-m', `feat(content): autopilot ${lang}/${slug}`]);
+    console.log(`[Git] Commit OK: ${lang}/${slug}`);
+    try {
+      await git(['push', 'origin', 'HEAD']);
+      console.log(`[Git] Push OK: ${lang}/${slug}`);
+    } catch (pushErr) {
+      console.warn(`[Git] Push nie powiódł się (non-fatal, commit lokalny zachowany): ${String(pushErr.message || pushErr).slice(0, 200)}`);
+    }
+  } catch (err) {
+    console.warn(`[Git] Auto-commit nie powiódł się (non-fatal): ${String(err.message || err).slice(0, 200)}`);
+  }
+}
+
 async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDate = null }) {
   const finalDate = normalizeDateOnly(publishedDate) || new Date().toISOString().slice(0, 10);
   syncPublishedFrontmatterDate(lang, slug, finalDate);
@@ -5266,6 +5328,10 @@ async function finalizeSuccessfulPublication({ lang, keyword, slug, publishedDat
   } catch (sitemapErr) {
     console.error(`[Publish] Sitemap resubmit failed: ${sitemapErr.message}`);
   }
+
+  // Auto-commit + push wpisu do gita (po udanym deployu) — żeby treść autopilota nie
+  // zostawała untracked/niepushowana. Non-fatal: nie wpływa na już-opublikowany wpis.
+  await gitCommitAndPushPost(lang, slug);
 
   return { articleUrl, finalDate };
 }
