@@ -61,7 +61,7 @@ function getLangName(lang) { return LANG_NAMES[lang] || lang; }
 // (jednostkowo testowane). Wzorzec NIE może zawierać U+0022 w klasach ć/í — patrz tam.
 const { PATHOLOGICAL_RE, hasBrokenEncoding, recoverMojibake } = require('./tools/mojibake');
 // Alert "cicha śmierć autopilota" — N kolejnych runów bez publikacji (patrz tools/autopilot-health.js)
-const { countConsecutiveFailures, shouldAlert } = require('./tools/autopilot-health');
+const { countConsecutiveFailures, shouldAlert, isStalledDisabled, shouldAlertDisabled } = require('./tools/autopilot-health');
 
 // Sanityzacja keywordów/topiców przed wysłaniem do Claude API:
 // próbuje odzyskać mojibake. Zwraca clean string albo null (caller powinien
@@ -4870,6 +4870,22 @@ function findNextBatch(cal) {
   return batch;
 }
 
+// Ile keywordów wciąż czeka w kolejce (status 'scheduled'), niezależnie od daty/języka.
+// Pozwala odróżnić "kolejka NAPRAWDĘ pusta" od "batch pusty, bo oba języki już dziś
+// publikowały (skipLangs)" — patrz bug 2026-06-04/05, gdzie ten drugi przypadek mylnie
+// wyłączał autopilota (auto_enabled=false) mimo pełnej kolejki.
+function countScheduledRemaining(cal) {
+  let n = 0;
+  for (const cluster of (cal.clusters || [])) {
+    for (const lang of Object.keys(cluster.keywords || {})) {
+      for (const kw of cluster.keywords[lang]) {
+        if (kw.status === 'scheduled') n++;
+      }
+    }
+  }
+  return n;
+}
+
 function updateKeywordStatus(cal, lang, keyword, updates) {
   for (const cluster of cal.clusters) {
     const kwList = cluster.keywords[lang];
@@ -6110,10 +6126,29 @@ function startCalendarScheduler() {
   } catch (e) {
     console.error('[Calendar Scheduler] Recovery failed:', e.message);
   }
+  let lastDisabledAlertAt = null; // closure — przeżywa kolejne ticki schedulera (anti-spam)
   const schedulerCheck = async () => {
     try {
       const cal = loadCalendar();
-      if (!cal.auto_enabled) return;
+      if (!cal.auto_enabled) {
+        // Siatka bezpieczeństwa: autopilot wyłączony, ale w kolejce wciąż są keywordy →
+        // "ciche stanie". To INNY tryb awarii niż kolejne porażki: tu scheduler nie wykonuje
+        // runu i nie loguje go, więc alert per-run (countConsecutiveFailures) tego NIE wykryje.
+        try {
+          const remaining = countScheduledRemaining(cal);
+          const now = Date.now();
+          if (isStalledDisabled(cal.auto_enabled, remaining) && shouldAlertDisabled(lastDisabledAlertAt, now)) {
+            lastDisabledAlertAt = now;
+            showNotification(
+              '⚠️ Autopilot WYŁĄCZONY — kolejka nie pusta',
+              `auto_enabled=false, ale ${remaining} keywordów czeka w kolejce — scheduler stoi. Włącz: POST /api/calendar/auto-toggle {enabled:true} albo w Studio.`,
+              'http://localhost:4000'
+            );
+            console.warn(`[Calendar Scheduler] ALERT: auto wyłączony przy ${remaining} scheduled w kolejce`);
+          }
+        } catch (e) { console.error('[Calendar Scheduler] disabled-state alert failed:', e.message); }
+        return;
+      }
       if (!cal.next_run) return;
       if (calendarProgress && calendarProgress.status === 'running') return;
 
@@ -6226,9 +6261,20 @@ function startCalendarScheduler() {
       // Trigger batch (1 per language)
       const batch = findNextBatch(cal);
       if (batch.length === 0) {
-        console.log('[Calendar Scheduler] No keywords in queue, disabling auto');
-        cal.auto_enabled = false;
-        saveCalendar(cal);
+        // ROOT CAUSE (bug 2026-06-04/05): batch bywa pusty z DWÓCH powodów —
+        //  (a) kolejka NAPRAWDĘ pusta (0 scheduled) → słusznie wyłączyć auto,
+        //  (b) oba języki już dziś publikowały (skipLangs), a kolejka pełna → to stan
+        //      PRZEJŚCIOWY, jutro ruszy dalej. Wcześniej oba przypadki wyłączały auto,
+        //      przez co po catch-upie (pl+en w jednym dniu) autopilot cicho umierał.
+        // Wyłączamy WYŁĄCZNIE w przypadku (a).
+        const remaining = countScheduledRemaining(cal);
+        if (remaining === 0) {
+          console.log('[Calendar Scheduler] Queue empty (0 scheduled) — disabling auto');
+          cal.auto_enabled = false;
+          saveCalendar(cal);
+        } else {
+          console.log(`[Calendar Scheduler] Batch empty but ${remaining} scheduled remain (langs done today) — keeping auto ON`);
+        }
         return;
       }
 

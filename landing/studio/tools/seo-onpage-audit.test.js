@@ -301,6 +301,13 @@ check('autopilot-health: sukces na końcu zeruje licznik', ah.countConsecutiveFa
 check('autopilot-health: alert dokładnie na progu (3)', ah.shouldAlert(2) === false && ah.shouldAlert(3) === true);
 check('autopilot-health: anti-spam między progiem a repeat', ah.shouldAlert(4) === false && ah.shouldAlert(5) === false);
 check('autopilot-health: przypomnienie co ALERT_REPEAT (9, 15)', ah.shouldAlert(9) === true && ah.shouldAlert(15) === true);
+// 21b. autopilot-health — drugi tryb awarii: WYŁĄCZONY przy niepustej kolejce (bug 06-04/05)
+check('autopilot-health: wyłączony + kolejka pełna = stalled', ah.isStalledDisabled(false, 9) === true);
+check('autopilot-health: wyłączony + kolejka pusta = NIE stalled', ah.isStalledDisabled(false, 0) === false);
+check('autopilot-health: włączony nigdy nie jest stalled', ah.isStalledDisabled(true, 9) === false);
+check('autopilot-health: pierwszy alert o wyłączeniu zawsze (lastAlertAt=null)', ah.shouldAlertDisabled(null, 1000) === true);
+check('autopilot-health: alert-disabled anti-spam w cooldownie', ah.shouldAlertDisabled(1000, 1000 + 3600 * 1000) === false);
+check('autopilot-health: alert-disabled ponawia po cooldownie (6h)', ah.shouldAlertDisabled(0, ah.DISABLED_ALERT_COOLDOWN_MS) === true);
 
 console.log(`\n${fail === 0 ? '✅' : '❌'} ${pass} passed, ${fail} failed`);
 process.exit(fail === 0 ? 0 : 1);

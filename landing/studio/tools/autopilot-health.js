@@ -40,4 +40,28 @@ function shouldAlert(count, threshold = FAIL_THRESHOLD, repeat = ALERT_REPEAT) {
   return count === threshold || (count - threshold) % repeat === 0;
 }
 
-module.exports = { FAIL_THRESHOLD, ALERT_REPEAT, isTotalFailure, countConsecutiveFailures, shouldAlert };
+const DISABLED_ALERT_COOLDOWN_MS = 6 * 3600 * 1000; // 6h między przypomnieniami o wyłączonym autopilocie
+
+// Drugi tryb awarii (oprócz kolejnych porażek): autopilot WYŁĄCZONY (auto_enabled=false),
+// mimo że w kolejce wciąż są zaplanowane keywordy. Scheduler robi wtedy `return` na starcie
+// i NIE loguje runu → alert per-run (countConsecutiveFailures) go NIE złapie. Geneza:
+// 2026-06-04/06-05 — bug w findNextBatch wyłączał auto, gdy batch był pusty tylko dlatego,
+// że oba języki już dziś publikowały (a kolejka pełna). Ten predykat to siatka bezpieczeństwa
+// na każdą przyczynę (bug, ręczne wyłączenie) — woła alert zamiast cichego stania.
+function isStalledDisabled(autoEnabled, scheduledRemaining) {
+  return autoEnabled === false && scheduledRemaining > 0;
+}
+
+// Anti-spam dla alertu o wyłączonym autopilocie: scheduler tika co ~1h, więc bez cooldownu
+// alarmowałby co godzinę. Pierwszy alert zawsze, potem nie częściej niż co `cooldownMs`.
+// Czas wstrzykiwany (now/lastAlertAt jako ms) → czyste i testowalne.
+function shouldAlertDisabled(lastAlertAt, now, cooldownMs = DISABLED_ALERT_COOLDOWN_MS) {
+  if (lastAlertAt == null) return true;
+  return (now - lastAlertAt) >= cooldownMs;
+}
+
+module.exports = {
+  FAIL_THRESHOLD, ALERT_REPEAT, DISABLED_ALERT_COOLDOWN_MS,
+  isTotalFailure, countConsecutiveFailures, shouldAlert,
+  isStalledDisabled, shouldAlertDisabled,
+};
